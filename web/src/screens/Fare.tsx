@@ -43,7 +43,7 @@ function Azioni() {
   return (
     <>
       {lista.length === 0 && <Empty>Nessuna attività aperta.</Empty>}
-      {lista.map(({ item, punteggio }) => {
+      {lista.map(({ item, punteggio }, pos) => {
         const d = dueDate(item);
         const scaduta = isOverdue(item, oggi);
         return (
@@ -53,6 +53,7 @@ function Azioni() {
             meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${item.sforzoMin} min` : undefined].filter(Boolean).join(' · ')}
             right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
             level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
+            rank={pos + 1}
             light={item.stato === 'parcheggiato'}
             onCheck={() => completaVoce(item)}
             selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}

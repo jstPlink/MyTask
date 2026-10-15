@@ -117,6 +117,13 @@ export function Oggi() {
 
   const dovePianificata = (id: string) => piano?.giorni.flatMap((g) => g.blocchi).find((x) => x.item.id === id && !x.fisso);
   const nomeGiorno = (d: string) => (d === addDays(oggi, 1) ? 'domani' : formatLong(d).toLowerCase());
+  // posizione in classifica dei blocchi del giorno mostrato (per priorità, gli impegni con orario fisso non contano)
+  const classifica = new Map<string, number>(
+    (piano?.giorni.find((x) => x.data === giorno)?.blocchi ?? [])
+      .filter((x) => !x.fisso)
+      .sort((x, y) => score(y.item, oggi) - score(x.item, oggi))
+      .map((x, n) => [x.item.id, n + 1] as [string, number]),
+  );
   const bloccoRiga = (bl: NonNullable<typeof piano>['giorni'][number]['blocchi'][number]) => (
     <Row
       key={`${bl.item.id}-${bl.da}`}
@@ -125,6 +132,7 @@ export function Oggi() {
       meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? `${bl.padre.titolo} · prossimo passo` : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined].filter(Boolean).join(' · ') || undefined}
       right={bl.inRitardo ? <span className="piano-avviso">oltre la scadenza</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
       level={barLevel(score(bl.item, oggi))}
+      rank={bl.fisso ? undefined : classifica.get(bl.item.id)}
       onCheck={() => completaVoce(bl.item)}
       selected={nav.openId === bl.item.id}
       onOpen={() => nav.push({ k: 'item', id: bl.item.id })}
@@ -217,8 +225,9 @@ export function Oggi() {
             <span className="muted">›</span>
           </button>
           {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Intrattenimento».</div>}
-          {v.fare.map((e) => (
+          {v.fare.map((e, pos) => (
             <Row
+              rank={pos + 1}
               key={e.item.id}
               titolo={e.item.titolo}
               meta={meta(e)}

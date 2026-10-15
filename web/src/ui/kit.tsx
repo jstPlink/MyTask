@@ -30,6 +30,8 @@ export interface RowProps {
   /** Colonna a sinistra del titolo, per l'orario nel piano della giornata. */
   ora?: ReactNode;
   level?: 1 | 2 | 3;
+  /** Posizione in classifica (1 = la prima da fare): numero colorato a destra, nel colore del livello. */
+  rank?: number;
   check?: 'circle' | 'square' | 'none';
   done?: boolean;
   light?: boolean;
@@ -39,7 +41,7 @@ export interface RowProps {
   onOpen?: () => void;
 }
 
-export function Row({ titolo, meta, right, ora, level, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, ora, level, rank, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
       {check !== 'none' && (
@@ -60,6 +62,7 @@ export function Row({ titolo, meta, right, ora, level, check = 'circle', done, l
         {meta && <div className="t2">{meta}</div>}
       </div>
       {right && <div className="right">{right}</div>}
+      {rank !== undefined && <span className="rank" aria-label={`Posizione ${rank}`}>{rank}</span>}
     </>
   );
   const cls = clsx('row', level && `p${level}`, selected && 'sel');

@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.18.0
+- **Versione documento:** 0.19.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -92,6 +92,7 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 
 ### 2.3.1 Tag area e calendario (implementato)
 
+- **Stile delle righe (J):** ogni riga con priorità ha lo sfondo che sfuma dal colore del livello (arancio-rosso = alta, ambra = media, grigio = bassa), il checkbox bordato dello stesso colore e, a destra, il numero d'ordine colorato (1 = la prima da fare). Il numero è la posizione per punteggio nell'elenco delle attività, tra i blocchi del giorno nel piano di Oggi (gli impegni con orario fisso non lo hanno) e nella lista semplice di Oggi. Le liste di Intrattenimento ed Esperienze hanno colore e checkbox ma non il numero.
 - **Tag e area:** tolti dall'interfaccia (nessuna pillola sulle righe, nessun filtro per area; il campo `area` resta solo nei dati).
 - **Oggi a sezioni:** Routine, Piano di oggi, Non entrano oggi, Nei prossimi giorni e Prossimi 7 giorni sono schede separate e distanziate. Toccando un giorno in "Nei prossimi giorni" si apre quel giorno. Nella vista giorno si scorre con lo swipe (a sinistra il giorno dopo, a destra quello prima; non scatta sullo scorrimento verticale o sui filtri scorrevoli). La navigazione tra giorni è un riquadro unico con le frecce ai lati.
 - **Giorno e mese in Oggi:** Oggi è un'unica pagina. Di default mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro), con il selettore Giorno/Mese si apre il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza rigida o scaduta): toccando un giorno si torna alla vista giorno su quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine, Revisione e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
@@ -403,3 +404,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.16.0 | Pulsanti della scheda in fila; film senza consigliato da, con chi e durata; gioco con durata in ore; libro con pagine cercate online (Open Library); scheda attiva della barra in basso con sfondo su icona e testo; nuovi mockup del peso dell'importanza (locali, `07-peso-importanza-altre.html`) |
 | 2026-10-15 | 0.17.0 | Checklist e passi solo per i progetti (con ripristino dalle note); Oggi a sezioni separate, giorni successivi apribili, swipe tra i giorni e navigazione incapsulata; titoli più leggibili con tag e orario; nuovi mockup tra G e F per l'importanza (locali, `08-peso-importanza-g-f.html`) |
 | 2026-10-15 | 0.18.0 | Tolti tag e area dalle righe e dai filtri; Esperienze in un solo elenco senza raggruppamento per luogo; feedback aptico ridotto del 30% (plugin Android `HapticaPlugin`) |
+| 2026-10-15 | 0.19.0 | Stile J per le righe: sfondo sfumato nel colore del livello, checkbox colorato, numero d'ordine a destra (sezione 2.3.1) |

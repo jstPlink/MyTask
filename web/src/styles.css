@@ -12,6 +12,7 @@
   --warn: #D1430B; --warn-soft: #FDEBE2; --shadow: 0 6px 20px rgba(30,30,40,.10); --on-accent: #FFFFFF;
   --accent: var(--accent-l); --accent-soft: var(--accent-soft-l);
   --o-verde: #2F7D5B; --o-petrolio: #0E7490; --o-indaco: #4F46E5;
+  --amber: #B7791F; --amber-soft: #FBEBD0;
   --c1: #2F7D5B; --c1s: #E3F1EA; --c2: #9A5B0B; --c2s: #FBEBD0; --c3: #4F46E5; --c3s: #ECEBFD; --c4: #B03A6E; --c4s: #FADFEB; --c5: #0E7490; --c5s: #DDF1F6;
 }
 :root[data-theme=dark] {
@@ -20,6 +21,7 @@
   --warn: #FF9466; --warn-soft: #3A2218; --shadow: 0 6px 24px rgba(0,0,0,.55); --on-accent: #0E0F12;
   --accent: var(--accent-d); --accent-soft: var(--accent-soft-d);
   --o-verde: #6FCF9B; --o-petrolio: #4FC3DD; --o-indaco: #9A9EFF;
+  --amber: #F0B866; --amber-soft: #3A2C14;
   --c1: #6FCF9B; --c1s: #17332A; --c2: #F0B866; --c2s: #3A2C14; --c3: #9A9EFF; --c3s: #25274F; --c4: #F08DB8; --c4s: #3D1B2B; --c5: #4FC3DD; --c5s: #12323B;
 }
 
@@ -49,9 +51,6 @@ a { color: var(--accent); }
 
 .sec { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); margin: 18px 0 2px; display: flex; justify-content: space-between; font-weight: 600; }
 .row { display: flex; gap: 11px; align-items: flex-start; padding: 11px 0 11px 11px; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; width: 100%; }
-.row.p3 { border-left-color: var(--accent); }
-.row.p2 { border-left-color: color-mix(in srgb, var(--accent) 42%, transparent); }
-.row.p1 { border-left-color: var(--line); }
 .row .grow { flex: 1; min-width: 0; }
 .cb { width: 22px; height: 22px; flex: none; border: 1.8px solid var(--soft); border-radius: 50%; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--on-accent); }
 .cb.sq { border-radius: 6px; }
@@ -379,3 +378,18 @@ a { color: var(--accent); }
 .row .line { flex-wrap: wrap; row-gap: 4px; }
 .row .line .t1 { flex: 1 1 130px; min-width: 0; overflow-wrap: break-word; }
 .piano-ora { width: 50px; }
+
+/* ---------- Stile J: riga sfumata nel colore del livello, checkbox colorato, numero d'ordine a destra ---------- */
+.row.p3 { --c: var(--warn); --cs: var(--warn-soft); }
+.row.p2 { --c: var(--amber); --cs: var(--amber-soft); }
+.row.p1 { --c: var(--soft); --cs: var(--surface2); }
+.row.p1, .row.p2, .row.p3 { background: linear-gradient(90deg, var(--cs), transparent 85%); border-left: 0; padding: 12px 14px; align-items: center; margin: 0 -18px; width: calc(100% + 36px); }
+.gruppo .row.p1, .gruppo .row.p2, .gruppo .row.p3 { margin: 0 -14px; width: calc(100% + 28px); }
+.row.p1 .cb, .row.p2 .cb, .row.p3 .cb { border-color: var(--c); margin-top: 0; }
+.row.p1 .cb.done, .row.p2 .cb.done, .row.p3 .cb.done { background: var(--c); border-color: var(--c); }
+.row .rank { flex: none; min-width: 30px; height: 30px; padding: 0 7px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 14px; background: var(--c, var(--surface2)); color: #fff; }
+.row.p1 .rank { background: var(--surface2); color: var(--mid); }
+:root[data-theme=dark] .row.p2 .rank, :root[data-theme=dark] .row.p3 .rank { color: #1c1c21; }
+.shell .row.p1, .shell .row.p2, .shell .row.p3 { margin: 0; width: 100%; padding-left: 14px; }
+.shell .gruppo .row.p1, .shell .gruppo .row.p2, .shell .gruppo .row.p3 { margin: 0 -14px; width: calc(100% + 28px); }
+.row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }
