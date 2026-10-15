@@ -133,9 +133,16 @@ export function listaAzioni(items: Item[], today: string, area?: string, now: nu
   const aree = live(items).filter((i) => i.tipo === 'azione' && !i.padreId && !i.inbox && isOpen(i));
   const inRevisione = new Set(revisione(items, today, now).map((v) => v.item.id));
   return aree
-    .filter((i) => !inRevisione.has(i.id) && (!area || i.area === area))
+    .filter((i) => !inRevisione.has(i.id) && !parcheggiata(i) && (!area || i.area === area))
     .map((i) => ({ item: i, punteggio: score(i, today, now) }))
-    .sort((a, b) => Number(parcheggiata(a.item)) - Number(parcheggiata(b.item)) || b.punteggio - a.punteggio);
+    .sort((a, b) => b.punteggio - a.punteggio);
+}
+
+/** Voci messe da parte ("Da parte"), le più recenti prima. */
+export function daParte(items: Item[]): Item[] {
+  return live(items)
+    .filter((i) => parcheggiata(i) && i.tipo !== 'persona')
+    .sort((a, b) => b.aggiornato - a.aggiornato);
 }
 
 export function areeUsate(items: Item[]): string[] {

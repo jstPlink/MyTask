@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.13.0
+- **Versione documento:** 0.14.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -37,7 +37,7 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 | Area | Contenuto | Origine in Notion |
 |---|---|---|
 | **Oggi** | Cose da fare oggi, scadenze imminenti, routine, voci scadute da rivedere | Nuovo |
-| **Azioni** | Burocrazia, casa, digitale, salute, lavoro, ecc. | Type "Admin" |
+| **Attività** | Burocrazia, casa, digitale, salute, lavoro, ecc. | Type "Admin" |
 | **Progetti** | Obiettivi con sotto-attività e avanzamento | Voci con figli |
 | **Esperienze** | Cose da fare fuori casa, eventi, uscite, luoghi | Type "Attività" |
 | **Routine** | Abitudini quotidiane o settimanali | Voci come dieta o attività fisica |
@@ -49,9 +49,9 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 
 ### 2.1 Navigazione (telefono)
 
-- **Quattro schede in basso** con icona (Oggi, Attività, Scoprire, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
-- **Attività** (prima "Fare") contiene tre sezioni: Azioni, Progetti ed Esperienze.
-- **Scoprire** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette) e le Curiosità.
+- **Quattro schede in basso** con icona (Oggi, Attività, Intrattenimento, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
+- **Attività** (prima "Fare") contiene tre sezioni: Attività, Progetti ed Esperienze.
+- **Intrattenimento** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette) e le Curiosità.
 - **Inbox** e **Altro** sono i due pulsanti tondi in alto a destra in "Oggi". Altro apre: Inbox, Revisione, Archivio, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza rigida.
 
@@ -82,7 +82,7 @@ Layout identico ai mockup minimalisti, con questi cambi:
 
 Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
 
-- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Azioni/Progetti/Esperienze, Scoprire con le sette collezioni, Routine; "Da sistemare": Inbox e Revisione con contatori; Archivio, Persone, Luoghi; Aspetto, Notifiche, Account; versione e stato di sincronizzazione). I gruppi Fare e Scoprire si aprono solo quando sono attivi. I selettori a schede di Fare e Scoprire spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
+- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sette collezioni, Routine; "Da sistemare": Inbox e Revisione con contatori; Archivio, Persone, Luoghi; Aspetto, Notifiche, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
 - **Da 1300 px:** il dettaglio si apre in un pannello a destra e la voce aperta è evidenziata nell'elenco.
 - **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca e "+ Nuova voce" (il tipo segue la sezione in cui si è).
 - **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, nelle persone, nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
@@ -111,8 +111,16 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 ### 2.4 Telefono: icone e pulsanti circolari (implementato)
 
-- **Icone** per le sezioni principali (Oggi: sole; Fare: spunta in un quadrato; Scoprire: bussola; Routine: frecce che si ripetono), nella barra in basso con un'evidenziazione tonda sulla scheda attiva, e nella barra laterale del sito.
+- **Icone** per le sezioni principali (Oggi: sole; Fare: spunta in un quadrato; Intrattenimento: bussola; Routine: frecce che si ripetono), nella barra in basso con un'evidenziazione tonda sulla scheda attiva, e nella barra laterale del sito.
 - **Inbox e Altro** in "Oggi" sono ora due pulsanti tondi da 46 px, più facili da toccare: Inbox con un contatore (se ci sono idee da smistare) e Altro con tre pallini.
+
+### 2.4.1 Scheda di una voce, tipi e stato (implementato)
+
+- **Tipo accorpato:** nella scelta del tipo ci sono Attività, Progetto, Esperienza, Routine, Intrattenimento, Ricetta e Curiosità. Scegliendo Intrattenimento compare sotto una seconda scelta "Sezione" (Film, Serie, Anime, Gioco, Libro). Sotto il cofano i tipi restano quelli di prima.
+- **Niente stato da scegliere:** ogni voce nuova è "da fare". In fondo alla scheda ci sono "Segna come fatto", "Metti da parte" ed "Elimina". Le voci messe da parte stanno in **Altro > Da parte** (non compaiono più nelle liste) e si rimettono in gioco aprendole ("Rimetti in gioco").
+- **Gruppo Intrattenimento:** per film, serie, anime, giochi e libri un solo gruppo unisce interesse, piattaforma, consigliato da, con chi, durata e genere (per le ricette il gruppo si chiama Ricetta).
+- **Voto e commento:** segnando come fatto un film, un libro, un gioco o simili (dal segno di spunta o dal pulsante) si apre "Com'è andata?" con il voto da 1 a 10 e un commento facoltativo; confermando la voce risulta fatta quel giorno. Non esiste più la sezione "Dopo averlo fatto". Voto e commento si vedono nel gruppo "Completata".
+- **Link e documenti:** per ora tolti dalla scheda (il campo resta nei dati).
 
 ### 2.5 Feedback aptico e animazioni (implementato)
 
@@ -151,7 +159,7 @@ Un'unica tabella **Elemento** (`shared/types.ts`) con un campo `tipo`. Sul serve
 
 ### Conversione dal vecchio Priority (per l'import)
 
-| Notion | Azioni → importanza | Collezioni → interesse |
+| Notion | Attività → importanza | Collezioni → interesse |
 |---|---|---|
 | Very high | 5 | 5 |
 | High | 4 | 4 |
@@ -200,7 +208,7 @@ Una riga di testo (o dettatura) crea una voce. Esempio: "Titolo di un film, me l
 
 - L'app interpreta subito la riga **senza IA** (tipo, titolo, piattaforma, chi l'ha consigliato, con chi, data come "domani"); se c'è connessione e la chiave Gemini è configurata sul server, l'IA affina la proposta; se non risponde resta quella locale.
 - Si vede la proposta in una scheda di conferma: **Salva** o **Modifica**.
-- Se il tipo è incerto la voce va in **Inbox**, da smistare con un tocco (Azione, Esperienza, Film, Serie, Gioco, Libro, Curiosità).
+- Se il tipo è incerto la voce va in **Inbox**, da smistare con un tocco (Attività, Esperienza, Film, Serie, Gioco, Libro, Curiosità).
 - Se esiste già una voce con lo stesso titolo (senza badare a maiuscole, accenti e apostrofi) l'app lo segnala e propone di aprire quella.
 - Le persone nominate (consigliato da, con chi) vengono create da sole se non esistono.
 - Offline funziona solo l'interpretazione locale; le voci si sincronizzano al ritorno della rete.
@@ -290,7 +298,7 @@ Una sola volta, dal CSV esportato, con lo script `server/scripts/import-notion.t
 
 1. Lettura del CSV (430 righe).
 2. Unione dei duplicati (10 nomi).
-3. Smistamento dei tipi con regole esplicite (sezione 4.9): Video → Film/Serie/Anime; voci "Info" che sono film o giochi → tipo giusto; "Attività" → Azioni, Progetti, Routine o Esperienze; "Admin" tecnici → Azioni; parole come progetto o routine da elenchi.
+3. Smistamento dei tipi con regole esplicite (sezione 4.9): Video → Film/Serie/Anime; voci "Info" che sono film o giochi → tipo giusto; "Attività" → Attività, Progetti, Routine o Esperienze; "Admin" tecnici → Attività; parole come progetto o routine da elenchi.
 4. Estrazione dalle note: piattaforma, consigliato da, con chi, genere, link ripuliti dai parametri di tracciamento.
 5. Conversione di priorità (importanza o interesse), stati e date; orari che diventano scadenza rigida; ricostruzione dei padri e dei figli (sotto-task o checklist).
 6. Le 26 voci con data passata e non fatte finiscono in Revisione, perché la data è scaduta da più di due giorni.
@@ -329,7 +337,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | Parte | Stato |
 |---|---|
 | Server: login, sessioni, limite ai tentativi, CORS per l'app, sincronizzazione, esportazione JSON, versione, copia giornaliera | Fatto, con test; in funzione sul NAS |
-| App web: Oggi, Fare (azioni, progetti, esperienze), Scoprire (6 collezioni e curiosità), Routine, Inbox, Revisione, Archivio, Persone, Luoghi, Cosa guardo stasera, ricerca, editor completo, Aspetto, Notifiche, Account | Fatta, provata nel browser su dati reali importati |
+| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Revisione, Archivio, Persone, Luoghi, Cosa guardo stasera, ricerca, editor completo, Aspetto, Notifiche, Account | Fatta, provata nel browser su dati reali importati |
 | Layout per schermi larghi (barra laterale, pannello di dettaglio, cruscotto, griglia della routine, scorciatoie N, /, Esc) | Fatto e provato nel browser a 1440, 1100 e 375 px |
 | Uso offline: modifiche in coda e sincronizzazione al ritorno della rete | Provato in locale |
 | Importazione da Notion con report e caricamento da file nell'app | Fatta; il caricamento nell'app è provato in locale |
@@ -378,3 +386,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.12.1 | Tolto il Calendario da Attività e il selettore Elenco/Calendario: Oggi è una pagina sola, con la giornata a orari, frecce per cambiare giorno e vista Mese per spostarsi rapidamente (sezione 2.3.1) |
 | 2026-10-15 | 0.12.2 | Targhette delle aree tutte della stessa larghezza (96 px). Inbox: ogni voce è una scheda con bordo e si smista aprendola; tolte le etichette di smistamento rapido. Scheda di una voce: Tipo e Stato sono tendine con icona e colore per ogni voce; i campi sono raggruppati in schede (Voce, Quando, Priorità, Interesse, Persone e link, Checklist, Note). Verificata la cronologia del tasto indietro: voce, scheda, Oggi, uscita dall'app |
 | 2026-10-15 | 0.13.0 | Feedback aptico leggero sui tocchi ai pulsanti e animazioni (sezione 2.5). Comprende le modifiche della 0.12.2 (Inbox a schede, tendine con icone, gruppi nella scheda di una voce, targhette di larghezza uguale) |
+| 2026-10-15 | 0.14.0 | "Scoprire" diventa "Intrattenimento"; il tipo "Azione" diventa "Attività" ovunque. Tipi accorpati sotto Intrattenimento con seconda scelta; stato non più scelto, con "Metti da parte" e la sezione Altro > Da parte; gruppo Intrattenimento unico; finestra del voto e del commento al segno di fatto; tolti "Link e documenti". Più spazio tra titolo, selettore, filtri ed elenco nelle schede (sezione 2.4.1) |

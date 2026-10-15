@@ -1,29 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NOMI_FASCIA, NOMI_TIPO, type Fascia, type Item, type Promemoria, type Ricorrenza, type Stato, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
+import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Ricorrenza, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { dueDate, score } from '../../../shared/priority.ts';
 import { avanzamento, figli, nomiPersone, prossimoPasso, zoneUsate } from '../../../shared/views.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useItems } from '../lib/hooks.ts';
-import { assicuraPersone, completaVoce, nuovaVoce } from '../lib/actions.ts';
+import { assicuraPersone, completaVoce, nuovaVoce, riapriVoce } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { Back, DotsPick, Field, Gruppo, Row, Scelta, Sec, Toggle, Top } from '../ui/kit.tsx';
-import { BadgeStato, BadgeTipo } from '../ui/Icone.tsx';
+import { BadgeTipo } from '../ui/Icone.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx, newId } from '../lib/util.ts';
 
-const TIPI_SCELTA: Tipo[] = ['azione', 'progetto', 'esperienza', 'film', 'serie', 'anime', 'gioco', 'libro', 'ricetta', 'curiosita', 'routine'];
+type GruppoTipo = 'azione' | 'progetto' | 'esperienza' | 'routine' | 'intrattenimento' | 'ricetta' | 'curiosita' | 'persona';
+const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita'];
+const NOMI_GRUPPO: Record<GruppoTipo, string> = {
+  azione: NOMI_TIPO.azione, progetto: NOMI_TIPO.progetto, esperienza: NOMI_TIPO.esperienza, routine: NOMI_TIPO.routine,
+  intrattenimento: 'Intrattenimento', ricetta: NOMI_TIPO.ricetta, curiosita: NOMI_TIPO.curiosita, persona: NOMI_TIPO.persona,
+};
+const IS_INTRATT = (t: Tipo) => TIPI_INTRATTENIMENTO.includes(t);
+const gruppoDi = (t: Tipo): GruppoTipo => (IS_INTRATT(t) ? 'intrattenimento' : (t as GruppoTipo));
 const IS_AZIONE = (t: Tipo) => t === 'azione' || t === 'progetto';
 const IS_DATATO = (t: Tipo) => t === 'azione' || t === 'progetto' || t === 'esperienza';
 const IS_VIDEO = (t: Tipo) => t === 'film' || t === 'serie' || t === 'anime';
 const IS_COLLEZIONE = (t: Tipo) => IS_VIDEO(t) || t === 'gioco' || t === 'libro' || t === 'ricetta';
 const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'curiosita';
-
-const STATI: { id: Stato; nome: string }[] = [
-  { id: 'da_fare', nome: 'Da fare' }, { id: 'in_corso', nome: 'In corso' }, { id: 'fatto', nome: 'Fatto' },
-  { id: 'saltato', nome: 'Saltato' }, { id: 'parcheggiato', nome: 'Parcheggiato' },
-];
 
 const RICORRENZE: { id: string; nome: string; r?: Ricorrenza }[] = [
   { id: 'mai', nome: 'Mai' },
@@ -103,6 +105,16 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
   const fatte = checklist.filter((c) => c.fatto).length;
 
+  /** Salva subito lo stato indicato e torna indietro (per "Metti da parte" e "Rimetti in gioco"). */
+  const esci = (nuovo: Item, testo: string) => {
+    const statoPrima = d.stato;
+    salva(nuovo);
+    ref.current = nuovo;
+    setD(nuovo);
+    nav.pop();
+    mostraToast(testo, { label: 'Annulla', fn: () => saveItem({ ...nuovo, stato: statoPrima }) });
+  };
+
   const elimina = () => {
     if (!window.confirm(`Eliminare «${d.titolo || 'questa voce'}»?`)) return;
     ultimoSalvato.current = JSON.stringify(d);
@@ -139,11 +151,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
 
         <Gruppo>
           <Field label="Titolo"><input value={d.titolo} placeholder="Cosa?" autoFocus={!id} onChange={(e) => up({ titolo: e.target.value })} /></Field>
-          <Scelta label="Tipo" valore={t} onChange={cambiaTipo}
-            voci={(TIPI_SCELTA.includes(t) ? TIPI_SCELTA : [...TIPI_SCELTA, t]).map((x) => ({ id: x, nome: NOMI_TIPO[x], icona: <BadgeTipo tipo={x} /> }))} />
-          <Scelta label="Stato" valore={d.stato}
-            onChange={(st) => up({ stato: st, completatoIl: st === 'fatto' ? (d.completatoIl ?? oggi) : undefined })}
-            voci={STATI.map((x) => ({ id: x.id, nome: t === 'curiosita' && x.id === 'da_fare' ? 'Da approfondire' : x.nome, icona: <BadgeStato stato={x.id} /> }))} />
+          <Scelta label="Tipo" valore={gruppoDi(t)}
+            onChange={(g) => cambiaTipo(g === 'intrattenimento' ? (IS_INTRATT(t) ? t : 'film') : (g as Tipo))}
+            voci={(GRUPPI_TIPO.includes(gruppoDi(t)) ? GRUPPI_TIPO : [...GRUPPI_TIPO, gruppoDi(t)]).map((g) => ({ id: g, nome: NOMI_GRUPPO[g], icona: <BadgeTipo tipo={g === 'intrattenimento' ? 'film' : (g as Tipo)} /> }))} />
+          {IS_INTRATT(t) && (
+            <Scelta label="Sezione" valore={t} onChange={cambiaTipo}
+              voci={TIPI_INTRATTENIMENTO.map((x) => ({ id: x, nome: NOMI_TIPO[x], icona: <BadgeTipo tipo={x} /> }))} />
+          )}
         </Gruppo>
 
         {t === 'progetto' && (
@@ -221,7 +235,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
-        {HA_INTERESSE(t) && (
+        {HA_INTERESSE(t) && !IS_COLLEZIONE(t) && (
           <Gruppo titolo={t === 'esperienza' ? 'Interesse e luogo' : 'Interesse'}>
             <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
             {t === 'esperienza' && (
@@ -235,24 +249,15 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         )}
 
         {IS_COLLEZIONE(t) && (
-          <>
-            <Gruppo titolo="Dettagli">
+          <Gruppo titolo={IS_INTRATT(t) ? 'Intrattenimento' : NOMI_TIPO[t]}>
+            <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
             {IS_VIDEO(t) && <Field label="Piattaforma"><input list="piattaforme" value={d.piattaforma ?? ''} placeholder="es. Netflix" onChange={(e) => up({ piattaforma: e.target.value || undefined })} /></Field>}
             <datalist id="piattaforme">{piattaforme.map((p) => <option key={p} value={p} />)}</datalist>
             <Field label="Consigliato da"><input list="persone" value={d.consigliatoDa ?? ''} onChange={(e) => up({ consigliatoDa: e.target.value || undefined })} /></Field>
             <Field label="Con chi"><input list="persone" value={d.conChi ?? ''} onChange={(e) => up({ conChi: e.target.value || undefined })} /></Field>
             {(IS_VIDEO(t) || t === 'gioco') && <Field label="Durata (minuti)"><input inputMode="numeric" value={d.durataMin ?? ''} onChange={(e) => up({ durataMin: Number(e.target.value.replace(/\D/g, '')) || undefined })} /></Field>}
             <Field label="Genere"><input value={d.genere ?? ''} onChange={(e) => up({ genere: e.target.value || undefined })} /></Field>
-            </Gruppo>
-            <Gruppo titolo="Dopo averlo fatto">
-            <Field label="Fatto il"><input type="date" value={d.completatoIl ?? ''} onChange={(e) => up({ completatoIl: e.target.value || undefined, stato: e.target.value ? 'fatto' : d.stato })} /></Field>
-            <Field label="Voto">
-              <select value={d.voto ?? ''} onChange={(e) => up({ voto: e.target.value ? Number(e.target.value) : undefined })}>
-                <option value="">Nessuno</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => <option key={v} value={v}>{v} / 10</option>)}
-              </select>
-            </Field>
-            </Gruppo>
-          </>
+          </Gruppo>
         )}
 
         {t === 'routine' && (
@@ -272,26 +277,15 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
-        <Gruppo titolo={t === 'routine' ? 'Link' : 'Persone e link'}>
-          {t !== 'routine' && (
-            <>
-              <Sec a="Persone" />
-              <div className="chips" style={{ marginTop: 4 }}>
-                {(d.persone ?? []).map((p) => <button key={p} className="chip on" aria-label={`Togli ${p}`} onClick={() => up({ persone: (d.persone ?? []).filter((x) => x !== p) })}>{p} ✕</button>)}
-              </div>
-              <AggiungiRiga placeholder="Aggiungi una persona" lista="persone" onAdd={(n) => up({ persone: [...new Set([...(d.persone ?? []), n])] })} />
-              <datalist id="persone">{persone.map((p) => <option key={p} value={p} />)}</datalist>
-            </>
-          )}
-          <Sec a="Link e documenti" />
-          {(d.link ?? []).map((l, i) => (
-            <div key={l} className="field">
-              <a href={l} target="_blank" rel="noreferrer" style={{ overflowWrap: 'anywhere', flex: 1 }}>{l.replace(/^https?:\/\//, '').slice(0, 60)}</a>
-              <button aria-label="Togli il link" className="chip" onClick={() => up({ link: (d.link ?? []).filter((_, j) => j !== i) })}>✕</button>
+        {t !== 'routine' && (
+          <Gruppo titolo="Persone">
+            <div className="chips" style={{ marginTop: 4 }}>
+              {(d.persone ?? []).map((p) => <button key={p} className="chip on" aria-label={`Togli ${p}`} onClick={() => up({ persone: (d.persone ?? []).filter((x) => x !== p) })}>{p} ✕</button>)}
             </div>
-          ))}
-          <AggiungiRiga placeholder="Incolla un link (anche a Seafile)" onAdd={aggiungiLink} />
-        </Gruppo>
+            <AggiungiRiga placeholder="Aggiungi una persona" lista="persone" onAdd={(n) => up({ persone: [...new Set([...(d.persone ?? []), n])] })} />
+            <datalist id="persone">{persone.map((p) => <option key={p} value={p} />)}</datalist>
+          </Gruppo>
+        )}
 
         {t !== 'persona' && (
           <Gruppo titolo={`Checklist${checklist.length ? ` · ${fatte}/${checklist.length}` : ''}`}>
@@ -310,7 +304,25 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           <textarea className="textarea" value={d.note ?? ''} placeholder="Appunti" onChange={(e) => up({ note: e.target.value || undefined })} />
         </Gruppo>
 
-        {getItem(d.id) && <div className="btns col" style={{ marginTop: 22 }}><button className="btn danger" onClick={elimina}>Elimina</button></div>}
+        {d.stato === 'fatto' && (
+          <Gruppo titolo="Completata">
+            <div className="field"><span>Fatta il</span><span>{d.completatoIl ? formatShortYear(d.completatoIl, oggi) : '—'}</span></div>
+            {d.voto !== undefined && <div className="field"><span>Voto</span><span>{d.voto} / 10</span></div>}
+            {d.commento && <div className="t2" style={{ padding: '10px 0 12px', whiteSpace: 'pre-wrap' }}>{d.commento}</div>}
+          </Gruppo>
+        )}
+
+        {getItem(d.id) && (
+          <div className="btns col" style={{ marginTop: 18 }}>
+            {d.stato === 'fatto'
+              ? <button className="btn solid" onClick={() => { riapriVoce(d); nav.pop(); }}>Riapri</button>
+              : t !== 'routine' && t !== 'persona' && d.stato !== 'parcheggiato' && <button className="btn solid" onClick={() => { salva(d); completaVoce(getItem(d.id) ?? d); }}>Segna come fatto</button>}
+            {d.stato === 'parcheggiato'
+              ? <button className="btn" onClick={() => esci({ ...d, stato: 'da_fare' }, 'Rimessa in gioco')}>Rimetti in gioco</button>
+              : d.stato !== 'fatto' && <button className="btn" onClick={() => esci({ ...d, stato: 'parcheggiato' }, 'Messa da parte')}>Metti da parte</button>}
+            <button className="btn danger" onClick={elimina}>Elimina</button>
+          </div>
+        )}
       </div>
     </>
   );

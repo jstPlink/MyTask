@@ -9,7 +9,7 @@ import { useNav, type SubFare } from '../ui/nav.tsx';
 import { mapsUrl } from '../lib/util.ts';
 
 const SUB: { id: SubFare; nome: string }[] = [
-  { id: 'azioni', nome: 'Azioni' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
+  { id: 'azioni', nome: 'Attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
 ];
 
 export function Fare() {
@@ -45,7 +45,7 @@ function Azioni() {
   return (
     <>
       {aree.length > 0 && <Chips scroll voci={['Tutte', ...aree]} attivo={area} onChange={setArea} />}
-      {lista.length === 0 && <Empty>Nessuna azione aperta.</Empty>}
+      {lista.length === 0 && <Empty>Nessuna attività aperta.</Empty>}
       {lista.map(({ item, punteggio }) => {
         const d = dueDate(item);
         const scaduta = isOverdue(item, oggi);

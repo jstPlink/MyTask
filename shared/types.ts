@@ -8,10 +8,12 @@ export type Tipo =
 
 export const TIPI_AZIONE: Tipo[] = ['azione', 'progetto', 'esperienza'];
 export const TIPI_COLLEZIONE: Tipo[] = ['film', 'serie', 'anime', 'gioco', 'libro', 'ricetta'];
+/** Tipi raggruppati sotto "Intrattenimento" nella scelta del tipo. */
+export const TIPI_INTRATTENIMENTO: Tipo[] = ['film', 'serie', 'anime', 'gioco', 'libro'];
 export const TIPI_VIDEO: Tipo[] = ['film', 'serie', 'anime'];
 
 export const NOMI_TIPO: Record<Tipo, string> = {
-  azione: 'Azione', progetto: 'Progetto', esperienza: 'Esperienza', routine: 'Routine',
+  azione: 'Attività', progetto: 'Progetto', esperienza: 'Esperienza', routine: 'Routine',
   film: 'Film', serie: 'Serie', anime: 'Anime', gioco: 'Gioco', libro: 'Libro', ricetta: 'Ricetta',
   curiosita: 'Curiosità', persona: 'Persona',
 };
@@ -81,6 +83,8 @@ export interface Item {
   durataMin?: number;
   genere?: string;
   voto?: number;
+  /** Commento lasciato quando si segna come fatto un film, un libro, un gioco… */
+  commento?: string;
   completatoIl?: string;
 
   // routine

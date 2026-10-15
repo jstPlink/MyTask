@@ -28,7 +28,7 @@ export function Scoprire() {
 
   return (
     <>
-      <Top title="Scoprire" sub={`${lista.length} ${sub === 'curiosita' ? 'da approfondire' : 'da fare'}`} />
+      <Top title="Intrattenimento" sub={`${lista.length} ${sub === 'curiosita' ? 'da approfondire' : 'da fare'}`} />
       <div className="scroll">
         <Seg nav voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setPiattaforma('Tutte'); }} />
         {video && piattaforme.length > 0 && <Chips scroll voci={['Tutte', ...piattaforme]} attivo={piattaforma} onChange={setPiattaforma} />}
@@ -51,7 +51,7 @@ export function Scoprire() {
               level={sub === 'curiosita' ? undefined : interesse >= 4 ? 3 : interesse === 3 ? 2 : 1}
               check="square"
               light={interesse <= 1 && sub !== 'curiosita'}
-              onCheck={() => completaVoce(i, { apri: () => nav.push({ k: 'item', id: i.id }) })}
+              onCheck={() => completaVoce(i)}
               selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })}
             />
           );

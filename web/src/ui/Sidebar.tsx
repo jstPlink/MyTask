@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Tipo } from '../../../shared/types.ts';
-import { collezione, curiosita, inbox, listaAzioni, listaEsperienze, listaProgetti, revisione, vistaOggi } from '../../../shared/views.ts';
+import { collezione, curiosita, inbox, listaAzioni, listaEsperienze, listaProgetti, revisione, vistaOggi, daParte } from '../../../shared/views.ts';
 import { useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { clsx } from '../lib/util.ts';
 import { VERSIONE } from '../version.ts';
@@ -16,7 +16,7 @@ function Link({ nome, on, sub, main, n, warn, icona, onClick }: { nome: string; 
   );
 }
 
-const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Azioni' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }];
+const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }];
 const SUB_SCOPRIRE: { id: SubScoprire; nome: string }[] = [
   { id: 'film', nome: 'Film' }, { id: 'serie', nome: 'Serie' }, { id: 'anime', nome: 'Anime' }, { id: 'gioco', nome: 'Giochi' },
   { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' }, { id: 'curiosita', nome: 'Curiosità' },
@@ -40,6 +40,7 @@ export function Sidebar() {
       film: per('film'), serie: per('serie'), anime: per('anime'), gioco: per('gioco'), libro: per('libro'), ricetta: per('ricetta'),
       curiosita: curiosita(items).length,
       inbox: inbox(items).length,
+      daparte: daParte(items).length,
       revisione: revisione(items, oggi).length,
     } as Record<string, number>;
   }, [items, oggi]);
@@ -68,7 +69,7 @@ export function Sidebar() {
         </div>
       )}
 
-      <Link main nome="Scoprire" icona="scoprire" on={inTab('scoprire') && !subVisibili('scoprire')} onClick={() => apriTab('scoprire')} />
+      <Link main nome="Intrattenimento" icona="scoprire" on={inTab('scoprire') && !subVisibili('scoprire')} onClick={() => apriTab('scoprire')} />
       {nav.tab === 'scoprire' && !schermata && (
         <div className="sb-subs">
           {SUB_SCOPRIRE.map((s) => <Link key={s.id} sub nome={s.nome} n={n[s.id]} on={inTab('scoprire') && nav.scoprireSub === s.id} onClick={() => apriScoprire(s.id)} />)}
@@ -85,6 +86,7 @@ export function Sidebar() {
 
       <div className="sb-group">
         <div className="sb-sec">Altro</div>
+        <Link nome="Da parte" n={n.daparte} on={scr('daparte')} onClick={() => vai({ k: 'daparte' })} />
         <Link nome="Archivio" on={scr('archivio')} onClick={() => vai({ k: 'archivio' })} />
         <Link nome="Persone" on={scr('persone') || scr('persona')} onClick={() => vai({ k: 'persone' })} />
         <Link nome="Luoghi" on={scr('luoghi')} onClick={() => vai({ k: 'luoghi' })} />

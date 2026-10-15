@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { NOMI_TIPO, type Item, type Tipo } from '../../../shared/types.ts';
 import { addDays, formatShortYear, monthKey, monthLabel, relativeDays, today } from '../../../shared/dates.ts';
 import { dueDate } from '../../../shared/priority.ts';
-import { archivio, dataChiusura, inbox, luoghi, persone, revisione, zoneUsate } from '../../../shared/views.ts';
+import { daParte, archivio, dataChiusura, inbox, luoghi, persone, revisione, zoneUsate } from '../../../shared/views.ts';
 import { suggerisciStasera, type Durata } from '../../../shared/stasera.ts';
 import { useAspetto, useAuth, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, nuovaVoce, ripianifica, saltaVoce } from '../lib/actions.ts';
@@ -29,6 +29,7 @@ export function Altro() {
   const nInbox = useMemo(() => inbox(items).length, [items]);
   const nRev = useMemo(() => revisione(items, oggi).length, [items, oggi]);
   const nArch = useMemo(() => archivio(items).length, [items]);
+  const nParte = useMemo(() => daParte(items).length, [items]);
   const voce = (nome: string, valore: string | number | undefined, k: Parameters<typeof nav.push>[0]) => (
     <button className="field link" onClick={() => nav.push(k)}><b style={{ fontWeight: 620 }}>{nome}</b><span className="muted">{valore !== undefined ? `${valore} ›` : '›'}</span></button>
   );
@@ -39,6 +40,7 @@ export function Altro() {
       <div className="scroll">
         {voce('Inbox', nInbox ? `${nInbox} da smistare` : 'vuota', { k: 'inbox' })}
         {voce('Revisione', nRev, { k: 'revisione' })}
+        {voce('Da parte', nParte || undefined, { k: 'daparte' })}
         {voce('Archivio', nArch, { k: 'archivio' })}
         {voce('Persone', undefined, { k: 'persone' })}
         {voce('Luoghi', undefined, { k: 'luoghi' })}
@@ -72,6 +74,32 @@ export function Inbox() {
             <span className="inbox-testo">
               <span className="t1">{i.titolo}</span>
               <span className="t2" style={{ display: 'block' }}>{[i.piattaforma, i.consigliatoDa && `consigliato da ${i.consigliatoDa}`, i.note].filter(Boolean).join(' · ') || 'Apri per smistare'}</span>
+            </span>
+            <span className="muted" aria-hidden="true">›</span>
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ------------------------------------------------------------------ Da parte
+
+export function DaParte() {
+  const nav = useNav();
+  const items = useItems();
+  const lista = useMemo(() => daParte(items), [items]);
+  return (
+    <>
+      <Back label="Altro" />
+      <Top title="Da parte" sub={`${lista.length} ${lista.length === 1 ? 'voce messa da parte' : 'voci messe da parte'}`} />
+      <div className="scroll">
+        {lista.length === 0 && <Empty>Qui finiscono le voci che metti da parte. Aprine una per rimetterla in gioco.</Empty>}
+        {lista.map((i) => (
+          <button key={i.id} className="inbox-voce" onClick={() => nav.push({ k: 'item', id: i.id })}>
+            <span className="inbox-testo">
+              <span className="t1">{i.titolo}</span>
+              <span className="t2" style={{ display: 'block' }}>{[NOMI_TIPO[i.tipo], i.area ?? i.zona].filter(Boolean).join(' · ')}</span>
             </span>
             <span className="muted" aria-hidden="true">›</span>
           </button>
@@ -150,7 +178,7 @@ export function Revisione() {
 // ------------------------------------------------------------------ Archivio
 
 const FILTRI_ARCHIVIO: Record<string, Tipo[] | undefined> = {
-  Tutto: undefined, Film: ['film'], Serie: ['serie'], Anime: ['anime'], Libri: ['libro'], Giochi: ['gioco'], Azioni: ['azione', 'progetto', 'esperienza'],
+  Tutto: undefined, Film: ['film'], Serie: ['serie'], Anime: ['anime'], Libri: ['libro'], Giochi: ['gioco'], Attività: ['azione', 'progetto', 'esperienza'],
 };
 
 export function Archivio() {
@@ -362,7 +390,7 @@ export function Stasera() {
   useEffect(() => setSalta(0), [durata, conChi, piattaforma]);
   return (
     <>
-      <Back label="Scoprire" />
+      <Back label="Intrattenimento" />
       <Top title="Stasera" />
       <div className="scroll">
         <Sec a="Quanto tempo hai?" />

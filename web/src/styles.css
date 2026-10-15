@@ -341,3 +341,17 @@ a { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; }
 }
+
+/* ---------- Spazi nelle schede con selettore, filtri ed elenco ---------- */
+.scroll > .seg, .scroll > div > .seg { margin: 16px 0 14px; }
+.scroll > .chips { margin: 4px 0 16px; }
+.scroll > .seg + .chips { margin-top: 0; }
+.scroll > .card.strong.tap { margin-bottom: 14px; }
+.top { padding-bottom: 12px; }
+
+/* ---------- Finestra del voto ---------- */
+.rec-testa { display: flex; align-items: center; gap: 12px; }
+.rec-voti { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.rec-voto { height: 44px; border-radius: 12px; background: var(--surface2); font-weight: 650; font-size: 16px; text-align: center; }
+.rec-voto.on { background: var(--accent); color: var(--on-accent); }
+.rec-voto:active { transform: scale(.94); }

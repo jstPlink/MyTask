@@ -136,7 +136,7 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 const TAB_NOMI: { id: Tab; nome: string }[] = [
-  { id: 'oggi', nome: 'Oggi' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Scoprire' }, { id: 'routine', nome: 'Routine' },
+  { id: 'oggi', nome: 'Oggi' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Intrattenimento' }, { id: 'routine', nome: 'Routine' },
 ];
 
 export function TabBar() {

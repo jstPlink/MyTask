@@ -7,6 +7,7 @@ import { figli, nomiPersone } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
 import { mostraToast } from './toast.ts';
 import { newId } from './util.ts';
+import { chiediRecensione } from './recensione.ts';
 
 export function nuovaVoce(p: Partial<Item> & { tipo: Tipo; titolo: string }): Item {
   const now = Date.now();
@@ -28,7 +29,11 @@ export function assicuraPersone(item: Pick<Item, 'consigliatoDa' | 'conChi' | 'p
 }
 
 /** Spunta una voce. Offre "Annulla" e, se era l'ultimo passo di un progetto, di chiudere il progetto. */
-export function completaVoce(item: Item, opzioni: { apri?: () => void } = {}) {
+const TIPI_CON_VOTO = new Set<Tipo>(['film', 'serie', 'anime', 'gioco', 'libro', 'ricetta']);
+
+export function completaVoce(item: Item) {
+  // film, serie, libri, giochi…: prima si chiede il voto e un commento, poi si segna come fatto
+  if (TIPI_CON_VOTO.has(item.tipo) && !item.ricorrenza) { chiediRecensione(item); return; }
   const oggi = today();
   const prima = item;
   const dopo = completa(item, oggi, Date.now());
@@ -44,8 +49,6 @@ export function completaVoce(item: Item, opzioni: { apri?: () => void } = {}) {
   }
   if (item.ricorrenza) {
     mostraToast(`Fatto · prossima ${formatShort(dopo.fine ?? dopo.inizio ?? oggi)}`, { label: 'Annulla', fn: () => saveItem(prima) });
-  } else if (['film', 'serie', 'anime', 'libro', 'gioco', 'ricetta'].includes(item.tipo) && opzioni.apri) {
-    mostraToast('Segnato come fatto', { label: 'Aggiungi voto', fn: opzioni.apri }, 7000);
   } else {
     mostraToast('Fatto', { label: 'Annulla', fn: () => saveItem(prima) });
   }

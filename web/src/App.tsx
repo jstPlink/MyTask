@@ -17,7 +17,8 @@ import { ItemDetail } from './screens/ItemDetail.tsx';
 import { Capture } from './screens/Capture.tsx';
 import { Login } from './screens/Login.tsx';
 import { TempoLibero } from './screens/TempoLibero.tsx';
-import { Account, Altro, Archivio, Aspetto, Inbox, Luoghi, Notifiche, PersonaDetail, Persone, Revisione, Stasera } from './screens/Secondarie.tsx';
+import { RecensioneSheet } from './ui/Recensione.tsx';
+import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Luoghi, Notifiche, PersonaDetail, Persone, Revisione, Stasera } from './screens/Secondarie.tsx';
 
 interface Posizione { tab: Tab; fareSub: SubFare; scoprireSub: SubScoprire }
 
@@ -28,6 +29,7 @@ function Schermata({ s }: { s: Screen }) {
     case 'inbox': return <Inbox />;
     case 'revisione': return <Revisione />;
     case 'archivio': return <Archivio />;
+    case 'daparte': return <DaParte />;
     case 'persone': return <Persone />;
     case 'persona': return <PersonaDetail id={s.id} />;
     case 'luoghi': return <Luoghi />;
@@ -160,6 +162,7 @@ export function App() {
           {top ? <Schermata key={chiaveSchermata(stack, top)} s={top} /> : tabScreen}
           <TabBar />
           {capture && <Capture />}
+          <RecensioneSheet />
           <ToastView />
         </div>
       </NavContext.Provider>
@@ -188,6 +191,7 @@ export function App() {
           </aside>
         )}
         {capture && <Capture />}
+        <RecensioneSheet />
         <ToastView />
       </div>
     </NavContext.Provider>
