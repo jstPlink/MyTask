@@ -1,0 +1,27 @@
+name: mytask
+
+services:
+  mytask:
+    build: .
+    image: mytask:latest
+    container_name: mytask
+    restart: unless-stopped
+    ports:
+      # Porta sul NAS (a cui punta il Cloudflare Tunnel). Cambiala con MYTASK_PORT nel file .env.
+      - "${MYTASK_PORT:-8787}:8787"
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+      TRUST_PROXY: "true"   # dietro Cloudflare Tunnel: legge l'IP reale per il limite ai tentativi di accesso
+    volumes:
+      # Il database vive in un volume Docker: parte con i permessi giusti (il container non gira come root).
+      - mytask-data:/data
+      # Facoltativo: copia di sicurezza quotidiana in una cartella sincronizzata da Seafile.
+      # Togli il commento, imposta BACKUP_DIR=/backup nel file .env e assegna la cartella all'utente 1000:
+      #   chown -R 1000:1000 /percorso/della/cartella
+      # - /percorso/della/cartella/seafile/mytask-backup:/backup
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  mytask-data:

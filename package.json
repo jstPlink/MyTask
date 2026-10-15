@@ -1,0 +1,22 @@
+{
+  "name": "mytask",
+  "version": "0.8.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev:server": "npm -w server run dev",
+    "dev:web": "npm -w web run dev",
+    "build": "npm -w web run build",
+    "start": "npm -w server run start",
+    "test": "node --test \"shared/**/*.test.ts\" \"server/src/**/*.test.ts\"",
+    "typecheck": "npm -w server run typecheck && npm -w web run typecheck",
+    "import:notion": "node server/scripts/import-notion.ts"
+  }
+}

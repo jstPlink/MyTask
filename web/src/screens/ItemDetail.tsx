@@ -1,0 +1,331 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { NOMI_FASCIA, NOMI_TIPO, type Fascia, type Item, type Promemoria, type Ricorrenza, type Stato, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
+import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
+import { dueDate, score } from '../../../shared/priority.ts';
+import { avanzamento, figli, nomiPersone, prossimoPasso, zoneUsate } from '../../../shared/views.ts';
+import { descriviRicorrenza } from '../../../shared/recurrence.ts';
+import { useItems } from '../lib/hooks.ts';
+import { assicuraPersone, completaVoce, nuovaVoce } from '../lib/actions.ts';
+import { getItem, removeItem, saveItem } from '../lib/store.ts';
+import { mostraToast } from '../lib/toast.ts';
+import { Back, DotsPick, Field, Row, Sec, Toggle, Top } from '../ui/kit.tsx';
+import { useNav } from '../ui/nav.tsx';
+import { clsx, newId } from '../lib/util.ts';
+
+const TIPI_SCELTA: Tipo[] = ['azione', 'progetto', 'esperienza', 'film', 'serie', 'anime', 'gioco', 'libro', 'ricetta', 'curiosita', 'routine'];
+const IS_AZIONE = (t: Tipo) => t === 'azione' || t === 'progetto';
+const IS_DATATO = (t: Tipo) => t === 'azione' || t === 'progetto' || t === 'esperienza';
+const IS_VIDEO = (t: Tipo) => t === 'film' || t === 'serie' || t === 'anime';
+const IS_COLLEZIONE = (t: Tipo) => IS_VIDEO(t) || t === 'gioco' || t === 'libro' || t === 'ricetta';
+const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'curiosita';
+
+const STATI: { id: Stato; nome: string }[] = [
+  { id: 'da_fare', nome: 'Da fare' }, { id: 'in_corso', nome: 'In corso' }, { id: 'fatto', nome: 'Fatto' },
+  { id: 'saltato', nome: 'Saltato' }, { id: 'parcheggiato', nome: 'Parcheggiato' },
+];
+
+const RICORRENZE: { id: string; nome: string; r?: Ricorrenza }[] = [
+  { id: 'mai', nome: 'Mai' },
+  { id: 'g1', nome: 'Ogni giorno', r: { ogni: 1, unita: 'giorni' } },
+  { id: 's1', nome: 'Ogni settimana', r: { ogni: 1, unita: 'settimane' } },
+  { id: 's2', nome: 'Ogni 2 settimane', r: { ogni: 2, unita: 'settimane' } },
+  { id: 'm1', nome: 'Ogni mese', r: { ogni: 1, unita: 'mesi' } },
+  { id: 'm3', nome: 'Ogni 3 mesi', r: { ogni: 3, unita: 'mesi' } },
+  { id: 'a1', nome: 'Ogni anno', r: { ogni: 1, unita: 'anni' } },
+];
+const idRicorrenza = (r?: Ricorrenza) => RICORRENZE.find((x) => x.r && r && x.r.ogni === r.ogni && x.r.unita === r.unita)?.id ?? (r ? `custom:${descriviRicorrenza(r)}` : 'mai');
+
+const PROMEMORIA_PRESET: { giorni: number; nome: string }[] = [
+  { giorni: 7, nome: '7 giorni prima' }, { giorni: 3, nome: '3 giorni prima' }, { giorni: 1, nome: '1 giorno prima' }, { giorni: 0, nome: 'Il giorno stesso' },
+];
+
+const SFORZI = [5, 15, 30, 60, 120, 240];
+const nomeSforzo = (m: number) => (m >= 60 ? `${m / 60} ${m === 60 ? 'ora' : 'ore'}` : `${m} min`);
+
+export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }) {
+  const nav = useNav();
+  const tutte = useItems();
+  const iniziale = useMemo<Item>(() => (id && getItem(id)) || nuovaVoce({ tipo: nuovo?.tipo ?? 'azione', titolo: '', ...nuovo }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [d, setD] = useState<Item>(iniziale);
+  const ultimoSalvato = useRef<string>(id && getItem(id) ? JSON.stringify(iniziale) : '');
+  const ref = useRef(d);
+  ref.current = d;
+
+  const salva = (x: Item) => {
+    if (!x.titolo.trim()) return;
+    const s = JSON.stringify(x);
+    if (s === ultimoSalvato.current) return;
+    assicuraPersone(x);
+    saveItem({ ...x, inbox: undefined }); // una voce modificata nell'editor è considerata smistata
+    ultimoSalvato.current = s;
+  };
+
+  // salvataggio automatico poco dopo ogni modifica, e all'uscita dalla schermata
+  useEffect(() => {
+    const t = setTimeout(() => salva(d), 500);
+    return () => clearTimeout(t);
+  }, [d]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => salva(ref.current), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const up = (p: Partial<Item>) => setD((x) => ({ ...x, ...p }));
+  const t = d.tipo;
+  const oggi = today();
+  const figliVoce = useMemo(() => (t === 'progetto' ? figli(tutte, d.id) : []), [tutte, t, d.id]);
+  const progetti = useMemo(() => tutte.filter((i) => i.tipo === 'progetto' && !i.eliminato && i.id !== d.id && i.stato !== 'fatto'), [tutte, d.id]);
+  const persone = useMemo(() => nomiPersone(tutte), [tutte]);
+  const zone = useMemo(() => zoneUsate(tutte), [tutte]);
+  const piattaforme = useMemo(() => [...new Set(tutte.map((i) => i.piattaforma).filter((x): x is string => !!x))], [tutte]);
+  const aree = useMemo(() => [...new Set(tutte.map((i) => i.area).filter((x): x is string => !!x))], [tutte]);
+  const puntegg = IS_AZIONE(t) ? score(withTemp(d), oggi) : undefined;
+  const due = dueDate(d);
+
+  function withTemp(x: Item): Item {
+    return x.padreId ? { ...x, importanza: x.importanza ?? getItem(x.padreId)?.importanza, fine: x.fine ?? (x.inizio ? undefined : getItem(x.padreId)?.fine) } : x;
+  }
+
+  const cambiaTipo = (nt: Tipo) => {
+    const p: Partial<Item> = { tipo: nt, inbox: undefined };
+    if (HA_INTERESSE(nt) && d.interesse === undefined) p.interesse = 3;
+    if (IS_AZIONE(nt) && d.importanza === undefined) p.importanza = 3;
+    if (nt === 'routine') { p.fascia = d.fascia ?? 'sera'; p.log = d.log ?? []; }
+    up(p);
+  };
+
+  const togglePromemoria = (giorni: number, on: boolean) => {
+    const lista = (d.promemoria ?? []).filter((p) => p.giorniPrima !== giorni);
+    if (on) lista.push({ giorniPrima: giorni, ora: '09:00' } satisfies Promemoria);
+    up({ promemoria: lista.length ? lista.sort((a, b) => b.giorniPrima - a.giorniPrima) : undefined });
+  };
+
+  const aggiungiLink = (url: string) => { const u = url.trim(); if (u) up({ link: [...(d.link ?? []), /^https?:\/\//i.test(u) ? u : `https://${u}`] }); };
+  const checklist = d.checklist ?? [];
+  const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
+  const fatte = checklist.filter((c) => c.fatto).length;
+
+  const elimina = () => {
+    if (!window.confirm(`Eliminare «${d.titolo || 'questa voce'}»?`)) return;
+    ultimoSalvato.current = JSON.stringify(d);
+    ref.current = { ...ref.current, titolo: '' }; // evita il salvataggio all'uscita
+    if (getItem(d.id)) {
+      const prima = getItem(d.id)!;
+      removeItem(d.id);
+      mostraToast('Eliminata', { label: 'Annulla', fn: () => saveItem(prima) });
+    }
+    nav.pop();
+  };
+
+  const pass = prossimoPasso(d, tutte);
+  const avanz = t === 'progetto' ? avanzamento(d, tutte) : undefined;
+
+  return (
+    <>
+      <Back label={nuovo && !id ? 'Annulla' : 'Indietro'} />
+      <Top
+        title={d.titolo || 'Nuova voce'}
+        sub={`${NOMI_TIPO[t]}${d.area ? ` · ${d.area}` : ''}`}
+        right={d.inbox ? <span className="badge">Da smistare</span> : undefined}
+      />
+      <div className="scroll">
+        <Field label="Titolo"><input value={d.titolo} placeholder="Cosa?" autoFocus={!id} onChange={(e) => up({ titolo: e.target.value })} /></Field>
+        <Field label="Tipo">
+          <select value={t} onChange={(e) => cambiaTipo(e.target.value as Tipo)}>
+            {TIPI_SCELTA.map((x) => <option key={x} value={x}>{NOMI_TIPO[x]}</option>)}
+            {!TIPI_SCELTA.includes(t) && <option value={t}>{NOMI_TIPO[t]}</option>}
+          </select>
+        </Field>
+        <Field label="Stato">
+          <select value={d.stato} onChange={(e) => {
+            const s = e.target.value as Stato;
+            up({ stato: s, completatoIl: s === 'fatto' ? (d.completatoIl ?? oggi) : undefined });
+          }}>
+            {STATI.map((s) => <option key={s.id} value={s.id}>{t === 'curiosita' && s.id === 'da_fare' ? 'Da approfondire' : s.nome}</option>)}
+          </select>
+        </Field>
+
+        {puntegg !== undefined && d.stato !== 'fatto' && (
+          <div className="card strong">
+            <div className="t2">Punteggio di priorità</div>
+            <div className="big">{puntegg}</div>
+            <div className="t2">
+              {due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'} · importanza {d.importanza ?? 3}{d.sforzoMin ? ` · ${nomeSforzo(d.sforzoMin)}` : ''}
+            </div>
+          </div>
+        )}
+
+        {t === 'progetto' && (
+          <>
+            {pass && <div className="card strong"><div className="t2">Prossimo passo</div><div className="t1" style={{ fontSize: 17 }}>{pass.titolo}</div></div>}
+            {avanz && avanz.totale > 0 && <><div className="bar"><i style={{ width: `${(avanz.fatti / avanz.totale) * 100}%` }} /></div><div className="t2">{avanz.fatti} su {avanz.totale} completati</div></>}
+            <Sec a="Sotto-task" b={figliVoce.length || undefined} />
+            {figliVoce.map((c) => (
+              <Row key={c.id} titolo={c.titolo} done={c.stato === 'fatto'} light={c.stato === 'fatto'} struck={c.stato === 'fatto'}
+                right={dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : null}
+                onCheck={() => c.stato === 'fatto' ? saveItem({ ...c, stato: 'da_fare', completatoIl: undefined }) : completaVoce(c)}
+                onOpen={() => nav.push({ k: 'item', id: c.id })} />
+            ))}
+            <AggiungiRiga placeholder="Aggiungi un sotto-task" onAdd={(txt) => {
+              if (!getItem(d.id)) salva({ ...d, titolo: d.titolo || 'Nuovo progetto' });
+              saveItem(nuovaVoce({ tipo: 'azione', titolo: txt, padreId: d.id }));
+            }} />
+          </>
+        )}
+
+        {IS_DATATO(t) && (
+          <>
+            <Sec a={t === 'esperienza' ? 'Quando e dove' : 'Quando'} />
+            <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: e.target.value ? d.rigida : undefined })} /></Field>
+            {d.inizio && <Field label="Fino al"><input type="date" min={d.inizio} value={d.fine ?? ''} onChange={(e) => up({ fine: e.target.value || undefined })} /></Field>}
+            {d.inizio && <Field label="Ora"><input type="time" value={d.oraInizio ?? ''} onChange={(e) => up({ oraInizio: e.target.value || undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>}
+            {d.oraInizio && <Field label="Fino alle"><input type="time" value={d.oraFine ?? ''} onChange={(e) => up({ oraFine: e.target.value || undefined })} /></Field>}
+            {d.inizio && <Field label="Scadenza rigida"><Toggle on={!!d.rigida} label="Scadenza rigida" onChange={(v) => up({ rigida: v || undefined })} /></Field>}
+            {IS_AZIONE(t) && (
+              <Field label="Ricorrenza">
+                <select value={idRicorrenza(d.ricorrenza)} onChange={(e) => up({ ricorrenza: RICORRENZE.find((r) => r.id === e.target.value)?.r })}>
+                  {RICORRENZE.map((r) => <option key={r.id} value={r.id}>{r.nome}</option>)}
+                  {d.ricorrenza && idRicorrenza(d.ricorrenza).startsWith('custom') && <option value={idRicorrenza(d.ricorrenza)}>{descriviRicorrenza(d.ricorrenza)}</option>}
+                </select>
+              </Field>
+            )}
+            {d.inizio && (
+              <>
+                <div className="t2" style={{ marginTop: 12 }}>Promemoria (alle 9:00)</div>
+                <div className="chips">
+                  {PROMEMORIA_PRESET.map((p) => {
+                    const on = (d.promemoria ?? []).some((x) => x.giorniPrima === p.giorni);
+                    return <button key={p.giorni} className={clsx('chip', on && 'on')} onClick={() => togglePromemoria(p.giorni, !on)}>{p.nome}</button>;
+                  })}
+                </div>
+                <Field label="Ripeti finché non spunto"><Toggle on={!!d.insisti} label="Ripeti il promemoria" onChange={(v) => up({ insisti: v ? { ogniMinuti: 60 } : undefined })} /></Field>
+                {d.insisti && (
+                  <Field label="Ogni">
+                    <select value={d.insisti.ogniMinuti} onChange={(e) => up({ insisti: { ogniMinuti: Number(e.target.value) } })}>
+                      <option value={30}>30 minuti</option><option value={60}>1 ora</option><option value={120}>2 ore</option><option value={240}>4 ore</option>
+                    </select>
+                  </Field>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {IS_AZIONE(t) && (
+          <>
+            <Sec a="Priorità" />
+            <Field label="Importanza"><DotsPick label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>
+            <Field label="Sforzo stimato">
+              <select value={d.sforzoMin ?? ''} onChange={(e) => up({ sforzoMin: e.target.value ? Number(e.target.value) : undefined })}>
+                <option value="">Non stimato</option>{SFORZI.map((m) => <option key={m} value={m}>{nomeSforzo(m)}</option>)}
+              </select>
+            </Field>
+            <Field label="Area"><input list="aree" value={d.area ?? ''} placeholder="es. Casa" onChange={(e) => up({ area: e.target.value || undefined })} /></Field>
+            <datalist id="aree">{aree.map((a) => <option key={a} value={a} />)}</datalist>
+          </>
+        )}
+        {t === 'azione' && progetti.length > 0 && (
+          <Field label="Progetto">
+            <select value={d.padreId ?? ''} onChange={(e) => up({ padreId: e.target.value || undefined })}>
+              <option value="">Nessuno</option>{progetti.map((p) => <option key={p.id} value={p.id}>{p.titolo}</option>)}
+            </select>
+          </Field>
+        )}
+
+        {HA_INTERESSE(t) && <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
+
+        {t === 'esperienza' && (
+          <>
+            <Field label="Zona"><input list="zone" value={d.zona ?? ''} placeholder="es. Toscana" onChange={(e) => up({ zona: e.target.value || undefined })} /></Field>
+            <datalist id="zone">{zone.map((z) => <option key={z} value={z} />)}</datalist>
+            <Field label="Link Google Maps"><input value={d.linkMaps ?? ''} placeholder="Incolla il link" onChange={(e) => up({ linkMaps: e.target.value || undefined })} /></Field>
+          </>
+        )}
+
+        {IS_COLLEZIONE(t) && (
+          <>
+            <Sec a="Dettagli" />
+            {IS_VIDEO(t) && <Field label="Piattaforma"><input list="piattaforme" value={d.piattaforma ?? ''} placeholder="es. Netflix" onChange={(e) => up({ piattaforma: e.target.value || undefined })} /></Field>}
+            <datalist id="piattaforme">{piattaforme.map((p) => <option key={p} value={p} />)}</datalist>
+            <Field label="Consigliato da"><input list="persone" value={d.consigliatoDa ?? ''} onChange={(e) => up({ consigliatoDa: e.target.value || undefined })} /></Field>
+            <Field label="Con chi"><input list="persone" value={d.conChi ?? ''} onChange={(e) => up({ conChi: e.target.value || undefined })} /></Field>
+            {(IS_VIDEO(t) || t === 'gioco') && <Field label="Durata (minuti)"><input inputMode="numeric" value={d.durataMin ?? ''} onChange={(e) => up({ durataMin: Number(e.target.value.replace(/\D/g, '')) || undefined })} /></Field>}
+            <Field label="Genere"><input value={d.genere ?? ''} onChange={(e) => up({ genere: e.target.value || undefined })} /></Field>
+            <Sec a="Dopo averlo fatto" />
+            <Field label="Fatto il"><input type="date" value={d.completatoIl ?? ''} onChange={(e) => up({ completatoIl: e.target.value || undefined, stato: e.target.value ? 'fatto' : d.stato })} /></Field>
+            <Field label="Voto">
+              <select value={d.voto ?? ''} onChange={(e) => up({ voto: e.target.value ? Number(e.target.value) : undefined })}>
+                <option value="">Nessuno</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => <option key={v} value={v}>{v} / 10</option>)}
+              </select>
+            </Field>
+          </>
+        )}
+
+        {t === 'routine' && (
+          <>
+            <Sec a="Routine" />
+            <Field label="Momento">
+              <select value={d.fascia ?? 'sera'} onChange={(e) => up({ fascia: e.target.value as Fascia })}>
+                {(Object.keys(NOMI_FASCIA) as Fascia[]).map((f) => <option key={f} value={f}>{NOMI_FASCIA[f]}</option>)}
+              </select>
+            </Field>
+            <Field label="Frequenza">
+              <select value={d.volteSettimana ?? 0} onChange={(e) => up({ volteSettimana: Number(e.target.value) || undefined })}>
+                <option value={0}>Ogni giorno</option>{[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} {n === 1 ? 'volta' : 'volte'} a settimana</option>)}
+              </select>
+            </Field>
+            <Field label="Obiettivo minimo"><input value={d.obiettivo ?? ''} placeholder="es. Leggere 10 minuti" onChange={(e) => up({ obiettivo: e.target.value || undefined })} /></Field>
+            <Field label="Promemoria alle"><input type="time" value={d.oraPromemoria ?? ''} onChange={(e) => up({ oraPromemoria: e.target.value || undefined })} /></Field>
+          </>
+        )}
+
+        {t !== 'routine' && (
+          <>
+            <Sec a="Persone" />
+            <div className="chips" style={{ marginTop: 4 }}>
+              {(d.persone ?? []).map((p) => <button key={p} className="chip on" aria-label={`Togli ${p}`} onClick={() => up({ persone: (d.persone ?? []).filter((x) => x !== p) })}>{p} ✕</button>)}
+            </div>
+            <AggiungiRiga placeholder="Aggiungi una persona" lista="persone" onAdd={(n) => up({ persone: [...new Set([...(d.persone ?? []), n])] })} />
+            <datalist id="persone">{persone.map((p) => <option key={p} value={p} />)}</datalist>
+          </>
+        )}
+
+        <Sec a="Link e documenti" />
+        {(d.link ?? []).map((l, i) => (
+          <div key={l} className="field">
+            <a href={l} target="_blank" rel="noreferrer" style={{ overflowWrap: 'anywhere', flex: 1 }}>{l.replace(/^https?:\/\//, '').slice(0, 60)}</a>
+            <button aria-label="Togli il link" className="chip" onClick={() => up({ link: (d.link ?? []).filter((_, j) => j !== i) })}>✕</button>
+          </div>
+        ))}
+        <AggiungiRiga placeholder="Incolla un link (anche a Seafile)" onAdd={aggiungiLink} />
+
+        {t !== 'persona' && (
+          <>
+            <Sec a={`Checklist${checklist.length ? ` · ${fatte}/${checklist.length}` : ''}`} />
+            {checklist.map((c) => (
+              <div key={c.id} className="row" style={{ alignItems: 'center' }}>
+                <button className={clsx('cb sq', c.fatto && 'done')} aria-label={`Segna «${c.testo}»`} onClick={() => setCheck(checklist.map((x) => x.id === c.id ? { ...x, fatto: !x.fatto } : x))} />
+                <div className={clsx('grow t1 light', c.fatto && 'struck')}>{c.testo}</div>
+                <button className="chip" aria-label="Togli la voce" onClick={() => setCheck(checklist.filter((x) => x.id !== c.id))}>✕</button>
+              </div>
+            ))}
+            <AggiungiRiga placeholder="Aggiungi alla checklist" onAdd={(txt) => setCheck([...checklist, { id: newId(), testo: txt, fatto: false }])} />
+          </>
+        )}
+
+        <Sec a="Note" />
+        <textarea className="textarea" value={d.note ?? ''} placeholder="Appunti" onChange={(e) => up({ note: e.target.value || undefined })} />
+
+        {getItem(d.id) && <div className="btns col" style={{ marginTop: 22 }}><button className="btn danger" onClick={elimina}>Elimina</button></div>}
+      </div>
+    </>
+  );
+}
+
+function AggiungiRiga({ placeholder, onAdd, lista }: { placeholder: string; onAdd: (v: string) => void; lista?: string }) {
+  const [v, setV] = useState('');
+  const invia = () => { const x = v.trim(); if (x) { onAdd(x); setV(''); } };
+  return (
+    <form className="field" onSubmit={(e) => { e.preventDefault(); invia(); }}>
+      <input list={lista} value={v} placeholder={placeholder} style={{ textAlign: 'left' }} onChange={(e) => setV(e.target.value)} />
+      <button type="submit" className="chip" disabled={!v.trim()}>Aggiungi</button>
+    </form>
+  );
+}

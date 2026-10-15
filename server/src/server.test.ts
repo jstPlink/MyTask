@@ -1,0 +1,123 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import type { Item } from '../../shared/types.ts';
+import { loadConfig } from './config.ts';
+import { Store } from './db.ts';
+import { buildApp } from './app.ts';
+import { validaProposta } from './ai.ts';
+
+const item = (id: string, aggiornato: number, extra: Partial<Item> = {}): Item => ({
+  id, tipo: 'azione', titolo: `Voce ${id}`, stato: 'da_fare', creato: 1, aggiornato, ...extra,
+});
+
+async function setup() {
+  const store = new Store(':memory:');
+  const config = loadConfig({ email: 'tu@example.com', password: 'una-password-lunga', webDir: '/nonexistent' });
+  const app = await buildApp({ config, store });
+  const login = async (password = 'una-password-lunga') => {
+    const r = await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'Tu@Example.com', password } });
+    return r;
+  };
+  return { app, store, login };
+}
+
+test('login: password corretta restituisce un token, errata no', async () => {
+  const { app, login } = await setup();
+  const ok = await login();
+  assert.equal(ok.statusCode, 200);
+  assert.ok(ok.json().token.length > 30);
+  assert.equal((await login('sbagliata')).statusCode, 401);
+  await app.close();
+});
+
+test('login: dopo troppi tentativi sbagliati arriva 429', async () => {
+  const { app, login } = await setup();
+  let ultimo = 0;
+  for (let i = 0; i < 10; i++) ultimo = (await login('no')).statusCode;
+  assert.equal(ultimo, 429);
+  await app.close();
+});
+
+test('sync: senza token è vietato', async () => {
+  const { app } = await setup();
+  const r = await app.inject({ method: 'POST', url: '/api/sync', payload: { since: 0, changes: [] } });
+  assert.equal(r.statusCode, 401);
+  await app.close();
+});
+
+test('sync: invia le modifiche e riceve quelle altrui; vince la più recente', async () => {
+  const { app, login } = await setup();
+  const token = (await login()).json().token as string;
+  const h = { authorization: `Bearer ${token}` };
+  const sync = async (since: number, changes: Item[]) =>
+    (await app.inject({ method: 'POST', url: '/api/sync', headers: h, payload: { since, changes } })).json() as { items: Item[]; seq: number };
+
+  const a = await sync(0, [item('a', 100), item('b', 100)]);
+  assert.equal(a.items.length, 2);
+  assert.equal(a.seq, 2);
+
+  // un altro dispositivo parte da zero e vede tutto
+  assert.equal((await sync(0, [])).items.length, 2);
+  // chi è già aggiornato non riceve nulla
+  assert.equal((await sync(a.seq, [])).items.length, 0);
+
+  // modifica più recente vince, più vecchia viene ignorata
+  await sync(a.seq, [item('a', 200, { titolo: 'Nuovo' })]);
+  await sync(0, [item('a', 150, { titolo: 'Vecchio' })]);
+  const tutte = (await sync(0, [])).items;
+  assert.equal(tutte.find((x) => x.id === 'a')?.titolo, 'Nuovo');
+
+  // le cancellazioni viaggiano come voci con eliminato = true
+  const d = await sync(0, [item('b', 300, { eliminato: true })]);
+  assert.equal(d.items.find((x) => x.id === 'b')?.eliminato, true);
+  await app.close();
+});
+
+test('sync: rifiuta voci malformate', async () => {
+  const { app, login } = await setup();
+  const token = (await login()).json().token as string;
+  const r = await app.inject({
+    method: 'POST', url: '/api/sync', headers: { authorization: `Bearer ${token}` },
+    payload: { since: 0, changes: [{ id: 'x' }] },
+  });
+  assert.equal(r.statusCode, 400);
+  await app.close();
+});
+
+test('IA: senza chiave risponde 503 e il client usa il ripiego locale', async () => {
+  const { app, login } = await setup();
+  const token = (await login()).json().token as string;
+  const r = await app.inject({ method: 'POST', url: '/api/ai/capture', headers: { authorization: `Bearer ${token}` }, payload: { text: 'Un film' } });
+  assert.equal(r.statusCode, 503);
+  await app.close();
+});
+
+test('IA: la risposta di Gemini viene validata', async () => {
+  const p = validaProposta({ tipo: 'inventato', titolo: '  Dune ', sicura: true, inizio: 'domani', piattaforma: '' });
+  assert.equal(p.tipo, 'curiosita');
+  assert.equal(p.titolo, 'Dune');
+  assert.equal(p.inizio, undefined);
+  assert.equal(p.sicura, false);
+  const q = validaProposta({ tipo: 'film', titolo: 'Dune', sicura: true, inizio: '2026-11-01', piattaforma: 'Netflix' });
+  assert.equal(q.tipo, 'film');
+  assert.equal(q.inizio, '2026-11-01');
+  assert.equal(q.sicura, true);
+});
+
+test('IA: con una chiave chiama Gemini e restituisce la proposta', async () => {
+  const store = new Store(':memory:');
+  const config = loadConfig({ email: 'tu@example.com', password: 'una-password-lunga', geminiKey: 'chiave-finta', webDir: '/nonexistent' });
+  let chiamata: { url: string; key: string | null } | undefined;
+  const finto = (async (url: string, init: RequestInit) => {
+    chiamata = { url, key: new Headers(init.headers).get('x-goog-api-key') };
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ tipo: 'film', titolo: 'Un film', piattaforma: 'Netflix', consigliatoDa: 'Mario', sicura: true }) }] } }] }));
+  }) as unknown as typeof fetch;
+  const app = await buildApp({ config, store, fetchFn: finto });
+  const token = (await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'tu@example.com', password: 'una-password-lunga' } })).json().token as string;
+  const r = await app.inject({ method: 'POST', url: '/api/ai/capture', headers: { authorization: `Bearer ${token}` }, payload: { text: 'Un film su Netflix da Mario' } });
+  assert.equal(r.statusCode, 200);
+  assert.equal(r.json().proposta.consigliatoDa, 'Mario');
+  assert.equal(chiamata?.key, 'chiave-finta');
+  assert.match(chiamata?.url ?? '', /generativelanguage\.googleapis\.com/);
+  await app.close();
+});

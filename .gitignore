@@ -1,0 +1,17 @@
+node_modules/
+dist/
+data/
+.env
+*.log
+.vite/
+
+# Dati personali: non vanno su GitHub
+*.csv
+items.json
+server/scripts/regole.locale.ts
+docs/report-importazione.md
+docs/01-setup-decisioni.md
+docs/mockups/
+
+# Progetto Android (in pausa)
+web/android/
