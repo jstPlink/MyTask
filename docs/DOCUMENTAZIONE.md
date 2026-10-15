@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.19.1
+- **Versione documento:** 0.20.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -94,7 +94,7 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 
 - **Stile delle righe (P1):** ogni riga con priorità ha il checkbox bordato nel colore del livello (arancio-rosso = alta, ambra = media, grigio = bassa) e, a destra, un pallino con contorno colorato e sfondo tenue che contiene il numero d'ordine (1 = la prima da fare), senza raggruppamenti né sfondi sulle righe. Il numero è la posizione per punteggio nell'elenco delle attività, tra i blocchi del giorno nel piano di Oggi (gli impegni con orario fisso non lo hanno) e nella lista semplice di Oggi. Le liste di Intrattenimento ed Esperienze hanno il checkbox colorato ma non il numero.
 - **Tag e area:** tolti dall'interfaccia (nessuna pillola sulle righe, nessun filtro per area; il campo `area` resta solo nei dati).
-- **Oggi a sezioni:** Routine, Piano di oggi, Non entrano oggi, Nei prossimi giorni e Prossimi 7 giorni sono schede separate e distanziate. Toccando un giorno in "Nei prossimi giorni" si apre quel giorno. Nella vista giorno si scorre con lo swipe (a sinistra il giorno dopo, a destra quello prima; non scatta sullo scorrimento verticale o sui filtri scorrevoli). La navigazione tra giorni è un riquadro unico con le frecce ai lati.
+- **Oggi a sezioni:** Routine, Piano di oggi, Non entrano oggi e Nei prossimi giorni (la vecchia lista "Prossimi 7 giorni" non c'è più) sono schede separate e distanziate. Toccando un giorno in "Nei prossimi giorni" si apre quel giorno. Nella vista giorno si scorre con lo swipe (a sinistra il giorno dopo, a destra quello prima; non scatta sullo scorrimento verticale o sui filtri scorrevoli). La navigazione tra giorni è un riquadro unico con le frecce ai lati.
 - **Giorno e mese in Oggi:** Oggi è un'unica pagina. Di default mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro), con il selettore Giorno/Mese si apre il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza rigida o scaduta): toccando un giorno si torna alla vista giorno su quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine, Revisione e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
 - **Stato di sincronizzazione:** in Oggi (telefono) compare solo se si è offline o ci sono modifiche in attesa; nella barra laterale del sito resta sempre visibile.
 - **Indietro:** la cronologia ricorda anche le schede e le sotto-sezioni visitate; il tasto indietro del telefono o del browser le ripercorre.
@@ -119,7 +119,7 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 ### 2.4.1 Scheda di una voce, tipi e stato (implementato)
 
 - **Tipo accorpato:** nella scelta del tipo ci sono Attività, Progetto, Esperienza, Routine, Intrattenimento, Ricetta e Curiosità. Scegliendo Intrattenimento compare sotto una seconda scelta "Sezione" (Film, Serie, Anime, Gioco, Libro). Sotto il cofano i tipi restano quelli di prima.
-- **Niente stato da scegliere:** ogni voce nuova è "da fare". In fondo alla scheda ci sono "Segna come fatto", "Metti da parte" ed "Elimina". Le voci messe da parte stanno in **Altro > Da parte** (non compaiono più nelle liste) e si rimettono in gioco aprendole ("Rimetti in gioco").
+- **Niente stato da scegliere:** ogni voce nuova è "da fare". In fondo alla scheda ci sono, nell'ordine, "Elimina", "Archivia" e "Completato". Le voci archiviate stanno in **Altro > Archiviate** (non compaiono più nelle liste) e si ripristinano aprendole ("Ripristina"). Non va confusa con l'**Archivio**, che raccoglie le voci completate.
 - **Gruppo Intrattenimento:** per film, serie, anime, giochi e libri un solo gruppo unisce interesse, piattaforma, consigliato da, con chi, durata e genere (per le ricette il gruppo si chiama Ricetta).
 - **Voto e commento:** segnando come fatto un film, un libro, un gioco o simili (dal segno di spunta o dal pulsante) si apre "Com'è andata?" con il voto da 1 a 10 e un commento facoltativo; confermando la voce risulta fatta quel giorno. Non esiste più la sezione "Dopo averlo fatto". Voto e commento si vedono nel gruppo "Completata".
 - **Link e documenti:** per ora tolti dalla scheda (il campo resta nei dati).
@@ -129,8 +129,9 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Ricetta:** solo Interesse e Genere, a scelta multipla tra Antipasto, Primo, Secondo, Contorno, Dolce, Piatto unico, Zuppa, Pane e lievitati, Bevanda (salvata come elenco separato da virgole in `genere`). Tolti Consigliato da e Con chi.
 - **Progetto con checklist:** solo i progetti hanno la checklist (gruppo "Checklist · X su Y", con barra di avanzamento): contiene le righe della checklist e i passi già esistenti (voci figlie), tutti spuntabili; si aggiungono righe di checklist con "Aggiungi un passo". Le checklist dei progetti già finite nelle note tornano nel campo da sole (`shared/migrazioni.ts`).
 - **Persone e checklist (altri tipi):** non si modificano più. All'avvio e a ogni sincronizzazione le voci che li hanno li vedono spostati nelle note (`web/src/lib/migrazioni.ts`), e i campi vengono svuotati.
+- **Cosa guardo stasera:** i filtri sono Con chi (Da solo, Con il partner, Con amici), Piattaforma (quelle già usate più Prime Video e Disney+), Mood (Spensierato, Rilassante, Emozionante, Intenso, Riflessivo), Energia che hai stasera (Bassa, Media, Alta) e Tipologia (Comico, Drammatico, Azione, Thriller, Horror, Fantascienza, Fantasy, Animazione, Documentario). Non c'è più "Quanto tempo hai?". I filtri spostano il punteggio senza escludere: le voci senza il dato restano neutre. Per film, serie e anime la scheda ha le scelte Tipologia (campo `genere`), Mood (`mood`) ed Energia richiesta (`energia`) (`shared/stasera.ts`).
 - **Intrattenimento per tipo:** il film ha Interesse, Piattaforma e Genere (niente Consigliato da, Con chi e Durata); serie e anime mantengono Consigliato da, Con chi e Durata in minuti; il gioco ha Durata in ore (salvata in minuti, per esempio 12,5 ore); il libro ha le **Pagine**, cercate online da sole su Open Library a partire dal titolo (al servizio esterno va solo il titolo; si possono correggere) (`web/src/lib/libri.ts`).
-- **Tre pulsanti in fila:** in fondo alla scheda "Segna come fatto", "Metti da parte" ed "Elimina" stanno uno accanto all'altro.
+- **Tre pulsanti in fila:** in fondo alla scheda "Elimina", "Archivia" e "Completato" stanno uno accanto all'altro.
 - **Barra in basso:** la scheda attiva ha lo sfondo che copre icona e testo.
 - **Rotazione:** l'app Android resta sempre in verticale (`screenOrientation` nel manifest).
 
@@ -406,3 +407,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.18.0 | Tolti tag e area dalle righe e dai filtri; Esperienze in un solo elenco senza raggruppamento per luogo; feedback aptico ridotto del 30% (plugin Android `HapticaPlugin`) |
 | 2026-10-15 | 0.19.0 | Stile J per le righe: sfondo sfumato nel colore del livello, checkbox colorato, numero d'ordine a destra (sezione 2.3.1) |
 | 2026-10-15 | 0.19.1 | Stile P1 al posto del J: checkbox colorato e pallino numerato con contorno a destra, righe senza sfondo colorato (sezione 2.3.1) |
+| 2026-10-15 | 0.20.0 | Pulsanti Elimina, Archivia, Completato (in quest'ordine); "Da parte" diventa "Archiviate"; tolti i "Prossimi 7 giorni" da Oggi; Cosa guardo stasera con Con chi (solo, partner, amici), piattaforme di base, mood, energia e tipologia al posto del tempo disponibile |

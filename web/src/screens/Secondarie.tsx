@@ -3,7 +3,7 @@ import { NOMI_TIPO, type Item, type Tipo } from '../../../shared/types.ts';
 import { addDays, formatShortYear, monthKey, monthLabel, relativeDays, today } from '../../../shared/dates.ts';
 import { dueDate } from '../../../shared/priority.ts';
 import { daParte, archivio, dataChiusura, inbox, luoghi, persone, revisione, zoneUsate } from '../../../shared/views.ts';
-import { suggerisciStasera, type Durata } from '../../../shared/stasera.ts';
+import { COMPAGNIE, ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE, suggerisciStasera, type Compagnia } from '../../../shared/stasera.ts';
 import { useAspetto, useAuth, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, nuovaVoce, ripianifica, saltaVoce } from '../lib/actions.ts';
 import { removeItem, saveBatch, saveItem, setAuth } from '../lib/store.ts';
@@ -40,7 +40,7 @@ export function Altro() {
       <div className="scroll">
         {voce('Inbox', nInbox ? `${nInbox} da smistare` : 'vuota', { k: 'inbox' })}
         {voce('Revisione', nRev, { k: 'revisione' })}
-        {voce('Da parte', nParte || undefined, { k: 'daparte' })}
+        {voce('Archiviate', nParte || undefined, { k: 'daparte' })}
         {voce('Archivio', nArch, { k: 'archivio' })}
         {voce('Persone', undefined, { k: 'persone' })}
         {voce('Luoghi', undefined, { k: 'luoghi' })}
@@ -92,9 +92,9 @@ export function DaParte() {
   return (
     <>
       <Back label="Altro" />
-      <Top title="Da parte" sub={`${lista.length} ${lista.length === 1 ? 'voce messa da parte' : 'voci messe da parte'}`} />
+      <Top title="Archiviate" sub={`${lista.length} ${lista.length === 1 ? 'voce archiviata' : 'voci archiviate'}`} />
       <div className="scroll">
-        {lista.length === 0 && <Empty>Qui finiscono le voci che metti da parte. Aprine una per rimetterla in gioco.</Empty>}
+        {lista.length === 0 && <Empty>Qui finiscono le voci che archivi. Aprine una per ripristinarla.</Empty>}
         {lista.map((i) => (
           <button key={i.id} className="inbox-voce" onClick={() => nav.push({ k: 'item', id: i.id })}>
             <span className="inbox-testo">
@@ -373,33 +373,47 @@ export function Notifiche() {
 
 // ------------------------------------------------------------------ Cosa guardo stasera
 
-const DURATE: { id: Durata; nome: string }[] = [{ id: 'breve', nome: '< 1h 30' }, { id: 'media', nome: '1h 30 - 2h' }, { id: 'lunga', nome: '2h+' }, { id: 'serie', nome: 'Serie' }];
-
 export function Stasera() {
   const nav = useNav();
   const items = useItems();
-  const [durata, setDurata] = useState<Durata>('media');
-  const [conChi, setConChi] = useState('Da solo');
+  const [compagnia, setCompagnia] = useState<Compagnia>('solo');
   const [piattaforma, setPiattaforma] = useState('Qualsiasi');
+  const [mood, setMood] = useState('Qualsiasi');
+  const [energia, setEnergia] = useState('Qualsiasi');
+  const [tipologia, setTipologia] = useState('Qualsiasi');
   const [salta, setSalta] = useState(0);
-  const compagni = useMemo(() => [...new Set(items.filter((i) => i.conChi && !i.eliminato).map((i) => i.conChi!))], [items]);
-  const piatt = useMemo(() => [...new Set(items.filter((i) => i.piattaforma && !i.eliminato).map((i) => i.piattaforma!))], [items]);
-  const s = useMemo(() => suggerisciStasera(items, { durata, conChi: conChi === 'Da solo' ? undefined : conChi, piattaforma: piattaforma === 'Qualsiasi' ? undefined : piattaforma }, 6), [items, durata, conChi, piattaforma]);
+  const piatt = useMemo(() => {
+    const usate = [...new Set(items.filter((i) => i.piattaforma && !i.eliminato).map((i) => i.piattaforma!))];
+    const base = PIATTAFORME_BASE.filter((b) => !usate.some((u) => u.toLowerCase() === b.toLowerCase()));
+    return [...usate, ...base];
+  }, [items]);
+  const filtri = useMemo(() => ({
+    compagnia,
+    piattaforma: piattaforma === 'Qualsiasi' ? undefined : piattaforma,
+    mood: mood === 'Qualsiasi' ? undefined : mood,
+    energia: energia === 'Qualsiasi' ? undefined : ENERGIE.find((e) => e.nome === energia)?.id,
+    tipologia: tipologia === 'Qualsiasi' ? undefined : tipologia,
+  }), [compagnia, piattaforma, mood, energia, tipologia]);
+  const s = useMemo(() => suggerisciStasera(items, filtri, 6), [items, filtri]);
   const principale = s[salta % Math.max(1, s.length)];
   const altri = s.filter((x) => x !== principale).slice(0, 2);
-  useEffect(() => setSalta(0), [durata, conChi, piattaforma]);
+  useEffect(() => setSalta(0), [filtri]);
   return (
     <>
       <Back label="Intrattenimento" />
       <Top title="Stasera" />
       <div className="scroll">
-        <Sec a="Quanto tempo hai?" />
-        <Chips voci={DURATE.map((d) => d.nome)} attivo={DURATE.find((d) => d.id === durata)!.nome} onChange={(n) => setDurata(DURATE.find((d) => d.nome === n)!.id)} />
         <Sec a="Con chi?" />
-        <Chips scroll voci={['Da solo', ...compagni]} attivo={conChi} onChange={setConChi} />
+        <Chips scroll voci={COMPAGNIE.map((c) => c.nome)} attivo={COMPAGNIE.find((c) => c.id === compagnia)!.nome} onChange={(n) => setCompagnia(COMPAGNIE.find((c) => c.nome === n)!.id)} />
         <Sec a="Piattaforma" />
         <Chips scroll voci={['Qualsiasi', ...piatt]} attivo={piattaforma} onChange={setPiattaforma} />
-        {!principale ? <Empty>Niente di adatto. Prova con un altro tempo o un'altra piattaforma.</Empty> : (
+        <Sec a="Mood" />
+        <Chips scroll voci={['Qualsiasi', ...MOOD]} attivo={mood} onChange={setMood} />
+        <Sec a="Energia che hai stasera" />
+        <Chips scroll voci={['Qualsiasi', ...ENERGIE.map((e) => e.nome)]} attivo={energia} onChange={setEnergia} />
+        <Sec a="Tipologia" />
+        <Chips scroll voci={['Qualsiasi', ...TIPOLOGIE]} attivo={tipologia} onChange={setTipologia} />
+        {!principale ? <Empty>Niente di adatto. Prova con altri filtri o un'altra piattaforma.</Empty> : (
           <>
             <div className="card strong" style={{ marginTop: 16 }}>
               <div className="t1" style={{ fontSize: 18 }}>{principale.item.titolo}</div>

@@ -110,3 +110,26 @@ test('migrazione: la checklist di un progetto già finita nelle note torna nel c
   assert.equal(ripristinaChecklistProgetto(r, () => 'q'), undefined);
   assert.equal(ripristinaChecklistProgetto(mk({ note: 'Checklist:\n- [ ] a' }), () => 'q'), undefined);
 });
+
+// ---- Cosa guardo stasera: nuovi filtri
+import { suggerisciStasera } from './stasera.ts';
+
+test('stasera: tipologia, mood ed energia spostano i suggerimenti', () => {
+  const comico = mk({ tipo: 'film', titolo: 'Commedia', genere: 'Comico, Sentimentale', mood: 'Spensierato', energia: 'bassa', interesse: 3 });
+  const thriller = mk({ tipo: 'film', titolo: 'Thriller teso', genere: 'Thriller', mood: 'Intenso', energia: 'alta', interesse: 3 });
+  const s1 = suggerisciStasera([thriller, comico], { tipologia: 'Comico' });
+  assert.equal(s1[0].item.titolo, 'Commedia');
+  const s2 = suggerisciStasera([thriller, comico], { energia: 'bassa', mood: 'Spensierato' });
+  assert.equal(s2[0].item.titolo, 'Commedia');
+  assert.ok(s2[0].motivo.includes('mood spensierato'));
+  // senza filtri decide l'interesse; le voci senza dati restano neutre
+  const neutro = mk({ tipo: 'film', titolo: 'Senza dati', interesse: 5 });
+  assert.equal(suggerisciStasera([comico, neutro], { tipologia: 'Horror' })[0].item.titolo, 'Senza dati');
+});
+
+test('stasera: la compagnia riconosce partner e amici e non filtra per durata', () => {
+  const coppia = mk({ tipo: 'serie', titolo: 'Serie in coppia', conChi: 'il mio partner', interesse: 3 });
+  const altro = mk({ tipo: 'film', titolo: 'Film qualsiasi', interesse: 3 });
+  assert.equal(suggerisciStasera([altro, coppia], { compagnia: 'partner' })[0].item.titolo, 'Serie in coppia');
+  assert.equal(suggerisciStasera([altro, coppia], {}).length, 2);
+});

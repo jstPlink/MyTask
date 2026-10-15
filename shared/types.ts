@@ -81,6 +81,10 @@ export interface Item {
   consigliatoDa?: string;
   conChi?: string;
   durataMin?: number;
+  /** Film, serie e anime: stato d'animo che richiedono (Spensierato, Rilassante…). */
+  mood?: string;
+  /** Film, serie e anime: energia che richiedono per essere seguiti. */
+  energia?: 'bassa' | 'media' | 'alta';
   /** Pagine di un libro (cercate online al momento della creazione). */
   pagine?: number;
   genere?: string;

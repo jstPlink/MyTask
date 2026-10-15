@@ -8,6 +8,7 @@ import { assicuraPersone, completaVoce, nuovaVoce, riapriVoce } from '../lib/act
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
+import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { Back, DotsPick, Field, Gruppo, Row, Scelta, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { useNav } from '../ui/nav.tsx';
@@ -216,7 +217,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           <Gruppo titolo={IS_INTRATT(t) ? 'Intrattenimento' : NOMI_TIPO[t]}>
             <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
             {IS_VIDEO(t) && <Field label="Piattaforma"><input list="piattaforme" value={d.piattaforma ?? ''} placeholder="es. Netflix" onChange={(e) => up({ piattaforma: e.target.value || undefined })} /></Field>}
-            <datalist id="piattaforme">{piattaforme.map((p) => <option key={p} value={p} />)}</datalist>
+            <datalist id="piattaforme">{[...new Set([...piattaforme, ...PIATTAFORME_BASE])].map((p) => <option key={p} value={p} />)}</datalist>
             {t !== 'ricetta' && t !== 'film' && (
               <>
                 <Field label="Consigliato da"><input list="persone" value={d.consigliatoDa ?? ''} onChange={(e) => up({ consigliatoDa: e.target.value || undefined })} /></Field>
@@ -243,16 +244,28 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                 {ricercaPagine === 'nonTrovate' && d.pagine === undefined && <div className="t2" style={{ padding: '6px 0' }}>Non ho trovato le pagine: scrivile tu.</div>}
               </>
             )}
-            {t !== 'ricetta' && <Field label="Genere"><input value={d.genere ?? ''} onChange={(e) => up({ genere: e.target.value || undefined })} /></Field>}
-            {t === 'ricetta' && (
+            {(t === 'gioco' || t === 'libro') && <Field label="Genere"><input value={d.genere ?? ''} onChange={(e) => up({ genere: e.target.value || undefined })} /></Field>}
+            {(t === 'ricetta' || IS_VIDEO(t)) && (
               <>
-                <div className="t2" style={{ marginTop: 12 }}>Genere</div>
+                <div className="t2" style={{ marginTop: 12 }}>{t === 'ricetta' ? 'Genere' : 'Tipologia'}</div>
                 <div className="chips" style={{ marginBottom: 12 }}>
-                  {[...TIPI_PIATTO, ...generi.filter((g) => !TIPI_PIATTO.includes(g))].map((g) => {
+                  {[...(t === 'ricetta' ? TIPI_PIATTO : TIPOLOGIE), ...generi.filter((g) => !(t === 'ricetta' ? TIPI_PIATTO : TIPOLOGIE).includes(g))].map((g) => {
                     const on = generi.includes(g);
                     return <button key={g} type="button" aria-pressed={on} className={clsx('chip', on && 'on')}
                       onClick={() => up({ genere: (on ? generi.filter((x) => x !== g) : [...generi, g]).join(', ') || undefined })}>{g}</button>;
                   })}
+                </div>
+              </>
+            )}
+            {IS_VIDEO(t) && (
+              <>
+                <div className="t2">Mood</div>
+                <div className="chips">
+                  {MOOD.map((m) => <button key={m} type="button" aria-pressed={d.mood === m} className={clsx('chip', d.mood === m && 'on')} onClick={() => up({ mood: d.mood === m ? undefined : m })}>{m}</button>)}
+                </div>
+                <div className="t2" style={{ marginTop: 12 }}>Energia richiesta</div>
+                <div className="chips" style={{ marginBottom: 12 }}>
+                  {ENERGIE.map((e) => <button key={e.id} type="button" aria-pressed={d.energia === e.id} className={clsx('chip', d.energia === e.id && 'on')} onClick={() => up({ energia: d.energia === e.id ? undefined : e.id })}>{e.nome}</button>)}
                 </div>
               </>
             )}
@@ -310,13 +323,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
 
         {getItem(d.id) && (
           <div className="btns tre" style={{ marginTop: 18 }}>
+            <button className="btn danger" onClick={elimina}>Elimina</button>
+            {d.stato === 'parcheggiato'
+              ? <button className="btn" onClick={() => esci({ ...d, stato: 'da_fare' }, 'Ripristinata')}>Ripristina</button>
+              : d.stato !== 'fatto' && <button className="btn" onClick={() => esci({ ...d, stato: 'parcheggiato' }, 'Archiviata')}>Archivia</button>}
             {d.stato === 'fatto'
               ? <button className="btn solid" onClick={() => { riapriVoce(d); nav.pop(); }}>Riapri</button>
-              : t !== 'routine' && t !== 'persona' && d.stato !== 'parcheggiato' && <button className="btn solid" onClick={() => { salva(d); completaVoce(getItem(d.id) ?? d); }}>Segna come fatto</button>}
-            {d.stato === 'parcheggiato'
-              ? <button className="btn" onClick={() => esci({ ...d, stato: 'da_fare' }, 'Rimessa in gioco')}>Rimetti in gioco</button>
-              : d.stato !== 'fatto' && <button className="btn" onClick={() => esci({ ...d, stato: 'parcheggiato' }, 'Messa da parte')}>Metti da parte</button>}
-            <button className="btn danger" onClick={elimina}>Elimina</button>
+              : t !== 'routine' && t !== 'persona' && d.stato !== 'parcheggiato' && <button className="btn solid" onClick={() => { salva(d); completaVoce(getItem(d.id) ?? d); }}>Completato</button>}
           </div>
         )}
       </div>

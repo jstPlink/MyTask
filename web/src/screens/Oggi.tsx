@@ -240,23 +240,6 @@ export function Oggi() {
           ))}
         </Gruppo>
       )}
-      {v.prossimi.length > 0 && (
-        <Gruppo titolo="Prossimi 7 giorni" dettaglio={v.prossimi.length}>
-          {v.prossimi.map((e) => (
-            <Row
-              key={e.item.id}
-              titolo={e.item.titolo}
-              meta={e.item.tipo === 'esperienza' ? 'Esperienza' : undefined}
-              right={e.item.rigida ? <span className="hard">{formatShortYear(dueDate(e.item)!, oggi)}</span> : formatShortYear(dueDate(e.item)!, oggi)}
-              light
-              check={e.item.tipo === 'azione' || e.item.tipo === 'progetto' ? 'circle' : 'square'}
-              onCheck={() => completaVoce(e.item)}
-              selected={nav.openId === e.item.id}
-              onOpen={() => nav.push({ k: 'item', id: e.item.id })}
-            />
-          ))}
-        </Gruppo>
-      )}
     </>
   );
 
