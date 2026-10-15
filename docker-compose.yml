@@ -2,8 +2,10 @@ name: mytask
 
 services:
   mytask:
+    # Immagine già pronta, costruita da GitHub a ogni aggiornamento (vedi .github/workflows/docker.yml).
+    # Se Docker non riesce a scaricarla, la costruisce dai file di questa cartella (serve il Dockerfile).
+    image: ghcr.io/jstplink/mytask:latest
     build: .
-    image: mytask:latest
     container_name: mytask
     restart: unless-stopped
     ports:
@@ -16,10 +18,6 @@ services:
     volumes:
       # Il database vive in un volume Docker: parte con i permessi giusti (il container non gira come root).
       - mytask-data:/data
-      # Facoltativo: copia di sicurezza quotidiana in una cartella sincronizzata da Seafile.
-      # Togli il commento, imposta BACKUP_DIR=/backup nel file .env e assegna la cartella all'utente 1000:
-      #   chown -R 1000:1000 /percorso/della/cartella
-      # - /percorso/della/cartella/seafile/mytask-backup:/backup
     security_opt:
       - no-new-privileges:true
 

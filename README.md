@@ -19,10 +19,20 @@ Altri comandi: `npm test` (test), `npm run typecheck`.
 
 ## Metterla sul NAS (Docker)
 
-1. Porta il progetto sul NAS (`git clone https://github.com/jstPlink/MyTask.git`, oppure copia la cartella).
-2. Copia `.env.example` in `.env` e compila email e password (usa una password lunga e unica). Se la porta 8787 è occupata, cambia `MYTASK_PORT`.
-3. `docker compose up -d --build`
+Non serve costruire nulla sul NAS: a ogni aggiornamento GitHub costruisce l'immagine Docker e la pubblica come
+`ghcr.io/jstplink/mytask`. Sul NAS bastano due file nella stessa cartella: `docker-compose.yml` e `.env`.
+
+1. Metti `docker-compose.yml` in una cartella del NAS (basta quel file, oppure clona il repository con
+   `git clone https://github.com/jstPlink/MyTask.git`).
+2. Nella stessa cartella crea `.env` partendo da `.env.example`: compila email e password (password lunga e unica). Se la porta 8787 è occupata, cambia `MYTASK_PORT`.
+3. `docker compose pull && docker compose up -d`
 4. Controlla che sia partita: `docker compose ps` deve mostrare il container come `healthy`, e `docker compose logs mytask` non deve avere errori.
+
+Se il comando scarica l'immagine con errore `denied`, il pacchetto su GitHub è ancora privato: vedi sotto. Se invece
+lavori dalla cartella clonata puoi anche costruirla sul posto con `docker compose up -d --build` (serve il file `Dockerfile` nella cartella).
+
+**Una tantum, su GitHub:** dopo la prima esecuzione del workflow vai su *Profilo > Packages > mytask > Package settings*
+e imposta la visibilità su **Public**, così il NAS la scarica senza credenziali.
 
 Il database sta nel volume Docker `mytask-data`, quindi `docker compose down` non lo cancella (`docker compose down -v` sì: non usarlo).
 
@@ -58,15 +68,15 @@ senza `--force`. In alternativa puoi importare direttamente nel container con il
 
 ### Copie di sicurezza
 
-Ogni giorno il server salva una copia del database nel volume, in `/data/backups` (le ultime 14). Per metterle in una
-cartella Seafile, monta la cartella nel container e imposta `BACKUP_DIR` (vedi `docker-compose.yml`). Dall'app puoi anche
-scaricare tutti i dati in JSON da *Altro > Account e sincronizzazione*.
+Il database è un solo file nel volume Docker `mytask-data` (`/data/mytask.db`): per salvarlo basta copiare quel file, o il
+volume, con lo strumento di backup che usi per il NAS. Come rete di sicurezza il server ne fa anche una copia al giorno in
+`/data/backups` (le ultime 14), dentro lo stesso volume. Dall'app puoi inoltre scaricare tutti i dati in JSON da
+*Altro > Account e sincronizzazione*.
 
 ### Aggiornare
 
 ```bash
-git pull
-docker compose up -d --build
+docker compose pull && docker compose up -d
 ```
 
 ## Come è fatta
