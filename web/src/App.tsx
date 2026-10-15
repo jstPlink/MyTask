@@ -119,7 +119,7 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [wide, auth.token, capture, query, stack.length, pop]);
 
-  if (!auth.token) return <div className="app"><Login /></div>;
+  if (!auth.token) return <div className="app app-login"><Login /></div>;
 
   const tabScreen = (
     <>

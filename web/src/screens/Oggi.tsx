@@ -65,7 +65,7 @@ export function Oggi() {
   const faroggi = (
     <>
       <Sec a="Da fare oggi" b={v.fare.length || undefined} />
-      {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Fare» o «Scoprire».</div>}
+      {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Scoprire».</div>}
       {v.fare.map((e) => (
         <Row
           key={e.item.id}

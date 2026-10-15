@@ -34,14 +34,14 @@ export function Login() {
 
   return (
     <form className="login" onSubmit={entra}>
-      <h1>MyTask</h1>
-      <div className="t2" style={{ marginBottom: 8 }}>Accedi per sincronizzare le tue cose da fare.</div>
+      <div className="login-brand"><i aria-hidden="true" />MyTask</div>
+      <div className="login-sub">Accedi per sincronizzare le tue cose da fare.</div>
       {nativa && <input type="url" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="Indirizzo del server" value={server} onChange={(e) => setServer(e.target.value)} required aria-label="Indirizzo del server" />}
       <input type="email" autoComplete="username" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required aria-label="Email" />
       <input type="password" autoComplete="current-password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required aria-label="Password" />
       {errore && <div className="warn" role="alert">{errore}</div>}
-      <button className="btn solid" style={{ padding: 14 }} disabled={invio}>{invio ? 'Accesso…' : 'Accedi'}</button>
-      <div className="t2" style={{ textAlign: 'center' }}>versione {VERSIONE}</div>
+      <button className="btn solid login-go" disabled={invio}>{invio ? 'Accesso…' : 'Accedi'}</button>
+      <div className="login-ver">versione {VERSIONE}</div>
     </form>
   );
 }

@@ -30,7 +30,7 @@ export function Scoprire() {
     <>
       <Top title="Scoprire" sub={`${lista.length} ${sub === 'curiosita' ? 'da approfondire' : 'da fare'}`} />
       <div className="scroll">
-        <Seg voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setPiattaforma('Tutte'); }} />
+        <Seg nav voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setPiattaforma('Tutte'); }} />
         {video && piattaforme.length > 0 && <Chips scroll voci={['Tutte', ...piattaforme]} attivo={piattaforma} onChange={setPiattaforma} />}
         {video && (
           <button className="card strong tap" onClick={() => nav.push({ k: 'stasera' })}>

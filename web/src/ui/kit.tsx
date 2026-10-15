@@ -69,9 +69,9 @@ export function Chips({ voci, attivo, onChange, scroll }: { voci: string[]; atti
   );
 }
 
-export function Seg<T extends string>({ voci, attivo, onChange }: { voci: { id: T; nome: string }[]; attivo: T; onChange: (v: T) => void }) {
+export function Seg<T extends string>({ voci, attivo, onChange, nav }: { voci: { id: T; nome: string }[]; attivo: T; onChange: (v: T) => void; nav?: boolean }) {
   return (
-    <div className="seg" role="tablist">
+    <div className={clsx('seg', nav && 'nav-seg')} role="tablist">
       {voci.map((v) => <button key={v.id} role="tab" aria-selected={v.id === attivo} className={clsx(v.id === attivo && 'on')} onClick={() => onChange(v.id)}>{v.nome}</button>)}
     </div>
   );
@@ -118,7 +118,7 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 const TAB_NOMI: { id: Tab; nome: string }[] = [
-  { id: 'oggi', nome: 'Oggi' }, { id: 'fare', nome: 'Fare' }, { id: 'scoprire', nome: 'Scoprire' }, { id: 'routine', nome: 'Routine' },
+  { id: 'oggi', nome: 'Oggi' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Scoprire' }, { id: 'routine', nome: 'Routine' },
 ];
 
 export function TabBar() {

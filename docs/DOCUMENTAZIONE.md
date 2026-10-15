@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.10.1
+- **Versione documento:** 0.10.2
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -39,8 +39,8 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 
 ### 2.1 Navigazione (telefono)
 
-- **Quattro schede in basso** con icona (Oggi, Fare, Scoprire, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
-- **Fare** contiene tre sezioni: Azioni, Progetti, Esperienze.
+- **Quattro schede in basso** con icona (Oggi, Attività, Scoprire, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
+- **Attività** (prima "Fare") contiene tre sezioni: Azioni, Progetti, Esperienze.
 - **Scoprire** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette) e le Curiosità.
 - **Inbox** e **Altro** sono i due pulsanti tondi in alto a destra in "Oggi". Altro apre: Inbox, Revisione, Archivio, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza rigida.
@@ -335,3 +335,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.9.1 | La versione compare nell'app (sito e telefono: Altro e Account, schermata di accesso) e nel server (`/api/health`, mostrata in Account con l'avviso se differisce da quella dell'app). Aggiunta la proposta di layout web per schermi larghi (sezione 2.3, mockup locale `03-web-desktop.html`) |
 | 2026-10-15 | 0.10.0 | Layout web per schermi larghi (sezione 2.3): barra laterale, barra in alto con cattura rapida e ricerca, pannello di dettaglio, cruscotto in Oggi, griglia settimanale in Routine, scorciatoie N / Esc. Telefono (sezione 2.4): icone per Oggi, Fare, Scoprire e Routine; Inbox e Altro come pulsanti tondi più grandi. Ricerca nelle voci |
 | 2026-10-15 | 0.10.1 | Documentazione allineata allo stato reale: modello dati con i nomi dei campi effettivi, cattura rapida, backup, importazione da file, funzioni IA con lo stato, sezione 5.3 (versione e aggiornamenti), stato dell'implementazione e cose ancora da fare (8.2). Riordinate le sezioni 4.7 e 4.8 |
+| 2026-10-15 | 0.10.2 | La categoria "Fare" si chiama "Attività". Corretto il selettore del tema (Aspetto), nascosto per errore sugli schermi larghi. Barra laterale più grande (288 px, testo e icone più grandi), sotto-sezioni rientrate con linea guida e gruppi "Da sistemare", "Altro" e impostazioni separati (mockup locale `04-barra-laterale.html`). Pagina di accesso con lo stesso logo e stile dell'app, senza cornice da telefono sugli schermi larghi |

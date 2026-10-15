@@ -7,10 +7,10 @@ import { VERSIONE } from '../version.ts';
 import { Icona, type NomeIcona } from './kit.tsx';
 import { useNav, type Screen, type SubFare, type SubScoprire, type Tab } from './nav.tsx';
 
-function Link({ nome, on, sub, n, warn, icona, onClick }: { nome: string; on?: boolean; sub?: boolean; n?: number; warn?: boolean; icona?: NomeIcona; onClick: () => void }) {
+function Link({ nome, on, sub, main, n, warn, icona, onClick }: { nome: string; on?: boolean; sub?: boolean; main?: boolean; n?: number; warn?: boolean; icona?: NomeIcona; onClick: () => void }) {
   return (
-    <button className={clsx('sb-link', on && 'on', sub && 'sub')} onClick={onClick} aria-current={on ? 'page' : undefined}>
-      <b>{icona && <Icona nome={icona} size={18} />}{nome}</b>
+    <button className={clsx('sb-link', on && 'on', sub && 'sub', main && 'princ')} onClick={onClick} aria-current={on ? 'page' : undefined}>
+      <b>{icona && <Icona nome={icona} size={24} />}{nome}</b>
       {n !== undefined && <span className={clsx('sb-n', warn && n > 0 && 'warn')}>{n}</span>}
     </button>
   );
@@ -51,39 +51,51 @@ export function Sidebar() {
   const apriFare = (s: SubFare) => { nav.setFareSub(s); apriTab('fare'); };
   const apriScoprire = (s: SubScoprire) => { nav.setScoprireSub(s); apriTab('scoprire'); };
   const vai = (s: Screen) => { nav.setQuery(''); nav.vai(s); };
+  // con le sotto-sezioni aperte è la sotto-sezione a risultare attiva, non la categoria
+  const subVisibili = (t: Tab) => nav.tab === t && !schermata && (t === 'fare' || t === 'scoprire');
   const scr = (k: Screen['k']) => schermata === k && !nav.query;
 
   return (
     <aside className="side" aria-label="Navigazione">
       <div className="sb-brand"><i aria-hidden="true" />MyTask</div>
 
-      <Link nome="Oggi" icona="oggi" on={inTab('oggi')} n={n.oggi} onClick={() => apriTab('oggi')} />
+      <Link main nome="Oggi" icona="oggi" on={inTab('oggi')} n={n.oggi} onClick={() => apriTab('oggi')} />
 
-      <Link nome="Fare" icona="fare" onClick={() => apriTab('fare')} />
-      {nav.tab === 'fare' && !schermata && SUB_FARE.map((s) => (
-        <Link key={s.id} sub nome={s.nome} n={n[s.id]} on={inTab('fare') && nav.fareSub === s.id} onClick={() => apriFare(s.id)} />
-      ))}
+      <Link main nome="Attività" icona="fare" on={inTab('fare') && !subVisibili('fare')} onClick={() => apriTab('fare')} />
+      {nav.tab === 'fare' && !schermata && (
+        <div className="sb-subs">
+          {SUB_FARE.map((s) => <Link key={s.id} sub nome={s.nome} n={n[s.id]} on={inTab('fare') && nav.fareSub === s.id} onClick={() => apriFare(s.id)} />)}
+        </div>
+      )}
 
-      <Link nome="Scoprire" icona="scoprire" onClick={() => apriTab('scoprire')} />
-      {nav.tab === 'scoprire' && !schermata && SUB_SCOPRIRE.map((s) => (
-        <Link key={s.id} sub nome={s.nome} n={n[s.id]} on={inTab('scoprire') && nav.scoprireSub === s.id} onClick={() => apriScoprire(s.id)} />
-      ))}
+      <Link main nome="Scoprire" icona="scoprire" on={inTab('scoprire') && !subVisibili('scoprire')} onClick={() => apriTab('scoprire')} />
+      {nav.tab === 'scoprire' && !schermata && (
+        <div className="sb-subs">
+          {SUB_SCOPRIRE.map((s) => <Link key={s.id} sub nome={s.nome} n={n[s.id]} on={inTab('scoprire') && nav.scoprireSub === s.id} onClick={() => apriScoprire(s.id)} />)}
+        </div>
+      )}
 
-      <Link nome="Routine" icona="routine" on={inTab('routine')} onClick={() => apriTab('routine')} />
+      <Link main nome="Routine" icona="routine" on={inTab('routine')} onClick={() => apriTab('routine')} />
 
-      <div className="sb-sec">Da sistemare</div>
-      <Link nome="Inbox" icona="inbox" n={n.inbox} on={scr('inbox')} onClick={() => vai({ k: 'inbox' })} />
-      <Link nome="Revisione" n={n.revisione} warn on={scr('revisione')} onClick={() => vai({ k: 'revisione' })} />
+      <div className="sb-group">
+        <div className="sb-sec">Da sistemare</div>
+        <Link nome="Inbox" n={n.inbox} on={scr('inbox')} onClick={() => vai({ k: 'inbox' })} />
+        <Link nome="Revisione" n={n.revisione} warn on={scr('revisione')} onClick={() => vai({ k: 'revisione' })} />
+      </div>
 
-      <div className="sb-sec">Altro</div>
-      <Link nome="Archivio" on={scr('archivio')} onClick={() => vai({ k: 'archivio' })} />
-      <Link nome="Persone" on={scr('persone') || scr('persona')} onClick={() => vai({ k: 'persone' })} />
-      <Link nome="Luoghi" on={scr('luoghi')} onClick={() => vai({ k: 'luoghi' })} />
+      <div className="sb-group">
+        <div className="sb-sec">Altro</div>
+        <Link nome="Archivio" on={scr('archivio')} onClick={() => vai({ k: 'archivio' })} />
+        <Link nome="Persone" on={scr('persone') || scr('persona')} onClick={() => vai({ k: 'persone' })} />
+        <Link nome="Luoghi" on={scr('luoghi')} onClick={() => vai({ k: 'luoghi' })} />
+      </div>
 
       <div className="sb-spacer" />
-      <Link nome="Aspetto" on={scr('aspetto')} onClick={() => vai({ k: 'aspetto' })} />
-      <Link nome="Notifiche" on={scr('notifiche')} onClick={() => vai({ k: 'notifiche' })} />
-      <Link nome="Account" on={scr('account')} onClick={() => vai({ k: 'account' })} />
+      <div className="sb-group">
+        <Link nome="Aspetto" on={scr('aspetto')} onClick={() => vai({ k: 'aspetto' })} />
+        <Link nome="Notifiche" on={scr('notifiche')} onClick={() => vai({ k: 'notifiche' })} />
+        <Link nome="Account" on={scr('account')} onClick={() => vai({ k: 'account' })} />
+      </div>
       <div className="sb-foot">
         <span className={clsx('pill-sync', !sync.online && 'off')}>
           {!sync.online ? 'Offline' : sync.inAttesa ? `${sync.inAttesa} da sincronizzare` : 'Sincronizzato'}

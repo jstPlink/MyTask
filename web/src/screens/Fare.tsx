@@ -23,9 +23,9 @@ export function Fare() {
 
   return (
     <>
-      <Top title="Fare" sub={`${aperte} aperte${nRev ? ` · ${nRev} in revisione` : ''}`} />
+      <Top title="Attività" sub={`${aperte} aperte${nRev ? ` · ${nRev} in revisione` : ''}`} />
       <div className="scroll">
-        <Seg voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
+        <Seg nav voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
         {nav.fareSub === 'azioni' && <Azioni />}
         {nav.fareSub === 'progetti' && <Progetti />}
         {nav.fareSub === 'esperienze' && <Esperienze />}
