@@ -27,8 +27,6 @@ export interface RowProps {
   titolo: string;
   meta?: ReactNode;
   right?: ReactNode;
-  /** Area (Casa, Burocrazia…): pillola colorata sulla riga del titolo. */
-  tag?: string;
   /** Colonna a sinistra del titolo, per l'orario nel piano della giornata. */
   ora?: ReactNode;
   level?: 1 | 2 | 3;
@@ -41,17 +39,7 @@ export interface RowProps {
   onOpen?: () => void;
 }
 
-/** Tinta della pillola di un'area: fissa per le aree più comuni, per le altre stabile per nome. */
-const AREE_NOTE: Record<string, number> = { casa: 1, burocrazia: 2, digitale: 3, salute: 4, lavoro: 5 };
-export const classeArea = (nome: string) => {
-  const n = nome.trim().toLowerCase();
-  if (n in AREE_NOTE) return `a${AREE_NOTE[n]}`;
-  let h = 7;
-  for (const c of n) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return `a${(h % 5) + 1}`;
-};
-
-export function Row({ titolo, meta, right, tag, ora, level, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, ora, level, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
       {check !== 'none' && (
@@ -68,7 +56,6 @@ export function Row({ titolo, meta, right, tag, ora, level, check = 'circle', do
       <div className="grow">
         <div className="line">
           <div className={clsx('t1', light && 'light', struck && 'struck')}>{titolo}</div>
-          {tag && <span className={clsx('tag', classeArea(tag))}>{tag}</span>}
         </div>
         {meta && <div className="t2">{meta}</div>}
       </div>

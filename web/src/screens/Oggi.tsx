@@ -121,7 +121,6 @@ export function Oggi() {
     <Row
       key={`${bl.item.id}-${bl.da}`}
       titolo={bl.item.titolo}
-      tag={bl.padre ? undefined : bl.item.area}
       ora={<>{orario(bl.da)}<small>{durata(bl.a - bl.da)}</small></>}
       meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? `${bl.padre.titolo} · prossimo passo` : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined].filter(Boolean).join(' · ') || undefined}
       right={bl.inRitardo ? <span className="piano-avviso">oltre la scadenza</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
@@ -156,7 +155,7 @@ export function Oggi() {
         {resto.length > 0 && (
           <Gruppo titolo={passato ? 'Rimaste aperte' : 'Con scadenza questo giorno'} dettaglio={resto.length}>
             {resto.map((i) => (
-              <Row key={i.id} titolo={i.titolo} tag={i.area} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
+              <Row key={i.id} titolo={i.titolo} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
                 level={barLevel(score(i, oggi))} check={i.tipo === 'esperienza' ? 'square' : 'circle'}
                 right={i.rigida || passato ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : undefined}
                 onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
@@ -192,7 +191,7 @@ export function Oggi() {
               {fuoriOggi.map((e) => {
                 const dove = dovePianificata(e.item.id);
                 return (
-                  <Row key={e.item.id} titolo={e.item.titolo} tag={e.padre ? undefined : e.item.area} light
+                  <Row key={e.item.id} titolo={e.item.titolo} light
                     meta={dove ? `rimandata a ${nomeGiorno(dove.data)} alle ${orario(dove.da)}` : 'senza spazio nelle prossime due settimane'}
                     right={destra(e)} onCheck={() => completaVoce(e.item)} selected={nav.openId === e.item.id} onOpen={() => nav.push({ k: 'item', id: e.item.id })} />
                 );
@@ -223,7 +222,6 @@ export function Oggi() {
               key={e.item.id}
               titolo={e.item.titolo}
               meta={meta(e)}
-              tag={e.padre ? undefined : e.item.area}
               right={destra(e)}
               level={barLevel(e.punteggio)}
               onCheck={() => completaVoce(e.item)}
@@ -240,7 +238,6 @@ export function Oggi() {
               key={e.item.id}
               titolo={e.item.titolo}
               meta={e.item.tipo === 'esperienza' ? 'Esperienza' : undefined}
-              tag={e.item.tipo === 'esperienza' ? undefined : e.item.area}
               right={e.item.rigida ? <span className="hard">{formatShortYear(dueDate(e.item)!, oggi)}</span> : formatShortYear(dueDate(e.item)!, oggi)}
               light
               check={e.item.tipo === 'azione' || e.item.tipo === 'progetto' ? 'circle' : 'square'}

@@ -142,7 +142,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
       <Back label={nuovo && !id ? 'Annulla' : 'Indietro'} />
       <Top
         title={d.titolo || 'Nuova voce'}
-        sub={`${NOMI_TIPO[t]}${d.area ? ` · ${d.area}` : ''}`}
+        sub={NOMI_TIPO[t]}
         right={d.inbox ? <span className="badge">Da smistare</span> : undefined}
       />
       <div className="scroll">

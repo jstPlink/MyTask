@@ -28,7 +28,7 @@ export function Ricerca() {
             <Row
               key={i.id}
               titolo={i.titolo}
-              meta={[NOMI_TIPO[i.tipo], i.area ?? i.zona, i.piattaforma, chiusa ? (i.stato === 'saltato' ? 'saltata' : 'completata') : undefined].filter(Boolean).join(' · ')}
+              meta={[NOMI_TIPO[i.tipo], i.piattaforma, chiusa ? (i.stato === 'saltato' ? 'saltata' : 'completata') : undefined].filter(Boolean).join(' · ')}
               right={d && !chiusa ? formatShortYear(d, oggi) : undefined}
               check={persona ? 'none' : i.tipo === 'azione' || i.tipo === 'progetto' ? 'circle' : 'square'}
               done={chiusa}

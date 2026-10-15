@@ -1,18 +1,29 @@
-// Feedback aptico leggero sui tocchi ai pulsanti. Nell'app Android usa il motore aptico (Capacitor),
-// nel browser del telefono la vibrazione breve; sul computer non fa nulla.
-import { Capacitor } from '@capacitor/core';
+// Feedback aptico leggero sui tocchi ai pulsanti. Nell'app Android usa un plugin nostro (HapticaPlugin) con
+// ampiezza ridotta del 30% rispetto ai valori standard di Capacitor (110 -> 77 e 180 -> 126); nel browser
+// del telefono la vibrazione breve; sul computer non fa nulla.
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 const nativo = Capacitor.isNativePlatform();
 
 type Forza = 'leggero' | 'medio';
 
+const Haptica = registerPlugin<{ tocco(o: { durata: number; ampiezza: number }): Promise<void> }>('Haptica');
+
+/** Durata in ms e ampiezza (1-255). Lo standard di Capacitor è 50 ms a 110 (leggero) e 43 ms a 180 (medio). */
+const PROFILI: Record<Forza, { durata: number; ampiezza: number }> = {
+  leggero: { durata: 50, ampiezza: 77 },
+  medio: { durata: 43, ampiezza: 126 },
+};
+
 export function tocco(forza: Forza = 'leggero') {
   try {
     if (nativo) {
-      void Haptics.impact({ style: forza === 'medio' ? ImpactStyle.Medium : ImpactStyle.Light }).catch(() => undefined);
+      Haptica.tocco(PROFILI[forza]).catch(() => {
+        void Haptics.impact({ style: forza === 'medio' ? ImpactStyle.Medium : ImpactStyle.Light }).catch(() => undefined);
+      });
     } else if (typeof navigator.vibrate === 'function') {
-      navigator.vibrate(forza === 'medio' ? 14 : 8);
+      navigator.vibrate(forza === 'medio' ? 10 : 6);
     }
   } catch { /* non supportato: nessun feedback */ }
 }

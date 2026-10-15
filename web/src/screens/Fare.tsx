@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
 import { barLevel, dueDate, isOverdue, score } from '../../../shared/priority.ts';
-import { areeUsate, listaAzioni, listaEsperienze, listaProgetti, revisione } from '../../../shared/views.ts';
+import { listaAzioni, listaEsperienze, listaProgetti, revisione } from '../../../shared/views.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
 import { completaVoce } from '../lib/actions.ts';
-import { Chips, Empty, Fab, Row, Sec, Seg, Top } from '../ui/kit.tsx';
+import { Empty, Fab, Row, Sec, Seg, Top } from '../ui/kit.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
 import { mapsUrl } from '../lib/util.ts';
 
@@ -39,12 +39,9 @@ function Azioni() {
   const nav = useNav();
   const items = useItems();
   const oggi = useOggi();
-  const [area, setArea] = useState('Tutte');
-  const aree = useMemo(() => areeUsate(items), [items]);
-  const lista = useMemo(() => listaAzioni(items, oggi, area === 'Tutte' ? undefined : area), [items, oggi, area]);
+  const lista = useMemo(() => listaAzioni(items, oggi), [items, oggi]);
   return (
     <>
-      {aree.length > 0 && <Chips scroll voci={['Tutte', ...aree]} attivo={area} onChange={setArea} />}
       {lista.length === 0 && <Empty>Nessuna attività aperta.</Empty>}
       {lista.map(({ item, punteggio }) => {
         const d = dueDate(item);
@@ -53,7 +50,6 @@ function Azioni() {
           <Row
             key={item.id}
             titolo={item.titolo}
-            tag={item.area}
             meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${item.sforzoMin} min` : undefined].filter(Boolean).join(' · ')}
             right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
             level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
@@ -98,26 +94,25 @@ function Esperienze() {
   const items = useItems();
   const oggi = useOggi();
   const v = useMemo(() => listaEsperienze(items, oggi), [items, oggi]);
-  const tutte = v.conData.length + v.perZona.reduce((n, [, l]) => n + l.length, 0);
-  if (tutte === 0) return <Empty>Nessuna esperienza in lista.</Empty>;
+  const quandoCapita = useMemo(
+    () => v.perZona.flatMap(([, l]) => l).sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo, 'it')),
+    [v],
+  );
+  if (v.conData.length + quandoCapita.length === 0) return <Empty>Nessuna esperienza in lista.</Empty>;
   return (
     <>
       {v.conData.length > 0 && <Sec a="Con data" />}
       {v.conData.map((i) => (
-        <Row key={i.id} titolo={i.titolo} meta={[i.zona, i.oraInizio].filter(Boolean).join(' · ')}
+        <Row key={i.id} titolo={i.titolo} meta={i.oraInizio}
           right={i.rigida ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi)}
           level={barLevel(score(i, oggi))} onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
       ))}
-      {v.perZona.map(([zona, lista]) => (
-        <div key={zona}>
-          <Sec a={zona === 'Altro' ? 'Da fare quando capita' : `Da fare quando capita · ${zona}`} />
-          {lista.map((i) => (
-            <Row key={i.id} titolo={i.titolo} light check="square"
-              level={(i.interesse ?? 3) >= 4 ? 3 : (i.interesse ?? 3) === 3 ? 2 : 1}
-              right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
-              onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
-          ))}
-        </div>
+      {quandoCapita.length > 0 && <Sec a="Da fare quando capita" />}
+      {quandoCapita.map((i) => (
+        <Row key={i.id} titolo={i.titolo} light check="square"
+          level={(i.interesse ?? 3) >= 4 ? 3 : (i.interesse ?? 3) === 3 ? 2 : 1}
+          right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
+          onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
       ))}
     </>
   );

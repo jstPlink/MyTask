@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.17.0
+- **Versione documento:** 0.18.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -92,7 +92,7 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 
 ### 2.3.1 Tag area e calendario (implementato)
 
-- **Tag area:** nelle righe, l'area di un'azione (Casa, Burocrazia, Digitale, Salute, Lavoro…) è una pillola colorata sulla stessa riga del titolo, a destra; sotto restano durata, stato e scadenza. Le aree più comuni hanno una tinta fissa, le altre una tinta stabile calcolata dal nome. Vale su telefono e web (Oggi, Attività).
+- **Tag e area:** tolti dall'interfaccia (nessuna pillola sulle righe, nessun filtro per area; il campo `area` resta solo nei dati).
 - **Oggi a sezioni:** Routine, Piano di oggi, Non entrano oggi, Nei prossimi giorni e Prossimi 7 giorni sono schede separate e distanziate. Toccando un giorno in "Nei prossimi giorni" si apre quel giorno. Nella vista giorno si scorre con lo swipe (a sinistra il giorno dopo, a destra quello prima; non scatta sullo scorrimento verticale o sui filtri scorrevoli). La navigazione tra giorni è un riquadro unico con le frecce ai lati.
 - **Giorno e mese in Oggi:** Oggi è un'unica pagina. Di default mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro), con il selettore Giorno/Mese si apre il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza rigida o scaduta): toccando un giorno si torna alla vista giorno su quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine, Revisione e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
 - **Stato di sincronizzazione:** in Oggi (telefono) compare solo se si è offline o ci sono modifiche in attesa; nella barra laterale del sito resta sempre visibile.
@@ -123,6 +123,7 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Voto e commento:** segnando come fatto un film, un libro, un gioco o simili (dal segno di spunta o dal pulsante) si apre "Com'è andata?" con il voto da 1 a 10 e un commento facoltativo; confermando la voce risulta fatta quel giorno. Non esiste più la sezione "Dopo averlo fatto". Voto e commento si vedono nel gruppo "Completata".
 - **Link e documenti:** per ora tolti dalla scheda (il campo resta nei dati).
 - **Pannello unico per Attività e Progetto:** un solo gruppo con, in ordine, Data, Importanza e Tempo stimato (da 5 minuti a 1 giorno: 5, 15, 30 min, 1, 2, 4, 6, 8, 12 ore, 1 giorno). Se c'è una data compaiono sotto Ora, Scadenza rigida e Promemoria. Tolti Area, Ricorrenza, Progetto padre e la sezione dei sotto-task (le voci già esistenti con quei dati continuano a funzionare).
+- **Elenco Esperienze:** un solo elenco, "Con data" e "Da fare quando capita", senza raggruppamenti per luogo.
 - **Pannello Esperienza:** Data, Interesse e il pulsante "Apri in Google Maps", che cerca il nome dell'esperienza. Tolti Zona e il link a Google Maps.
 - **Ricetta:** solo Interesse e Genere, a scelta multipla tra Antipasto, Primo, Secondo, Contorno, Dolce, Piatto unico, Zuppa, Pane e lievitati, Bevanda (salvata come elenco separato da virgole in `genere`). Tolti Consigliato da e Con chi.
 - **Progetto con checklist:** solo i progetti hanno la checklist (gruppo "Checklist · X su Y", con barra di avanzamento): contiene le righe della checklist e i passi già esistenti (voci figlie), tutti spuntabili; si aggiungono righe di checklist con "Aggiungi un passo". Le checklist dei progetti già finite nelle note tornano nel campo da sole (`shared/migrazioni.ts`).
@@ -134,6 +135,7 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 ### 2.5 Feedback aptico e animazioni (implementato)
 
+- **Intensità aptica:** nell'app Android il tocco usa un plugin nostro (`HapticaPlugin`) con ampiezza ridotta del 30% rispetto ai valori standard di Capacitor (leggero 77 invece di 110, marcato 126 invece di 180); nel browser del telefono la vibrazione dura 6 ms (10 per il segno di fatto).
 - **Feedback aptico:** ogni tocco a un pulsante attivo (pulsanti, schede, interruttori, scelte nei menu) dà una vibrazione leggera; il segno di fatto una più marcata. Nell'app Android usa il motore aptico (`@capacitor/haptics`), nel browser del telefono la vibrazione breve del browser, sul computer nulla (`web/src/lib/haptic.ts`, un solo ascoltatore in cattura per tutta l'app).
 - **Animazioni** (solo CSS, in fondo a `web/src/styles.css`): le schermate e le schede entrano con una breve dissolvenza dal basso; le righe appaiono in sequenza; i tag compaiono con un piccolo ingrandimento; il segno di fatto e il giorno scelto nel mese "scattano"; foglio di cattura e avvisi salgono dal basso; i menu a tendina si aprono con un leggero zoom; le barre di avanzamento e del tempo usato si riempiono con una transizione; i pulsanti si schiacciano leggermente quando premuti.
 - Con "Riduci animazioni" attivo nel sistema, le animazioni sono disattivate.
@@ -400,3 +402,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.15.0 | Pannelli unici per Attività, Progetto (data, importanza, tempo stimato fino a 1 giorno) ed Esperienza (data, interesse, apri in Google Maps); tolti area, ricorrenza, zona, link Maps e sotto-task dalla scheda; ricetta con genere a scelta multipla; persone e checklist spostate nelle note; schermo bloccato in verticale; mockup del peso dell'importanza (locale, `06-peso-importanza.html`) |
 | 2026-10-15 | 0.16.0 | Pulsanti della scheda in fila; film senza consigliato da, con chi e durata; gioco con durata in ore; libro con pagine cercate online (Open Library); scheda attiva della barra in basso con sfondo su icona e testo; nuovi mockup del peso dell'importanza (locali, `07-peso-importanza-altre.html`) |
 | 2026-10-15 | 0.17.0 | Checklist e passi solo per i progetti (con ripristino dalle note); Oggi a sezioni separate, giorni successivi apribili, swipe tra i giorni e navigazione incapsulata; titoli più leggibili con tag e orario; nuovi mockup tra G e F per l'importanza (locali, `08-peso-importanza-g-f.html`) |
+| 2026-10-15 | 0.18.0 | Tolti tag e area dalle righe e dai filtri; Esperienze in un solo elenco senza raggruppamento per luogo; feedback aptico ridotto del 30% (plugin Android `HapticaPlugin`) |

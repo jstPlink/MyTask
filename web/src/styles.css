@@ -219,9 +219,6 @@ a { color: var(--accent); }
 
 /* ---------- Tag area e calendario ---------- */
 .row .line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.tag { flex: none; box-sizing: border-box; width: 96px; text-align: center; overflow: hidden; text-overflow: ellipsis; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
-.tag.a1 { background: var(--c1s); color: var(--c1); } .tag.a2 { background: var(--c2s); color: var(--c2); } .tag.a3 { background: var(--c3s); color: var(--c3); }
-.tag.a4 { background: var(--c4s); color: var(--c4); } .tag.a5 { background: var(--c5s); color: var(--c5); }
 .cal-head { display: flex; justify-content: space-between; align-items: center; margin: 6px 2px 8px; }
 .cal-head b { font-size: 17px; text-transform: capitalize; }
 .cal-head .cal-nav { display: flex; gap: 2px; }
@@ -308,7 +305,6 @@ a { color: var(--accent); }
 @keyframes sale { from { opacity: 0; transform: translateY(16px); } }
 @keyframes pop-menu { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
 @keyframes spunta { 0% { transform: scale(.7); } 55% { transform: scale(1.18); } 100% { transform: scale(1); } }
-@keyframes compare-tag { from { opacity: 0; transform: scale(.85); } }
 
 /* le schermate entrano con una breve dissolvenza dal basso (il fill "backwards" evita che resti un transform) */
 .scroll { animation: entra .24s ease-out backwards; }
@@ -316,7 +312,6 @@ a { color: var(--accent); }
 .row:nth-child(2) { animation-delay: 30ms; } .row:nth-child(3) { animation-delay: 60ms; } .row:nth-child(4) { animation-delay: 90ms; }
 .row:nth-child(5) { animation-delay: 120ms; } .row:nth-child(6) { animation-delay: 150ms; } .row:nth-child(n+7) { animation-delay: 180ms; }
 .card, .gruppo, .inbox-voce { animation: entra .26s ease-out backwards; }
-.tag { animation: compare-tag .25s ease-out backwards; }
 .cal-d { transition: background .15s, color .15s, border-color .15s; }
 .cal-d.sel { animation: spunta .25s ease-out; }
 .dim { animation: appare .2s ease-out; }
@@ -383,5 +378,4 @@ a { color: var(--accent); }
 /* titoli leggibili anche con il tag e l'orario: il tag va a capo invece di schiacciare il titolo */
 .row .line { flex-wrap: wrap; row-gap: 4px; }
 .row .line .t1 { flex: 1 1 130px; min-width: 0; overflow-wrap: break-word; }
-.row .line .tag { margin-left: auto; }
 .piano-ora { width: 50px; }

@@ -99,7 +99,7 @@ export function DaParte() {
           <button key={i.id} className="inbox-voce" onClick={() => nav.push({ k: 'item', id: i.id })}>
             <span className="inbox-testo">
               <span className="t1">{i.titolo}</span>
-              <span className="t2" style={{ display: 'block' }}>{[NOMI_TIPO[i.tipo], i.area ?? i.zona].filter(Boolean).join(' · ')}</span>
+              <span className="t2" style={{ display: 'block' }}>{[NOMI_TIPO[i.tipo]].filter(Boolean).join(' · ')}</span>
             </span>
             <span className="muted" aria-hidden="true">›</span>
           </button>
@@ -147,7 +147,7 @@ export function Revisione() {
         <div className="card strong" style={{ marginTop: 20 }}>
           <div className="t2 warn">{quando}</div>
           <div className="t1" style={{ fontSize: 20, margin: '4px 0 6px' }}>{i.titolo}</div>
-          <div className="t2">{[NOMI_TIPO[i.tipo], i.area ?? i.zona, dueDate(i) && formatShortYear(dueDate(i)!, oggi), i.importanza ? `importanza ${i.importanza}` : undefined].filter(Boolean).join(' · ')}</div>
+          <div className="t2">{[NOMI_TIPO[i.tipo], dueDate(i) && formatShortYear(dueDate(i)!, oggi), i.importanza ? `importanza ${i.importanza}` : undefined].filter(Boolean).join(' · ')}</div>
           {i.note && <div className="t2" style={{ marginTop: 6 }}>{i.note.slice(0, 140)}</div>}
           {!pianifica ? (
             <div className="btns col">

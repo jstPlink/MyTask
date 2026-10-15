@@ -129,11 +129,11 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
   };
 }
 
-export function listaAzioni(items: Item[], today: string, area?: string, now: number = Date.now()): Entry[] {
+export function listaAzioni(items: Item[], today: string, now: number = Date.now()): Entry[] {
   const aree = live(items).filter((i) => i.tipo === 'azione' && !i.padreId && !i.inbox && isOpen(i));
   const inRevisione = new Set(revisione(items, today, now).map((v) => v.item.id));
   return aree
-    .filter((i) => !inRevisione.has(i.id) && !parcheggiata(i) && (!area || i.area === area))
+    .filter((i) => !inRevisione.has(i.id) && !parcheggiata(i))
     .map((i) => ({ item: i, punteggio: score(i, today, now) }))
     .sort((a, b) => b.punteggio - a.punteggio);
 }
@@ -143,12 +143,6 @@ export function daParte(items: Item[]): Item[] {
   return live(items)
     .filter((i) => parcheggiata(i) && i.tipo !== 'persona')
     .sort((a, b) => b.aggiornato - a.aggiornato);
-}
-
-export function areeUsate(items: Item[]): string[] {
-  const set = new Set<string>();
-  for (const i of live(items)) if (i.tipo === 'azione' && i.area && isOpen(i)) set.add(i.area);
-  return [...set].sort((a, b) => a.localeCompare(b));
 }
 
 export interface VoceProgetto { progetto: Item; fatti: number; totale: number; prossimo?: Item; fermo: boolean }
