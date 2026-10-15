@@ -1,4 +1,4 @@
-name: Test e immagine Docker
+name: Test, immagine Docker e app Android
 
 on:
   push:
@@ -52,3 +52,79 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.version=${{ steps.info.outputs.version }}
+
+  android:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Versione
+        id: v
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          IFS=. read -r MAJ MIN PAT <<< "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "code=$((MAJ * 10000 + MIN * 100 + PAT))" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Copia l'app web nel progetto Android
+        working-directory: web
+        run: npx cap sync android
+
+      # Se nei segreti del repository c'è una chiave privata (ANDROID_KEYSTORE_BASE64 e le password)
+      # la usa; altrimenti firma con la chiave pubblica inclusa nel repository.
+      - name: Chiave di firma privata (facoltativa)
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > web/android/app/release.keystore
+            echo "MYTASK_KEYSTORE=release.keystore" >> "$GITHUB_ENV"
+            echo "MYTASK_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "MYTASK_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+            echo "MYTASK_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Costruisce l'APK
+        working-directory: web/android
+        env:
+          MYTASK_VERSION_NAME: ${{ steps.v.outputs.version }}
+          MYTASK_VERSION_CODE: ${{ steps.v.outputs.code }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk ../../mytask.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mytask-apk
+          path: mytask.apk
+
+      - name: Pubblica la release con l'APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ steps.v.outputs.version }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" mytask.apk --clobber
+          else
+            gh release create "$TAG" mytask.apk --title "MyTask ${{ steps.v.outputs.version }}" \
+              --notes "App Android (APK) della versione ${{ steps.v.outputs.version }}. Scaricala dal telefono e aprila per installarla."
+          fi

@@ -6,11 +6,13 @@ import { archivio, dataChiusura, inbox, luoghi, persone, revisione, zoneUsate } 
 import { suggerisciStasera, type Durata } from '../../../shared/stasera.ts';
 import { useAspetto, useAuth, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, nuovaVoce, ripianifica, saltaVoce } from '../lib/actions.ts';
-import { removeItem, saveItem, setAuth } from '../lib/store.ts';
+import { removeItem, saveBatch, saveItem, setAuth } from '../lib/store.ts';
+import { validaVoci } from '../../../shared/validate.ts';
 import { scaricaEsportazione, logout } from '../lib/api.ts';
 import { sync } from '../lib/sync.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
 import { chiediPermessoNotifiche, permessoNotifiche } from '../lib/reminders.ts';
+import { chiediPermessoNotificheNative, isNative, permessoNotificheNative, type PermessoNotifiche } from '../lib/native.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { Back, Chips, Empty, Field, Row, Sec, Seg, Toggle, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
@@ -317,7 +319,9 @@ export function Aspetto() {
 // ------------------------------------------------------------------ Notifiche
 
 export function Notifiche() {
-  const [perm, setPerm] = useState(permessoNotifiche());
+  const nativa = isNative();
+  const [perm, setPerm] = useState<PermessoNotifiche>(nativa ? 'default' : permessoNotifiche());
+  useEffect(() => { if (nativa) void permessoNotificheNative().then(setPerm); }, [nativa]);
   return (
     <>
       <Back label="Altro" />
@@ -326,10 +330,10 @@ export function Notifiche() {
         <div className="card">
           <div className="t1">{perm === 'granted' ? 'Notifiche attive' : perm === 'denied' ? 'Notifiche bloccate' : perm === 'non_supportate' ? 'Non supportate da questo browser' : 'Notifiche non ancora attive'}</div>
           <div className="t2" style={{ marginTop: 4 }}>
-            Nel browser i promemoria arrivano finché l'app è aperta. Con l'app Android installata arriveranno anche ad app chiusa.
+            {nativa ? 'I promemoria sono programmati nel telefono e arrivano anche ad app chiusa.' : "Nel browser i promemoria arrivano finché l'app è aperta. Con l'app Android installata arrivano anche ad app chiusa."}
           </div>
-          {perm === 'default' && <div className="btns"><button className="btn solid" onClick={async () => setPerm(await chiediPermessoNotifiche())}>Attiva le notifiche</button></div>}
-          {perm === 'denied' && <div className="t2" style={{ marginTop: 8 }}>Per riattivarle usa le impostazioni del sito nel browser.</div>}
+          {perm === 'default' && <div className="btns"><button className="btn solid" onClick={async () => setPerm(nativa ? await chiediPermessoNotificheNative() : await chiediPermessoNotifiche())}>Attiva le notifiche</button></div>}
+          {perm === 'denied' && <div className="t2" style={{ marginTop: 8 }}>{nativa ? 'Per riattivarle apri le impostazioni di Android, Notifiche, MyTask.' : 'Per riattivarle usa le impostazioni del sito nel browser.'}</div>}
         </div>
         <Sec a="Come funzionano" />
         <div className="t2" style={{ lineHeight: 1.6 }}>
@@ -395,6 +399,22 @@ export function Account() {
   const auth = useAuth();
   const st = useSyncStatus();
   const nVoci = useItemsCount();
+
+  async function importaDaFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const { voci, scartate } = validaVoci(JSON.parse(await file.text()));
+      if (voci.length === 0) { mostraToast('Nel file non ci sono voci valide'); return; }
+      const ok = window.confirm(`Importare ${voci.length} voci${scartate ? ` (${scartate} non valide scartate)` : ''}? Quelle già presenti con lo stesso identificativo vengono sostituite.`);
+      if (!ok) return;
+      await saveBatch(voci);
+      mostraToast(`Importate ${voci.length} voci`);
+    } catch (err) {
+      mostraToast(err instanceof Error ? err.message : 'File non valido');
+    }
+  }
   return (
     <>
       <Back label="Altro" />
@@ -408,6 +428,10 @@ export function Account() {
         <div className="btns col" style={{ marginTop: 18 }}>
           <button className="btn solid" onClick={() => { void sync(); mostraToast('Sincronizzazione avviata'); }}>Sincronizza ora</button>
           <button className="btn" onClick={() => { scaricaEsportazione().catch(() => mostraToast('Esportazione non riuscita (serve la connessione)')); }}>Scarica una copia dei dati (JSON)</button>
+          <label className="btn" style={{ cursor: 'pointer' }}>
+            Importa le voci da un file (JSON)
+            <input type="file" accept=".json,application/json" hidden onChange={importaDaFile} />
+          </label>
           <button className="btn danger" onClick={async () => { if (window.confirm('Uscire? I dati restano su questo dispositivo.')) { await logout(); await setAuth({ email: auth.email }); } }}>Esci</button>
         </div>
         <div className="t2" style={{ marginTop: 16 }}>Oggi è {today()}. Il database sul NAS fa una copia di sicurezza ogni giorno.</div>

@@ -121,3 +121,16 @@ test('IA: con una chiave chiama Gemini e restituisce la proposta', async () => {
   assert.match(chiamata?.url ?? '', /generativelanguage\.googleapis\.com/);
   await app.close();
 });
+
+test('CORS: ammesso solo per l\'app Android, anche per la richiesta preliminare', async () => {
+  const { app } = await setup();
+  const ok = await app.inject({ method: 'OPTIONS', url: '/api/sync', headers: { origin: 'https://localhost', 'access-control-request-method': 'POST', 'access-control-request-headers': 'authorization,content-type' } });
+  assert.equal(ok.statusCode, 204);
+  assert.equal(ok.headers['access-control-allow-origin'], 'https://localhost');
+  assert.match(String(ok.headers['access-control-allow-headers']), /authorization/);
+  const login = await app.inject({ method: 'POST', url: '/api/auth/login', headers: { origin: 'https://localhost' }, payload: { email: 'tu@example.com', password: 'una-password-lunga' } });
+  assert.equal(login.headers['access-control-allow-origin'], 'https://localhost');
+  const altro = await app.inject({ method: 'OPTIONS', url: '/api/sync', headers: { origin: 'https://sito-qualunque.example' } });
+  assert.equal(altro.headers['access-control-allow-origin'], undefined);
+  await app.close();
+});

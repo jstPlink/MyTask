@@ -49,19 +49,18 @@ Il file `..._all.csv` esportato da Notion non va su GitHub (contiene i tuoi dati
 due file: `server/scripts/regole.esempio.ts` (pubblico, generico) e `server/scripts/regole.locale.ts` (tuo, ignorato da git).
 Per prepararle copia l'esempio in `regole.locale.ts` e adattalo.
 
-Il modo più comodo è preparare l'importazione **sul tuo computer**, dove ci sono le regole personali, e caricare solo il risultato:
+1. **Sul tuo computer** (serve Node 24) prepara il file con le voci:
 
-```bash
-# sul computer (serve Node 24)
-node server/scripts/import-notion.ts NOME_DEL_FILE_all.csv --dry-run --json items.json --report report-importazione.md
+   ```bash
+   node server/scripts/import-notion.ts NOME_DEL_FILE_all.csv --dry-run --json voci.json --report report.md
+   ```
 
-# poi, sul NAS
-docker cp items.json mytask:/data/items.json
-docker compose exec mytask node server/scripts/import-notion.ts --from-json /data/items.json
-```
+   Nel report trovi tutto ciò che è stato sistemato.
+2. **Nell'app** (sito o telefono): *Altro > Account e sincronizzazione > Importa le voci da un file (JSON)* e scegli `voci.json`.
+   Le voci vengono salvate sul dispositivo e inviate al server.
 
-Nel report trovi tutto ciò che è stato sistemato. Se il database ha già dei dati, il comando si rifiuta di proseguire
-senza `--force`. In alternativa puoi importare direttamente nel container con il file CSV, ma userà le regole di esempio.
+In alternativa, dentro il container: `docker cp voci.json mytask:/data/voci.json` e poi
+`docker compose exec mytask node server/scripts/import-notion.ts --from-json /data/voci.json` (con il database vuoto, o con `--force`).
 
 ### Copie di sicurezza
 
@@ -76,9 +75,28 @@ volume, con lo strumento di backup che usi per il NAS. Come rete di sicurezza il
 docker compose pull && docker compose up -d
 ```
 
+## App Android
+
+A ogni aggiornamento GitHub costruisce anche l'APK e lo pubblica nelle *Releases*. Dal telefono:
+
+1. Apri https://github.com/jstPlink/MyTask/releases/latest e scarica `mytask.apk`.
+2. Aprilo. Se Android lo chiede, consenti l'installazione da questa fonte (una volta, per il browser o il gestore di file che usi).
+3. Apri MyTask, scrivi l'indirizzo del server (quello del tunnel Cloudflare), email e password, e consenti le notifiche.
+
+Per aggiornare scarichi il nuovo `mytask.apk` e lo apri: si installa sopra il precedente e i dati restano. Le notifiche
+(scadenze, insistenza, routine) sono programmate nel telefono e arrivano anche ad app chiusa; dopo un riavvio del telefono
+si riattivano da sole.
+
+Firma: l'APK è firmato con una chiave pubblica inclusa nel repository (`web/android/app/public-signing.keystore`), che serve
+solo a poter aggiornare l'app senza disinstallarla. Se vuoi una chiave tua, aggiungi nei segreti del repository
+`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` e `ANDROID_KEY_PASSWORD`: il workflow la usa al posto di quella pubblica
+(dovrai disinstallare e reinstallare l'app una volta, e i dati si risincronizzano dal server).
+
+Sviluppo: `cd web && npm run build && npx cap sync android`, poi `web/android` si apre con Android Studio.
+
 ## Come è fatta
 
 - `shared/`: logica comune (priorità, ricorrenze, routine, cattura rapida), scritta in TypeScript e provata con i test.
 - `server/`: Fastify + SQLite (`node:sqlite`, nessuna dipendenza nativa), login, sincronizzazione, IA (Gemini).
-- `web/`: React + Vite, archivio locale in IndexedDB, service worker per l'uso offline.
+- `web/`: React + Vite, archivio locale in IndexedDB, service worker per l'uso offline; `web/android` è l'app Android (Capacitor).
 - `docs/`: documentazione, decisioni di setup, mockup e report dell'importazione.

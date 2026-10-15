@@ -13,6 +13,8 @@ export interface Config {
   geminiModel: string;
   trustProxy: boolean;
   webDir: string;
+  /** Origini web aggiuntive ammesse (separate da virgola), oltre a quelle dell'app Android. */
+  corsOrigins: string[];
 }
 
 export function loadConfig(overrides: Partial<Config> = {}): Config {
@@ -27,6 +29,7 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     geminiKey: env.GEMINI_API_KEY || undefined,
     geminiModel: env.GEMINI_MODEL || 'gemini-2.5-flash',
     trustProxy: env.TRUST_PROXY === 'true',
+    corsOrigins: (env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
     webDir: path.resolve(env.WEB_DIR ?? path.join(import.meta.dirname, '..', '..', 'web', 'dist')),
     ...overrides,
   };

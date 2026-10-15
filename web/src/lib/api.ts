@@ -6,6 +6,14 @@ export function apiBase(): string {
   try { return (localStorage.getItem('mytask.server') ?? '').replace(/\/$/, ''); } catch { return ''; }
 }
 
+/** Salva l'indirizzo del server (usato dall'app Android). Restituisce quello normalizzato. */
+export function impostaServer(url: string): string {
+  let u = url.trim().replace(/\/+$/, '');
+  if (u && !/^https?:\/\//i.test(u)) u = `https://${u}`;
+  try { localStorage.setItem('mytask.server', u); } catch { /* ignora */ }
+  return u;
+}
+
 export class ErroreApi extends Error {
   status: number;
   constructor(status: number, message: string) { super(message); this.status = status; }

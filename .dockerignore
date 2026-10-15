@@ -6,3 +6,4 @@ docs
 .env
 .git
 *.log
+web/android

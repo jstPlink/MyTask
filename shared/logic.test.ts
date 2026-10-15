@@ -131,3 +131,40 @@ test('titoli: maiuscole, accenti e apostrofi non contano', async () => {
   assert.equal(chiaveTitolo('Sensi  e sensibilità'), chiaveTitolo('sensi e sensibilita'));
   assert.notEqual(chiaveTitolo('Serie s1'), chiaveTitolo('Serie s2'));
 });
+
+test('importazione da file: elenco o esportazione, voci non valide scartate', async () => {
+  const { validaVoci } = await import('./validate.ts');
+  const buona = { id: 'a1', tipo: 'film', titolo: 'Titolo', stato: 'da_fare' };
+  const r = validaVoci([buona, { id: 'a1', tipo: 'film', titolo: 'Doppione', stato: 'da_fare' }, { id: 'b', tipo: 'inventato', titolo: 'X', stato: 'da_fare' }, { id: 'c', tipo: 'film', titolo: '  ', stato: 'da_fare' }, null, 'testo'], 5000);
+  assert.equal(r.voci.length, 1);
+  assert.equal(r.scartate, 5);
+  assert.equal(r.voci[0].creato, 5000);
+  assert.equal(r.voci[0].aggiornato, 5000);
+  assert.equal(validaVoci({ esportato: 'oggi', voci: [buona] }).voci.length, 1);
+  assert.throws(() => validaVoci({ cose: [] }), /elenco di voci/);
+});
+
+test('notifiche native: promemoria, insistenza e routine', async () => {
+  const { pianificaNotifiche } = await import('./pianifica.ts');
+  const ora = new Date(2026, 9, 15, 10, 0, 0); // giovedì 15 ottobre 2026, 10:00
+  const scad = mk({ titolo: 'Scadenza', fine: '2026-10-20', promemoria: [{ giorniPrima: 1, ora: '09:00' }, { giorniPrima: 7, ora: '09:00' }] });
+  const n = pianificaNotifiche([scad], ora);
+  assert.equal(n.length, 1); // quello a 7 giorni (8 ottobre) è già passato
+  assert.equal(new Date(n[0].quando).getDate(), 19);
+  assert.equal(new Date(n[0].quando).getHours(), 9);
+  assert.equal(n[0].corpo, 'Scade domani');
+  assert.equal(n[0].id, pianificaNotifiche([scad], ora)[0].id); // stabile
+
+  const insiste = mk({ titolo: 'Urgente', fine: '2026-10-15', insisti: { ogniMinuti: 60 } });
+  const ins = pianificaNotifiche([insiste], ora);
+  assert.equal(ins.length, 12);
+  assert.equal(ins[0].quando - ora.getTime(), 3600000);
+  assert.equal(new Set(ins.map((x) => x.id)).size, 12);
+  assert.equal(pianificaNotifiche([{ ...insiste, stato: 'fatto' }], ora).length, 0);
+
+  const r = mk({ tipo: 'routine', titolo: 'Leggere', oraPromemoria: '22:30', log: ['2026-10-15'] });
+  const rn = pianificaNotifiche([r], ora, 3);
+  assert.equal(rn.length, 2); // oggi già fatta: restano domani e dopodomani
+  assert.equal(new Date(rn[0].quando).getDate(), 16);
+  assert.equal(pianificaNotifiche([{ ...r, stato: 'parcheggiato' }], ora).length, 0);
+});

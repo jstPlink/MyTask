@@ -2,8 +2,8 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.8.3
-- **Stato progetto:** app web e server scritti e provati in locale. Prossimo passo: prova su Docker sul NAS. L'APK è in pausa fino ad allora
+- **Versione documento:** 0.9.0
+- **Stato progetto:** app in produzione sul NAS; importazione dei dati da file dentro l'app; app Android costruita da GitHub (notifiche locali). Da verificare sul telefono
 - **Codice:** [README.md](../README.md) (come avviarla e metterla sul NAS)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
 - **Decisioni di dettaglio:** `docs/01-setup-decisioni.md` (registro locale delle decisioni, non pubblicato)
@@ -210,6 +210,15 @@ Le scelte marcate "confermato" sono decise dall'utente; le altre sono proposte t
 - Il database è un solo file SQLite; backup notturno in una cartella Seafile (da implementare).
 - Essendo l'app raggiungibile con HTTPS, la sincronizzazione con Google Calendar è tecnicamente fattibile quando vorrai attivarla.
 
+### 5.2 App Android
+
+- **Capacitor**: la web app è impacchettata in un'app Android (`web/android`); l'interfaccia è la stessa. Al primo accesso chiede l'indirizzo del server.
+- **Notifiche locali**: `shared/pianifica.ts` calcola, per i prossimi 14 giorni, le notifiche da programmare nel sistema operativo (promemoria delle scadenze, insistenza ogni N minuti, routine all'ora scelta). Il telefono le consegna anche ad app chiusa; si riprogrammano a ogni modifica dei dati e quando si torna nell'app. Nel browser restano i promemoria ad app aperta.
+- **Costruzione**: il PC di sviluppo non ha l'SDK Android; l'APK si costruisce nel workflow di GitHub e finisce nelle Releases (`mytask.apk`).
+- **Firma**: chiave pubblica nel repository per poter aggiornare l'app sopra la versione precedente; chiave privata facoltativa tramite segreti del repository.
+- **CORS**: il server ammette le origini dell'app (`https://localhost`, `capacitor://localhost`) e quelle in `CORS_ORIGINS`.
+- Se davanti al dominio c'è Cloudflare Access, l'app non riuscirebbe a collegarsi senza le credenziali di servizio di Cloudflare.
+
 ## 6. Importazione da Notion
 
 Una sola volta, dal CSV esportato. Passi:
@@ -246,7 +255,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2 | Mockup estetici | Pronti (`02-estetica.html`, 18 schermate, chiaro/scuro, 3 colori); in attesa di conferma finale |
 | 3 | Scrittura dell'app: base, Oggi, Inbox, import | Fatta e provata in locale |
 | 4 | Collezioni, Routine, Revisione | Fatta insieme alla fase 3 (progettazione unica) |
-| 5 | APK con notifiche e widget | In pausa (deciso dall'utente: prima la prova su Docker). Un primo scheletro Capacitor era stato generato ma non è nel repository. Widget rimandati |
+| 5 | APK con notifiche e widget | Fatta: APK costruito da GitHub Actions, notifiche locali programmate nel telefono. Widget rimandati |
 | 6 | IA | Cattura rapida con Gemini fatta (serve la chiave); le altre funzioni IA da fare |
 
 ### 8.1 Stato dell'implementazione (2026-10-15)
@@ -262,7 +271,8 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | Collegamento Google Calendar | Solo i dati sono pronti (date e orari). Il modulo di sincronizzazione non è ancora scritto |
 | Docker | Dockerfile e compose scritti. Il primo tentativo sul NAS è fallito perché nella cartella usata mancava il Dockerfile; ora l'immagine si scarica già pronta. Il build è verificato dal workflow su GitHub |
 | Service worker (uso offline all'apertura dell'app) | Generato dalla build, **non verificato** nel browser di prova |
-| APK (Capacitor), widget | Da fare |
+| APK (Capacitor) | Costruito da GitHub Actions e pubblicato nelle Releases. Da provare sul telefono |
+| Widget | Rimandati (decisione dell'utente) |
 
 ## 9. Registro aggiornamenti
 
@@ -279,3 +289,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.8.1 | Docker: immagine pubblicata da GitHub Actions su ghcr.io (il NAS non costruisce più nulla), test e controllo dei tipi su ogni push, tolta l'opzione BACKUP_DIR e la cartella di backup dal compose e da `.env.example` (il backup lo gestisce l'utente; resta solo la copia giornaliera dentro il volume). Rimosso `image: mytask:latest`, che causava l'avviso "pull access denied" |
 | 2026-10-15 | 0.8.2 | Corretto il controllo su GitHub: il caricamento delle regole personali di importazione non fa più fallire il controllo dei tipi quando il file locale non c'è |
 | 2026-10-15 | 0.8.3 | Il workflow su GitHub ha costruito e pubblicato l'immagine (build Docker verificato) e il pacchetto risulta scaricabile senza credenziali: tolto dal README il passaggio per renderlo pubblico |
+| 2026-10-15 | 0.9.0 | App Android (Capacitor): APK costruito da GitHub Actions e pubblicato nelle Releases, firmato con una chiave pubblica inclusa (aggiornamenti senza disinstallare; chiave privata facoltativa via segreti). Notifiche locali programmate nel telefono per i prossimi 14 giorni (scadenze, insistenza, routine), riprogrammate a ogni modifica. Indirizzo del server richiesto al primo accesso nell'app. CORS nel server per l'app. Importazione delle voci da file JSON dentro l'app (Altro > Account), che sostituisce i comandi Docker per caricare i dati di Notion |

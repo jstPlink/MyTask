@@ -1,0 +1,3 @@
+# Il wrapper di Gradle gira su Linux nel controllo automatico: deve avere a-capo Unix
+web/android/gradlew text eol=lf
+*.sh text eol=lf

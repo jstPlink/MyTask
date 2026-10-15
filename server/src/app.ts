@@ -28,6 +28,19 @@ export async function buildApp({ config, store, fetchFn, now = Date.now }: AppDe
   const app = Fastify({ logger: false, trustProxy: config.trustProxy, bodyLimit: 20 * 1024 * 1024 });
   const limiter = new RateLimiter();
 
+  // l'app Android carica la pagina da https://localhost: serve il CORS per parlare con il server
+  const origini = new Set(['https://localhost', 'http://localhost', 'capacitor://localhost', ...config.corsOrigins]);
+  app.addHook('onRequest', async (req, reply) => {
+    const o = req.headers.origin;
+    if (!o || !origini.has(o)) return;
+    reply.header('access-control-allow-origin', o);
+    reply.header('vary', 'Origin');
+    reply.header('access-control-allow-headers', 'authorization, content-type');
+    reply.header('access-control-allow-methods', 'GET, POST, OPTIONS');
+    reply.header('access-control-max-age', '86400');
+    if (req.method === 'OPTIONS') return reply.code(204).send();
+  });
+
   // primo avvio: crea l'unico utente dalle variabili d'ambiente
   if (store.countUsers() === 0 && config.email && config.password) {
     store.createUser(config.email, hashPassword(config.password));
