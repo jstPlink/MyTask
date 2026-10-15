@@ -28,11 +28,8 @@ Non serve costruire nulla sul NAS: a ogni aggiornamento GitHub costruisce l'imma
 3. `docker compose pull && docker compose up -d`
 4. Controlla che sia partita: `docker compose ps` deve mostrare il container come `healthy`, e `docker compose logs mytask` non deve avere errori.
 
-Se il comando scarica l'immagine con errore `denied`, il pacchetto su GitHub è ancora privato: vedi sotto. Se invece
-lavori dalla cartella clonata puoi anche costruirla sul posto con `docker compose up -d --build` (serve il file `Dockerfile` nella cartella).
-
-**Una tantum, su GitHub:** dopo la prima esecuzione del workflow vai su *Profilo > Packages > mytask > Package settings*
-e imposta la visibilità su **Public**, così il NAS la scarica senza credenziali.
+L'immagine è pubblica: il NAS la scarica senza credenziali. Se lavori dalla cartella clonata puoi anche costruirla sul
+posto con `docker compose up -d --build` (serve il file `Dockerfile` nella cartella).
 
 Il database sta nel volume Docker `mytask-data`, quindi `docker compose down` non lo cancella (`docker compose down -v` sì: non usarlo).
 
