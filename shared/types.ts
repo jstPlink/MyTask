@@ -81,6 +81,8 @@ export interface Item {
   consigliatoDa?: string;
   conChi?: string;
   durataMin?: number;
+  /** Pagine di un libro (cercate online al momento della creazione). */
+  pagine?: number;
   genere?: string;
   voto?: number;
   /** Commento lasciato quando si segna come fatto un film, un libro, un gioco… */

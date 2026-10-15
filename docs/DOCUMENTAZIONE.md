@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.15.0
+- **Versione documento:** 0.16.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -125,6 +125,9 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Pannello Esperienza:** Data, Interesse e il pulsante "Apri in Google Maps", che cerca il nome dell'esperienza. Tolti Zona e il link a Google Maps.
 - **Ricetta:** solo Interesse e Genere, a scelta multipla tra Antipasto, Primo, Secondo, Contorno, Dolce, Piatto unico, Zuppa, Pane e lievitati, Bevanda (salvata come elenco separato da virgole in `genere`). Tolti Consigliato da e Con chi.
 - **Persone e checklist:** non si modificano più. All'avvio e a ogni sincronizzazione le voci che li hanno li vedono spostati nelle note (`web/src/lib/migrazioni.ts`), e i campi vengono svuotati.
+- **Intrattenimento per tipo:** il film ha Interesse, Piattaforma e Genere (niente Consigliato da, Con chi e Durata); serie e anime mantengono Consigliato da, Con chi e Durata in minuti; il gioco ha Durata in ore (salvata in minuti, per esempio 12,5 ore); il libro ha le **Pagine**, cercate online da sole su Open Library a partire dal titolo (al servizio esterno va solo il titolo; si possono correggere) (`web/src/lib/libri.ts`).
+- **Tre pulsanti in fila:** in fondo alla scheda "Segna come fatto", "Metti da parte" ed "Elimina" stanno uno accanto all'altro.
+- **Barra in basso:** la scheda attiva ha lo sfondo che copre icona e testo.
 - **Rotazione:** l'app Android resta sempre in verticale (`screenOrientation` nel manifest).
 
 ### 2.5 Feedback aptico e animazioni (implementato)
@@ -393,3 +396,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.13.0 | Feedback aptico leggero sui tocchi ai pulsanti e animazioni (sezione 2.5). Comprende le modifiche della 0.12.2 (Inbox a schede, tendine con icone, gruppi nella scheda di una voce, targhette di larghezza uguale) |
 | 2026-10-15 | 0.14.0 | "Scoprire" diventa "Intrattenimento"; il tipo "Azione" diventa "Attività" ovunque. Tipi accorpati sotto Intrattenimento con seconda scelta; stato non più scelto, con "Metti da parte" e la sezione Altro > Da parte; gruppo Intrattenimento unico; finestra del voto e del commento al segno di fatto; tolti "Link e documenti". Più spazio tra titolo, selettore, filtri ed elenco nelle schede (sezione 2.4.1) |
 | 2026-10-15 | 0.15.0 | Pannelli unici per Attività, Progetto (data, importanza, tempo stimato fino a 1 giorno) ed Esperienza (data, interesse, apri in Google Maps); tolti area, ricorrenza, zona, link Maps e sotto-task dalla scheda; ricetta con genere a scelta multipla; persone e checklist spostate nelle note; schermo bloccato in verticale; mockup del peso dell'importanza (locale, `06-peso-importanza.html`) |
+| 2026-10-15 | 0.16.0 | Pulsanti della scheda in fila; film senza consigliato da, con chi e durata; gioco con durata in ore; libro con pagine cercate online (Open Library); scheda attiva della barra in basso con sfondo su icona e testo; nuovi mockup del peso dell'importanza (locali, `07-peso-importanza-altre.html`) |

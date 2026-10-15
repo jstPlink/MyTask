@@ -7,6 +7,7 @@ import { useItems } from '../lib/hooks.ts';
 import { assicuraPersone, completaVoce, nuovaVoce, riapriVoce } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
+import { cercaPagine } from '../lib/libri.ts';
 import { Back, DotsPick, Field, Gruppo, Scelta, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { useNav } from '../ui/nav.tsx';
@@ -65,6 +66,27 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const oggi = today();
   const persone = useMemo(() => nomiPersone(tutte), [tutte]);
   const piattaforme = useMemo(() => [...new Set(tutte.map((i) => i.piattaforma).filter((x): x is string => !!x))], [tutte]);
+  const [oreTesto, setOreTesto] = useState(() => (d.durataMin ? String(+(d.durataMin / 60).toFixed(1)).replace('.', ',') : ''));
+  const [ricercaPagine, setRicercaPagine] = useState<'' | 'cerco' | 'trovate' | 'nonTrovate'>('');
+  const ultimoTitoloCercato = useRef('');
+
+  // libro: le pagine si cercano da sole online, quando il titolo è scritto e le pagine non ci sono
+  useEffect(() => {
+    if (d.tipo !== 'libro' || d.pagine !== undefined) return;
+    const titolo = d.titolo.trim();
+    if (titolo.length < 3 || titolo === ultimoTitoloCercato.current) return;
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      ultimoTitoloCercato.current = titolo;
+      setRicercaPagine('cerco');
+      const pagine = await cercaPagine(titolo, ctrl.signal);
+      if (ctrl.signal.aborted) return;
+      if (pagine) { setD((x) => (x.pagine === undefined && x.titolo.trim() === titolo ? { ...x, pagine } : x)); setRicercaPagine('trovate'); }
+      else setRicercaPagine('nonTrovate');
+    }, 900);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [d.titolo, d.tipo, d.pagine]);
+
   const generi = (d.genere ?? '').split(',').map((x) => x.trim()).filter(Boolean);
   const puntegg = IS_AZIONE(t) ? score(withTemp(d), oggi) : undefined;
   const due = dueDate(d);
@@ -191,15 +213,33 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
             {IS_VIDEO(t) && <Field label="Piattaforma"><input list="piattaforme" value={d.piattaforma ?? ''} placeholder="es. Netflix" onChange={(e) => up({ piattaforma: e.target.value || undefined })} /></Field>}
             <datalist id="piattaforme">{piattaforme.map((p) => <option key={p} value={p} />)}</datalist>
-            {t !== 'ricetta' && (
+            {t !== 'ricetta' && t !== 'film' && (
               <>
                 <Field label="Consigliato da"><input list="persone" value={d.consigliatoDa ?? ''} onChange={(e) => up({ consigliatoDa: e.target.value || undefined })} /></Field>
                 <datalist id="persone">{persone.map((p) => <option key={p} value={p} />)}</datalist>
                 <Field label="Con chi"><input list="persone" value={d.conChi ?? ''} onChange={(e) => up({ conChi: e.target.value || undefined })} /></Field>
-                {(IS_VIDEO(t) || t === 'gioco') && <Field label="Durata (minuti)"><input inputMode="numeric" value={d.durataMin ?? ''} onChange={(e) => up({ durataMin: Number(e.target.value.replace(/\D/g, '')) || undefined })} /></Field>}
-                <Field label="Genere"><input value={d.genere ?? ''} onChange={(e) => up({ genere: e.target.value || undefined })} /></Field>
               </>
             )}
+            {(t === 'serie' || t === 'anime') && <Field label="Durata (minuti)"><input inputMode="numeric" value={d.durataMin ?? ''} onChange={(e) => up({ durataMin: Number(e.target.value.replace(/\D/g, '')) || undefined })} /></Field>}
+            {t === 'gioco' && (
+              <Field label="Durata (ore)">
+                <input inputMode="decimal" value={oreTesto} placeholder="es. 12" onChange={(e) => {
+                  const testo = e.target.value.replace(/[^\d.,]/g, '');
+                  setOreTesto(testo);
+                  const ore = parseFloat(testo.replace(',', '.'));
+                  up({ durataMin: Number.isFinite(ore) && ore > 0 ? Math.round(ore * 60) : undefined });
+                }} />
+              </Field>
+            )}
+            {t === 'libro' && (
+              <>
+                <Field label="Pagine"><input inputMode="numeric" value={d.pagine ?? ''} placeholder="cerco online…" onChange={(e) => up({ pagine: Number(e.target.value.replace(/\D/g, '')) || undefined })} /></Field>
+                {ricercaPagine === 'cerco' && d.pagine === undefined && <div className="t2" style={{ padding: '6px 0' }}>Cerco le pagine online…</div>}
+                {ricercaPagine === 'trovate' && d.pagine !== undefined && <div className="t2" style={{ padding: '6px 0' }}>Pagine trovate online (puoi correggerle).</div>}
+                {ricercaPagine === 'nonTrovate' && d.pagine === undefined && <div className="t2" style={{ padding: '6px 0' }}>Non ho trovato le pagine: scrivile tu.</div>}
+              </>
+            )}
+            {t !== 'ricetta' && <Field label="Genere"><input value={d.genere ?? ''} onChange={(e) => up({ genere: e.target.value || undefined })} /></Field>}
             {t === 'ricetta' && (
               <>
                 <div className="t2" style={{ marginTop: 12 }}>Genere</div>
@@ -245,7 +285,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         )}
 
         {getItem(d.id) && (
-          <div className="btns col" style={{ marginTop: 18 }}>
+          <div className="btns tre" style={{ marginTop: 18 }}>
             {d.stato === 'fatto'
               ? <button className="btn solid" onClick={() => { riapriVoce(d); nav.pop(); }}>Riapri</button>
               : t !== 'routine' && t !== 'persona' && d.stato !== 'parcheggiato' && <button className="btn solid" onClick={() => { salva(d); completaVoce(getItem(d.id) ?? d); }}>Segna come fatto</button>}

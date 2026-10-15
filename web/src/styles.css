@@ -355,3 +355,13 @@ a { color: var(--accent); }
 .rec-voto { height: 44px; border-radius: 12px; background: var(--surface2); font-weight: 650; font-size: 16px; text-align: center; }
 .rec-voto.on { background: var(--accent); color: var(--on-accent); }
 .rec-voto:active { transform: scale(.94); }
+
+/* ---------- Tre pulsanti in fila nella scheda di una voce ---------- */
+.btns.tre { gap: 8px; }
+.btns.tre .btn { padding: 12px 4px; font-size: 12.5px; line-height: 1.2; display: flex; align-items: center; justify-content: center; min-height: 48px; }
+
+/* ---------- Scheda attiva della barra in basso: lo sfondo copre icona e testo ---------- */
+.tabs { padding-left: 6px; padding-right: 6px; gap: 4px; }
+.tabs button { border-radius: 16px; margin: 6px 0; height: 54px; transition: background .15s, color .15s, transform .12s; }
+.tabs button.on { background: var(--accent-soft); }
+.tabs button.on .ic, .tabs button .ic { background: none; width: 30px; height: 28px; }
