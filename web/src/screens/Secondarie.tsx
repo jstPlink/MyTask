@@ -56,7 +56,6 @@ export function Altro() {
 
 // ------------------------------------------------------------------ Inbox
 
-const TIPI_VELOCI: Tipo[] = ['azione', 'esperienza', 'film', 'serie', 'gioco', 'libro', 'curiosita'];
 
 export function Inbox() {
   const nav = useNav();
@@ -69,18 +68,13 @@ export function Inbox() {
       <div className="scroll">
         {lista.length === 0 && <Empty>Tutto smistato. Le idee catturate al volo arrivano qui.</Empty>}
         {lista.map((i) => (
-          <div key={i.id} style={{ borderBottom: '1px solid var(--line)', padding: '10px 0' }}>
-            <button style={{ width: '100%' }} onClick={() => nav.push({ k: 'item', id: i.id })}>
-              <div className="t1">{i.titolo}</div>
-              <div className="t2">{[i.piattaforma, i.consigliatoDa && `consigliato da ${i.consigliatoDa}`, i.note].filter(Boolean).join(' · ') || 'Tocca per completare'}</div>
-            </button>
-            <div className="chips" style={{ margin: '8px 0 0' }}>
-              {TIPI_VELOCI.map((t) => (
-                <button key={t} className="chip" onClick={() => saveItem({ ...i, tipo: t, inbox: undefined, interesse: i.interesse ?? (t === 'azione' ? undefined : 3), importanza: t === 'azione' ? (i.importanza ?? 3) : i.importanza })}>{NOMI_TIPO[t]}</button>
-              ))}
-              <button className="chip" aria-label={`Elimina «${i.titolo}»`} onClick={() => { removeItem(i.id); mostraToast('Eliminata', { label: 'Annulla', fn: () => saveItem(i) }); }}>Elimina</button>
-            </div>
-          </div>
+          <button key={i.id} className="inbox-voce" onClick={() => nav.push({ k: 'item', id: i.id })}>
+            <span className="inbox-testo">
+              <span className="t1">{i.titolo}</span>
+              <span className="t2" style={{ display: 'block' }}>{[i.piattaforma, i.consigliatoDa && `consigliato da ${i.consigliatoDa}`, i.note].filter(Boolean).join(' · ') || 'Apri per smistare'}</span>
+            </span>
+            <span className="muted" aria-hidden="true">›</span>
+          </button>
         ))}
       </div>
     </>

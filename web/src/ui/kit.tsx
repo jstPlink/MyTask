@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { clsx } from '../lib/util.ts';
 import { useNav, type Tab } from './nav.tsx';
 
@@ -154,4 +154,50 @@ export function TabBar() {
 
 export function Fab({ onClick, label = 'Nuova voce' }: { onClick: () => void; label?: string }) {
   return <button className="fab" onClick={onClick} aria-label={label}>+</button>;
+}
+
+export interface VoceScelta<T extends string> { id: T; nome: string; icona: ReactNode }
+
+/** Tendina con icona o colore per ogni voce (al posto del select del browser). */
+export function Scelta<T extends string>({ label, valore, voci, onChange }: { label: string; valore: T; voci: VoceScelta<T>[]; onChange: (v: T) => void }) {
+  const [aperto, setAperto] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!aperto) return;
+    const chiudi = (e: Event) => { if (!ref.current?.contains(e.target as Node)) setAperto(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setAperto(false); } };
+    document.addEventListener('pointerdown', chiudi);
+    document.addEventListener('keydown', esc, true);
+    return () => { document.removeEventListener('pointerdown', chiudi); document.removeEventListener('keydown', esc, true); };
+  }, [aperto]);
+  const corrente = voci.find((v) => v.id === valore) ?? voci[0];
+  return (
+    <div className="field scelta-field" ref={ref}>
+      <span>{label}</span>
+      <div className="scelta">
+        <button type="button" className="scelta-btn" aria-haspopup="listbox" aria-expanded={aperto} aria-label={`${label}: ${corrente?.nome}`} onClick={() => setAperto(!aperto)}>
+          {corrente?.icona}<b>{corrente?.nome}</b><span className="scelta-freccia" aria-hidden="true">▾</span>
+        </button>
+        {aperto && (
+          <ul className="scelta-menu" role="listbox" aria-label={label}>
+            {voci.map((v) => (
+              <li key={v.id} role="option" aria-selected={v.id === valore}>
+                <button type="button" className={clsx(v.id === valore && 'on')} onClick={() => { onChange(v.id); setAperto(false); }}>{v.icona}<span>{v.nome}</span></button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Gruppo di campi in una scheda con il suo titolo. */
+export function Gruppo({ titolo, children }: { titolo?: string; children: ReactNode }) {
+  return (
+    <section className="gruppo">
+      {titolo && <h3 className="gruppo-t">{titolo}</h3>}
+      {children}
+    </section>
+  );
 }

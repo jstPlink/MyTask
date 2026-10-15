@@ -2,11 +2,21 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.12.1
+- **Versione documento:** 0.13.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
 - **Decisioni di dettaglio:** `docs/01-setup-decisioni.md` (registro locale delle decisioni, non pubblicato)
+
+## Come si lavora sul progetto (regole dell'utente)
+
+Regole fisse per chi sviluppa (anche Claude), da rispettare a ogni modifica:
+
+1. **Anteprima in locale:** sito e server in localhost, con il sito collegato al server vero (`MYTASK_SERVER`, vedi `web/vite.config.ts`), così l'utente vede le modifiche prima di pubblicarle.
+2. **Telefono sempre aggiornato:** dopo ogni modifica l'app Android sul telefono va aggiornata (debug wireless, `adb install -r`, senza disinstallare per non perdere i dati locali). L'APK si costruisce solo su GitHub Actions, quindi serve prima commit e push e poi aspettare la build.
+3. **Commit solo se serve:** si chiede il commit solo quando è necessario per vedere le modifiche (cioè per l'aggiornamento del telefono); non si fanno commit o push per altri motivi senza che l'utente lo chieda.
+4. **Versione e documentazione:** si aumenta la versione a ogni commit e si annota il registro in fondo a questo documento.
+5. **Privacy:** niente screenshot del telefono (può mostrare notifiche private); per verificare si usa il browser o i test.
 
 ## 1. Scopo
 
@@ -103,6 +113,12 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 - **Icone** per le sezioni principali (Oggi: sole; Fare: spunta in un quadrato; Scoprire: bussola; Routine: frecce che si ripetono), nella barra in basso con un'evidenziazione tonda sulla scheda attiva, e nella barra laterale del sito.
 - **Inbox e Altro** in "Oggi" sono ora due pulsanti tondi da 46 px, più facili da toccare: Inbox con un contatore (se ci sono idee da smistare) e Altro con tre pallini.
+
+### 2.5 Feedback aptico e animazioni (implementato)
+
+- **Feedback aptico:** ogni tocco a un pulsante attivo (pulsanti, schede, interruttori, scelte nei menu) dà una vibrazione leggera; il segno di fatto una più marcata. Nell'app Android usa il motore aptico (`@capacitor/haptics`), nel browser del telefono la vibrazione breve del browser, sul computer nulla (`web/src/lib/haptic.ts`, un solo ascoltatore in cattura per tutta l'app).
+- **Animazioni** (solo CSS, in fondo a `web/src/styles.css`): le schermate e le schede entrano con una breve dissolvenza dal basso; le righe appaiono in sequenza; i tag compaiono con un piccolo ingrandimento; il segno di fatto e il giorno scelto nel mese "scattano"; foglio di cattura e avvisi salgono dal basso; i menu a tendina si aprono con un leggero zoom; le barre di avanzamento e del tempo usato si riempiono con una transizione; i pulsanti si schiacciano leggermente quando premuti.
+- Con "Riduci animazioni" attivo nel sistema, le animazioni sono disattivate.
 
 ## 3. Modello dati
 
@@ -360,3 +376,5 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.11.1 | Selettore Elenco / Calendario nella scheda Oggi. Il testo "Sincronizzato" in fondo a Oggi (telefono) compare solo quando serve: offline o modifiche in attesa |
 | 2026-10-15 | 0.12.0 | Piano della giornata: le attività sono distribuite nei giorni in base a priorità, tempo libero e durata, con spezzatura dei task lunghi e rinvio dei meno prioritari (sezione 2.3.2). Nuova schermata Altro > Tempo libero. Per provare il sito in locale col server vero: `MYTASK_SERVER` in `web/vite.config.ts` |
 | 2026-10-15 | 0.12.1 | Tolto il Calendario da Attività e il selettore Elenco/Calendario: Oggi è una pagina sola, con la giornata a orari, frecce per cambiare giorno e vista Mese per spostarsi rapidamente (sezione 2.3.1) |
+| 2026-10-15 | 0.12.2 | Targhette delle aree tutte della stessa larghezza (96 px). Inbox: ogni voce è una scheda con bordo e si smista aprendola; tolte le etichette di smistamento rapido. Scheda di una voce: Tipo e Stato sono tendine con icona e colore per ogni voce; i campi sono raggruppati in schede (Voce, Quando, Priorità, Interesse, Persone e link, Checklist, Note). Verificata la cronologia del tasto indietro: voce, scheda, Oggi, uscita dall'app |
+| 2026-10-15 | 0.13.0 | Feedback aptico leggero sui tocchi ai pulsanti e animazioni (sezione 2.5). Comprende le modifiche della 0.12.2 (Inbox a schede, tendine con icone, gruppi nella scheda di una voce, targhette di larghezza uguale) |

@@ -219,7 +219,7 @@ a { color: var(--accent); }
 
 /* ---------- Tag area e calendario ---------- */
 .row .line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.tag { flex: none; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.tag { flex: none; box-sizing: border-box; width: 96px; text-align: center; overflow: hidden; text-overflow: ellipsis; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
 .tag.a1 { background: var(--c1s); color: var(--c1); } .tag.a2 { background: var(--c2s); color: var(--c2); } .tag.a3 { background: var(--c3s); color: var(--c3); }
 .tag.a4 { background: var(--c4s); color: var(--c4); } .tag.a5 { background: var(--c5s); color: var(--c5); }
 .cal-head { display: flex; justify-content: space-between; align-items: center; margin: 6px 2px 8px; }
@@ -273,3 +273,71 @@ a { color: var(--accent); }
 .giorno-nome span { display: block; font-size: 12.5px; color: var(--mid); }
 .giorno-oggi { font-size: 12.5px; font-weight: 650; color: var(--accent); padding: 4px 8px; border-radius: 8px; }
 .giorno-oggi:hover { background: var(--accent-soft); }
+
+/* ---------- Tendine con icona e gruppi del modulo ---------- */
+.badge-icona { display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.scelta { position: relative; margin-left: auto; }
+.scelta-btn { display: inline-flex; align-items: center; gap: 9px; padding: 5px 8px 5px 6px; border-radius: 12px; }
+.scelta-btn:hover { background: var(--surface2); }
+.scelta-btn b { font-weight: 650; color: var(--ink); }
+.scelta-freccia { color: var(--soft); font-size: 12px; }
+.scelta-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 210px; max-height: 330px; overflow-y: auto; margin: 0; padding: 6px; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.scelta-menu li { margin: 0; }
+.scelta-menu button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border-radius: 10px; font-size: 14.5px; }
+.scelta-menu button:hover { background: var(--surface2); }
+.scelta-menu button.on { background: var(--accent-soft); color: var(--accent); font-weight: 650; }
+.field.scelta-field { overflow: visible; }
+
+.gruppo { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 4px 14px 2px; margin: 14px 0; }
+.gruppo-t { margin: 0; padding: 12px 0 2px; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--soft); font-weight: 700; }
+.gruppo > .field:last-child, .gruppo > :last-child.field { border-bottom: 0; }
+.gruppo .sec { margin-top: 12px; }
+.gruppo .row:last-child { border-bottom: 0; }
+.gruppo .textarea { margin: 8px 0 12px; }
+
+/* ---------- Inbox ---------- */
+.inbox-voce { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 13px 14px; margin: 9px 0; }
+.inbox-voce:hover, .inbox-voce:active { border-color: var(--accent); }
+.inbox-testo { min-width: 0; }
+
+/* ---------- Animazioni ---------- */
+@keyframes entra { from { opacity: 0; transform: translateY(10px); } }
+@keyframes appare { from { opacity: 0; } }
+@keyframes scivola-su { from { transform: translateY(100%); } }
+@keyframes scivola-su-largo { from { opacity: 0; transform: translate(-50%, 24px); } }
+@keyframes sale { from { opacity: 0; transform: translateY(16px); } }
+@keyframes pop-menu { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
+@keyframes spunta { 0% { transform: scale(.7); } 55% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes compare-tag { from { opacity: 0; transform: scale(.85); } }
+
+/* le schermate entrano con una breve dissolvenza dal basso (il fill "backwards" evita che resti un transform) */
+.scroll { animation: entra .24s ease-out backwards; }
+.row { animation: entra .26s ease-out backwards; }
+.row:nth-child(2) { animation-delay: 30ms; } .row:nth-child(3) { animation-delay: 60ms; } .row:nth-child(4) { animation-delay: 90ms; }
+.row:nth-child(5) { animation-delay: 120ms; } .row:nth-child(6) { animation-delay: 150ms; } .row:nth-child(n+7) { animation-delay: 180ms; }
+.card, .gruppo, .inbox-voce { animation: entra .26s ease-out backwards; }
+.tag { animation: compare-tag .25s ease-out backwards; }
+.cal-d { transition: background .15s, color .15s, border-color .15s; }
+.cal-d.sel { animation: spunta .25s ease-out; }
+.dim { animation: appare .2s ease-out; }
+.sheet { animation: scivola-su .28s cubic-bezier(.2, .8, .2, 1); }
+.shell .sheet { animation: scivola-su-largo .24s ease-out; }
+.toast { animation: sale .22s ease-out; }
+.scelta-menu { animation: pop-menu .16s ease-out; transform-origin: top right; }
+.cb { transition: background .15s, border-color .15s, transform .15s; }
+.cb.done { animation: spunta .3s ease-out; }
+.bar i, .piano-barra i { transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.chip, .seg button, .sb-link, .tl-add, .tl-x, .scelta-btn, .opt, .field.link, .inbox-voce, .row { transition: background .15s, color .15s, border-color .15s, transform .12s; }
+.dots-pick button { transition: background .15s, transform .12s; }
+.dots-pick button:active { transform: scale(.85); }
+.toggle::after { transition: right .18s ease, background .15s; }
+
+/* pressione: i pulsanti si schiacciano leggermente */
+.btn:active, .chip:active, .circ:active, .tabs button:active, .sb-link:active, .scelta-btn:active, .inbox-voce:active, .seg button:active, .cal-d:active, .giorno-nav > button:active, .cal-nav button:active { transform: scale(.96); }
+.fab { transition: transform .15s, box-shadow .15s; }
+.fab:active { transform: scale(.92); }
+.row:active { transform: scale(.995); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; }
+}

@@ -8,8 +8,10 @@ import { avviaSync } from './lib/sync.ts';
 import { avviaTema } from './lib/theme.ts';
 import { avviaPromemoria } from './lib/reminders.ts';
 import { avviaNotificheNative, isNative } from './lib/native.ts';
+import { avviaHaptic } from './lib/haptic.ts';
 
 avviaTema();
+avviaHaptic();
 
 async function avvia() {
   await initStore();

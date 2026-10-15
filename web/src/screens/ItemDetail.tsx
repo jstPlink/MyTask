@@ -8,7 +8,8 @@ import { useItems } from '../lib/hooks.ts';
 import { assicuraPersone, completaVoce, nuovaVoce } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
-import { Back, DotsPick, Field, Row, Sec, Toggle, Top } from '../ui/kit.tsx';
+import { Back, DotsPick, Field, Gruppo, Row, Scelta, Sec, Toggle, Top } from '../ui/kit.tsx';
+import { BadgeStato, BadgeTipo } from '../ui/Icone.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx, newId } from '../lib/util.ts';
 
@@ -136,21 +137,14 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </div>
         )}
 
-        <Field label="Titolo"><input value={d.titolo} placeholder="Cosa?" autoFocus={!id} onChange={(e) => up({ titolo: e.target.value })} /></Field>
-        <Field label="Tipo">
-          <select value={t} onChange={(e) => cambiaTipo(e.target.value as Tipo)}>
-            {TIPI_SCELTA.map((x) => <option key={x} value={x}>{NOMI_TIPO[x]}</option>)}
-            {!TIPI_SCELTA.includes(t) && <option value={t}>{NOMI_TIPO[t]}</option>}
-          </select>
-        </Field>
-        <Field label="Stato">
-          <select value={d.stato} onChange={(e) => {
-            const s = e.target.value as Stato;
-            up({ stato: s, completatoIl: s === 'fatto' ? (d.completatoIl ?? oggi) : undefined });
-          }}>
-            {STATI.map((s) => <option key={s.id} value={s.id}>{t === 'curiosita' && s.id === 'da_fare' ? 'Da approfondire' : s.nome}</option>)}
-          </select>
-        </Field>
+        <Gruppo>
+          <Field label="Titolo"><input value={d.titolo} placeholder="Cosa?" autoFocus={!id} onChange={(e) => up({ titolo: e.target.value })} /></Field>
+          <Scelta label="Tipo" valore={t} onChange={cambiaTipo}
+            voci={(TIPI_SCELTA.includes(t) ? TIPI_SCELTA : [...TIPI_SCELTA, t]).map((x) => ({ id: x, nome: NOMI_TIPO[x], icona: <BadgeTipo tipo={x} /> }))} />
+          <Scelta label="Stato" valore={d.stato}
+            onChange={(st) => up({ stato: st, completatoIl: st === 'fatto' ? (d.completatoIl ?? oggi) : undefined })}
+            voci={STATI.map((x) => ({ id: x.id, nome: t === 'curiosita' && x.id === 'da_fare' ? 'Da approfondire' : x.nome, icona: <BadgeStato stato={x.id} /> }))} />
+        </Gruppo>
 
         {t === 'progetto' && (
           <>
@@ -171,8 +165,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         )}
 
         {IS_DATATO(t) && (
-          <>
-            <Sec a={t === 'esperienza' ? 'Quando e dove' : 'Quando'} />
+          <Gruppo titolo={t === 'esperienza' ? 'Quando e dove' : 'Quando'}>
             <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: e.target.value ? d.rigida : undefined })} /></Field>
             {d.inizio && <Field label="Fino al"><input type="date" min={d.inizio} value={d.fine ?? ''} onChange={(e) => up({ fine: e.target.value || undefined })} /></Field>}
             {d.inizio && <Field label="Ora"><input type="time" value={d.oraInizio ?? ''} onChange={(e) => up({ oraInizio: e.target.value || undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>}
@@ -205,12 +198,11 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                 )}
               </>
             )}
-          </>
+          </Gruppo>
         )}
 
         {IS_AZIONE(t) && (
-          <>
-            <Sec a="Priorità" />
+          <Gruppo titolo="Priorità">
             <Field label="Importanza"><DotsPick label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>
             <Field label="Sforzo stimato">
               <select value={d.sforzoMin ?? ''} onChange={(e) => up({ sforzoMin: e.target.value ? Number(e.target.value) : undefined })}>
@@ -219,48 +211,52 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             </Field>
             <Field label="Area"><input list="aree" value={d.area ?? ''} placeholder="es. Casa" onChange={(e) => up({ area: e.target.value || undefined })} /></Field>
             <datalist id="aree">{aree.map((a) => <option key={a} value={a} />)}</datalist>
-          </>
-        )}
-        {t === 'azione' && progetti.length > 0 && (
-          <Field label="Progetto">
-            <select value={d.padreId ?? ''} onChange={(e) => up({ padreId: e.target.value || undefined })}>
-              <option value="">Nessuno</option>{progetti.map((p) => <option key={p.id} value={p.id}>{p.titolo}</option>)}
-            </select>
-          </Field>
+            {t === 'azione' && progetti.length > 0 && (
+              <Field label="Progetto">
+                <select value={d.padreId ?? ''} onChange={(e) => up({ padreId: e.target.value || undefined })}>
+                  <option value="">Nessuno</option>{progetti.map((p) => <option key={p.id} value={p.id}>{p.titolo}</option>)}
+                </select>
+              </Field>
+            )}
+          </Gruppo>
         )}
 
-        {HA_INTERESSE(t) && <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
-
-        {t === 'esperienza' && (
-          <>
-            <Field label="Zona"><input list="zone" value={d.zona ?? ''} placeholder="es. Toscana" onChange={(e) => up({ zona: e.target.value || undefined })} /></Field>
-            <datalist id="zone">{zone.map((z) => <option key={z} value={z} />)}</datalist>
-            <Field label="Link Google Maps"><input value={d.linkMaps ?? ''} placeholder="Incolla il link" onChange={(e) => up({ linkMaps: e.target.value || undefined })} /></Field>
-          </>
+        {HA_INTERESSE(t) && (
+          <Gruppo titolo={t === 'esperienza' ? 'Interesse e luogo' : 'Interesse'}>
+            <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
+            {t === 'esperienza' && (
+              <>
+                <Field label="Zona"><input list="zone" value={d.zona ?? ''} placeholder="es. Toscana" onChange={(e) => up({ zona: e.target.value || undefined })} /></Field>
+                <datalist id="zone">{zone.map((z) => <option key={z} value={z} />)}</datalist>
+                <Field label="Link Google Maps"><input value={d.linkMaps ?? ''} placeholder="Incolla il link" onChange={(e) => up({ linkMaps: e.target.value || undefined })} /></Field>
+              </>
+            )}
+          </Gruppo>
         )}
 
         {IS_COLLEZIONE(t) && (
           <>
-            <Sec a="Dettagli" />
+            <Gruppo titolo="Dettagli">
             {IS_VIDEO(t) && <Field label="Piattaforma"><input list="piattaforme" value={d.piattaforma ?? ''} placeholder="es. Netflix" onChange={(e) => up({ piattaforma: e.target.value || undefined })} /></Field>}
             <datalist id="piattaforme">{piattaforme.map((p) => <option key={p} value={p} />)}</datalist>
             <Field label="Consigliato da"><input list="persone" value={d.consigliatoDa ?? ''} onChange={(e) => up({ consigliatoDa: e.target.value || undefined })} /></Field>
             <Field label="Con chi"><input list="persone" value={d.conChi ?? ''} onChange={(e) => up({ conChi: e.target.value || undefined })} /></Field>
             {(IS_VIDEO(t) || t === 'gioco') && <Field label="Durata (minuti)"><input inputMode="numeric" value={d.durataMin ?? ''} onChange={(e) => up({ durataMin: Number(e.target.value.replace(/\D/g, '')) || undefined })} /></Field>}
             <Field label="Genere"><input value={d.genere ?? ''} onChange={(e) => up({ genere: e.target.value || undefined })} /></Field>
-            <Sec a="Dopo averlo fatto" />
+            </Gruppo>
+            <Gruppo titolo="Dopo averlo fatto">
             <Field label="Fatto il"><input type="date" value={d.completatoIl ?? ''} onChange={(e) => up({ completatoIl: e.target.value || undefined, stato: e.target.value ? 'fatto' : d.stato })} /></Field>
             <Field label="Voto">
               <select value={d.voto ?? ''} onChange={(e) => up({ voto: e.target.value ? Number(e.target.value) : undefined })}>
                 <option value="">Nessuno</option>{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => <option key={v} value={v}>{v} / 10</option>)}
               </select>
             </Field>
+            </Gruppo>
           </>
         )}
 
         {t === 'routine' && (
-          <>
-            <Sec a="Routine" />
+          <Gruppo titolo="Routine">
             <Field label="Momento">
               <select value={d.fascia ?? 'sera'} onChange={(e) => up({ fascia: e.target.value as Fascia })}>
                 {(Object.keys(NOMI_FASCIA) as Fascia[]).map((f) => <option key={f} value={f}>{NOMI_FASCIA[f]}</option>)}
@@ -273,32 +269,32 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             </Field>
             <Field label="Obiettivo minimo"><input value={d.obiettivo ?? ''} placeholder="es. Leggere 10 minuti" onChange={(e) => up({ obiettivo: e.target.value || undefined })} /></Field>
             <Field label="Promemoria alle"><input type="time" value={d.oraPromemoria ?? ''} onChange={(e) => up({ oraPromemoria: e.target.value || undefined })} /></Field>
-          </>
+          </Gruppo>
         )}
 
-        {t !== 'routine' && (
-          <>
-            <Sec a="Persone" />
-            <div className="chips" style={{ marginTop: 4 }}>
-              {(d.persone ?? []).map((p) => <button key={p} className="chip on" aria-label={`Togli ${p}`} onClick={() => up({ persone: (d.persone ?? []).filter((x) => x !== p) })}>{p} ✕</button>)}
+        <Gruppo titolo={t === 'routine' ? 'Link' : 'Persone e link'}>
+          {t !== 'routine' && (
+            <>
+              <Sec a="Persone" />
+              <div className="chips" style={{ marginTop: 4 }}>
+                {(d.persone ?? []).map((p) => <button key={p} className="chip on" aria-label={`Togli ${p}`} onClick={() => up({ persone: (d.persone ?? []).filter((x) => x !== p) })}>{p} ✕</button>)}
+              </div>
+              <AggiungiRiga placeholder="Aggiungi una persona" lista="persone" onAdd={(n) => up({ persone: [...new Set([...(d.persone ?? []), n])] })} />
+              <datalist id="persone">{persone.map((p) => <option key={p} value={p} />)}</datalist>
+            </>
+          )}
+          <Sec a="Link e documenti" />
+          {(d.link ?? []).map((l, i) => (
+            <div key={l} className="field">
+              <a href={l} target="_blank" rel="noreferrer" style={{ overflowWrap: 'anywhere', flex: 1 }}>{l.replace(/^https?:\/\//, '').slice(0, 60)}</a>
+              <button aria-label="Togli il link" className="chip" onClick={() => up({ link: (d.link ?? []).filter((_, j) => j !== i) })}>✕</button>
             </div>
-            <AggiungiRiga placeholder="Aggiungi una persona" lista="persone" onAdd={(n) => up({ persone: [...new Set([...(d.persone ?? []), n])] })} />
-            <datalist id="persone">{persone.map((p) => <option key={p} value={p} />)}</datalist>
-          </>
-        )}
-
-        <Sec a="Link e documenti" />
-        {(d.link ?? []).map((l, i) => (
-          <div key={l} className="field">
-            <a href={l} target="_blank" rel="noreferrer" style={{ overflowWrap: 'anywhere', flex: 1 }}>{l.replace(/^https?:\/\//, '').slice(0, 60)}</a>
-            <button aria-label="Togli il link" className="chip" onClick={() => up({ link: (d.link ?? []).filter((_, j) => j !== i) })}>✕</button>
-          </div>
-        ))}
-        <AggiungiRiga placeholder="Incolla un link (anche a Seafile)" onAdd={aggiungiLink} />
+          ))}
+          <AggiungiRiga placeholder="Incolla un link (anche a Seafile)" onAdd={aggiungiLink} />
+        </Gruppo>
 
         {t !== 'persona' && (
-          <>
-            <Sec a={`Checklist${checklist.length ? ` · ${fatte}/${checklist.length}` : ''}`} />
+          <Gruppo titolo={`Checklist${checklist.length ? ` · ${fatte}/${checklist.length}` : ''}`}>
             {checklist.map((c) => (
               <div key={c.id} className="row" style={{ alignItems: 'center' }}>
                 <button className={clsx('cb sq', c.fatto && 'done')} aria-label={`Segna «${c.testo}»`} onClick={() => setCheck(checklist.map((x) => x.id === c.id ? { ...x, fatto: !x.fatto } : x))} />
@@ -307,11 +303,12 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               </div>
             ))}
             <AggiungiRiga placeholder="Aggiungi alla checklist" onAdd={(txt) => setCheck([...checklist, { id: newId(), testo: txt, fatto: false }])} />
-          </>
+          </Gruppo>
         )}
 
-        <Sec a="Note" />
-        <textarea className="textarea" value={d.note ?? ''} placeholder="Appunti" onChange={(e) => up({ note: e.target.value || undefined })} />
+        <Gruppo titolo="Note">
+          <textarea className="textarea" value={d.note ?? ''} placeholder="Appunti" onChange={(e) => up({ note: e.target.value || undefined })} />
+        </Gruppo>
 
         {getItem(d.id) && <div className="btns col" style={{ marginTop: 22 }}><button className="btn danger" onClick={elimina}>Elimina</button></div>}
       </div>
