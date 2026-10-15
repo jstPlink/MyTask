@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
 import { NOMI_FASCIA, type Fascia, type Item } from '../../../shared/types.ts';
 import { conteggio, fattaOggi, rigaSettimana } from '../../../shared/routine.ts';
-import { formatShort, startOfWeek, addDays } from '../../../shared/dates.ts';
+import { formatShort, startOfWeek, addDays, weekDays, parseISO } from '../../../shared/dates.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
-import { segnaRoutine } from '../lib/actions.ts';
+import { segnaRoutine, segnaRoutineGiorno } from '../lib/actions.ts';
 import { saveItem } from '../lib/store.ts';
 import { Empty, Fab, Sec, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 
 const FASCE: Fascia[] = ['mattina', 'pomeriggio', 'sera', 'prima_di_dormire'];
+const nomeGiorno = (iso: string) => new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: 'numeric' }).format(parseISO(iso));
 
 export function Routine() {
   const nav = useNav();
@@ -34,11 +35,31 @@ export function Routine() {
     </div>
   );
 
+  // schermi larghi: la settimana in sette colonne, si può spuntare qualsiasi giorno
+  const griglia = nav.wide && attive.length > 0 && (
+    <div className="board" role="group" aria-label="Settimana">
+      {weekDays(oggi).map((g) => (
+        <div key={g} className={clsx('day', g === oggi && 'today')}>
+          <h4>{nomeGiorno(g)}{g === oggi && <span>oggi</span>}</h4>
+          {attive.map((r) => {
+            const fatta = (r.log ?? []).includes(g);
+            return (
+              <button key={r.id} className={clsx('pill', fatta && 'done')} aria-pressed={fatta} aria-label={`${r.titolo}, ${nomeGiorno(g)}`} onClick={() => segnaRoutineGiorno(r, g)}>
+                {fatta ? '✓ ' : ''}{r.titolo}
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <>
       <Top title="Routine" sub={`Settimana dal ${formatShort(lunedi)} al ${formatShort(addDays(lunedi, 6))}`} />
-      <div className="scroll">
+      <div className={clsx('scroll', nav.wide && 'wide-board')}>
         {attive.length === 0 && <Empty>Nessuna routine attiva. Aggiungine una con il pulsante +.</Empty>}
+        {griglia}
         {FASCE.map((f) => {
           const l = attive.filter((r) => (r.fascia ?? 'sera') === f);
           return l.length ? <div key={f}><Sec a={NOMI_FASCIA[f]} />{l.map(riga)}</div> : null;

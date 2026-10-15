@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.9.1
+- **Versione documento:** 0.10.0
 - **Stato progetto:** app in produzione sul NAS; importazione dei dati da file dentro l'app; app Android costruita da GitHub (notifiche locali). Da verificare sul telefono
 - **Codice:** [README.md](../README.md) (come avviarla e metterla sul NAS)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -68,17 +68,22 @@ Layout identico ai mockup minimalisti, con questi cambi:
 | Accento Indaco | #4F46E5 | #9A9EFF |
 | Avviso | #D1430B | #FF9466 |
 
-### 2.3 Layout web per schermi larghi (proposta, da approvare)
+### 2.3 Layout web per schermi larghi (implementato)
 
-Oggi il sito su computer mostra la stessa colonna singola del telefono, centrata. La proposta (mockup `docs/mockups/03-web-desktop.html`, locale) usa lo spazio così:
+Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
 
-- **Oltre 1300 px:** tre aree affiancate: barra laterale (navigazione, contatori, Inbox, Revisione, versione e stato di sincronizzazione), elenco al centro, pannello di dettaglio a destra.
-- **900-1300 px:** barra laterale e area principale; il dettaglio si apre a tutta pagina.
-- **Sotto 900 px:** barra laterale nascosta e quattro schede in basso, come sul telefono (layout attuale).
-- **Cattura rapida** sempre in alto, con ricerca; scorciatoie da tastiera (N cattura, / cerca, J e K scorrono, Invio apre, F segna fatto).
-- **Oggi** diventa un cruscotto a due colonne; **Routine** una griglia settimanale a sette colonne; "Cosa guardo stasera?" resta nel pannello laterale delle collezioni.
+- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Azioni/Progetti/Esperienze, Scoprire con le sette collezioni, Routine; "Da sistemare": Inbox e Revisione con contatori; Archivio, Persone, Luoghi; Aspetto, Notifiche, Account; versione e stato di sincronizzazione). I gruppi Fare e Scoprire si aprono solo quando sono attivi. I selettori a schede di Fare e Scoprire spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
+- **Da 1300 px:** il dettaglio si apre in un pannello a destra e la voce aperta è evidenziata nell'elenco.
+- **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca e "+ Nuova voce" (il tipo segue la sezione in cui si è).
+- **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, nelle persone, nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
+- **Oggi** è un cruscotto a due colonne (cose da fare; routine, revisione e inbox). **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
+- **Scorciatoie da tastiera:** N (cattura rapida), / (ricerca), Esc (chiude la conferma, la ricerca o il pannello). Spostarsi nell'elenco con J e K e segnare fatto con F non sono ancora implementati.
+- La cattura rapida si apre al centro, come finestra, invece che dal basso.
 
-Stile, palette, tema chiaro/scuro e colore d'accento restano quelli già approvati.
+### 2.4 Telefono: icone e pulsanti circolari (implementato)
+
+- **Icone** per le sezioni principali (Oggi: sole; Fare: spunta in un quadrato; Scoprire: bussola; Routine: frecce che si ripetono), nella barra in basso con un'evidenziazione tonda sulla scheda attiva, e nella barra laterale del sito.
+- **Inbox e Altro** in "Oggi" sono ora due pulsanti tondi da 46 px, più facili da toccare: Inbox con un contatore (se ci sono idee da smistare) e Altro con tre pallini.
 
 ## 3. Modello dati (bozza v0.1)
 
@@ -303,3 +308,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.8.3 | Il workflow su GitHub ha costruito e pubblicato l'immagine (build Docker verificato) e il pacchetto risulta scaricabile senza credenziali: tolto dal README il passaggio per renderlo pubblico |
 | 2026-10-15 | 0.9.0 | App Android (Capacitor): APK costruito da GitHub Actions e pubblicato nelle Releases, firmato con una chiave pubblica inclusa (aggiornamenti senza disinstallare; chiave privata facoltativa via segreti). Notifiche locali programmate nel telefono per i prossimi 14 giorni (scadenze, insistenza, routine), riprogrammate a ogni modifica. Indirizzo del server richiesto al primo accesso nell'app. CORS nel server per l'app. Importazione delle voci da file JSON dentro l'app (Altro > Account), che sostituisce i comandi Docker per caricare i dati di Notion |
 | 2026-10-15 | 0.9.1 | La versione compare nell'app (sito e telefono: Altro e Account, schermata di accesso) e nel server (`/api/health`, mostrata in Account con l'avviso se differisce da quella dell'app). Aggiunta la proposta di layout web per schermi larghi (sezione 2.3, mockup locale `03-web-desktop.html`) |
+| 2026-10-15 | 0.10.0 | Layout web per schermi larghi (sezione 2.3): barra laterale, barra in alto con cattura rapida e ricerca, pannello di dettaglio, cruscotto in Oggi, griglia settimanale in Routine, scorciatoie N / Esc. Telefono (sezione 2.4): icone per Oggi, Fare, Scoprire e Routine; Inbox e Altro come pulsanti tondi più grandi. Ricerca nelle voci |

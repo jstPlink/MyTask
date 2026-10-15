@@ -1,5 +1,6 @@
 // Selezioni e ordinamenti usati dalle schermate. Funzioni pure: stesso input, stesso output.
 import type { Item } from './types.ts';
+import { chiaveTitolo } from './capture.ts';
 import { addDays, diffDays } from './dates.ts';
 import {
   SOGLIA_REVISIONE_GIORNI, daysOverdue, dueDate, isClosed, isOpen, score, withInheritance,
@@ -235,4 +236,22 @@ export function luoghi(items: Item[], zona?: string): Item[] {
   return live(items)
     .filter((i) => i.tipo === 'esperienza' && isOpen(i) && (i.zona || i.luogo) && (!zona || i.zona === zona))
     .sort((a, b) => (a.zona ?? '').localeCompare(b.zona ?? '', 'it') || (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo, 'it'));
+}
+
+/** Ricerca per parole nel titolo, nelle note e nei campi di testo. Tutte le parole devono comparire. */
+export function cercaVoci(items: Item[], q: string, max = 60): Item[] {
+  const parole = chiaveTitolo(q).split(' ').filter(Boolean);
+  if (parole.length === 0) return [];
+  const chiave = (i: Item) => chiaveTitolo([i.titolo, i.note, i.consigliatoDa, i.conChi, i.area, i.zona, i.piattaforma, i.genere, ...(i.persone ?? []), ...(i.checklist ?? []).map((c) => c.testo)].filter(Boolean).join(' '));
+  const primo = chiaveTitolo(parole[0]);
+  return live(items)
+    .map((i) => ({ i, k: chiave(i) }))
+    .filter(({ k }) => parole.every((p) => k.includes(p)))
+    .sort((a, b) => {
+      const aperta = Number(isClosed(a.i)) - Number(isClosed(b.i));
+      const inizio = Number(!chiaveTitolo(a.i.titolo).startsWith(primo)) - Number(!chiaveTitolo(b.i.titolo).startsWith(primo));
+      return aperta || inizio || b.i.aggiornato - a.i.aggiornato;
+    })
+    .slice(0, max)
+    .map(({ i }) => i);
 }

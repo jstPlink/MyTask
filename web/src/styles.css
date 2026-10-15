@@ -127,3 +127,74 @@ a { color: var(--accent); }
 .login h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: -.02em; }
 .login input { background: var(--surface); border: 1.5px solid var(--line); border-radius: 13px; padding: 13px; font-size: 16px; outline: none; width: 100%; }
 .login input:focus { border-color: var(--accent); }
+
+/* ---------- Icone e pulsanti circolari (telefono) ---------- */
+.tabs button { height: 62px; gap: 2px; }
+.tabs button .ic { width: 52px; height: 30px; border-radius: 15px; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+.tabs button.on .ic { background: var(--accent-soft); }
+.tabs button i { display: none; }
+.header-circles { display: flex; gap: 10px; align-items: center; }
+.circ { position: relative; width: 46px; height: 46px; border-radius: 50%; background: var(--surface2); color: var(--ink); display: flex; align-items: center; justify-content: center; flex: none; }
+.circ:active { background: var(--accent-soft); color: var(--accent); }
+.circ-badge { position: absolute; top: -3px; right: -3px; min-width: 21px; height: 21px; padding: 0 6px; border-radius: 11px; background: var(--accent); color: var(--on-accent); font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); }
+
+/* ---------- Layout per schermi larghi ---------- */
+.pill { display: flex; align-items: center; gap: 7px; width: 100%; font-size: 12.5px; padding: 7px 10px; border-radius: 10px; background: var(--surface2); margin-bottom: 6px; text-align: left; color: var(--ink); }
+.pill.done { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+.shell { height: 100dvh; display: grid; grid-template-columns: 232px minmax(0, 1fr); background: var(--bg); position: relative; overflow: hidden; }
+.shell.with-pane { grid-template-columns: 232px minmax(0, 1fr) 400px; }
+
+.side { background: var(--surface); border-right: 1px solid var(--line); padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; min-height: 0; }
+.sb-brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 17px; padding: 2px 8px 14px; letter-spacing: -.01em; }
+.sb-brand i { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); display: inline-block; position: relative; }
+.sb-brand i::after { content: ""; position: absolute; left: 9px; top: 6px; width: 6px; height: 11px; border: solid var(--on-accent); border-width: 0 2.5px 2.5px 0; transform: rotate(40deg); }
+.sb-link { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; border-radius: 9px; color: var(--mid); font-size: 13.5px; width: 100%; }
+.sb-link b { font-weight: 650; color: inherit; display: flex; align-items: center; gap: 9px; }
+.sb-link:hover { background: var(--surface2); }
+.sb-link.on { background: var(--accent-soft); color: var(--accent); }
+.sb-link.sub { padding-left: 30px; font-size: 13px; }
+.sb-n { font-size: 11px; background: var(--surface2); color: var(--mid); padding: 1px 8px; border-radius: 9px; }
+.sb-n.warn { background: var(--warn-soft); color: var(--warn); }
+.sb-sec { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--soft); padding: 12px 10px 3px; font-weight: 600; }
+.sb-spacer { flex: 1; min-height: 12px; }
+.sb-foot { font-size: 11.5px; color: var(--soft); padding: 10px 10px 0; border-top: 1px solid var(--line); margin-top: 6px; line-height: 1.7; }
+
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.topbar { display: flex; gap: 12px; align-items: center; padding: 12px 22px; border-bottom: 1px solid var(--line); }
+.topbar-capture, .topbar-search { position: relative; }
+.topbar-capture { flex: 1; }
+.topbar-search { width: 230px; }
+.topbar input { width: 100%; background: var(--surface2); border: 1.5px solid transparent; border-radius: 12px; padding: 9px 40px 9px 14px; outline: none; }
+.topbar-capture input { background: var(--surface); border-color: var(--accent); }
+.topbar input:focus { border-color: var(--accent); }
+.topbar kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: inherit; font-size: 11px; background: var(--surface2); border-radius: 6px; padding: 1px 7px; color: var(--mid); pointer-events: none; }
+.topbar-search kbd { background: var(--surface); }
+.topbar .btn { white-space: nowrap; }
+.main-body { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; }
+.page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.shell .top { padding: 20px 22px 6px; }
+.shell .scroll { padding: 0 22px 40px; max-width: 880px; width: 100%; }
+.shell .scroll.wide-dash, .shell .scroll.wide-board { max-width: 1180px; }
+.shell .fab { display: none; }
+.shell .back { display: none; padding-left: 22px; }
+.shell .pane .back, .shell .keep-back .back { display: block; }
+.dash { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; }
+.dash-side { padding-top: 6px; }
+.dash-side .card.tap { text-align: left; }
+.board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; margin: 14px 0 6px; }
+.day { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px; min-height: 140px; }
+.day.today { border: 1.5px solid var(--accent); box-shadow: var(--shadow); }
+.day h4 { margin: 0 0 8px; font-size: 12px; color: var(--mid); font-weight: 600; display: flex; justify-content: space-between; text-transform: capitalize; }
+.day.today h4 { color: var(--accent); }
+.pane { border-left: 1px solid var(--line); background: var(--surface); min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.pane .top { padding-top: 6px; }
+.pane .scroll { max-width: none; padding: 0 20px 40px; }
+.shell .row.sel { background: var(--accent-soft); border-radius: 0 10px 10px 0; }
+.row.sel { background: var(--accent-soft); }
+.shell .sheet { left: 50%; right: auto; bottom: auto; top: 14%; width: min(580px, 92%); transform: translateX(-50%); border-radius: 22px; padding-bottom: 18px; }
+.shell .toast { left: auto; right: 24px; bottom: 24px; max-width: 420px; }
+.shell .card.tap { width: 100%; }
+
+/* in schermo largo la barra laterale sostituisce i selettori a schede */
+.shell .seg { display: none; }

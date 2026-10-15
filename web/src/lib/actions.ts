@@ -59,6 +59,11 @@ export function segnaRoutine(item: Item) {
   saveItem(toggleOggi(item, today(), Date.now()));
 }
 
+/** Segna o toglie la routine per un giorno qualsiasi (griglia settimanale). */
+export function segnaRoutineGiorno(item: Item, giorno: string) {
+  saveItem(toggleOggi(item, giorno, Date.now()));
+}
+
 export function ripianifica(item: Item, iso: string) {
   const conFine = item.fine !== undefined;
   saveItem({

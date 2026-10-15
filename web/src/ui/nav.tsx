@@ -22,7 +22,19 @@ export interface Nav {
   scoprireSub: SubScoprire;
   setScoprireSub: (s: SubScoprire) => void;
   capture: boolean;
-  openCapture: (open: boolean) => void;
+  /** Testo con cui si apre la cattura rapida (dalla barra in alto). */
+  captureText: string;
+  openCapture: (open: boolean, testo?: string) => void;
+  /** Schermo largo: barra laterale al posto delle schede in basso. */
+  wide: boolean;
+  /** Schermo molto largo: il dettaglio si apre in un pannello a destra. */
+  xl: boolean;
+  /** Sostituisce la pila con una sola schermata (per i link della barra laterale). */
+  vai: (s: Screen) => void;
+  /** Id della voce aperta nell'editor, se c'è. */
+  openId: string | undefined;
+  query: string;
+  setQuery: (q: string) => void;
   /** Apre l'editor per una nuova voce del tipo indicato. */
   nuova: (p: Partial<Item>) => void;
 }

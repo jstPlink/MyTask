@@ -168,3 +168,15 @@ test('notifiche native: promemoria, insistenza e routine', async () => {
   assert.equal(new Date(rn[0].quando).getDate(), 16);
   assert.equal(pianificaNotifiche([{ ...r, stato: 'parcheggiato' }], ora).length, 0);
 });
+
+test('ricerca: tutte le parole, anche nelle note, senza accenti né maiuscole', async () => {
+  const { cercaVoci } = await import('./views.ts');
+  const a = mk({ titolo: 'Rinnovare la carta d’identità', note: 'portare le foto' });
+  const b = mk({ titolo: 'Comprare le foto stampate', stato: 'fatto' });
+  const c = mk({ titolo: 'Altro', eliminato: true });
+  assert.deepEqual(cercaVoci([a, b, c], 'IDENTITA').map((x) => x.id), [a.id]);
+  assert.deepEqual(cercaVoci([a, b, c], 'foto').map((x) => x.id), [a.id, b.id]); // aperte prima delle chiuse
+  assert.deepEqual(cercaVoci([a, b, c], 'foto stampate').map((x) => x.id), [b.id]);
+  assert.deepEqual(cercaVoci([a, b, c], '   '), []);
+  assert.deepEqual(cercaVoci([a, b, c], 'altro'), []); // le voci eliminate non compaiono
+});

@@ -6,7 +6,7 @@ import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, segnaRoutine } from '../lib/actions.ts';
-import { Fab, Row, Sec, Top } from '../ui/kit.tsx';
+import { Fab, Icona, Row, Sec, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 
@@ -35,74 +35,129 @@ export function Oggi() {
     return e.item.rigida ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
   };
 
+  const routineFatte = v.routine.filter((r) => fattaOggi(r, oggi)).length;
+  const routine = v.routine.length > 0 && (
+    nav.wide ? (
+      <div className="card">
+        <div className="t2">Routine di oggi · {routineFatte} su {v.routine.length}</div>
+        <div style={{ marginTop: 8 }}>
+          {v.routine.map((r) => (
+            <button key={r.id} className={clsx('pill', fattaOggi(r, oggi) && 'done')} onClick={() => segnaRoutine(r)} aria-pressed={fattaOggi(r, oggi)}>
+              {fattaOggi(r, oggi) ? '✓ ' : ''}{r.titolo}{!fattaOggi(r, oggi) && r.obiettivo ? ` · ${r.obiettivo.toLowerCase()}` : ''}
+            </button>
+          ))}
+        </div>
+      </div>
+    ) : (
+      <>
+        <Sec a="Routine di oggi" b={`${routineFatte} su ${v.routine.length}`} />
+        <div className="chips">
+          {v.routine.map((r) => (
+            <button key={r.id} className={clsx('chip', fattaOggi(r, oggi) && 'on')} onClick={() => segnaRoutine(r)}>
+              {r.titolo}{fattaOggi(r, oggi) ? ' ✓' : r.obiettivo && r.fascia ? ` · ${r.obiettivo.toLowerCase()}` : ''}
+            </button>
+          ))}
+        </div>
+      </>
+    )
+  );
+
+  const faroggi = (
+    <>
+      <Sec a="Da fare oggi" b={v.fare.length || undefined} />
+      {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Fare» o «Scoprire».</div>}
+      {v.fare.map((e) => (
+        <Row
+          key={e.item.id}
+          titolo={e.item.titolo}
+          meta={meta(e)}
+          right={destra(e)}
+          level={barLevel(e.punteggio)}
+          onCheck={() => completaVoce(e.item)}
+          selected={nav.openId === e.item.id}
+          onOpen={() => nav.push({ k: 'item', id: e.item.id })}
+        />
+      ))}
+      {v.prossimi.length > 0 && (
+        <>
+          <Sec a="Prossimi 7 giorni" />
+          {v.prossimi.map((e) => (
+            <Row
+              key={e.item.id}
+              titolo={e.item.titolo}
+              meta={e.item.tipo === 'esperienza' ? 'Esperienza' : e.item.area}
+              right={e.item.rigida ? <span className="hard">{formatShortYear(dueDate(e.item)!, oggi)}</span> : formatShortYear(dueDate(e.item)!, oggi)}
+              light
+              check={e.item.tipo === 'azione' || e.item.tipo === 'progetto' ? 'circle' : 'square'}
+              onCheck={() => completaVoce(e.item)}
+              selected={nav.openId === e.item.id}
+              onOpen={() => nav.push({ k: 'item', id: e.item.id })}
+            />
+          ))}
+        </>
+      )}
+    </>
+  );
+
+  const revisione = v.revisione > 0 && (
+    <button className={clsx('card tap', nav.wide && 'strong')} style={nav.wide ? undefined : { marginTop: 18 }} onClick={() => nav.vai({ k: 'revisione' })}>
+      <span><b>Revisione</b>{nav.wide && <span className="t2" style={{ display: 'block' }}>{v.revisione} voci scadute o ferme da rivedere</span>}</span>
+      <span className="muted">{nav.wide ? 'Inizia ›' : `${v.revisione} da rivedere ›`}</span>
+    </button>
+  );
+  const stato = (
+    <div style={{ textAlign: 'center', marginTop: 18 }}>
+      <span className={clsx('pill-sync', !sync.online && 'off')}>
+        {!sync.online ? 'Offline' : sync.inAttesa ? `${sync.inAttesa} da sincronizzare` : 'Sincronizzato'}
+      </span>
+    </div>
+  );
+
+  if (nav.wide) {
+    return (
+      <>
+        <Top title="Oggi" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} cose da fare`} />
+        <div className="scroll wide-dash">
+          <div className="dash">
+            <div>{faroggi}</div>
+            <div className="dash-side">
+              {routine}
+              {revisione}
+              {v.inbox > 0 && (
+                <button className="card tap" onClick={() => nav.vai({ k: 'inbox' })}>
+                  <span><span className="t2" style={{ display: 'block' }}>Inbox</span><b>{v.inbox} {v.inbox === 1 ? 'idea' : 'idee'} da smistare</b></span>
+                  <span className="muted">›</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Top
         title="Oggi"
         sub={formatLong(oggi)}
         right={
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-            <button className="badge solid" onClick={() => nav.push({ k: 'inbox' })}>Inbox {v.inbox}</button>
-            <button className="badge" onClick={() => nav.push({ k: 'altro' })} aria-label="Apri il menu Altro">Altro ›</button>
+          <div className="header-circles">
+            <button className="circ" onClick={() => nav.push({ k: 'inbox' })} aria-label={`Inbox, ${v.inbox} da smistare`}>
+              <Icona nome="inbox" size={22} />
+              {v.inbox > 0 && <span className="circ-badge">{v.inbox > 99 ? '99+' : v.inbox}</span>}
+            </button>
+            <button className="circ" onClick={() => nav.push({ k: 'altro' })} aria-label="Altro: archivio, persone, luoghi, impostazioni">
+              <Icona nome="altro" size={22} />
+            </button>
           </div>
         }
       />
       <div className="scroll">
-        {v.routine.length > 0 && (
-          <>
-            <Sec a="Routine di oggi" b={`${v.routine.filter((r) => fattaOggi(r, oggi)).length} su ${v.routine.length}`} />
-            <div className="chips">
-              {v.routine.map((r) => (
-                <button key={r.id} className={clsx('chip', fattaOggi(r, oggi) && 'on')} onClick={() => segnaRoutine(r)}>
-                  {r.titolo}{fattaOggi(r, oggi) ? ' ✓' : r.obiettivo && r.fascia ? ` · ${r.obiettivo.toLowerCase()}` : ''}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        <Sec a="Da fare oggi" b={v.fare.length || undefined} />
-        {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Fare» o «Scoprire».</div>}
-        {v.fare.map((e) => (
-          <Row
-            key={e.item.id}
-            titolo={e.item.titolo}
-            meta={meta(e)}
-            right={destra(e)}
-            level={barLevel(e.punteggio)}
-            onCheck={() => completaVoce(e.item)}
-            onOpen={() => nav.push({ k: 'item', id: e.item.id })}
-          />
-        ))}
-
-        {v.prossimi.length > 0 && (
-          <>
-            <Sec a="Prossimi 7 giorni" />
-            {v.prossimi.map((e) => (
-              <Row
-                key={e.item.id}
-                titolo={e.item.titolo}
-                meta={e.item.tipo === 'esperienza' ? 'Esperienza' : e.item.area}
-                right={e.item.rigida ? <span className="hard">{formatShortYear(dueDate(e.item)!, oggi)}</span> : formatShortYear(dueDate(e.item)!, oggi)}
-                light
-                check={e.item.tipo === 'azione' || e.item.tipo === 'progetto' ? 'circle' : 'square'}
-                onCheck={() => completaVoce(e.item)}
-                onOpen={() => nav.push({ k: 'item', id: e.item.id })}
-              />
-            ))}
-          </>
-        )}
-
-        {v.revisione > 0 && (
-          <button className="card tap" style={{ marginTop: 18 }} onClick={() => nav.push({ k: 'revisione' })}>
-            <b>Revisione</b><span className={clsx('muted')}>{v.revisione} da rivedere ›</span>
-          </button>
-        )}
-        <div style={{ textAlign: 'center', marginTop: 18 }}>
-          <span className={clsx('pill-sync', !sync.online && 'off')}>
-            {!sync.online ? 'Offline' : sync.inAttesa ? `${sync.inAttesa} da sincronizzare` : 'Sincronizzato'}
-          </span>
-        </div>
+        {routine}
+        {faroggi}
+        {revisione}
+        {stato}
       </div>
       <Fab onClick={() => nav.openCapture(true)} label="Cattura rapida" />
     </>

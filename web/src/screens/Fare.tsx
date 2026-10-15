@@ -58,7 +58,7 @@ function Azioni() {
             level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
             light={item.stato === 'parcheggiato'}
             onCheck={() => completaVoce(item)}
-            onOpen={() => nav.push({ k: 'item', id: item.id })}
+            selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}
           />
         );
       })}
@@ -105,7 +105,7 @@ function Esperienze() {
       {v.conData.map((i) => (
         <Row key={i.id} titolo={i.titolo} meta={[i.zona, i.oraInizio].filter(Boolean).join(' · ')}
           right={i.rigida ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi)}
-          level={barLevel(score(i, oggi))} onCheck={() => completaVoce(i)} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+          level={barLevel(score(i, oggi))} onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
       ))}
       {v.perZona.map(([zona, lista]) => (
         <div key={zona}>
@@ -114,7 +114,7 @@ function Esperienze() {
             <Row key={i.id} titolo={i.titolo} light check="square"
               level={(i.interesse ?? 3) >= 4 ? 3 : (i.interesse ?? 3) === 3 ? 2 : 1}
               right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
-              onCheck={() => completaVoce(i)} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+              onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
           ))}
         </div>
       ))}

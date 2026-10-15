@@ -183,7 +183,7 @@ export function Archivio() {
                 meta={[NOMI_TIPO[i.tipo], i.stato === 'saltato' ? 'saltata' : undefined, formatShortYear(dataChiusura(i))].filter(Boolean).join(' · ')}
                 right={i.voto ? `${i.voto}/10` : undefined}
                 onCheck={() => saveItem({ ...i, stato: 'da_fare', completatoIl: undefined })}
-                onOpen={() => nav.push({ k: 'item', id: i.id })} />
+                selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
             ))}
           </div>
         ))}
@@ -251,7 +251,7 @@ export function PersonaDetail({ id }: { id: string }) {
         <Field label="Note"><input value={p.note ?? ''} onChange={(e) => saveItem({ ...p, note: e.target.value || undefined })} /></Field>
         <Sec a="Collegata a" />
         {collegate.length === 0 && <div className="t2" style={{ padding: '10px 0' }}>Nessuna voce. Scrivila in «Consigliato da», «Con chi» o «Persone».</div>}
-        {collegate.map((i) => <Row key={i.id} titolo={i.titolo} meta={[NOMI_TIPO[i.tipo], i.consigliatoDa?.toLowerCase() === p.titolo.toLowerCase() ? 'consigliato da lei/lui' : undefined].filter(Boolean).join(' · ')} check="none" onOpen={() => nav.push({ k: 'item', id: i.id })} />)}
+        {collegate.map((i) => <Row key={i.id} titolo={i.titolo} meta={[NOMI_TIPO[i.tipo], i.consigliatoDa?.toLowerCase() === p.titolo.toLowerCase() ? 'consigliato da lei/lui' : undefined].filter(Boolean).join(' · ')} check="none" selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />)}
         <div className="btns col" style={{ marginTop: 22 }}>
           <button className="btn danger" onClick={() => { if (window.confirm(`Eliminare «${p.titolo}»? Le voci collegate restano.`)) { removeItem(p.id); nav.pop(); } }}>Elimina persona</button>
         </div>
@@ -278,7 +278,7 @@ export function Luoghi() {
         {lista.map((i) => (
           <Row key={i.id} titolo={i.titolo} meta={i.zona} check="square" level={(i.interesse ?? 3) >= 4 ? 3 : (i.interesse ?? 3) === 3 ? 2 : 1}
             right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
-            onCheck={() => completaVoce(i)} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+            onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
         ))}
       </div>
     </>

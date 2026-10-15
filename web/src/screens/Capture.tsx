@@ -20,7 +20,7 @@ function vocale(): CostruttoreVocale | undefined {
 
 export function Capture() {
   const nav = useNav();
-  const [testo, setTesto] = useState('');
+  const [testo, setTesto] = useState(nav.captureText);
   const [ia, setIa] = useState<Proposta | undefined>();
   const [pensa, setPensa] = useState(false);
   const [ascolta, setAscolta] = useState(false);
