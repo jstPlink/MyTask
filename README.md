@@ -1,7 +1,16 @@
 # MyTask
 
-App personale per idee, cose da fare e da scoprire. Web app installabile (PWA) che funziona anche offline,
-con un server leggero da far girare in Docker sul NAS. La documentazione completa è in [docs/DOCUMENTAZIONE.md](docs/DOCUMENTAZIONE.md).
+App personale per idee, cose da fare e da scoprire: sito (installabile come PWA, anche offline), app Android e un server
+leggero da far girare in Docker sul NAS. La documentazione completa è in [docs/DOCUMENTAZIONE.md](docs/DOCUMENTAZIONE.md).
+
+## Cosa fa
+
+- **Oggi:** le cose da fare, ordinate per priorità calcolata, con le routine e le voci da rivedere.
+- **Fare:** azioni, progetti (con sotto-task) ed esperienze. **Scoprire:** film, serie, anime, giochi, libri, ricette e curiosità, con "Cosa guardo stasera?".
+- **Routine:** abitudini con quota settimanale e griglia della settimana.
+- **Cattura rapida:** una riga di testo (o la voce) diventa una voce, con IA facoltativa; ricerca in tutte le voci.
+- **Notifiche:** promemoria delle scadenze, insistenza e routine; nell'app Android arrivano anche ad app chiusa.
+- Sul computer: barra laterale, pannello di dettaglio e scorciatoie da tastiera (N cattura rapida, / ricerca, Esc chiude).
 
 ## Provarla sul computer
 
@@ -98,5 +107,6 @@ Sviluppo: `cd web && npm run build && npx cap sync android`, poi `web/android` s
 
 - `shared/`: logica comune (priorità, ricorrenze, routine, cattura rapida), scritta in TypeScript e provata con i test.
 - `server/`: Fastify + SQLite (`node:sqlite`, nessuna dipendenza nativa), login, sincronizzazione, IA (Gemini).
-- `web/`: React + Vite, archivio locale in IndexedDB, service worker per l'uso offline; `web/android` è l'app Android (Capacitor).
+- `web/`: React + Vite, archivio locale in IndexedDB, service worker per l'uso offline; layout a colonna singola (telefono) e a tre aree (schermi larghi). `web/android` è l'app Android (Capacitor).
+- `.github/workflows/`: controllo dei tipi e test a ogni push, immagine Docker e APK.
 - `docs/`: documentazione, decisioni di setup, mockup e report dell'importazione.

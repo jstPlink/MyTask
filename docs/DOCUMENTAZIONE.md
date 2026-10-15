@@ -2,9 +2,9 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.10.0
-- **Stato progetto:** app in produzione sul NAS; importazione dei dati da file dentro l'app; app Android costruita da GitHub (notifiche locali). Da verificare sul telefono
-- **Codice:** [README.md](../README.md) (come avviarla e metterla sul NAS)
+- **Versione documento:** 0.10.1
+- **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
+- **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
 - **Decisioni di dettaglio:** `docs/01-setup-decisioni.md` (registro locale delle decisioni, non pubblicato)
 
@@ -37,12 +37,12 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 | **Archivio** | Tutto ciò che è completato, consultabile come diario | Status "Done" |
 | **Revisione** | Voci scadute o dimenticate, da ripianificare o chiudere | Nuovo |
 
-### 2.1 Navigazione (proposta nei mockup, da validare)
+### 2.1 Navigazione (telefono)
 
-- **Quattro schede in basso:** Oggi, Fare, Scoprire, Routine. Più un pulsante "+" fisso per la cattura rapida.
+- **Quattro schede in basso** con icona (Oggi, Fare, Scoprire, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
 - **Fare** contiene tre sezioni: Azioni, Progetti, Esperienze.
 - **Scoprire** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette) e le Curiosità.
-- **Altro** (da Oggi): Inbox, Revisione, Archivio, Persone, Luoghi, impostazioni.
+- **Inbox** e **Altro** sono i due pulsanti tondi in alto a destra in "Oggi". Altro apre: Inbox, Revisione, Archivio, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza rigida.
 
 ### 2.2 Estetica (stile e palette approvati dall'utente)
@@ -85,32 +85,34 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 - **Icone** per le sezioni principali (Oggi: sole; Fare: spunta in un quadrato; Scoprire: bussola; Routine: frecce che si ripetono), nella barra in basso con un'evidenziazione tonda sulla scheda attiva, e nella barra laterale del sito.
 - **Inbox e Altro** in "Oggi" sono ora due pulsanti tondi da 46 px, più facili da toccare: Inbox con un contatore (se ci sono idee da smistare) e Altro con tre pallini.
 
-## 3. Modello dati (bozza v0.1)
+## 3. Modello dati
 
-Un'unica tabella **Elemento** con un campo `tipo`, più tabelle di supporto. I campi sono opzionali tranne quelli indicati.
+Un'unica tabella **Elemento** (`shared/types.ts`) con un campo `tipo`. Sul server ogni voce è un documento JSON con un numero di sequenza per la sincronizzazione; sul dispositivo sta in IndexedDB. I campi sono opzionali tranne quelli indicati.
 
 ### Elemento
 
 | Campo | Note |
 |---|---|
-| id, titolo (obbligatori) | |
-| tipo (obbligatorio) | azione, progetto, esperienza, routine, film, serie, anime, gioco, libro, ricetta, curiosità |
-| stato | da_fare, in_corso, fatto, saltato, parcheggiato, da_approfondire. **"Scaduto" non è uno stato**: si calcola da data e stato |
-| note, link[] | link ammessi anche a file su Seafile |
-| inizio, fine, ora_inizio, ora_fine | orario facoltativo |
-| rigida | `true` se la scadenza non è spostabile |
-| ricorrenza | regola (giornaliera, settimanale, mensile, annuale, ogni N…) |
-| promemoria[] | uno o più, anche periodici |
-| importanza (1-5) | solo azioni e progetti |
-| sforzo_min | stima in minuti, anche proposta dall'IA |
-| interesse (1-5) | solo collezioni, esperienze e curiosità |
-| padre_id | per sotto-task (un solo livello) |
-| checklist[] | liste semplici dentro una voce |
-| persone[] | campo con completamento automatico, più flag "da contattare" (confermato) |
-| luogo, zona, link_maps | lista luoghi con zona e link a Google Maps, senza mappa propria (confermato) |
-| piattaforma, consigliato_da, con_chi | collezioni |
-| voto, completato_il | collezioni e archivio |
-| creato, aggiornato | |
+| `id`, `titolo` (obbligatori) | |
+| `tipo` (obbligatorio) | azione, progetto, esperienza, routine, film, serie, anime, gioco, libro, ricetta, curiosita, persona |
+| `stato` | da_fare, in_corso, fatto, saltato, parcheggiato. **"Scaduto" non è uno stato**: si calcola da data e stato. Per le curiosità "da_fare" si legge "da approfondire" |
+| `creato`, `aggiornato` | millisecondi; `aggiornato` decide chi vince nella sincronizzazione |
+| `eliminato` | cancellazione logica: la voce resta, così la cancellazione arriva agli altri dispositivi |
+| `inbox` | catturata ma non ancora smistata; si toglie da sola alla prima modifica nell'editor |
+| `daRivedere` | messa in Revisione a mano o dall'importazione |
+| `note`, `link[]` | link ammessi anche a file su Seafile |
+| `inizio`, `fine`, `oraInizio`, `oraFine` | date YYYY-MM-DD e orari HH:MM facoltativi |
+| `rigida` | `true` se la scadenza non è spostabile |
+| `ricorrenza` | ogni N giorni/settimane/mesi/anni |
+| `promemoria[]`, `insisti` | promemoria a N giorni dalla scadenza; insistenza ogni N minuti |
+| `importanza` (1-5), `sforzoMin`, `area` | azioni e progetti |
+| `interesse` (1-5) | collezioni, esperienze e curiosità |
+| `padreId`, `checklist[]` | sotto-task (un solo livello) e liste semplici dentro una voce |
+| `persone[]`, `daContattare` | persone collegate (completamento automatico); flag sulle voci di tipo persona |
+| `zona`, `luogo`, `linkMaps` | lista luoghi con zona e link a Google Maps, senza mappa propria |
+| `piattaforma`, `consigliatoDa`, `conChi`, `durataMin`, `genere` | collezioni |
+| `voto`, `completatoIl` | collezioni e archivio |
+| `fascia`, `volteSettimana`, `obiettivo`, `oraPromemoria`, `log[]` | routine: momento della giornata, quota settimanale, obiettivo minimo, ora del promemoria, giorni in cui è stata fatta |
 
 ### Conversione dal vecchio Priority (per l'import)
 
@@ -125,7 +127,7 @@ Un'unica tabella **Elemento** con un campo `tipo`, più tabelle di supporto. I c
 
 ## 4. Regole principali
 
-### 4.1 Priorità delle azioni (bozza, da tarare)
+### 4.1 Priorità delle azioni (implementata, pesi da tarare con l'uso)
 
 Punteggio da 0 a 100 usato per ordinare "Oggi" e le liste:
 
@@ -134,7 +136,7 @@ Punteggio da 0 a 100 usato per ordinare "Oggi" e le liste:
 - **Sforzo basso** (peso 10%): le attività sotto i 15 minuti salgono (le "vittorie rapide").
 - **Età** (peso 10%): cresce di poco ogni settimana per evitare che le voci marciscano.
 
-Le collezioni non hanno punteggio di urgenza: si ordinano per **interesse**, filtrate da contesto (piattaforma, durata, con chi).
+Le collezioni non hanno punteggio di urgenza: si ordinano per **interesse**, filtrate da contesto (piattaforma, durata, con chi). Nelle liste la barra a sinistra ha tre livelli: punteggio da 60 in su = alta, da 35 = media, altrimenti bassa.
 
 ### 4.2 Stato "scaduto"
 
@@ -144,8 +146,8 @@ Calcolato: data finale passata e stato diverso da fatto/saltato. Le voci scadute
 
 - Possono essere singoli o ripetuti (giornalieri, settimanali, ogni N giorni, a orari fissi).
 - **Insistenza:** su alcune voci scelte dall'utente il promemoria si ripete (a intervalli configurabili) finché la voce non viene spuntata o rimandata.
-- Sull'APK sono notifiche locali, quindi funzionano anche offline.
-- Per le scadenze rigide: promemoria predefiniti a 7 giorni e 1 giorno prima (modificabili).
+- I promemoria si scelgono nella scheda di ogni voce (7 giorni, 3 giorni, 1 giorno prima, il giorno stesso, alle 9:00); non vengono impostati in automatico.
+- Nell'app Android sono notifiche programmate nel telefono (sezione 5.2), che arrivano anche ad app chiusa e senza rete. Nel browser compaiono finché l'app è aperta.
 
 ### 4.4 Routine (confermata)
 
@@ -159,28 +161,25 @@ Le abitudini non sono task: non scadono e non finiscono.
 
 ### 4.5 Cattura rapida
 
-Una riga di testo (o voce) crea una voce in Inbox. L'IA propone tipo, titolo, piattaforma, chi l'ha consigliato, ecc. L'utente conferma con un tocco. Esempio: "Titolo di un film, me l'ha consigliato Mario, su Netflix".
+Una riga di testo (o dettatura) crea una voce. Esempio: "Titolo di un film, me l'ha consigliato Mario, su Netflix".
+
+- L'app interpreta subito la riga **senza IA** (tipo, titolo, piattaforma, chi l'ha consigliato, con chi, data come "domani"); se c'è connessione e la chiave Gemini è configurata sul server, l'IA affina la proposta; se non risponde resta quella locale.
+- Si vede la proposta in una scheda di conferma: **Salva** o **Modifica**.
+- Se il tipo è incerto la voce va in **Inbox**, da smistare con un tocco (Azione, Esperienza, Film, Serie, Gioco, Libro, Curiosità).
+- Se esiste già una voce con lo stesso titolo (senza badare a maiuscole, accenti e apostrofi) l'app lo segnala e propone di aprire quella.
+- Le persone nominate (consigliato da, con chi) vengono create da sole se non esistono.
+- Offline funziona solo l'interpretazione locale; le voci si sincronizzano al ritorno della rete.
 
 ### 4.6 Sincronizzazione e offline
 
 - I dati vivono anche nel dispositivo; le modifiche si accumulano e vengono inviate al server appena c'è rete.
 - Utente unico: conflitti risolti con l'ultima modifica **per voce** (vince la versione con data di modifica più recente).
 - Le modifiche fatte offline restano in coda e partono da sole al ritorno della rete (provato in locale).
-- Il database sul NAS è il riferimento; backup periodico in una cartella Seafile.
-
-### 4.8 Cosa compare in Oggi (implementato)
-
-1. **Routine** del giorno: giornaliere, oppure a quota settimanale finché la quota non è raggiunta.
-2. **Da fare oggi**: tutte le voci con scadenza oggi o scaduta da non più di 2 giorni, più le voci senza data con il punteggio più alto, fino a un massimo di 5 (se le scadenze sono di più, compaiono tutte). A parità di punteggio vengono prima quelle già in corso.
-3. Di un progetto compare **solo il prossimo passo**, con le eredità di importanza e scadenza.
-4. Le **esperienze senza data** non compaiono mai in Oggi: sono una lista di desideri.
-5. **Prossimi 7 giorni**: qualunque voce aperta con scadenza nei 7 giorni successivi.
-6. Le voci scadute da **più di 2 giorni**, quelle segnate "da rivedere" e i progetti fermi da 30 giorni vanno in **Revisione**, non in Oggi né nelle liste di Fare.
-7. Le voci parcheggiate non compaiono in Oggi.
+- Il database sul NAS è il riferimento. Il server ne salva una copia al giorno nel volume Docker (le ultime 14); il backup vero e proprio lo gestisce l'utente con gli strumenti del NAS. Dall'app si scarica anche tutto in JSON (Altro > Account) e si può reimportare da file.
 
 ### 4.7 Progetti e voci con figli (confermata)
 
-Nei dati ci sono 9 voci con figli (da 2 a 25). Il problema di Notion è che un padre con molti figli riempie tutte le liste. Regole proposte:
+Nei dati di Notion c'erano 9 voci con figli (da 2 a 25). Il problema è che un padre con molti figli riempie tutte le liste. Regole adottate:
 
 1. **Un solo livello.** Un sotto-task non può avere figli.
 2. **Il padre non compare in Oggi, compare il suo prossimo passo.** In Oggi si vede il primo sotto-task non completato (o il più urgente), con il nome del progetto accanto. Un progetto con 25 figli occupa una riga sola.
@@ -200,6 +199,16 @@ Come vengono importati i padri (le regole esatte stanno in `server/scripts/regol
 | Videogioco con obiettivi | Gioco con checklist di obiettivi |
 | Progetto aperto con passi da fare | Progetto con sotto-task (e date se presenti) |
 | Abitudine con passi di impostazione | Routine, con i passi come checklist iniziale |
+
+### 4.8 Cosa compare in Oggi (implementato)
+
+1. **Routine** del giorno: giornaliere, oppure a quota settimanale finché la quota non è raggiunta.
+2. **Da fare oggi**: tutte le voci con scadenza oggi o scaduta da non più di 2 giorni, più le voci senza data con il punteggio più alto, fino a un massimo di 5 (se le scadenze sono di più, compaiono tutte). A parità di punteggio vengono prima quelle già in corso.
+3. Di un progetto compare **solo il prossimo passo**, con le eredità di importanza e scadenza.
+4. Le **esperienze senza data** non compaiono mai in Oggi: sono una lista di desideri.
+5. **Prossimi 7 giorni**: qualunque voce aperta con scadenza nei 7 giorni successivi.
+6. Le voci scadute da **più di 2 giorni**, quelle segnate "da rivedere" e i progetti fermi da 30 giorni vanno in **Revisione**, non in Oggi né nelle liste di Fare.
+7. Le voci parcheggiate non compaiono in Oggi.
 
 ### 4.9 Tipi e regole di smistamento nell'importazione
 
@@ -222,9 +231,9 @@ Le scelte marcate "confermato" sono decise dall'utente; le altre sono proposte t
 
 ### 5.1 Note su sicurezza e risorse
 
-- Con il tunnel Cloudflare l'app è raggiungibile da Internet. Si consiglia (da decidere) **Cloudflare Access** davanti all'app, oltre al login, limiti ai tentativi di accesso e password lunga, perché ci sono dati personali.
+- Con il tunnel Cloudflare l'app è raggiungibile da Internet. Il login (email e password con hash scrypt, sessioni a token, limite ai tentativi sbagliati) è obbligatorio. Si consiglia (da decidere) **Cloudflare Access** davanti all'app, ma l'app Android non riuscirebbe più a collegarsi senza le credenziali di servizio di Cloudflare.
 - Il NAS ha un processore di fascia bassa e poca RAM: un modello IA locale non è pratico. L'IA passa dal servizio esterno (Gemini).
-- Il database è un solo file SQLite; backup notturno in una cartella Seafile (da implementare).
+- Il database è un solo file SQLite nel volume Docker; copia giornaliera interna (ultime 14) e backup esterno a cura dell'utente.
 - Essendo l'app raggiungibile con HTTPS, la sincronizzazione con Google Calendar è tecnicamente fattibile quando vorrai attivarla.
 
 ### 5.2 App Android
@@ -236,60 +245,76 @@ Le scelte marcate "confermato" sono decise dall'utente; le altre sono proposte t
 - **CORS**: il server ammette le origini dell'app (`https://localhost`, `capacitor://localhost`) e quelle in `CORS_ORIGINS`.
 - Se davanti al dominio c'è Cloudflare Access, l'app non riuscirebbe a collegarsi senza le credenziali di servizio di Cloudflare.
 
+### 5.3 Versione e aggiornamenti
+
+La versione sta in un solo posto, il `package.json` principale, e da lì arriva ovunque: l'app (sito e telefono: schermata di accesso, Altro, Account), il server (`/api/health`, mostrata in Account con un avviso se differisce da quella dell'app), l'APK (`versionName`; il `versionCode` è maggiore×10000 + minore×100 + patch) e l'etichetta dell'immagine Docker. La versione si aumenta a ogni commit. A ogni push GitHub Actions esegue il controllo dei tipi e i test, pubblica l'immagine `ghcr.io/jstplink/mytask` e l'APK nelle Releases. Il NAS si aggiorna con `docker compose pull && docker compose up -d`; il telefono con il nuovo `mytask.apk`.
+
 ## 6. Importazione da Notion
 
-Una sola volta, dal CSV esportato. Passi:
+Una sola volta, dal CSV esportato, con lo script `server/scripts/import-notion.ts`:
 
-1. Lettura dei due file CSV (430 voci).
-2. Unione dei duplicati (8 nomi).
-3. Smistamento dei tipi: Video → Film/Serie/Anime; "Info" che in realtà sono film → Film; "Attività" con data → Esperienze; "Admin" tecnici → Azioni.
-4. Estrazione dalle note: piattaforma (netflix, disney+, Infinity), consigliato da, con chi.
-5. Conversione di priorità, stati e date; ricostruzione dei padri/figli; checklist al posto dei figli ripetitivi.
-6. Le 26 voci con data passata e non fatte vanno tutte in Revisione (decisione dell'utente).
-7. Report finale a lui con tutto ciò che è stato modificato.
+1. Lettura del CSV (430 righe).
+2. Unione dei duplicati (10 nomi).
+3. Smistamento dei tipi con regole esplicite (sezione 4.9): Video → Film/Serie/Anime; voci "Info" che sono film o giochi → tipo giusto; "Attività" → Azioni, Progetti, Routine o Esperienze; "Admin" tecnici → Azioni; parole come progetto o routine da elenchi.
+4. Estrazione dalle note: piattaforma, consigliato da, con chi, genere, link ripuliti dai parametri di tracciamento.
+5. Conversione di priorità (importanza o interesse), stati e date; orari che diventano scadenza rigida; ricostruzione dei padri e dei figli (sotto-task o checklist).
+6. Le 26 voci con data passata e non fatte finiscono in Revisione, perché la data è scaduta da più di due giorni.
+7. Report finale (non pubblicato) con tutto ciò che è stato modificato.
 
-Nessun identificativo né link a Notion viene conservato.
+Risultato: 383 voci più 14 persone. Il file si prepara sul computer (`--json`), dove stanno le regole personali, e si carica nell'app da *Altro > Account > Importa le voci da un file (JSON)*; in alternativa dentro il container con `--from-json`. Nessun identificativo né link a Notion viene conservato.
 
-## 7. Funzioni IA previste
+## 7. Funzioni IA
 
-| Funzione | Quando |
+| Funzione | Stato |
 |---|---|
-| Compilazione automatica dalla riga di cattura | Cattura rapida |
-| Pulizia e riorganizzazione | Una sola volta, all'import |
-| Stima dello sforzo | Alla creazione di un'azione |
-| "Cosa guardo stasera?" | A richiesta, per tempo/umore/piattaforma |
-| Spezzare un'idea in passi | A richiesta |
-| Revisione settimanale | Una volta a settimana |
+| Compilazione automatica dalla riga di cattura | Fatta (Gemini, con ripiego locale). Serve `GEMINI_API_KEY` sul server; provata solo con una risposta simulata |
+| Pulizia e riorganizzazione all'importazione | Fatta una volta, con regole esplicite scritte per i dati dell'utente |
+| "Cosa guardo stasera?" | Fatta senza IA: ragionamento locale su interesse, durata, piattaforma e compagnia |
+| Stima dello sforzo | Da fare |
+| Spezzare un'idea in passi | Da fare |
+| Revisione settimanale | Da fare |
 
-Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi esterni oppure l'utente sceglie se includerle.
+Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi esterni oppure l'utente sceglie se includerle. Oggi al servizio esterno va solo il testo della riga di cattura scritta dall'utente.
 
 ## 8. Roadmap
 
 | Fase | Obiettivo | Stato |
 |---|---|---|
 | 0 | Chiudere le domande di setup | Completata (2026-10-15) |
-| 1 | Mockup minimalisti (gerarchia delle informazioni) | Bozza pronta (17 schermate), in attesa di feedback |
-| 2 | Mockup estetici | Pronti (`02-estetica.html`, 18 schermate, chiaro/scuro, 3 colori); in attesa di conferma finale |
+| 1 | Mockup minimalisti (gerarchia delle informazioni) | Completata, layout approvato |
+| 2 | Mockup estetici | Completata, stile e palette approvati |
 | 3 | Scrittura dell'app: base, Oggi, Inbox, import | Fatta e provata in locale |
 | 4 | Collezioni, Routine, Revisione | Fatta insieme alla fase 3 (progettazione unica) |
 | 5 | APK con notifiche e widget | Fatta: APK costruito da GitHub Actions, notifiche locali programmate nel telefono. Widget rimandati |
 | 6 | IA | Cattura rapida con Gemini fatta (serve la chiave); le altre funzioni IA da fare |
+| 7 | Layout web per schermi larghi, icone e pulsanti tondi sul telefono, ricerca | Fatta (0.10.0) |
 
-### 8.1 Stato dell'implementazione (2026-10-15)
+### 8.1 Stato dell'implementazione
 
 | Parte | Stato |
 |---|---|
-| Server: login, sessioni, limite ai tentativi, sincronizzazione, esportazione JSON, backup giornaliero | Fatto, con test |
-| App web: Oggi, Fare (azioni, progetti, esperienze), Scoprire (6 collezioni e curiosità), Routine, Inbox, Revisione, Archivio, Persone, Luoghi, Cosa guardo stasera, editor completo, Aspetto, Notifiche, Account | Fatta, provata nel browser su dati reali importati |
+| Server: login, sessioni, limite ai tentativi, CORS per l'app, sincronizzazione, esportazione JSON, versione, copia giornaliera | Fatto, con test; in funzione sul NAS |
+| App web: Oggi, Fare (azioni, progetti, esperienze), Scoprire (6 collezioni e curiosità), Routine, Inbox, Revisione, Archivio, Persone, Luoghi, Cosa guardo stasera, ricerca, editor completo, Aspetto, Notifiche, Account | Fatta, provata nel browser su dati reali importati |
+| Layout per schermi larghi (barra laterale, pannello di dettaglio, cruscotto, griglia della routine, scorciatoie N, /, Esc) | Fatto e provato nel browser a 1440, 1100 e 375 px |
 | Uso offline: modifiche in coda e sincronizzazione al ritorno della rete | Provato in locale |
-| Importazione da Notion con report | Fatta (il report con il dettaglio si genera a ogni importazione e non è pubblicato) |
+| Importazione da Notion con report e caricamento da file nell'app | Fatta; il caricamento nell'app è provato in locale |
 | Cattura rapida: interpretazione locale, IA (Gemini) con ripiego, voce, rilevamento dei duplicati | Fatta. L'IA è provata solo con una risposta simulata |
-| Promemoria | Funzionano nel browser ad app aperta. Ad app chiusa serve l'APK |
-| Collegamento Google Calendar | Solo i dati sono pronti (date e orari). Il modulo di sincronizzazione non è ancora scritto |
-| Docker | Dockerfile e compose scritti. Il primo tentativo sul NAS è fallito perché nella cartella usata mancava il Dockerfile; ora l'immagine si scarica già pronta. Il build è verificato dal workflow su GitHub |
-| Service worker (uso offline all'apertura dell'app) | Generato dalla build, **non verificato** nel browser di prova |
-| APK (Capacitor) | Costruito da GitHub Actions e pubblicato nelle Releases. Da provare sul telefono |
+| Docker | Immagine costruita e verificata da GitHub Actions, pubblica; l'app gira sul NAS dietro Cloudflare Tunnel |
+| App Android (Capacitor) | Costruita da GitHub Actions, installata sul telefono con debug wireless, parte senza errori |
+| Notifiche locali programmate nel telefono | Scritte e provate con i test del pianificatore; **da verificare sul telefono** |
+| Service worker (apertura dell'app senza rete) | Generato dalla build, **non verificato** in un browser reale |
+| Collegamento Google Calendar | Solo i dati sono pronti (date e orari). Il modulo di sincronizzazione non è scritto |
 | Widget | Rimandati (decisione dell'utente) |
+
+### 8.2 Ancora da fare
+
+- Verificare sul telefono le notifiche (scadenze, insistenza, routine) e il service worker.
+- Scorciatoie J e K per scorrere l'elenco e F per segnare fatto (layout largo).
+- Funzioni IA: stima dello sforzo, spezzare un'idea in passi, revisione settimanale.
+- Collegamento a Google Calendar.
+- Widget Android.
+- Decidere se mettere Cloudflare Access davanti al sito (richiede di gestire l'accesso dell'app Android).
+- Chiave di firma privata per l'APK, se si vuole (oggi si usa una chiave pubblica inclusa nel repository).
 
 ## 9. Registro aggiornamenti
 
@@ -309,3 +334,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.9.0 | App Android (Capacitor): APK costruito da GitHub Actions e pubblicato nelle Releases, firmato con una chiave pubblica inclusa (aggiornamenti senza disinstallare; chiave privata facoltativa via segreti). Notifiche locali programmate nel telefono per i prossimi 14 giorni (scadenze, insistenza, routine), riprogrammate a ogni modifica. Indirizzo del server richiesto al primo accesso nell'app. CORS nel server per l'app. Importazione delle voci da file JSON dentro l'app (Altro > Account), che sostituisce i comandi Docker per caricare i dati di Notion |
 | 2026-10-15 | 0.9.1 | La versione compare nell'app (sito e telefono: Altro e Account, schermata di accesso) e nel server (`/api/health`, mostrata in Account con l'avviso se differisce da quella dell'app). Aggiunta la proposta di layout web per schermi larghi (sezione 2.3, mockup locale `03-web-desktop.html`) |
 | 2026-10-15 | 0.10.0 | Layout web per schermi larghi (sezione 2.3): barra laterale, barra in alto con cattura rapida e ricerca, pannello di dettaglio, cruscotto in Oggi, griglia settimanale in Routine, scorciatoie N / Esc. Telefono (sezione 2.4): icone per Oggi, Fare, Scoprire e Routine; Inbox e Altro come pulsanti tondi più grandi. Ricerca nelle voci |
+| 2026-10-15 | 0.10.1 | Documentazione allineata allo stato reale: modello dati con i nomi dei campi effettivi, cattura rapida, backup, importazione da file, funzioni IA con lo stato, sezione 5.3 (versione e aggiornamenti), stato dell'implementazione e cose ancora da fare (8.2). Riordinate le sezioni 4.7 e 4.8 |
