@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.8.1
+- **Versione documento:** 0.8.2
 - **Stato progetto:** app web e server scritti e provati in locale. Prossimo passo: prova su Docker sul NAS. L'APK è in pausa fino ad allora
 - **Codice:** [README.md](../README.md) (come avviarla e metterla sul NAS)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -277,3 +277,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.7 | Mockup confermati. Scritta l'applicazione (fasi 3 e 4): server, app web, importazione da Notion, Docker. Aggiunta sezione 4.8 (cosa compare in Oggi) e 8.1 (stato dell'implementazione). Sincronizzazione per voce invece che per campo. Rilevamento dei duplicati nella cattura rapida |
 | 2026-10-15 | 0.8 | Progetto spostato nella cartella collegata a GitHub (`MyTaskGit`). Docker compose aggiornato: volume Docker per il database, porta configurabile con `MYTASK_PORT`, nessun conflitto di permessi. File personali (esportazioni CSV, report dell'importazione) esclusi da git. APK messo in pausa. Primo commit su un repository pubblico: dati personali tolti (mockup, registro delle decisioni e regole di importazione restano solo in locale; nel repository c'è `regole.esempio.ts`); l'importazione si può preparare sul computer con `--json` e caricare con `--from-json` |
 | 2026-10-15 | 0.8.1 | Docker: immagine pubblicata da GitHub Actions su ghcr.io (il NAS non costruisce più nulla), test e controllo dei tipi su ogni push, tolta l'opzione BACKUP_DIR e la cartella di backup dal compose e da `.env.example` (il backup lo gestisce l'utente; resta solo la copia giornaliera dentro il volume). Rimosso `image: mytask:latest`, che causava l'avviso "pull access denied" |
+| 2026-10-15 | 0.8.2 | Corretto il controllo su GitHub: il caricamento delle regole personali di importazione non fa più fallire il controllo dei tipi quando il file locale non c'è |

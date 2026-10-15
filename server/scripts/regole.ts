@@ -6,6 +6,7 @@
 // Le chiavi delle tabelle sono titoli o note in minuscolo e senza accenti (vedi `norm` in notion.ts).
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type { Fascia, Item, Tipo } from '../../shared/types.ts';
 
 export interface ImpostazioniRoutine { fascia: Fascia; volteSettimana?: number; obiettivo: string; stato: Item['stato'] }
@@ -40,7 +41,8 @@ export interface Regole {
 export async function caricaRegole(): Promise<{ regole: Regole; origine: 'locale' | 'esempio' }> {
   const locale = path.join(import.meta.dirname, 'regole.locale.ts');
   if (fs.existsSync(locale)) {
-    const m = (await import('./regole.locale.ts')) as { REGOLE: Regole };
+    // percorso in una variabile: il file è ignorato da git e può non esistere (per esempio nel controllo su GitHub)
+    const m = (await import(pathToFileURL(locale).href)) as { REGOLE: Regole };
     return { regole: m.REGOLE, origine: 'locale' };
   }
   const m = (await import('./regole.esempio.ts')) as { REGOLE: Regole };
