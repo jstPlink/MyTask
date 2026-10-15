@@ -379,17 +379,12 @@ a { color: var(--accent); }
 .row .line .t1 { flex: 1 1 130px; min-width: 0; overflow-wrap: break-word; }
 .piano-ora { width: 50px; }
 
-/* ---------- Stile J: riga sfumata nel colore del livello, checkbox colorato, numero d'ordine a destra ---------- */
+/* ---------- Stile P1: checkbox colorato, pallino numerato con contorno a destra ---------- */
 .row.p3 { --c: var(--warn); --cs: var(--warn-soft); }
 .row.p2 { --c: var(--amber); --cs: var(--amber-soft); }
 .row.p1 { --c: var(--soft); --cs: var(--surface2); }
-.row.p1, .row.p2, .row.p3 { background: linear-gradient(90deg, var(--cs), transparent 85%); border-left: 0; padding: 12px 14px; align-items: center; margin: 0 -18px; width: calc(100% + 36px); }
-.gruppo .row.p1, .gruppo .row.p2, .gruppo .row.p3 { margin: 0 -14px; width: calc(100% + 28px); }
+.row.p1, .row.p2, .row.p3 { border-left: 0; padding: 12px 0; align-items: center; }
 .row.p1 .cb, .row.p2 .cb, .row.p3 .cb { border-color: var(--c); margin-top: 0; }
 .row.p1 .cb.done, .row.p2 .cb.done, .row.p3 .cb.done { background: var(--c); border-color: var(--c); }
-.row .rank { flex: none; min-width: 30px; height: 30px; padding: 0 7px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 14px; background: var(--c, var(--surface2)); color: #fff; }
-.row.p1 .rank { background: var(--surface2); color: var(--mid); }
-:root[data-theme=dark] .row.p2 .rank, :root[data-theme=dark] .row.p3 .rank { color: #1c1c21; }
-.shell .row.p1, .shell .row.p2, .shell .row.p3 { margin: 0; width: 100%; padding-left: 14px; }
-.shell .gruppo .row.p1, .shell .gruppo .row.p2, .shell .gruppo .row.p3 { margin: 0 -14px; width: calc(100% + 28px); }
+.row .rank { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
 .row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }
