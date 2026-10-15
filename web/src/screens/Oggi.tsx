@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { minutiDisponibili, orario, pianifica } from '../../../shared/piano.ts';
@@ -8,7 +8,7 @@ import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useDisponibilita, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, segnaRoutine } from '../lib/actions.ts';
-import { Fab, Icona, Row, Sec, Seg, Top } from '../ui/kit.tsx';
+import { Fab, Gruppo, Icona, Row, Seg, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 import { GrigliaMese, type SegnoGiorno } from './Calendario.tsx';
@@ -54,16 +54,36 @@ export function Oggi() {
     for (const [d, l] of voci) aggiungi(d, l.length, l.some((i) => i.rigida || isOverdue(i, oggi)));
     return m;
   }, [voci, oggi]);
+  const [direzione, setDirezione] = useState<'avanti' | 'indietro' | ''>('');
+  const vaiGiorno = (d: string) => { setDirezione(d > giorno ? 'avanti' : 'indietro'); setGiorno(d); };
   const navGiorno = (
     <div className="giorno-nav">
-      <button onClick={() => setGiorno(addDays(giorno, -1))} aria-label="Giorno precedente">‹</button>
+      <button onClick={() => vaiGiorno(addDays(giorno, -1))} aria-label="Giorno precedente">‹</button>
       <div className="giorno-nome">
         <b>{giorno === oggi ? 'Oggi' : formatLong(giorno)}</b>
-        {giorno === oggi ? <span>{formatLong(giorno)}</span> : <button className="giorno-oggi" onClick={() => setGiorno(oggi)}>Torna a oggi</button>}
+        {giorno === oggi ? <span>{formatLong(giorno)}</span> : <button className="giorno-oggi" onClick={() => vaiGiorno(oggi)}>Torna a oggi</button>}
       </div>
-      <button onClick={() => setGiorno(addDays(giorno, 1))} aria-label="Giorno successivo">›</button>
+      <button onClick={() => vaiGiorno(addDays(giorno, 1))} aria-label="Giorno successivo">›</button>
     </div>
   );
+  // swipe orizzontale nella vista giorno: a sinistra il giorno dopo, a destra quello prima
+  const inizioTocco = useRef<{ x: number; y: number } | null>(null);
+  const tocco = {
+    onTouchStart: (e: React.TouchEvent) => {
+      const t = e.touches[0];
+      const dentroScorrevole = (e.target as HTMLElement).closest('.scroll-x, input, textarea, select');
+      inizioTocco.current = dentroScorrevole || vista !== 'giorno' ? null : { x: t.clientX, y: t.clientY };
+    },
+    onTouchEnd: (e: React.TouchEvent) => {
+      const i = inizioTocco.current;
+      inizioTocco.current = null;
+      if (!i) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - i.x;
+      const dy = t.clientY - i.y;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) vaiGiorno(addDays(giorno, dx < 0 ? 1 : -1));
+    },
+  };
 
   const meta = (e: Entry) => {
     const i = e.item;
@@ -84,29 +104,15 @@ export function Oggi() {
 
   const routineFatte = v.routine.filter((r) => fattaOggi(r, oggi)).length;
   const routine = v.routine.length > 0 && (
-    nav.wide ? (
-      <div className="card">
-        <div className="t2">Routine di oggi · {routineFatte} su {v.routine.length}</div>
-        <div style={{ marginTop: 8 }}>
-          {v.routine.map((r) => (
-            <button key={r.id} className={clsx('pill', fattaOggi(r, oggi) && 'done')} onClick={() => segnaRoutine(r)} aria-pressed={fattaOggi(r, oggi)}>
-              {fattaOggi(r, oggi) ? '✓ ' : ''}{r.titolo}{!fattaOggi(r, oggi) && r.obiettivo ? ` · ${r.obiettivo.toLowerCase()}` : ''}
-            </button>
-          ))}
-        </div>
+    <Gruppo titolo="Routine di oggi" dettaglio={`${routineFatte} su ${v.routine.length}`}>
+      <div className="chips" style={{ margin: '8px 0 12px' }}>
+        {v.routine.map((r) => (
+          <button key={r.id} className={clsx('chip', fattaOggi(r, oggi) && 'on')} onClick={() => segnaRoutine(r)} aria-pressed={fattaOggi(r, oggi)}>
+            {fattaOggi(r, oggi) ? '✓ ' : ''}{r.titolo}{!fattaOggi(r, oggi) && r.obiettivo ? ` · ${r.obiettivo.toLowerCase()}` : ''}
+          </button>
+        ))}
       </div>
-    ) : (
-      <>
-        <Sec a="Routine di oggi" b={`${routineFatte} su ${v.routine.length}`} />
-        <div className="chips">
-          {v.routine.map((r) => (
-            <button key={r.id} className={clsx('chip', fattaOggi(r, oggi) && 'on')} onClick={() => segnaRoutine(r)}>
-              {r.titolo}{fattaOggi(r, oggi) ? ' ✓' : r.obiettivo && r.fascia ? ` · ${r.obiettivo.toLowerCase()}` : ''}
-            </button>
-          ))}
-        </div>
-      </>
-    )
+    </Gruppo>
   );
 
   const dovePianificata = (id: string) => piano?.giorni.flatMap((g) => g.blocchi).find((x) => x.item.id === id && !x.fisso);
@@ -141,23 +147,21 @@ export function Oggi() {
     return (
       <>
         {!passato && g && (
-          <>
-            <Sec a={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`} b={totale ? `${durata(g.usati)} su ${durata(totale)}` : undefined} />
+          <Gruppo titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`} dettaglio={totale ? `${durata(g.usati)} su ${durata(totale)}` : undefined}>
             {totale > 0 && <div className={clsx('piano-barra', g.usati >= totale && 'pieno')} aria-hidden="true"><i style={{ width: `${Math.min(100, (g.usati / totale) * 100)}%` }} /></div>}
             {blocchi.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>{totale === 0 ? 'Nessun tempo libero impostato per questo giorno.' : 'Niente di pianificato.'}</div>}
             {blocchi.map(bloccoRiga)}
-          </>
+          </Gruppo>
         )}
         {resto.length > 0 && (
-          <>
-            <Sec a={passato ? 'Rimaste aperte' : 'Con scadenza questo giorno'} b={resto.length} />
+          <Gruppo titolo={passato ? 'Rimaste aperte' : 'Con scadenza questo giorno'} dettaglio={resto.length}>
             {resto.map((i) => (
               <Row key={i.id} titolo={i.titolo} tag={i.area} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
                 level={barLevel(score(i, oggi))} check={i.tipo === 'esperienza' ? 'square' : 'circle'}
                 right={i.rigida || passato ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : undefined}
                 onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
             ))}
-          </>
+          </Gruppo>
         )}
         {(passato || !g || !disp) && resto.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente in programma questo giorno.</div>}
         {!disp && !passato && (
@@ -174,17 +178,17 @@ export function Oggi() {
     <>
       {piano && pianoOggi ? (
         <>
-          <Sec a="Piano di oggi" b={totaleOggi ? `${durata(pianoOggi.usati)} su ${durata(totaleOggi)}` : undefined} />
-          {totaleOggi > 0 && <div className={clsx('piano-barra', pianoOggi.usati >= totaleOggi && 'pieno')} aria-hidden="true"><i style={{ width: `${Math.min(100, (pianoOggi.usati / totaleOggi) * 100)}%` }} /></div>}
-          {pianoOggi.blocchi.length === 0 && (
-            <div className="t2" style={{ padding: '14px 0' }}>
-              {totaleOggi === 0 && !pianoOggi.blocchi.length ? 'Oggi non hai tempo libero impostato (o la giornata è finita).' : 'Niente da pianificare per oggi.'}
-            </div>
-          )}
-          {pianoOggi.blocchi.map(bloccoRiga)}
+          <Gruppo titolo="Piano di oggi" dettaglio={totaleOggi ? `${durata(pianoOggi.usati)} su ${durata(totaleOggi)}` : undefined}>
+            {totaleOggi > 0 && <div className={clsx('piano-barra', pianoOggi.usati >= totaleOggi && 'pieno')} aria-hidden="true"><i style={{ width: `${Math.min(100, (pianoOggi.usati / totaleOggi) * 100)}%` }} /></div>}
+            {pianoOggi.blocchi.length === 0 && (
+              <div className="t2" style={{ padding: '14px 0' }}>
+                {totaleOggi === 0 && !pianoOggi.blocchi.length ? 'Oggi non hai tempo libero impostato (o la giornata è finita).' : 'Niente da pianificare per oggi.'}
+              </div>
+            )}
+            {pianoOggi.blocchi.map(bloccoRiga)}
+          </Gruppo>
           {fuoriOggi.length > 0 && (
-            <>
-              <Sec a="Non entrano oggi" b={fuoriOggi.length} />
+            <Gruppo titolo="Non entrano oggi" dettaglio={fuoriOggi.length}>
               {fuoriOggi.map((e) => {
                 const dove = dovePianificata(e.item.id);
                 return (
@@ -193,24 +197,22 @@ export function Oggi() {
                     right={destra(e)} onCheck={() => completaVoce(e.item)} selected={nav.openId === e.item.id} onOpen={() => nav.push({ k: 'item', id: e.item.id })} />
                 );
               })}
-            </>
+            </Gruppo>
           )}
           {prossimiGiorni.length > 0 && (
-            <>
-              <Sec a="Nei prossimi giorni" />
+            <Gruppo titolo="Nei prossimi giorni" dettaglio={`${prossimiGiorni.length} ${prossimiGiorni.length === 1 ? 'giorno' : 'giorni'}`}>
               {prossimiGiorni.map((g) => (
-                <div key={g.data} className="field">
-                  <span style={{ textTransform: 'capitalize' }}>{formatLong(g.data)}</span>
-                  <span className="muted">{g.blocchi.length} {g.blocchi.length === 1 ? 'attività' : 'attività'} · {durata(g.usati)}</span>
-                </div>
+                <button key={g.data} className="field link giorno-voce" onClick={() => vaiGiorno(g.data)} aria-label={`Apri ${formatLong(g.data)}`}>
+                  <span style={{ textTransform: 'capitalize' }}><b>{g.data === addDays(oggi, 1) ? 'Domani' : formatLong(g.data)}</b></span>
+                  <span className="muted">{g.blocchi.length} {g.blocchi.length === 1 ? 'attività' : 'attività'} · {durata(g.usati)} ›</span>
+                </button>
               ))}
-            </>
+            </Gruppo>
           )}
           {piano.fuori.length > 0 && <div className="t2" style={{ padding: '10px 0' }}>{piano.fuori.length} {piano.fuori.length === 1 ? 'attività non entra' : 'attività non entrano'} nelle prossime due settimane: servono più fasce di tempo libero.</div>}
         </>
       ) : (
-        <>
-          <Sec a="Da fare oggi" b={v.fare.length || undefined} />
+        <Gruppo titolo="Da fare oggi" dettaglio={v.fare.length || undefined}>
           <button className="card tap" style={{ marginTop: 8 }} onClick={() => nav.push({ k: 'tempolibero' })}>
             <span><b>Imposta il tuo tempo libero</b><span className="t2" style={{ display: 'block' }}>MyTask distribuirà le attività nella giornata in base a priorità e tempo disponibile.</span></span>
             <span className="muted">›</span>
@@ -229,11 +231,10 @@ export function Oggi() {
               onOpen={() => nav.push({ k: 'item', id: e.item.id })}
             />
           ))}
-        </>
+        </Gruppo>
       )}
       {v.prossimi.length > 0 && (
-        <>
-          <Sec a="Prossimi 7 giorni" />
+        <Gruppo titolo="Prossimi 7 giorni" dettaglio={v.prossimi.length}>
           {v.prossimi.map((e) => (
             <Row
               key={e.item.id}
@@ -248,7 +249,7 @@ export function Oggi() {
               onOpen={() => nav.push({ k: 'item', id: e.item.id })}
             />
           ))}
-        </>
+        </Gruppo>
       )}
     </>
   );
@@ -275,10 +276,10 @@ export function Oggi() {
     return (
       <>
         <Top title="Oggi" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} cose da fare`} />
-        <div className="scroll wide-dash">
+        <div className="scroll wide-dash" {...tocco}>
           {selettore}
           {vista === 'mese' ? mese : <div className="dash">
-            <div>{navGiorno}{eOggi ? faroggi : altroGiorno}</div>
+            <div>{navGiorno}<div key={giorno} className={clsx('giorno-cont', direzione)}>{eOggi ? faroggi : altroGiorno}</div></div>
             <div className="dash-side">
               {eOggi && routine}
               {revisione}
@@ -312,15 +313,17 @@ export function Oggi() {
           </div>
         }
       />
-      <div className="scroll">
+      <div className="scroll" {...tocco}>
         {selettore}
         {vista === 'mese' ? mese : (
           <>
             {navGiorno}
-            {eOggi && routine}
-            {eOggi ? faroggi : altroGiorno}
-            {eOggi && revisione}
-            {eOggi && stato}
+            <div key={giorno} className={clsx('giorno-cont', direzione)}>
+              {eOggi && routine}
+              {eOggi ? faroggi : altroGiorno}
+              {eOggi && revisione}
+              {eOggi && stato}
+            </div>
           </>
         )}
       </div>

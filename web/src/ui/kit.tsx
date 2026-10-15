@@ -193,10 +193,10 @@ export function Scelta<T extends string>({ label, valore, voci, onChange }: { la
 }
 
 /** Gruppo di campi in una scheda con il suo titolo. */
-export function Gruppo({ titolo, children }: { titolo?: string; children: ReactNode }) {
+export function Gruppo({ titolo, dettaglio, children }: { titolo?: string; dettaglio?: ReactNode; children: ReactNode }) {
   return (
     <section className="gruppo">
-      {titolo && <h3 className="gruppo-t">{titolo}</h3>}
+      {titolo && <h3 className="gruppo-t">{titolo}{dettaglio !== undefined && <span className="gruppo-d">{dettaglio}</span>}</h3>}
       {children}
     </section>
   );

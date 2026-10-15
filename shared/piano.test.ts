@@ -84,3 +84,29 @@ test('piano: senza fasce non pianifica nulla e usa i valori suggeriti', () => {
   assert.equal(q.fuori.length, 0);
   assert.equal(minuti('09:30'), 570);
 });
+
+// ---- migrazioni di persone e checklist
+import { ripristinaChecklistProgetto, spostaInNote } from './migrazioni.ts';
+
+test('migrazione: persone e checklist passano nelle note, ma non la checklist dei progetti', () => {
+  const a = mk({ note: 'Idee', persone: ['Mario'], checklist: [{ id: 'x', testo: 'Torta', fatto: true }, { id: 'y', testo: 'Inviti', fatto: false }] });
+  const r = spostaInNote(a)!;
+  assert.equal(r.persone, undefined);
+  assert.equal(r.checklist, undefined);
+  assert.equal(r.note, 'Idee\n\nPersone: Mario\n\nChecklist:\n- [x] Torta\n- [ ] Inviti');
+  const p = mk({ tipo: 'progetto', persone: ['Anna'], checklist: [{ id: 'z', testo: 'Passo', fatto: false }] });
+  const rp = spostaInNote(p)!;
+  assert.equal(rp.checklist?.length, 1);
+  assert.equal(rp.note, 'Persone: Anna');
+  assert.equal(spostaInNote(mk({})), undefined);
+});
+
+test('migrazione: la checklist di un progetto già finita nelle note torna nel campo', () => {
+  let k = 0;
+  const p = mk({ tipo: 'progetto', note: 'Obiettivo chiaro\n\nPersone: Anna\n\nChecklist:\n- [x] Primo\n- [ ] Secondo' });
+  const r = ripristinaChecklistProgetto(p, () => `id${++k}`)!;
+  assert.deepEqual(r.checklist, [{ id: 'id1', testo: 'Primo', fatto: true }, { id: 'id2', testo: 'Secondo', fatto: false }]);
+  assert.equal(r.note, 'Obiettivo chiaro\n\nPersone: Anna');
+  assert.equal(ripristinaChecklistProgetto(r, () => 'q'), undefined);
+  assert.equal(ripristinaChecklistProgetto(mk({ note: 'Checklist:\n- [ ] a' }), () => 'q'), undefined);
+});

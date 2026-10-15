@@ -1,20 +1,22 @@
-// Migrazioni dei dati locali, eseguite all'avvio (sono idempotenti: dopo la prima non fanno nulla).
+// Migrazioni dei dati locali, eseguite all'avvio e a ogni sincronizzazione (idempotenti: dopo la prima non fanno nulla).
 import type { Item } from '../../../shared/types.ts';
+import { ripristinaChecklistProgetto, spostaInNote } from '../../../shared/migrazioni.ts';
 import { getItems, saveMany } from './store.ts';
+import { newId } from './util.ts';
 
 let inCorso = false;
 
-/** Persone e checklist non si modificano più dall'app: se una voce li ha, passano nelle note. */
-export function spostaPersoneEChecklistInNote(items: Item[] = getItems()): number {
+/**
+ * Persone e checklist non si modificano più dall'app (tranne la checklist dei progetti): le voci che li hanno
+ * li vedono spostati nelle note; i progetti con una checklist già finita nelle note ritrovano la checklist nel campo.
+ */
+export function sistemaPersoneEChecklist(items: Item[] = getItems()): number {
   if (inCorso) return 0; // il salvataggio notifica gli ascoltatori: niente rientri
-  const daSpostare = items.filter((i) => !i.eliminato && ((i.persone?.length ?? 0) > 0 || (i.checklist?.length ?? 0) > 0));
-  const aggiornate = daSpostare.map((i) => {
-    const pezzi: string[] = [];
-    if (i.persone?.length) pezzi.push(`Persone: ${i.persone.join(', ')}`);
-    if (i.checklist?.length) pezzi.push(`Checklist:\n${i.checklist.map((c) => `- [${c.fatto ? 'x' : ' '}] ${c.testo}`).join('\n')}`);
-    const note = [i.note?.trim(), pezzi.join('\n\n')].filter(Boolean).join('\n\n');
-    return { ...i, note, persone: undefined, checklist: undefined };
-  });
+  const aggiornate: Item[] = [];
+  for (const i of items) {
+    const x = spostaInNote(i) ?? ripristinaChecklistProgetto(i, newId);
+    if (x) aggiornate.push(x);
+  }
   if (!aggiornate.length) return 0;
   inCorso = true;
   try { saveMany(aggiornate); } finally { inCorso = false; }

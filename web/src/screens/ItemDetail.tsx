@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo } from '../../../shared/types.ts';
+import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { dueDate, score } from '../../../shared/priority.ts';
-import { nomiPersone } from '../../../shared/views.ts';
+import { avanzamento, figli, nomiPersone } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
 import { assicuraPersone, completaVoce, nuovaVoce, riapriVoce } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
-import { Back, DotsPick, Field, Gruppo, Scelta, Toggle, Top } from '../ui/kit.tsx';
+import { Back, DotsPick, Field, Gruppo, Row, Scelta, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { useNav } from '../ui/nav.tsx';
-import { clsx, mapsUrl } from '../lib/util.ts';
+import { clsx, mapsUrl, newId } from '../lib/util.ts';
 
 type GruppoTipo = 'azione' | 'progetto' | 'esperienza' | 'routine' | 'intrattenimento' | 'ricetta' | 'curiosita' | 'persona';
 const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita'];
@@ -66,6 +66,10 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const oggi = today();
   const persone = useMemo(() => nomiPersone(tutte), [tutte]);
   const piattaforme = useMemo(() => [...new Set(tutte.map((i) => i.piattaforma).filter((x): x is string => !!x))], [tutte]);
+  const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
+  const checklist = d.checklist ?? [];
+  const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
+  const avanz = t === 'progetto' ? avanzamento(d, tutte) : undefined;
   const [oreTesto, setOreTesto] = useState(() => (d.durataMin ? String(+(d.durataMin / 60).toFixed(1)).replace('.', ',') : ''));
   const [ricercaPagine, setRicercaPagine] = useState<'' | 'cerco' | 'trovate' | 'nonTrovate'>('');
   const ultimoTitoloCercato = useRef('');
@@ -272,6 +276,26 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
+        {t === 'progetto' && (
+          <Gruppo titolo={`Checklist${avanz && avanz.totale ? ` · ${avanz.fatti} su ${avanz.totale}` : ''}`}>
+            {avanz && avanz.totale > 0 && <div className="bar"><i style={{ width: `${(avanz.fatti / avanz.totale) * 100}%` }} /></div>}
+            {checklist.map((c) => (
+              <div key={c.id} className="row" style={{ alignItems: 'center' }}>
+                <button className={clsx('cb sq', c.fatto && 'done')} aria-label={`Segna «${c.testo}»`} onClick={() => setCheck(checklist.map((x) => x.id === c.id ? { ...x, fatto: !x.fatto } : x))} />
+                <div className={clsx('grow t1 light', c.fatto && 'struck')}>{c.testo}</div>
+                <button className="chip" aria-label="Togli la voce" onClick={() => setCheck(checklist.filter((x) => x.id !== c.id))}>✕</button>
+              </div>
+            ))}
+            {passi.map((c) => (
+              <Row key={c.id} titolo={c.titolo} done={c.stato === 'fatto'} light={c.stato === 'fatto'} struck={c.stato === 'fatto'}
+                right={dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : null}
+                onCheck={() => (c.stato === 'fatto' ? riapriVoce(c) : completaVoce(c))}
+                onOpen={() => nav.push({ k: 'item', id: c.id })} />
+            ))}
+            <AggiungiRiga placeholder="Aggiungi un passo" onAdd={(txt) => setCheck([...checklist, { id: newId(), testo: txt, fatto: false }])} />
+          </Gruppo>
+        )}
+
         <Gruppo titolo="Note">
           <textarea className="textarea" value={d.note ?? ''} placeholder="Appunti" onChange={(e) => up({ note: e.target.value || undefined })} />
         </Gruppo>
@@ -297,5 +321,16 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         )}
       </div>
     </>
+  );
+}
+
+function AggiungiRiga({ placeholder, onAdd }: { placeholder: string; onAdd: (v: string) => void }) {
+  const [v, setV] = useState('');
+  const invia = () => { const x = v.trim(); if (x) { onAdd(x); setV(''); } };
+  return (
+    <form className="field" onSubmit={(e) => { e.preventDefault(); invia(); }}>
+      <input value={v} placeholder={placeholder} style={{ textAlign: 'left' }} onChange={(e) => setV(e.target.value)} />
+      <button type="submit" className="chip" disabled={!v.trim()}>Aggiungi</button>
+    </form>
   );
 }

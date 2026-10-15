@@ -9,16 +9,16 @@ import { avviaTema } from './lib/theme.ts';
 import { avviaPromemoria } from './lib/reminders.ts';
 import { avviaNotificheNative, isNative } from './lib/native.ts';
 import { avviaHaptic } from './lib/haptic.ts';
-import { spostaPersoneEChecklistInNote } from './lib/migrazioni.ts';
+import { sistemaPersoneEChecklist } from './lib/migrazioni.ts';
 
 avviaTema();
 avviaHaptic();
 
 async function avvia() {
   await initStore();
-  spostaPersoneEChecklistInNote();
+  sistemaPersoneEChecklist();
   // anche per le voci che arrivano dopo, con la sincronizzazione (idempotente: dopo la prima passata non fa nulla)
-  subscribe(() => { spostaPersoneEChecklistInNote(); });
+  subscribe(() => { sistemaPersoneEChecklist(); });
   createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
   avviaSync();
   if (isNative()) {

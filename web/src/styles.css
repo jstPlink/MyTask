@@ -365,3 +365,23 @@ a { color: var(--accent); }
 .tabs button { border-radius: 16px; margin: 6px 0; height: 54px; transition: background .15s, color .15s, transform .12s; }
 .tabs button.on { background: var(--accent-soft); }
 .tabs button.on .ic, .tabs button .ic { background: none; width: 30px; height: 28px; }
+
+/* ---------- Oggi: navigazione del giorno incapsulata e sezioni separate ---------- */
+.giorno-nav { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 5px; margin: 6px 0 4px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.giorno-nav > button { background: var(--surface2); border-radius: 13px; width: 46px; height: 46px; color: var(--ink); }
+.giorno-nav > button:hover { background: var(--accent-soft); color: var(--accent); }
+.giorno-nome b { font-size: 18px; }
+.gruppo-d { float: right; font-weight: 600; letter-spacing: 0; text-transform: none; font-size: 12px; color: var(--mid); }
+.giorno-voce { padding: 13px 0; }
+.giorno-voce:last-child { border-bottom: 0; }
+@keyframes da-destra { from { opacity: 0; transform: translateX(28px); } }
+@keyframes da-sinistra { from { opacity: 0; transform: translateX(-28px); } }
+.giorno-cont.avanti { animation: da-destra .22s ease-out backwards; }
+.giorno-cont.indietro { animation: da-sinistra .22s ease-out backwards; }
+.giorno-cont .gruppo { margin: 16px 0; }
+
+/* titoli leggibili anche con il tag e l'orario: il tag va a capo invece di schiacciare il titolo */
+.row .line { flex-wrap: wrap; row-gap: 4px; }
+.row .line .t1 { flex: 1 1 130px; min-width: 0; overflow-wrap: break-word; }
+.row .line .tag { margin-left: auto; }
+.piano-ora { width: 50px; }
