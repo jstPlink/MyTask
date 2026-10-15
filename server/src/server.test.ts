@@ -134,3 +134,11 @@ test('CORS: ammesso solo per l\'app Android, anche per la richiesta preliminare'
   assert.equal(altro.headers['access-control-allow-origin'], undefined);
   await app.close();
 });
+
+test('health: indica la versione del server', async () => {
+  const { app } = await setup();
+  const r = await app.inject({ method: 'GET', url: '/api/health' });
+  assert.equal(r.json().ok, true);
+  assert.match(r.json().versione, /^\d+\.\d+\.\d+$/);
+  await app.close();
+});

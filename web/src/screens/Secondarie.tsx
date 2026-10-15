@@ -8,7 +8,8 @@ import { useAspetto, useAuth, useItems, useOggi, useSyncStatus } from '../lib/ho
 import { completaVoce, nuovaVoce, ripianifica, saltaVoce } from '../lib/actions.ts';
 import { removeItem, saveBatch, saveItem, setAuth } from '../lib/store.ts';
 import { validaVoci } from '../../../shared/validate.ts';
-import { scaricaEsportazione, logout } from '../lib/api.ts';
+import { apiBase, scaricaEsportazione, logout } from '../lib/api.ts';
+import { VERSIONE } from '../version.ts';
 import { sync } from '../lib/sync.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
 import { chiediPermessoNotifiche, permessoNotifiche } from '../lib/reminders.ts';
@@ -46,6 +47,7 @@ export function Altro() {
         {voce('Notifiche', permessoNotifiche() === 'granted' ? 'attive' : undefined, { k: 'notifiche' })}
         <div className="field"><span>Calendario</span><span className="muted">non collegato</span></div>
         {voce('Account e sincronizzazione', undefined, { k: 'account' })}
+        <div className="t2" style={{ textAlign: 'center', marginTop: 24 }}>MyTask · versione {VERSIONE}</div>
       </div>
     </>
   );
@@ -399,6 +401,7 @@ export function Account() {
   const auth = useAuth();
   const st = useSyncStatus();
   const nVoci = useItemsCount();
+  const versioneServer = useVersioneServer();
 
   async function importaDaFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -425,6 +428,8 @@ export function Account() {
         <Field label="Ultima sincronizzazione"><span>{st.ultima ? new Date(st.ultima).toLocaleString('it-IT') : '—'}</span></Field>
         {st.errore && <div className="t2 warn" style={{ padding: '8px 0' }}>{st.errore}</div>}
         <Field label="Voci salvate su questo dispositivo"><span>{nVoci}</span></Field>
+        <Field label="Versione dell'app"><span>{VERSIONE}</span></Field>
+        <Field label="Versione del server"><span>{versioneServer ?? '—'}{versioneServer && versioneServer !== VERSIONE ? ' (diversa)' : ''}</span></Field>
         <div className="btns col" style={{ marginTop: 18 }}>
           <button className="btn solid" onClick={() => { void sync(); mostraToast('Sincronizzazione avviata'); }}>Sincronizza ora</button>
           <button className="btn" onClick={() => { scaricaEsportazione().catch(() => mostraToast('Esportazione non riuscita (serve la connessione)')); }}>Scarica una copia dei dati (JSON)</button>
@@ -438,6 +443,20 @@ export function Account() {
       </div>
     </>
   );
+}
+
+/** Versione del server, letta da /api/health (undefined se offline o se il server è vecchio). */
+function useVersioneServer(): string | undefined {
+  const [v, setV] = useState<string | undefined>();
+  useEffect(() => {
+    let attivo = true;
+    fetch(`${apiBase()}/api/health`, { signal: AbortSignal.timeout(5000) })
+      .then((r) => (r.ok ? (r.json() as Promise<{ versione?: string }>) : undefined))
+      .then((j) => { if (attivo) setV(j?.versione); })
+      .catch(() => undefined);
+    return () => { attivo = false; };
+  }, []);
+  return v;
 }
 
 function useItemsCount(): number {

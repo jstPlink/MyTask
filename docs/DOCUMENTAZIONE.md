@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.9.0
+- **Versione documento:** 0.9.1
 - **Stato progetto:** app in produzione sul NAS; importazione dei dati da file dentro l'app; app Android costruita da GitHub (notifiche locali). Da verificare sul telefono
 - **Codice:** [README.md](../README.md) (come avviarla e metterla sul NAS)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -67,6 +67,18 @@ Layout identico ai mockup minimalisti, con questi cambi:
 | Accento Petrolio | #0E7490 | #4FC3DD |
 | Accento Indaco | #4F46E5 | #9A9EFF |
 | Avviso | #D1430B | #FF9466 |
+
+### 2.3 Layout web per schermi larghi (proposta, da approvare)
+
+Oggi il sito su computer mostra la stessa colonna singola del telefono, centrata. La proposta (mockup `docs/mockups/03-web-desktop.html`, locale) usa lo spazio così:
+
+- **Oltre 1300 px:** tre aree affiancate: barra laterale (navigazione, contatori, Inbox, Revisione, versione e stato di sincronizzazione), elenco al centro, pannello di dettaglio a destra.
+- **900-1300 px:** barra laterale e area principale; il dettaglio si apre a tutta pagina.
+- **Sotto 900 px:** barra laterale nascosta e quattro schede in basso, come sul telefono (layout attuale).
+- **Cattura rapida** sempre in alto, con ricerca; scorciatoie da tastiera (N cattura, / cerca, J e K scorrono, Invio apre, F segna fatto).
+- **Oggi** diventa un cruscotto a due colonne; **Routine** una griglia settimanale a sette colonne; "Cosa guardo stasera?" resta nel pannello laterale delle collezioni.
+
+Stile, palette, tema chiaro/scuro e colore d'accento restano quelli già approvati.
 
 ## 3. Modello dati (bozza v0.1)
 
@@ -290,3 +302,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.8.2 | Corretto il controllo su GitHub: il caricamento delle regole personali di importazione non fa più fallire il controllo dei tipi quando il file locale non c'è |
 | 2026-10-15 | 0.8.3 | Il workflow su GitHub ha costruito e pubblicato l'immagine (build Docker verificato) e il pacchetto risulta scaricabile senza credenziali: tolto dal README il passaggio per renderlo pubblico |
 | 2026-10-15 | 0.9.0 | App Android (Capacitor): APK costruito da GitHub Actions e pubblicato nelle Releases, firmato con una chiave pubblica inclusa (aggiornamenti senza disinstallare; chiave privata facoltativa via segreti). Notifiche locali programmate nel telefono per i prossimi 14 giorni (scadenze, insistenza, routine), riprogrammate a ogni modifica. Indirizzo del server richiesto al primo accesso nell'app. CORS nel server per l'app. Importazione delle voci da file JSON dentro l'app (Altro > Account), che sostituisce i comandi Docker per caricare i dati di Notion |
+| 2026-10-15 | 0.9.1 | La versione compare nell'app (sito e telefono: Altro e Account, schermata di accesso) e nel server (`/api/health`, mostrata in Account con l'avviso se differisce da quella dell'app). Aggiunta la proposta di layout web per schermi larghi (sezione 2.3, mockup locale `03-web-desktop.html`) |

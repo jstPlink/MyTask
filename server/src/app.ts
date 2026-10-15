@@ -9,6 +9,19 @@ import { Store } from './db.ts';
 import { RateLimiter, hashPassword, hashToken, newToken, verifyPassword } from './auth.ts';
 import { IaNonDisponibile, interpretaConGemini } from './ai.ts';
 
+let versioneLetta: string | undefined;
+/** Versione del server: quella del package.json principale. */
+function versioneServer(): string {
+  if (versioneLetta) return versioneLetta;
+  try {
+    const p = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, '..', '..', 'package.json'), 'utf8')) as { version?: string };
+    versioneLetta = p.version ?? 'sconosciuta';
+  } catch {
+    versioneLetta = 'sconosciuta';
+  }
+  return versioneLetta;
+}
+
 const SESSIONE_MS = 180 * 24 * 3600 * 1000;
 const MAX_ITEM_BYTES = 200_000;
 
@@ -58,7 +71,7 @@ export async function buildApp({ config, store, fetchFn, now = Date.now }: AppDe
     return store.findSession(hashToken(h.slice(7)), now());
   }
 
-  app.get('/api/health', async () => ({ ok: true }));
+  app.get('/api/health', async () => ({ ok: true, versione: versioneServer() }));
 
   app.post('/api/auth/login', async (req, reply) => {
     const body = req.body as { email?: unknown; password?: unknown } | null;

@@ -3,6 +3,7 @@ import { ErroreApi, apiBase, impostaServer, login } from '../lib/api.ts';
 import { isNative } from '../lib/native.ts';
 import { getAuth, setAuth } from '../lib/store.ts';
 import { sync } from '../lib/sync.ts';
+import { VERSIONE } from '../version.ts';
 
 export function Login() {
   const [email, setEmail] = useState(getAuth().email ?? '');
@@ -40,6 +41,7 @@ export function Login() {
       <input type="password" autoComplete="current-password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required aria-label="Password" />
       {errore && <div className="warn" role="alert">{errore}</div>}
       <button className="btn solid" style={{ padding: 14 }} disabled={invio}>{invio ? 'Accesso…' : 'Accedi'}</button>
+      <div className="t2" style={{ textAlign: 'center' }}>versione {VERSIONE}</div>
     </form>
   );
 }
