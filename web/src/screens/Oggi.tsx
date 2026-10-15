@@ -21,7 +21,6 @@ export function Oggi() {
     const i = e.item;
     const pezzi: string[] = [];
     if (e.padre) pezzi.push(`${e.padre.titolo} · prossimo passo`);
-    else if (i.area) pezzi.push(i.area);
     if (i.sforzoMin) pezzi.push(i.sforzoMin >= 60 ? `${i.sforzoMin / 60} ore` : `${i.sforzoMin} min`);
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return pezzi.join(' · ');
@@ -71,6 +70,7 @@ export function Oggi() {
           key={e.item.id}
           titolo={e.item.titolo}
           meta={meta(e)}
+          tag={e.padre ? undefined : e.item.area}
           right={destra(e)}
           level={barLevel(e.punteggio)}
           onCheck={() => completaVoce(e.item)}
@@ -85,7 +85,8 @@ export function Oggi() {
             <Row
               key={e.item.id}
               titolo={e.item.titolo}
-              meta={e.item.tipo === 'esperienza' ? 'Esperienza' : e.item.area}
+              meta={e.item.tipo === 'esperienza' ? 'Esperienza' : undefined}
+              tag={e.item.tipo === 'esperienza' ? undefined : e.item.area}
               right={e.item.rigida ? <span className="hard">{formatShortYear(dueDate(e.item)!, oggi)}</span> : formatShortYear(dueDate(e.item)!, oggi)}
               light
               check={e.item.tipo === 'azione' || e.item.tipo === 'progetto' ? 'circle' : 'square'}

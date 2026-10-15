@@ -7,9 +7,10 @@ import { completaVoce } from '../lib/actions.ts';
 import { Chips, Empty, Fab, Row, Sec, Seg, Top } from '../ui/kit.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
 import { mapsUrl } from '../lib/util.ts';
+import { Calendario } from './Calendario.tsx';
 
 const SUB: { id: SubFare; nome: string }[] = [
-  { id: 'azioni', nome: 'Azioni' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
+  { id: 'azioni', nome: 'Azioni' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }, { id: 'calendario', nome: 'Calendario' },
 ];
 
 export function Fare() {
@@ -29,6 +30,7 @@ export function Fare() {
         {nav.fareSub === 'azioni' && <Azioni />}
         {nav.fareSub === 'progetti' && <Progetti />}
         {nav.fareSub === 'esperienze' && <Esperienze />}
+        {nav.fareSub === 'calendario' && <Calendario />}
       </div>
       <Fab onClick={nuova} label="Nuova voce" />
     </>
@@ -53,7 +55,8 @@ function Azioni() {
           <Row
             key={item.id}
             titolo={item.titolo}
-            meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.area, item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${item.sforzoMin} min` : undefined].filter(Boolean).join(' · ')}
+            tag={item.area}
+            meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${item.sforzoMin} min` : undefined].filter(Boolean).join(' · ')}
             right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
             level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
             light={item.stato === 'parcheggiato'}

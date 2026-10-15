@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Item } from '../../shared/types.ts';
 import { useAuth, useToast } from './lib/hooks.ts';
 import { useMediaQuery } from './lib/media.ts';
@@ -17,6 +17,8 @@ import { ItemDetail } from './screens/ItemDetail.tsx';
 import { Capture } from './screens/Capture.tsx';
 import { Login } from './screens/Login.tsx';
 import { Account, Altro, Archivio, Aspetto, Inbox, Luoghi, Notifiche, PersonaDetail, Persone, Revisione, Stasera } from './screens/Secondarie.tsx';
+
+interface Posizione { tab: Tab; fareSub: SubFare; scoprireSub: SubScoprire }
 
 function Schermata({ s }: { s: Screen }) {
   switch (s.k) {
@@ -52,51 +54,70 @@ export function App() {
   const auth = useAuth();
   const wide = useMediaQuery('(min-width: 900px)');
   const xl = useMediaQuery('(min-width: 1300px)');
-  const [tab, setTabState] = useState<Tab>('oggi');
+  const [pos, setPos] = useState<Posizione>({ tab: 'oggi', fareSub: 'azioni', scoprireSub: 'film' });
   const [stack, setStack] = useState<Screen[]>([]);
-  const [fareSub, setFareSub] = useState<SubFare>('azioni');
-  const [scoprireSub, setScoprireSub] = useState<SubScoprire>('film');
   const [capture, setCapture] = useState(false);
   const [captureText, setCaptureText] = useState('');
   const [query, setQuery] = useState('');
 
   const openCapture = useCallback((open: boolean, testo = '') => { setCapture(open); setCaptureText(open ? testo : ''); }, []);
 
-  // il tasto "indietro" del telefono chiude la schermata in cima (solo nel layout stretto)
+  // Cronologia delle posizioni (scheda e sotto-sezione) già visitate: "indietro" ci torna.
+  const posRef = useRef(pos);
+  const cronRef = useRef<Posizione[]>([]);
+  const stackLen = useRef(0);
+  stackLen.current = stack.length;
+  const applicaPos = (p: Posizione) => { posRef.current = p; setPos(p); };
+
+  const vaTab = useCallback((tab: Tab, sub?: { fare?: SubFare; scoprire?: SubScoprire }) => {
+    const cur = posRef.current;
+    const next: Posizione = { tab, fareSub: sub?.fare ?? cur.fareSub, scoprireSub: sub?.scoprire ?? cur.scoprireSub };
+    setStack([]);
+    if (next.tab === cur.tab && next.fareSub === cur.fareSub && next.scoprireSub === cur.scoprireSub) return;
+    // le sotto-sezioni di una scheda che non è quella aperta non contano come spostamento
+    cronRef.current = [...cronRef.current.slice(-29), cur];
+    history.pushState({ d: 0, m: cronRef.current.length }, '');
+    applicaPos(next);
+  }, []);
+  const setTab = useCallback((t: Tab) => vaTab(t), [vaTab]);
+  const setFareSub = useCallback((s: SubFare) => vaTab('fare', { fare: s }), [vaTab]);
+  const setScoprireSub = useCallback((s: SubScoprire) => vaTab('scoprire', { scoprire: s }), [vaTab]);
+
+  // il tasto "indietro" (telefono o browser) chiude la schermata in cima e poi torna alla posizione precedente
   useEffect(() => {
-    const onPop = (e: PopStateEvent) => setStack((s) => s.slice(0, (e.state as { d?: number } | null)?.d ?? 0));
+    const onPop = (e: PopStateEvent) => {
+      const d = (e.state as { d?: number } | null)?.d ?? 0;
+      if (stackLen.current > d) { setStack((s) => s.slice(0, d)); return; }
+      const prima = cronRef.current[cronRef.current.length - 1];
+      if (prima) { cronRef.current = cronRef.current.slice(0, -1); applicaPos(prima); setStack([]); }
+    };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
   const push = useCallback((s: Screen) => {
     setCapture(false);
-    setStack((cur) => {
-      if (!wide) history.pushState({ d: cur.length + 1 }, '');
-      return [...cur, s];
-    });
+    const d = stackLen.current + 1;
+    stackLen.current = d;
+    if (!wide) history.pushState({ d }, '');
+    setStack((cur) => [...cur, s]);
   }, [wide]);
   const pop = useCallback(() => {
+    if (stackLen.current === 0) { history.back(); return; }
     if (!wide && history.state && (history.state as { d?: number }).d) history.back();
     else setStack((s) => s.slice(0, -1));
-  }, [wide]);
-  const setTab = useCallback((t: Tab) => {
-    setTabState(t);
-    setStack((cur) => {
-      if (!wide && cur.length && history.state && (history.state as { d?: number }).d) history.go(-cur.length);
-      return [];
-    });
   }, [wide]);
   const vai = useCallback((s: Screen) => { setCapture(false); setStack([s]); }, []);
   const nuova = useCallback((p: Partial<Item>) => push({ k: 'item', nuovo: p }), [push]);
 
+  const { tab, fareSub, scoprireSub } = pos;
   const top = stack[stack.length - 1];
   const openId = top?.k === 'item' ? top.id : undefined;
 
   const nav = useMemo<Nav>(() => ({
-    tab, setTab, stack, push, pop, fareSub, setFareSub, scoprireSub, setScoprireSub,
+    tab, setTab, vaTab, stack, push, pop, fareSub, setFareSub, scoprireSub, setScoprireSub,
     capture, captureText, openCapture, wide, xl, vai, openId, query, setQuery, nuova,
-  }), [tab, setTab, stack, push, pop, fareSub, scoprireSub, capture, captureText, openCapture, wide, xl, vai, openId, query, nuova]);
+  }), [tab, setTab, vaTab, stack, push, pop, fareSub, setFareSub, scoprireSub, setScoprireSub, capture, captureText, openCapture, wide, xl, vai, openId, query, nuova]);
 
   // scorciatoie da tastiera (schermi larghi): N cattura, / cerca, Esc chiude
   useEffect(() => {

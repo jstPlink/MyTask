@@ -126,6 +126,16 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         right={d.inbox ? <span className="badge">Da smistare</span> : undefined}
       />
       <div className="scroll">
+        {puntegg !== undefined && d.stato !== 'fatto' && (
+          <div className="card strong">
+            <div className="t2">Punteggio di priorità</div>
+            <div className="big">{puntegg}</div>
+            <div className="t2">
+              {due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'} · importanza {d.importanza ?? 3}{d.sforzoMin ? ` · ${nomeSforzo(d.sforzoMin)}` : ''}
+            </div>
+          </div>
+        )}
+
         <Field label="Titolo"><input value={d.titolo} placeholder="Cosa?" autoFocus={!id} onChange={(e) => up({ titolo: e.target.value })} /></Field>
         <Field label="Tipo">
           <select value={t} onChange={(e) => cambiaTipo(e.target.value as Tipo)}>
@@ -141,16 +151,6 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {STATI.map((s) => <option key={s.id} value={s.id}>{t === 'curiosita' && s.id === 'da_fare' ? 'Da approfondire' : s.nome}</option>)}
           </select>
         </Field>
-
-        {puntegg !== undefined && d.stato !== 'fatto' && (
-          <div className="card strong">
-            <div className="t2">Punteggio di priorità</div>
-            <div className="big">{puntegg}</div>
-            <div className="t2">
-              {due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'} · importanza {d.importanza ?? 3}{d.sforzoMin ? ` · ${nomeSforzo(d.sforzoMin)}` : ''}
-            </div>
-          </div>
-        )}
 
         {t === 'progetto' && (
           <>

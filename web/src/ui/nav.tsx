@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 import type { Item } from '../../../shared/types.ts';
 
 export type Tab = 'oggi' | 'fare' | 'scoprire' | 'routine';
-export type SubFare = 'azioni' | 'progetti' | 'esperienze';
+export type SubFare = 'azioni' | 'progetti' | 'esperienze' | 'calendario';
 export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'ricetta' | 'curiosita';
 
 export type Screen =
@@ -14,6 +14,8 @@ export type Screen =
 export interface Nav {
   tab: Tab;
   setTab: (t: Tab) => void;
+  /** Apre una scheda (e, se serve, una sua sotto-sezione) tenendo la cronologia per "indietro". */
+  vaTab: (t: Tab, sub?: { fare?: SubFare; scoprire?: SubScoprire }) => void;
   stack: Screen[];
   push: (s: Screen) => void;
   pop: () => void;

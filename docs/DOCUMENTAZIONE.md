@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.10.2
+- **Versione documento:** 0.11.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -40,7 +40,7 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 ### 2.1 Navigazione (telefono)
 
 - **Quattro schede in basso** con icona (Oggi, Attività, Scoprire, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
-- **Attività** (prima "Fare") contiene tre sezioni: Azioni, Progetti, Esperienze.
+- **Attività** (prima "Fare") contiene quattro sezioni: Azioni, Progetti, Esperienze e Calendario.
 - **Scoprire** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette) e le Curiosità.
 - **Inbox** e **Altro** sono i due pulsanti tondi in alto a destra in "Oggi". Altro apre: Inbox, Revisione, Archivio, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza rigida.
@@ -79,6 +79,12 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 - **Oggi** è un cruscotto a due colonne (cose da fare; routine, revisione e inbox). **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
 - **Scorciatoie da tastiera:** N (cattura rapida), / (ricerca), Esc (chiude la conferma, la ricerca o il pannello). Spostarsi nell'elenco con J e K e segnare fatto con F non sono ancora implementati.
 - La cattura rapida si apre al centro, come finestra, invece che dal basso.
+
+### 2.3.1 Tag area e calendario (implementato)
+
+- **Tag area:** nelle righe, l'area di un'azione (Casa, Burocrazia, Digitale, Salute, Lavoro…) è una pillola colorata sulla stessa riga del titolo, a destra; sotto restano durata, stato e scadenza. Le aree più comuni hanno una tinta fissa, le altre una tinta stabile calcolata dal nome. Vale su telefono e web (Oggi, Attività).
+- **Calendario** (Attività > Calendario): mese con un pallino per i giorni con scadenze (arancio se c'è una scadenza rigida o scaduta). Sul telefono, toccando un giorno compare sotto l'elenco di quel giorno; sul web il mese sta a sinistra e l'agenda dei giorni successivi a destra. Mostra azioni, progetti ed esperienze aperti con una data.
+- **Indietro:** la cronologia ricorda anche le schede e le sotto-sezioni visitate; il tasto indietro del telefono o del browser le ripercorre.
 
 ### 2.4 Telefono: icone e pulsanti circolari (implementato)
 
@@ -336,3 +342,5 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.10.0 | Layout web per schermi larghi (sezione 2.3): barra laterale, barra in alto con cattura rapida e ricerca, pannello di dettaglio, cruscotto in Oggi, griglia settimanale in Routine, scorciatoie N / Esc. Telefono (sezione 2.4): icone per Oggi, Fare, Scoprire e Routine; Inbox e Altro come pulsanti tondi più grandi. Ricerca nelle voci |
 | 2026-10-15 | 0.10.1 | Documentazione allineata allo stato reale: modello dati con i nomi dei campi effettivi, cattura rapida, backup, importazione da file, funzioni IA con lo stato, sezione 5.3 (versione e aggiornamenti), stato dell'implementazione e cose ancora da fare (8.2). Riordinate le sezioni 4.7 e 4.8 |
 | 2026-10-15 | 0.10.2 | La categoria "Fare" si chiama "Attività". Corretto il selettore del tema (Aspetto), nascosto per errore sugli schermi larghi. Barra laterale più grande (288 px, testo e icone più grandi), sotto-sezioni rientrate con linea guida e gruppi "Da sistemare", "Altro" e impostazioni separati (mockup locale `04-barra-laterale.html`). Pagina di accesso con lo stesso logo e stile dell'app, senza cornice da telefono sugli schermi larghi |
+| 2026-10-15 | 0.10.3 | Navigazione con cronologia: "indietro" (tasto del telefono o del browser) chiude la schermata aperta e poi torna alla scheda e sotto-sezione visitate prima. Tasto "Indietro" più grande da toccare. Nel dettaglio di una voce il punteggio di priorità sta sopra il campo Titolo. App Android: le icone della barra di stato seguono il tema dell'app (plugin `@capacitor/status-bar`). Mockup locali di tag area e vista calendario (`05-tag-e-calendario.html`), da approvare |
+| 2026-10-15 | 0.11.0 | Tag area colorati sulla riga del titolo (sezione 2.3.1). Vista Calendario in Attività, con elenco del giorno (telefono) e agenda (web). Corretto lo stack di navigazione, che in sviluppo registrava due volte l'apertura di una voce |

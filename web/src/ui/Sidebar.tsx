@@ -16,7 +16,7 @@ function Link({ nome, on, sub, main, n, warn, icona, onClick }: { nome: string; 
   );
 }
 
-const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Azioni' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }];
+const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Azioni' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }, { id: 'calendario', nome: 'Calendario' }];
 const SUB_SCOPRIRE: { id: SubScoprire; nome: string }[] = [
   { id: 'film', nome: 'Film' }, { id: 'serie', nome: 'Serie' }, { id: 'anime', nome: 'Anime' }, { id: 'gioco', nome: 'Giochi' },
   { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' }, { id: 'curiosita', nome: 'Curiosità' },
@@ -48,8 +48,8 @@ export function Sidebar() {
   const schermata = top && top.k !== 'item' ? top.k : undefined;
   const inTab = (t: Tab) => nav.tab === t && !schermata && !nav.query;
   const apriTab = (t: Tab) => { nav.setQuery(''); nav.setTab(t); };
-  const apriFare = (s: SubFare) => { nav.setFareSub(s); apriTab('fare'); };
-  const apriScoprire = (s: SubScoprire) => { nav.setScoprireSub(s); apriTab('scoprire'); };
+  const apriFare = (s: SubFare) => { nav.setQuery(''); nav.vaTab('fare', { fare: s }); };
+  const apriScoprire = (s: SubScoprire) => { nav.setQuery(''); nav.vaTab('scoprire', { scoprire: s }); };
   const vai = (s: Screen) => { nav.setQuery(''); nav.vai(s); };
   // con le sotto-sezioni aperte è la sotto-sezione a risultare attiva, non la categoria
   const subVisibili = (t: Tab) => nav.tab === t && !schermata && (t === 'fare' || t === 'scoprire');

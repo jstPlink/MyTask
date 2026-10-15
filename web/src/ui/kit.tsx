@@ -16,7 +16,7 @@ export function Top({ title, sub, right }: { title: string; sub?: string; right?
 
 export function Back({ label = 'Indietro' }: { label?: string }) {
   const { pop } = useNav();
-  return <div style={{ padding: 'calc(env(safe-area-inset-top) + 10px) 18px 0' }}><button className="back" onClick={pop}>‹ {label}</button></div>;
+  return <div style={{ padding: 'calc(env(safe-area-inset-top) + 6px) 18px 0' }}><button className="back" onClick={pop} aria-label={label}><span aria-hidden="true" style={{ fontSize: 24, lineHeight: 1 }}>‹</span>{label}</button></div>;
 }
 
 export function Sec({ a, b }: { a: string; b?: ReactNode }) {
@@ -27,6 +27,8 @@ export interface RowProps {
   titolo: string;
   meta?: ReactNode;
   right?: ReactNode;
+  /** Area (Casa, Burocrazia…): pillola colorata sulla riga del titolo. */
+  tag?: string;
   level?: 1 | 2 | 3;
   check?: 'circle' | 'square' | 'none';
   done?: boolean;
@@ -37,7 +39,17 @@ export interface RowProps {
   onOpen?: () => void;
 }
 
-export function Row({ titolo, meta, right, level, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
+/** Tinta della pillola di un'area: fissa per le aree più comuni, per le altre stabile per nome. */
+const AREE_NOTE: Record<string, number> = { casa: 1, burocrazia: 2, digitale: 3, salute: 4, lavoro: 5 };
+export const classeArea = (nome: string) => {
+  const n = nome.trim().toLowerCase();
+  if (n in AREE_NOTE) return `a${AREE_NOTE[n]}`;
+  let h = 7;
+  for (const c of n) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return `a${(h % 5) + 1}`;
+};
+
+export function Row({ titolo, meta, right, tag, level, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
       {check !== 'none' && (
@@ -51,7 +63,10 @@ export function Row({ titolo, meta, right, level, check = 'circle', done, light,
         />
       )}
       <div className="grow">
-        <div className={clsx('t1', light && 'light', struck && 'struck')}>{titolo}</div>
+        <div className="line">
+          <div className={clsx('t1', light && 'light', struck && 'struck')}>{titolo}</div>
+          {tag && <span className={clsx('tag', classeArea(tag))}>{tag}</span>}
+        </div>
         {meta && <div className="t2">{meta}</div>}
       </div>
       {right && <div className="right">{right}</div>}
