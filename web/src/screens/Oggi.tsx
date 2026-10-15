@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { minutiDisponibili, orario, pianifica } from '../../../shared/piano.ts';
-import { barLevel, dueDate, daysOverdue, score } from '../../../shared/priority.ts';
+import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score } from '../../../shared/priority.ts';
 import { vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
@@ -10,12 +11,13 @@ import { completaVoce, segnaRoutine } from '../lib/actions.ts';
 import { Fab, Icona, Row, Sec, Seg, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
-import { Calendario } from './Calendario.tsx';
+import { GrigliaMese, type SegnoGiorno } from './Calendario.tsx';
 
-type Vista = 'elenco' | 'calendario';
-const KEY_VISTA = 'mytask.oggi.vista';
+type Vista = 'giorno' | 'mese';
+// vista e giorno scelti restano finché l'app è aperta (anche aprendo una voce e tornando indietro)
+const scelta: { vista: Vista; giorno: string | undefined } = { vista: 'giorno', giorno: undefined };
+const TIPI_DATATI = new Set(['azione', 'progetto', 'esperienza']);
 const durata = (min: number) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`);
-const leggiVista = (): Vista => { try { return localStorage.getItem(KEY_VISTA) === 'calendario' ? 'calendario' : 'elenco'; } catch { return 'elenco'; } };
 
 export function Oggi() {
   const items = useItems();
@@ -27,11 +29,39 @@ export function Oggi() {
   const [minutoCorrente, setMinutoCorrente] = useState(() => Math.floor(Date.now() / 60000));
   useEffect(() => { const t = setInterval(() => setMinutoCorrente(Math.floor(Date.now() / 60000)), 60_000); return () => clearInterval(t); }, []);
   const piano = useMemo(() => (disp ? pianifica(items, disp, oggi, minutoCorrente * 60000) : null), [items, disp, oggi, minutoCorrente]);
-  const [vista, setVistaState] = useState<Vista>(leggiVista);
-  const setVista = (x: Vista) => { setVistaState(x); try { localStorage.setItem(KEY_VISTA, x); } catch { /* ignora */ } };
+  const [vista, setVistaState] = useState<Vista>(scelta.vista);
+  const [giornoScelto, setGiornoState] = useState<string>(scelta.giorno ?? oggi);
+  const giorno = giornoScelto < oggi && giornoScelto !== scelta.giorno ? oggi : giornoScelto;
+  const setVista = (x: Vista) => { scelta.vista = x; setVistaState(x); };
+  const setGiorno = (d: string) => { scelta.giorno = d === oggi ? undefined : d; setGiornoState(d); };
   const selettore = (
     <div style={nav.wide ? { maxWidth: 300 } : undefined}>
-      <Seg<Vista> voci={[{ id: 'elenco', nome: 'Elenco' }, { id: 'calendario', nome: 'Calendario' }]} attivo={vista} onChange={setVista} />
+      <Seg<Vista> voci={[{ id: 'giorno', nome: 'Giorno' }, { id: 'mese', nome: 'Mese' }]} attivo={vista} onChange={setVista} />
+    </div>
+  );
+  const voci = useMemo(() => {
+    const m = new Map<string, Item[]>();
+    for (const i of items) {
+      if (i.eliminato || !TIPI_DATATI.has(i.tipo) || !isOpen(i) || i.stato === 'parcheggiato') continue;
+      const d = dueDate(i);
+      if (d) m.set(d, [...(m.get(d) ?? []), i]);
+    }
+    return m;
+  }, [items]);
+  const segni = useMemo(() => {
+    const m = new Map<string, SegnoGiorno>();
+    const aggiungi = (d: string, n: number, avviso: boolean) => { const c = m.get(d); m.set(d, { n: (c?.n ?? 0) + n, avviso: (c?.avviso ?? false) || avviso }); };
+    for (const [d, l] of voci) aggiungi(d, l.length, l.some((i) => i.rigida || isOverdue(i, oggi)));
+    return m;
+  }, [voci, oggi]);
+  const navGiorno = (
+    <div className="giorno-nav">
+      <button onClick={() => setGiorno(addDays(giorno, -1))} aria-label="Giorno precedente">‹</button>
+      <div className="giorno-nome">
+        <b>{giorno === oggi ? 'Oggi' : formatLong(giorno)}</b>
+        {giorno === oggi ? <span>{formatLong(giorno)}</span> : <button className="giorno-oggi" onClick={() => setGiorno(oggi)}>Torna a oggi</button>}
+      </div>
+      <button onClick={() => setGiorno(addDays(giorno, 1))} aria-label="Giorno successivo">›</button>
     </div>
   );
 
@@ -100,6 +130,45 @@ export function Oggi() {
   const totaleOggi = piano && disp ? minutiDisponibili(disp, oggi, oggi, minutoCorrente * 60000) : 0;
   const fuoriOggi = piano ? v.fare.filter((e) => { const d = dueDate(e.item); return d !== undefined && d <= oggi && !pianoOggi?.blocchi.some((x) => x.item.id === e.item.id); }) : [];
   const prossimiGiorni = piano ? piano.giorni.slice(1, 7).filter((g) => g.blocchi.length > 0) : [];
+
+  const altroGiorno = (() => {
+    const g = piano?.giorni.find((x) => x.data === giorno);
+    const blocchi = g?.blocchi ?? [];
+    const totale = disp ? minutiDisponibili(disp, giorno, oggi, minutoCorrente * 60000) : 0;
+    const inBlocco = new Set(blocchi.map((x) => x.item.id));
+    const resto = (voci.get(giorno) ?? []).filter((i) => !inBlocco.has(i.id)).sort((x, y) => score(y, oggi) - score(x, oggi));
+    const passato = giorno < oggi;
+    return (
+      <>
+        {!passato && g && (
+          <>
+            <Sec a={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`} b={totale ? `${durata(g.usati)} su ${durata(totale)}` : undefined} />
+            {totale > 0 && <div className={clsx('piano-barra', g.usati >= totale && 'pieno')} aria-hidden="true"><i style={{ width: `${Math.min(100, (g.usati / totale) * 100)}%` }} /></div>}
+            {blocchi.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>{totale === 0 ? 'Nessun tempo libero impostato per questo giorno.' : 'Niente di pianificato.'}</div>}
+            {blocchi.map(bloccoRiga)}
+          </>
+        )}
+        {resto.length > 0 && (
+          <>
+            <Sec a={passato ? 'Rimaste aperte' : 'Con scadenza questo giorno'} b={resto.length} />
+            {resto.map((i) => (
+              <Row key={i.id} titolo={i.titolo} tag={i.area} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
+                level={barLevel(score(i, oggi))} check={i.tipo === 'esperienza' ? 'square' : 'circle'}
+                right={i.rigida || passato ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : undefined}
+                onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+            ))}
+          </>
+        )}
+        {(passato || !g || !disp) && resto.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente in programma questo giorno.</div>}
+        {!disp && !passato && (
+          <button className="card tap" style={{ marginTop: 8 }} onClick={() => nav.push({ k: 'tempolibero' })}>
+            <span><b>Imposta il tuo tempo libero</b><span className="t2" style={{ display: 'block' }}>Così MyTask distribuisce le attività nella giornata.</span></span>
+            <span className="muted">›</span>
+          </button>
+        )}
+      </>
+    );
+  })();
 
   const faroggi = (
     <>
@@ -198,16 +267,20 @@ export function Oggi() {
     </div>
   );
 
+  const scegli = (d: string) => { setGiorno(d); setVista('giorno'); };
+  const mese = <div style={{ maxWidth: 520 }}><GrigliaMese key={giorno} giorno={giorno} oggi={oggi} segni={segni} onScegli={scegli} /></div>;
+  const eOggi = giorno === oggi;
+
   if (nav.wide) {
     return (
       <>
         <Top title="Oggi" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} cose da fare`} />
         <div className="scroll wide-dash">
           {selettore}
-          {vista === 'calendario' ? <Calendario /> : <div className="dash">
-            <div>{faroggi}</div>
+          {vista === 'mese' ? mese : <div className="dash">
+            <div>{navGiorno}{eOggi ? faroggi : altroGiorno}</div>
             <div className="dash-side">
-              {routine}
+              {eOggi && routine}
               {revisione}
               {v.inbox > 0 && (
                 <button className="card tap" onClick={() => nav.vai({ k: 'inbox' })}>
@@ -241,12 +314,13 @@ export function Oggi() {
       />
       <div className="scroll">
         {selettore}
-        {vista === 'calendario' ? <Calendario /> : (
+        {vista === 'mese' ? mese : (
           <>
-            {routine}
-            {faroggi}
-            {revisione}
-            {stato}
+            {navGiorno}
+            {eOggi && routine}
+            {eOggi ? faroggi : altroGiorno}
+            {eOggi && revisione}
+            {eOggi && stato}
           </>
         )}
       </div>

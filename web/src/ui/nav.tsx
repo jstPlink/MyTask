@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 import type { Item } from '../../../shared/types.ts';
 
 export type Tab = 'oggi' | 'fare' | 'scoprire' | 'routine';
-export type SubFare = 'azioni' | 'progetti' | 'esperienze' | 'calendario';
+export type SubFare = 'azioni' | 'progetti' | 'esperienze';
 export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'ricetta' | 'curiosita';
 
 export type Screen =

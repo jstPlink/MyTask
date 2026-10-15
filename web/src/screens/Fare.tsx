@@ -7,10 +7,9 @@ import { completaVoce } from '../lib/actions.ts';
 import { Chips, Empty, Fab, Row, Sec, Seg, Top } from '../ui/kit.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
 import { mapsUrl } from '../lib/util.ts';
-import { Calendario } from './Calendario.tsx';
 
 const SUB: { id: SubFare; nome: string }[] = [
-  { id: 'azioni', nome: 'Azioni' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }, { id: 'calendario', nome: 'Calendario' },
+  { id: 'azioni', nome: 'Azioni' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
 ];
 
 export function Fare() {
@@ -30,7 +29,6 @@ export function Fare() {
         {nav.fareSub === 'azioni' && <Azioni />}
         {nav.fareSub === 'progetti' && <Progetti />}
         {nav.fareSub === 'esperienze' && <Esperienze />}
-        {nav.fareSub === 'calendario' && <Calendario />}
       </div>
       <Fab onClick={nuova} label="Nuova voce" />
     </>
