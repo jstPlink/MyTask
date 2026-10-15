@@ -92,6 +92,7 @@ export function Sidebar() {
 
       <div className="sb-spacer" />
       <div className="sb-group">
+        <Link nome="Tempo libero" on={scr('tempolibero')} onClick={() => vai({ k: 'tempolibero' })} />
         <Link nome="Aspetto" on={scr('aspetto')} onClick={() => vai({ k: 'aspetto' })} />
         <Link nome="Notifiche" on={scr('notifiche')} onClick={() => vai({ k: 'notifiche' })} />
         <Link nome="Account" on={scr('account')} onClick={() => vai({ k: 'account' })} />

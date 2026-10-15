@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.11.0
+- **Versione documento:** 0.12.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -84,7 +84,21 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 
 - **Tag area:** nelle righe, l'area di un'azione (Casa, Burocrazia, Digitale, Salute, Lavoro…) è una pillola colorata sulla stessa riga del titolo, a destra; sotto restano durata, stato e scadenza. Le aree più comuni hanno una tinta fissa, le altre una tinta stabile calcolata dal nome. Vale su telefono e web (Oggi, Attività).
 - **Calendario** (Attività > Calendario): mese con un pallino per i giorni con scadenze (arancio se c'è una scadenza rigida o scaduta). Sul telefono, toccando un giorno compare sotto l'elenco di quel giorno; sul web il mese sta a sinistra e l'agenda dei giorni successivi a destra. Mostra azioni, progetti ed esperienze aperti con una data.
+- **Calendario in Oggi:** in cima a Oggi un selettore Elenco | Calendario (la scelta si ricorda sul dispositivo) mostra lo stesso calendario.
+- **Stato di sincronizzazione:** in Oggi (telefono) compare solo se si è offline o ci sono modifiche in attesa; nella barra laterale del sito resta sempre visibile.
 - **Indietro:** la cronologia ricorda anche le schede e le sotto-sezioni visitate; il tasto indietro del telefono o del browser le ripercorre.
+
+### 2.3.2 Piano della giornata (implementato)
+
+L'app distribuisce da sola le attività nei giorni, in base alle priorità, al tempo libero e alla durata (`shared/piano.ts`, con test).
+
+- **Tempo libero:** in Altro > Tempo libero si impostano, per ogni giorno della settimana, una o più fasce orarie (es. lun-ven 18:00-21:00). Si salva sul dispositivo. Finché non è impostato, Oggi mostra la lista semplice con un invito a impostarlo.
+- **Algoritmo:** si prendono le azioni aperte e i prossimi passi dei progetti (stessi candidati di Oggi), ordinati per punteggio di priorità. Ognuna va nella prima fascia libera con spazio sufficiente, partendo da oggi (e per oggi dall'ora attuale), entro 14 giorni. Durata = sforzo stimato, 30 minuti se non è stimato.
+- **Rimandare:** se non c'è spazio, le meno prioritarie passano ai giorni successivi. In Oggi compaiono in "Non entrano oggi" quelle che scadono oggi o sono scadute, con il giorno e l'ora a cui sono state spostate. Se finiscono dopo la scadenza il blocco è segnato "oltre la scadenza".
+- **Spezzare:** le attività oltre i 60 minuti si dividono in blocchi (minimo 30 minuti) su più fasce e giorni ("parte 1 di 2"); quelle più brevi non si spezzano.
+- **Impegni con orario:** le voci con data e ora di inizio restano dove sono e tolgono tempo libero.
+- **Oggi:** "Piano di oggi" è una giornata scandita da blocchi con ora di inizio e durata, con una barra del tempo usato sul tempo libero; sotto, un riepilogo dei prossimi giorni. Il piano si ricalcola a ogni modifica e ogni minuto, quindi segue l'ora che passa.
+- **Non ancora:** eccezioni per un singolo giorno (il modello le prevede), tempo libero sincronizzato tra dispositivi, piano nel calendario.
 
 ### 2.4 Telefono: icone e pulsanti circolari (implementato)
 
@@ -344,3 +358,5 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.10.2 | La categoria "Fare" si chiama "Attività". Corretto il selettore del tema (Aspetto), nascosto per errore sugli schermi larghi. Barra laterale più grande (288 px, testo e icone più grandi), sotto-sezioni rientrate con linea guida e gruppi "Da sistemare", "Altro" e impostazioni separati (mockup locale `04-barra-laterale.html`). Pagina di accesso con lo stesso logo e stile dell'app, senza cornice da telefono sugli schermi larghi |
 | 2026-10-15 | 0.10.3 | Navigazione con cronologia: "indietro" (tasto del telefono o del browser) chiude la schermata aperta e poi torna alla scheda e sotto-sezione visitate prima. Tasto "Indietro" più grande da toccare. Nel dettaglio di una voce il punteggio di priorità sta sopra il campo Titolo. App Android: le icone della barra di stato seguono il tema dell'app (plugin `@capacitor/status-bar`). Mockup locali di tag area e vista calendario (`05-tag-e-calendario.html`), da approvare |
 | 2026-10-15 | 0.11.0 | Tag area colorati sulla riga del titolo (sezione 2.3.1). Vista Calendario in Attività, con elenco del giorno (telefono) e agenda (web). Corretto lo stack di navigazione, che in sviluppo registrava due volte l'apertura di una voce |
+| 2026-10-15 | 0.11.1 | Selettore Elenco / Calendario nella scheda Oggi. Il testo "Sincronizzato" in fondo a Oggi (telefono) compare solo quando serve: offline o modifiche in attesa |
+| 2026-10-15 | 0.12.0 | Piano della giornata: le attività sono distribuite nei giorni in base a priorità, tempo libero e durata, con spezzatura dei task lunghi e rinvio dei meno prioritari (sezione 2.3.2). Nuova schermata Altro > Tempo libero. Per provare il sito in locale col server vero: `MYTASK_SERVER` in `web/vite.config.ts` |

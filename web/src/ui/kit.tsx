@@ -29,6 +29,8 @@ export interface RowProps {
   right?: ReactNode;
   /** Area (Casa, Burocrazia…): pillola colorata sulla riga del titolo. */
   tag?: string;
+  /** Colonna a sinistra del titolo, per l'orario nel piano della giornata. */
+  ora?: ReactNode;
   level?: 1 | 2 | 3;
   check?: 'circle' | 'square' | 'none';
   done?: boolean;
@@ -49,7 +51,7 @@ export const classeArea = (nome: string) => {
   return `a${(h % 5) + 1}`;
 };
 
-export function Row({ titolo, meta, right, tag, level, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, tag, ora, level, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
       {check !== 'none' && (
@@ -62,6 +64,7 @@ export function Row({ titolo, meta, right, tag, level, check = 'circle', done, l
           style={onCheck ? { cursor: 'pointer' } : undefined}
         />
       )}
+      {ora && <div className="piano-ora">{ora}</div>}
       <div className="grow">
         <div className="line">
           <div className={clsx('t1', light && 'light', struck && 'struck')}>{titolo}</div>

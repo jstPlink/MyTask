@@ -35,7 +35,8 @@ export default defineConfig({
   server: {
     port: 5173,
     fs: { allow: ['..'] },
-    proxy: { '/api': 'http://localhost:8787' },
+    // MYTASK_SERVER: indirizzo del server vero (es. https://mytask.tuodominio.it) per provare il sito in locale con i propri dati
+    proxy: { '/api': { target: process.env.MYTASK_SERVER || 'http://localhost:8787', changeOrigin: true, secure: true } },
   },
   build: { outDir: 'dist', emptyOutDir: true },
 });

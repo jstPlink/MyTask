@@ -16,6 +16,7 @@ import { Ricerca } from './screens/Ricerca.tsx';
 import { ItemDetail } from './screens/ItemDetail.tsx';
 import { Capture } from './screens/Capture.tsx';
 import { Login } from './screens/Login.tsx';
+import { TempoLibero } from './screens/TempoLibero.tsx';
 import { Account, Altro, Archivio, Aspetto, Inbox, Luoghi, Notifiche, PersonaDetail, Persone, Revisione, Stasera } from './screens/Secondarie.tsx';
 
 interface Posizione { tab: Tab; fareSub: SubFare; scoprireSub: SubScoprire }
@@ -31,6 +32,7 @@ function Schermata({ s }: { s: Screen }) {
     case 'persona': return <PersonaDetail id={s.id} />;
     case 'luoghi': return <Luoghi />;
     case 'aspetto': return <Aspetto />;
+    case 'tempolibero': return <TempoLibero />;
     case 'notifiche': return <Notifiche />;
     case 'stasera': return <Stasera />;
     case 'account': return <Account />;

@@ -64,7 +64,7 @@ export function revisione(items: Item[], today: string, now: number = Date.now()
   return out.sort((a, b) => (dueDate(a.item) ?? '9999').localeCompare(dueDate(b.item) ?? '9999'));
 }
 
-function candidateEntries(items: Item[], today: string, now: number): Entry[] {
+export function candidatiOggi(items: Item[], today: string, now: number): Entry[] {
   const tutte = live(items);
   const inRevisione = new Set(revisione(tutte, today, now).map((v) => v.item.id));
   const out: Entry[] = [];
@@ -98,7 +98,7 @@ export interface VistaOggi {
 const MAX_OGGI = 5;
 
 export function vistaOggi(items: Item[], today: string, now: number = Date.now()): VistaOggi {
-  const cand = candidateEntries(items, today, now);
+  const cand = candidatiOggi(items, today, now);
   const due = (e: Entry) => dueDate(e.item);
   const perPunteggio = (a: Entry, b: Entry) => b.punteggio - a.punteggio;
 

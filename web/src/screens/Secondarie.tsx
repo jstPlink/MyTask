@@ -43,6 +43,7 @@ export function Altro() {
         {voce('Persone', undefined, { k: 'persone' })}
         {voce('Luoghi', undefined, { k: 'luoghi' })}
         <Sec a="App" />
+        {voce('Tempo libero', undefined, { k: 'tempolibero' })}
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
         {voce('Notifiche', permessoNotifiche() === 'granted' ? 'attive' : undefined, { k: 'notifiche' })}
         <div className="field"><span>Calendario</span><span className="muted">non collegato</span></div>
