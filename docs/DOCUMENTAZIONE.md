@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.14.0
+- **Versione documento:** 0.15.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -121,6 +121,11 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Gruppo Intrattenimento:** per film, serie, anime, giochi e libri un solo gruppo unisce interesse, piattaforma, consigliato da, con chi, durata e genere (per le ricette il gruppo si chiama Ricetta).
 - **Voto e commento:** segnando come fatto un film, un libro, un gioco o simili (dal segno di spunta o dal pulsante) si apre "Com'è andata?" con il voto da 1 a 10 e un commento facoltativo; confermando la voce risulta fatta quel giorno. Non esiste più la sezione "Dopo averlo fatto". Voto e commento si vedono nel gruppo "Completata".
 - **Link e documenti:** per ora tolti dalla scheda (il campo resta nei dati).
+- **Pannello unico per Attività e Progetto:** un solo gruppo con, in ordine, Data, Importanza e Tempo stimato (da 5 minuti a 1 giorno: 5, 15, 30 min, 1, 2, 4, 6, 8, 12 ore, 1 giorno). Se c'è una data compaiono sotto Ora, Scadenza rigida e Promemoria. Tolti Area, Ricorrenza, Progetto padre e la sezione dei sotto-task (le voci già esistenti con quei dati continuano a funzionare).
+- **Pannello Esperienza:** Data, Interesse e il pulsante "Apri in Google Maps", che cerca il nome dell'esperienza. Tolti Zona e il link a Google Maps.
+- **Ricetta:** solo Interesse e Genere, a scelta multipla tra Antipasto, Primo, Secondo, Contorno, Dolce, Piatto unico, Zuppa, Pane e lievitati, Bevanda (salvata come elenco separato da virgole in `genere`). Tolti Consigliato da e Con chi.
+- **Persone e checklist:** non si modificano più. All'avvio e a ogni sincronizzazione le voci che li hanno li vedono spostati nelle note (`web/src/lib/migrazioni.ts`), e i campi vengono svuotati.
+- **Rotazione:** l'app Android resta sempre in verticale (`screenOrientation` nel manifest).
 
 ### 2.5 Feedback aptico e animazioni (implementato)
 
@@ -387,3 +392,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.12.2 | Targhette delle aree tutte della stessa larghezza (96 px). Inbox: ogni voce è una scheda con bordo e si smista aprendola; tolte le etichette di smistamento rapido. Scheda di una voce: Tipo e Stato sono tendine con icona e colore per ogni voce; i campi sono raggruppati in schede (Voce, Quando, Priorità, Interesse, Persone e link, Checklist, Note). Verificata la cronologia del tasto indietro: voce, scheda, Oggi, uscita dall'app |
 | 2026-10-15 | 0.13.0 | Feedback aptico leggero sui tocchi ai pulsanti e animazioni (sezione 2.5). Comprende le modifiche della 0.12.2 (Inbox a schede, tendine con icone, gruppi nella scheda di una voce, targhette di larghezza uguale) |
 | 2026-10-15 | 0.14.0 | "Scoprire" diventa "Intrattenimento"; il tipo "Azione" diventa "Attività" ovunque. Tipi accorpati sotto Intrattenimento con seconda scelta; stato non più scelto, con "Metti da parte" e la sezione Altro > Da parte; gruppo Intrattenimento unico; finestra del voto e del commento al segno di fatto; tolti "Link e documenti". Più spazio tra titolo, selettore, filtri ed elenco nelle schede (sezione 2.4.1) |
+| 2026-10-15 | 0.15.0 | Pannelli unici per Attività, Progetto (data, importanza, tempo stimato fino a 1 giorno) ed Esperienza (data, interesse, apri in Google Maps); tolti area, ricorrenza, zona, link Maps e sotto-task dalla scheda; ricetta con genere a scelta multipla; persone e checklist spostate nelle note; schermo bloccato in verticale; mockup del peso dell'importanza (locale, `06-peso-importanza.html`) |
