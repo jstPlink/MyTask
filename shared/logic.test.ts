@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
 import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.ts';
-import { score, daysOverdue, barLevel } from './priority.ts';
+import { score, daysOverdue, barLevel, battitoBpm } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
 import { vistaOggi, revisione, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
@@ -223,4 +223,12 @@ test('cattura: trova le note con le stesse parole anche in forme diverse', () =>
   assert.ok(trovate.includes(a.id) && trovate.includes(b.id));
   assert.ok(!trovate.includes(c.id));
   assert.deepEqual(cercaSimili([a, b, c], ''), []);
+});
+
+test('battito del pallino: fermo senza scadenza, da 10 a 80 bpm secondo l urgenza', () => {
+  assert.equal(battitoBpm(0), 0);
+  assert.equal(battitoBpm(15), 10);
+  assert.equal(battitoBpm(100), 80);
+  assert.ok(battitoBpm(60) > battitoBpm(35) && battitoBpm(35) > battitoBpm(15));
+  assert.equal(battitoBpm(130), 80);
 });

@@ -40,6 +40,13 @@ export function urgency(i: Item, today: string): number {
   return u;
 }
 
+/** Battiti al minuto del pallino di priorità: 0 (fermo) senza scadenza, da 10 (urgenza 15) a 80 (urgenza 100). */
+export function battitoBpm(urgenza: number): number {
+  if (urgenza <= 0) return 0;
+  const x = (Math.min(100, Math.max(15, urgenza)) - 15) / 85;
+  return Math.round(10 + x * 70);
+}
+
 export interface ComponentiPunteggio { urgenza: number; importanza: number; sforzo: number; eta: number }
 
 /** Le quattro componenti del punteggio, ognuna da 0 a 100 prima di applicare il suo peso. */

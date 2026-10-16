@@ -333,6 +333,7 @@ a { color: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; }
+  .row .rank { animation: none !important; }
 }
 
 /* ---------- Spazi nelle schede con selettore, filtri ed elenco ---------- */

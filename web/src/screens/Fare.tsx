@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
-import { barLevel, dueDate, isOverdue, score, withInheritance } from '../../../shared/priority.ts';
+import { barLevel, dueDate, isOverdue, score, urgency, withInheritance } from '../../../shared/priority.ts';
 import { figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto, revisione } from '../../../shared/views.ts';
 import { margineAtteso, percentuale } from '../../../shared/stima.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
@@ -55,6 +55,7 @@ function Azioni() {
         right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
         level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
         rank={lista.findIndex((x) => x.item.id === item.id) + 1}
+        urgenza={urgency(item, oggi)}
         light={item.stato === 'parcheggiato'}
         onCheck={() => completaVoce(item)}
         selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}

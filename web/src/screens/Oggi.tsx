@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { fasceLibere, minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
-import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score } from '../../../shared/priority.ts';
+import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score, urgency } from '../../../shared/priority.ts';
 import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
@@ -231,6 +231,7 @@ export function Oggi() {
       right={bl.inRitardo ? <span className="piano-avviso">oltre la scadenza</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
       level={barLevel(score(bl.item, oggi))}
       rank={bl.fisso ? undefined : classifica.get(bl.item.id)}
+      urgenza={urgency(bl.item, oggi)}
       onCheck={() => completaVoce(bl.item)}
       selected={nav.openId === bl.item.id}
       onOpen={() => nav.push({ k: 'item', id: bl.item.id })}
@@ -326,6 +327,7 @@ export function Oggi() {
           {raggruppate(v.fare, (e) => (
             <Row
               rank={v.fare.indexOf(e) + 1}
+              urgenza={urgency(e.item, oggi)}
               key={e.item.id}
               titolo={e.item.titolo}
               meta={meta(e)}

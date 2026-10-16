@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { clsx } from '../lib/util.ts';
 import { useNav, type Tab } from './nav.tsx';
 import type { Item } from '../../../shared/types.ts';
+import { battito } from '../lib/battito.ts';
 
 export function Top({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
   return (
@@ -35,6 +36,8 @@ export interface RowProps {
   centrato?: boolean;
   /** Posizione in classifica (1 = la prima da fare): numero colorato a destra, nel colore del livello. */
   rank?: number;
+  /** Urgenza 0-100: il numero d'ordine batte a ritmo crescente con l'urgenza (fermo se 0 o assente). */
+  urgenza?: number;
   check?: 'circle' | 'square' | 'none';
   done?: boolean;
   light?: boolean;
@@ -44,7 +47,7 @@ export interface RowProps {
   onOpen?: () => void;
 }
 
-export function Row({ titolo, meta, right, ora, level, rank, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, ora, level, rank, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
       {check !== 'none' && (
@@ -65,7 +68,7 @@ export function Row({ titolo, meta, right, ora, level, rank, check = 'circle', d
         {meta && <div className="t2">{meta}</div>}
       </div>
       {right && <div className="right">{right}</div>}
-      {rank !== undefined && <span className="rank" aria-label={`Posizione ${rank}`}>{rank}</span>}
+      {rank !== undefined && <span className="rank" style={urgenza ? battito(urgenza) : undefined} aria-label={`Posizione ${rank}`}>{rank}</span>}
     </>
   );
   const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel');
