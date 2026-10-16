@@ -429,3 +429,30 @@ a { color: var(--accent); }
 .piano-seg i.p2 { background: var(--amber); }
 .piano-seg i.p1 { background: var(--soft); }
 .piano-seg i.pausa { background: var(--accent); opacity: .5; }
+
+/* linea del piano: 24 ore + zoom sulle prossime 3 ore */
+.linea-piano { margin: 8px 0 6px; }
+.lp-24, .lp-zoom { position: relative; background: var(--surface2); overflow: hidden; }
+.lp-24 { height: 22px; border-radius: 8px; }
+.lp-zoom { height: 66px; border-radius: 10px; margin-top: 8px; }
+.linea-piano i { position: absolute; top: 0; bottom: 0; display: block; }
+.lp-libero { background: color-mix(in srgb, var(--accent) 13%, transparent); }
+.lp-24 .lp-blocco { top: 4px; bottom: 4px; border-radius: 4px; background: var(--soft); }
+.lp-24 .lp-blocco.p3 { background: var(--warn); }
+.lp-24 .lp-blocco.p2 { background: var(--amber); }
+.lp-24 .lp-blocco.pausa { background: var(--accent); opacity: .55; }
+.lp-24 .lp-blocco.fisso { top: 3px; bottom: 3px; background: var(--surface); border: 2px solid var(--mid); }
+.lp-finestra { border: 2px solid var(--accent); border-radius: 6px; background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.lp-ora { width: 2px; background: var(--ink); z-index: 2; }
+.lp-ticks { position: relative; height: 16px; font-size: 10px; color: var(--mid); }
+.lp-ticks span { position: absolute; top: 2px; transform: translateX(-50%); }
+.lp-ticks span[style*="right"] { transform: none; }
+.lp-t2 span:first-child { transform: none; }
+.lp-b { position: absolute; top: 9px; bottom: 9px; border-radius: 8px; background: var(--soft); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 7px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.lp-b.p3 { background: var(--warn); }
+.lp-b.p2 { background: var(--amber); }
+.lp-b.pausa { background: var(--accent); opacity: .6; }
+.lp-b.fisso { background: var(--surface); color: var(--ink); border: 2px solid var(--mid); }
+.lp-m { position: absolute; top: 9px; bottom: 9px; border-radius: 0 8px 8px 0; opacity: .45; background: repeating-linear-gradient(45deg, var(--soft) 0 3px, transparent 3px 6px); }
+.lp-m.p3 { background: repeating-linear-gradient(45deg, var(--warn) 0 3px, transparent 3px 6px); }
+.lp-m.p2 { background: repeating-linear-gradient(45deg, var(--amber) 0 3px, transparent 3px 6px); }

@@ -161,7 +161,7 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 - **Attività (0.25.0):** l'intestazione elenca i conteggi reali ("N attività · N progetti · N esperienze", più quelle da rivedere) e la scheda Attività mostra tutto: i task (raggruppati per progetto) e, sotto, le esperienze (comprese quelle in Revisione).
 - **Blocco di priorità nella scheda:** tondo col punteggio colorato dal livello (alta/media/bassa), titolo \"Priorità …\", barra del punteggio e riga con scadenza, importanza e tempo con margine.
-- **Barra del piano per attività:** la barra del tempo libero in Oggi è divisa in un segmento per blocco, colorato dalla priorità (le pause sono più chiare); ogni riga del piano mostra il margine d'errore (es. "margine ±9 min"). Mockup locale della barra a 24 ore con linea dell'ora attuale: `docs/mockups/10-piano-24h.html` (variante B, da approvare).
+- **Barra del piano per attività:** la barra del tempo libero in Oggi è divisa in un segmento per blocco, colorato dalla priorità (le pause sono più chiare); ogni riga del piano mostra il margine d'errore (es. "margine ±9 min"). Dalla 0.28.0 il piano usa la **linea E3**: in alto la barra delle 24 ore (tempo libero, attività colorate dalla priorità, impegni fissi con bordo, ora attuale e riquadro della finestra ingrandita), sotto l'ingrandimento sulle prossime 3 ore da adesso con numero d'ordine, nome e margine d'errore (righe diagonali) di ogni attività. Per un altro giorno la finestra parte dalla prima attività o fascia libera. Mockup locali: `docs/mockups/10-piano-24h.html` e `11-piano-d-e.html`.
 
 ### 2.5 Feedback aptico e animazioni (implementato)
 
@@ -445,3 +445,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.25.0 | Attività con tutti i conteggi e le esperienze; nuovo blocco di priorità nella scheda; barra del piano divisa per attività con margine per blocco; mockup barra a 24 ore |
 | 2026-10-16 | 0.26.0 | Vista web: barra laterale con voci tutte della stessa dimensione, cattura e ricerca della stessa larghezza, tolti Aspetto e Nuova voce dalla barra in alto; mockup barra a 24 ore con 5 varianti |
 | 2026-10-16 | 0.27.0 | Revisione senza contatore se vuota; sincronizzazione visibile solo offline nella barra web; tolta la schermata Notifiche; mockup D (ore con altezza minima, scorrevole) ed E (4 varianti) |
+| 2026-10-16 | 0.28.0 | Piano di Oggi con la linea E3 (24 ore + zoom sulle prossime 3 ore, margine per attività); mockup del blocco di priorità (locale, `12-blocco-priorita.html`) |

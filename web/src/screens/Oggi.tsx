@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
-import { minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
+import { fasceLibere, minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
 import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score } from '../../../shared/priority.ts';
 import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
@@ -19,18 +19,57 @@ const scelta: { giorno: string | undefined } = { giorno: undefined };
 const TIPI_DATATI = new Set(['azione', 'progetto', 'esperienza']);
 const durata = (min: number) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`);
 
-/** Barra del tempo libero divisa per attività: ogni segmento è un blocco, colorato dalla priorità. */
-function BarraPiano({ blocchi, totale, oggi }: { blocchi: Blocco[]; totale: number; oggi: string }) {
-  const lavoro = blocchi.filter((b) => !b.fisso);
-  const usati = lavoro.reduce((n, b) => n + (b.a - b.da), 0);
-  const base = Math.max(totale, usati);
-  if (base <= 0) return null;
+const ORE_ZOOM = 3;
+const pct = (m: number) => (m / 1440) * 100;
+
+/**
+ * Linea del piano: in alto le 24 ore (tempo libero, attività, ora attuale e la finestra ingrandita),
+ * sotto l'ingrandimento sulle prossime 3 ore con i nomi e il margine d'errore di ogni attività.
+ * Per un altro giorno la finestra parte dalla prima attività o dalla prima fascia libera.
+ */
+function LineaPiano({ blocchi, fasce, ora, rank, margine, oggi }: { blocchi: Blocco[]; fasce: [number, number][]; ora?: number; rank: Map<string, number>; margine: number; oggi: string }) {
+  const lavoro = blocchi;
+  if (!fasce.length && !lavoro.length) return null;
+  const inizio = ora ?? Math.min(...[...lavoro.map((b) => b.da), ...fasce.map(([a]) => a), 8 * 60]);
+  const da = Math.max(0, Math.min(1440 - ORE_ZOOM * 60, Math.floor(inizio / 5) * 5));
+  const a = da + ORE_ZOOM * 60;
+  const q = (m: number) => ((m - da) / (a - da)) * 100;
+  const livello = (b: Blocco) => (b.pausa ? 'pausa' : `p${barLevel(score(b.item, oggi))}`);
+  const visibili = lavoro.filter((b) => b.a > da && b.da < a);
   return (
-    <div className={clsx('piano-seg', usati >= totale && 'pieno')} role="img" aria-label={`${durata(usati)} pianificati su ${durata(totale)}`}>
-      {lavoro.map((b) => (
-        <i key={`${b.item.id}-${b.da}`} className={clsx(b.pausa ? 'pausa' : `p${barLevel(score(b.item, oggi))}`)}
-          style={{ width: `${((b.a - b.da) / base) * 100}%` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}`} />
-      ))}
+    <div className="linea-piano">
+      <div className="lp-24" role="img" aria-label="Le 24 ore del giorno">
+        {fasce.map(([f, g], k) => <i key={`f${k}`} className="lp-libero" style={{ left: `${pct(f)}%`, width: `${pct(g - f)}%` }} />)}
+        {lavoro.map((b) => <i key={`${b.item.id}-${b.da}`} className={clsx('lp-blocco', b.fisso ? 'fisso' : livello(b))} style={{ left: `${pct(b.da)}%`, width: `${pct(b.a - b.da)}%` }} />)}
+        <i className="lp-finestra" style={{ left: `${pct(da)}%`, width: `${pct(a - da)}%` }} />
+        {ora !== undefined && <i className="lp-ora" style={{ left: `${pct(ora)}%` }} />}
+      </div>
+      <div className="lp-ticks" aria-hidden="true">{[0, 6, 12, 18].map((h) => <span key={h} style={{ left: `${(h / 24) * 100}%` }}>{h}</span>)}<span style={{ right: 0 }}>24</span></div>
+      <div className="lp-zoom">
+        {fasce.map(([f, g], k) => {
+          const l = Math.max(da, f);
+          const r = Math.min(a, g);
+          return r > l ? <i key={`z${k}`} className="lp-libero" style={{ left: `${q(l)}%`, width: `${q(r) - q(l)}%` }} /> : null;
+        })}
+        {visibili.map((b) => {
+          const l = Math.max(da, b.da);
+          const r = Math.min(a, b.a);
+          const mg = b.fisso || b.pausa ? 0 : Math.max(1, Math.round((b.a - b.da) * margine));
+          const mr = Math.min(a, b.a + mg);
+          return (
+            <span key={`${b.item.id}-${b.da}`}>
+              <span className={clsx('lp-b', b.fisso ? 'fisso' : livello(b))} style={{ left: `${q(l)}%`, width: `${q(r) - q(l)}%` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}`}>
+                {rank.get(b.item.id) ? `${rank.get(b.item.id)} · ` : ''}{b.item.titolo}
+              </span>
+              {mr > r && <span className={clsx('lp-m', livello(b))} style={{ left: `${q(r)}%`, width: `${q(mr) - q(r)}%` }} />}
+            </span>
+          );
+        })}
+        {ora !== undefined && ora >= da && ora <= a && <i className="lp-ora" style={{ left: `${q(ora)}%` }} />}
+      </div>
+      <div className="lp-ticks lp-t2" aria-hidden="true">
+        {[0, 1, 2, 3].map((k) => <span key={k} style={k === 0 ? { left: 0 } : k === 3 ? { right: 0 } : { left: `${(k / 3) * 100}%` }}>{k === 0 && ora !== undefined ? 'adesso' : orario(da + k * 60)}</span>)}
+      </div>
     </div>
   );
 }
@@ -186,7 +225,7 @@ export function Oggi() {
       <>
         {!passato && g && (
           <Gruppo titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`} dettaglio={totale ? `${durata(g.usati)} su ${durata(totale)}` : undefined}>
-            <BarraPiano blocchi={blocchi} totale={totale} oggi={oggi} />
+            {disp && <LineaPiano blocchi={blocchi} fasce={fasceLibere(disp, giorno)} rank={classifica} margine={margine} oggi={oggi} />}
             {blocchi.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>{totale === 0 ? 'Nessun tempo libero impostato per questo giorno.' : 'Niente di pianificato.'}</div>}
             {raggruppate(blocchi, bloccoRiga)}
           </Gruppo>
@@ -217,7 +256,7 @@ export function Oggi() {
       {piano && pianoOggi ? (
         <>
           <Gruppo titolo="Piano di oggi" dettaglio={totaleOggi ? `${durata(pianoOggi.usati)} su ${durata(totaleOggi)}` : undefined}>
-            <BarraPiano blocchi={pianoOggi.blocchi} totale={totaleOggi} oggi={oggi} />
+            {disp && <LineaPiano blocchi={pianoOggi.blocchi} fasce={fasceLibere(disp, oggi)} ora={new Date(minutoCorrente * 60000).getHours() * 60 + new Date(minutoCorrente * 60000).getMinutes()} rank={classifica} margine={margine} oggi={oggi} />}
             {pianoOggi.blocchi.length === 0 && (
               <div className="t2" style={{ padding: '14px 0' }}>
                 {totaleOggi === 0 && !pianoOggi.blocchi.length ? 'Oggi non hai tempo libero impostato (o la giornata è finita).' : 'Niente da pianificare per oggi.'}

@@ -231,3 +231,9 @@ export function minutiDisponibili(disp: Disponibilita, data: string, oggi: strin
     return n + Math.max(0, minuti(f.a) - s);
   }, 0);
 }
+
+/** Fasce di tempo libero di un giorno, in minuti dalla mezzanotte (senza togliere l'ora già passata). */
+export function fasceLibere(disp: Disponibilita, data: string): [number, number][] {
+  const fasce = disp.eccezioni?.[data] ?? disp.settimana[giornoSettimana(data)] ?? [];
+  return fasce.map((f): [number, number] => [minuti(f.da), minuti(f.a)]).filter(([a, b]) => b > a);
+}
