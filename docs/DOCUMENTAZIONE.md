@@ -265,7 +265,7 @@ Le abitudini non sono task: non scadono e non finiscono.
 
 ### 4.5 Cattura rapida (cambiata nella 0.38.0)
 
-Una riga di testo (o dettatura) crea una **bozza in Inbox**: **il testo non viene interpretato** (nessun tipo, data o persona dedotti, nessuna IA). Mentre si scrive compaiono **tutte le note che contengono le stesse parole**, anche in forme diverse (stessa radice, per esempio "pagare" e "pagamento"), con tipo e stato, così si capisce subito se la nota esiste già; toccandone una si apre. "Salva in Inbox" (o Invio) salva il testo così com'è; il tipo si sceglie poi aprendo la bozza dall'Inbox (`cercaSimili` in `shared/views.ts`, con test). Offline funziona allo stesso modo; le voci si sincronizzano al ritorno della rete.
+Una riga di testo (o dettatura) crea una **bozza in Inbox**: **il testo non viene interpretato** (nessun tipo, data o persona dedotti, nessuna IA). Mentre si scrive compaiono **tutte le note che contengono le stesse parole**, anche in forme diverse (stessa radice, per esempio "pagare" e "pagamento"), con tipo e stato, così si capisce subito se la nota esiste già; toccandone una si apre. Sul telefono l'elenco sta **sopra** il box di scrittura (che resta in basso, così i campi non si spostano); sul web sta sotto. "Salva in Inbox" (o Invio) salva il testo così com'è; il tipo si sceglie poi aprendo la bozza dall'Inbox (`cercaSimili` in `shared/views.ts`, con test). Offline funziona allo stesso modo; le voci si sincronizzano al ritorno della rete.
 
 ### 4.6 Sincronizzazione e offline
 
@@ -466,3 +466,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.36.0 | Vista web: Revisione sotto la barra del giorno e sopra la routine, più spazio nella barra laterale; mockup dei numeri sotto la barra della fascia |
 | 2026-10-16 | 0.37.0 | Piano di Oggi: numeri d'ordine come pallini sotto la barra della fascia (stile B1, senza linee guida) |
 | 2026-10-16 | 0.38.0 | Cattura rapida senza interpretazione, con elenco delle note che contengono le stesse parole; attività importate da Notion e mai toccate in Revisione; divisori nella barra laterale web e spazi uniformi in Oggi; pulsante + più grande sul telefono |
+| 2026-10-16 | 0.39.0 | Cattura sul telefono: le note con le stesse parole compaiono sopra il box di scrittura |

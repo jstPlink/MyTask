@@ -56,21 +56,8 @@ export function Capture() {
     r.start();
   };
 
-  return (
-    <>
-      <div className="dim" onClick={chiudi} />
-      <div className="sheet capture-sheet" role="dialog" aria-label="Cattura rapida">
-        <div className="grip" />
-        <form onSubmit={(e) => { e.preventDefault(); salva(); }}>
-          <div className="input">
-            <input autoFocus value={testo} onChange={(e) => setTesto(e.target.value)} placeholder="Cosa ti è venuto in mente?" aria-label="Appunto" />
-            {Voce && <button type="button" className={clsx('mic', ascolta && 'on')} aria-label={ascolta ? 'Smetti di ascoltare' : 'Detta'} onClick={parla}>●</button>}
-          </div>
-          <div className="btns">
-            <button type="submit" className="btn solid" disabled={!testo.trim()}>Salva in Inbox</button>
-          </div>
-        </form>
-        {testo.trim() && (
+  const elenco = (
+      testo.trim() ? (
           <div className="capture-simili">
             <div className="t2" style={{ margin: '12px 0 2px' }}>
               {simili.length === 0 ? 'Nessuna nota con queste parole: è nuova.' : `${simili.length} ${simili.length === 1 ? 'nota contiene' : 'note contengono'} queste parole`}
@@ -86,7 +73,25 @@ export function Capture() {
               />
             ))}
           </div>
-        )}
+      ) : null
+  );
+
+  return (
+    <>
+      <div className="dim" onClick={chiudi} />
+      <div className="sheet capture-sheet" role="dialog" aria-label="Cattura rapida">
+        <div className="grip" />
+        {!nav.wide && elenco}
+        <form onSubmit={(e) => { e.preventDefault(); salva(); }}>
+          <div className="input">
+            <input autoFocus value={testo} onChange={(e) => setTesto(e.target.value)} placeholder="Cosa ti è venuto in mente?" aria-label="Appunto" />
+            {Voce && <button type="button" className={clsx('mic', ascolta && 'on')} aria-label={ascolta ? 'Smetti di ascoltare' : 'Detta'} onClick={parla}>●</button>}
+          </div>
+          <div className="btns">
+            <button type="submit" className="btn solid" disabled={!testo.trim()}>Salva in Inbox</button>
+          </div>
+        </form>
+        {nav.wide && elenco}
         {!testo.trim() && <div className="t2" style={{ textAlign: 'center', margin: '16px 0 6px' }}>Scrivi o detta: la nota si salva com'è, in Inbox. Qui sotto vedi se esiste già.</div>}
       </div>
     </>
