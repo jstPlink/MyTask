@@ -40,13 +40,21 @@ export function urgency(i: Item, today: string): number {
   return u;
 }
 
-/** Punteggio 0-100 di un'azione o di un progetto (formula in DOCUMENTAZIONE.md, sezione 4.1). */
-export function score(i: Item, today: string, now: number = Date.now()): number {
-  const imp = ((i.importanza ?? 3) - 1) / 4 * 100;
+export interface ComponentiPunteggio { urgenza: number; importanza: number; sforzo: number; eta: number }
+
+/** Le quattro componenti del punteggio, ognuna da 0 a 100 prima di applicare il suo peso. */
+export function componentiPunteggio(i: Item, today: string, now: number = Date.now()): ComponentiPunteggio {
+  const importanza = ((i.importanza ?? 3) - 1) / 4 * 100;
   const sforzo = i.sforzoMin === undefined ? 30 : i.sforzoMin <= 15 ? 100 : i.sforzoMin <= 30 ? 60 : i.sforzoMin <= 60 ? 30 : 0;
   const settimane = Math.max(0, (now - i.creato) / (7 * 86400000));
   const eta = Math.min(10, settimane) / 10 * 100;
-  const s = 0.45 * urgency(i, today) + 0.35 * imp + 0.10 * sforzo + 0.10 * eta;
+  return { urgenza: urgency(i, today), importanza, sforzo, eta };
+}
+
+/** Punteggio 0-100 di un'azione o di un progetto (formula in DOCUMENTAZIONE.md, sezione 4.1). */
+export function score(i: Item, today: string, now: number = Date.now()): number {
+  const c = componentiPunteggio(i, today, now);
+  const s = 0.45 * c.urgenza + 0.35 * c.importanza + 0.10 * c.sforzo + 0.10 * c.eta;
   return Math.round(Math.min(100, Math.max(0, s)));
 }
 

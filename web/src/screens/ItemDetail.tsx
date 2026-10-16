@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
-import { barLevel, dueDate, score } from '../../../shared/priority.ts';
-import { avanzamento, figli, nomiPersone } from '../../../shared/views.ts';
+import { barLevel, componentiPunteggio, dueDate, score } from '../../../shared/priority.ts';
+import { avanzamento, figli, listaAzioni, nomiPersone } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
 import { assicuraPersone, completaVoce, nuovaVoce, riapriVoce } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
@@ -100,6 +100,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const generi = (d.genere ?? '').split(',').map((x) => x.trim()).filter(Boolean);
   const puntegg = IS_AZIONE(t) ? score(withTemp(d), oggi) : undefined;
   const due = dueDate(d);
+  const componenti = componentiPunteggio(withTemp(d), oggi);
+  // posizione in classifica tra le attività aperte (1 = la più prioritaria)
+  const posizione = useMemo(() => {
+    if (puntegg === undefined) return { pos: 1, tot: 1 };
+    const altre = listaAzioni(tutte, oggi).filter((e) => e.item.id !== d.id);
+    return { pos: 1 + altre.filter((e) => e.punteggio > puntegg).length, tot: altre.length + 1 };
+  }, [tutte, oggi, d.id, puntegg]);
 
   function withTemp(x: Item): Item {
     return x.padreId ? { ...x, importanza: x.importanza ?? getItem(x.padreId)?.importanza, fine: x.fine ?? (x.inizio ? undefined : getItem(x.padreId)?.fine) } : x;
@@ -154,18 +161,23 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
       />
       <div className="scroll">
         {puntegg !== undefined && d.stato !== 'fatto' && (
-          <div className={clsx('prio', `p${barLevel(puntegg)}`)} aria-label={`Punteggio di priorità ${puntegg} su 100`}>
+          <div className={clsx('prio', `p${barLevel(puntegg)}`)} aria-label={`Priorità ${['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}, ${posizione.pos}ª da fare su ${posizione.tot}`}>
             <div className="prio-testa">
-              <span className="prio-n">{puntegg}</span>
+              <span className="prio-n">{posizione.pos}</span>
               <div className="prio-t">
-                <b>Priorità {['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}</b>
-                <span>Punteggio su 100</span>
+                <b>{posizione.pos}ª da fare</b>
+                <span>su {posizione.tot}</span>
               </div>
+              <span className="prio-lvl">Priorità {['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}</span>
             </div>
-            <div className="prio-bar" aria-hidden="true"><i style={{ width: `${puntegg}%` }} /></div>
+            <div className="prio-parti">
+              {([['Urgenza', componenti.urgenza], ['Importanza', componenti.importanza], ['Poco sforzo', componenti.sforzo], ['Età', componenti.eta]] as const).map(([nome, v]) => (
+                <div key={nome} className="prio-riga"><span>{nome}</span><div className="prio-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, Math.max(0, v))}%` }} /></div></div>
+              ))}
+            </div>
             <div className="prio-dati">
               <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
-              <span>Importanza {d.importanza ?? 3}/5</span>
+              <span>Importanza {['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'][d.importanza ?? 3]}</span>
               {d.sforzoMin ? <span>{nomeSforzo(d.sforzoMin)} {percentuale(margine)}</span> : null}
             </div>
           </div>

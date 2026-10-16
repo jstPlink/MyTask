@@ -410,16 +410,19 @@ a { color: var(--accent); }
 .gp .row:last-child { border-bottom: 0; }
 
 /* ---------- Blocco di priorità nella scheda di una voce ---------- */
-.prio { --c: var(--soft); --cs: var(--surface2); background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: 16px; padding: 14px 16px 12px; margin: 6px 0 14px; }
+.prio { --c: var(--soft); --cs: var(--surface2); background: var(--surface); border: 2px solid var(--c); border-radius: 16px; padding: 14px 16px 12px; margin: 6px 0 14px; }
 .prio.p3 { --c: var(--warn); --cs: var(--warn-soft); }
 .prio.p2 { --c: var(--amber); --cs: var(--amber-soft); }
 .prio-testa { display: flex; align-items: center; gap: 14px; }
-.prio-n { width: 52px; height: 52px; flex: none; border-radius: 50%; border: 3px solid var(--c); background: var(--cs); color: var(--c); display: grid; place-items: center; font-size: 21px; font-weight: 800; }
-.prio-t { display: flex; flex-direction: column; min-width: 0; }
+.prio-n { width: 56px; height: 56px; flex: none; border-radius: 50%; border: 3px solid var(--c); background: var(--cs); color: var(--c); display: grid; place-items: center; font-size: 24px; font-weight: 800; }
+.prio-t { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .prio-t b { font-size: 17px; }
 .prio-t span { font-size: 12px; color: var(--mid); }
-.prio-bar { height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; margin: 12px 0 10px; }
-.prio-bar i { display: block; height: 100%; background: var(--c); border-radius: 3px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.prio-lvl { background: var(--cs); color: var(--c); font-weight: 700; border-radius: 12px; padding: 3px 12px; font-size: 13px; white-space: nowrap; }
+.prio-parti { display: grid; gap: 8px; margin: 14px 0 12px; }
+.prio-riga { display: grid; grid-template-columns: 84px 1fr; gap: 10px; align-items: center; font-size: 12px; color: var(--mid); }
+.prio-bar { height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; }
+.prio-bar i { display: block; height: 100%; background: var(--c); opacity: .85; border-radius: 3px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
 .prio-dati { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--mid); }
 
 /* barra del piano divisa per attività */
