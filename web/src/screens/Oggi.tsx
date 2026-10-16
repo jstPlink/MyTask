@@ -19,56 +19,40 @@ const scelta: { giorno: string | undefined } = { giorno: undefined };
 const TIPI_DATATI = new Set(['azione', 'progetto', 'esperienza']);
 const durata = (min: number) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`);
 
-const ORE_ZOOM = 3;
 const pct = (m: number) => (m / 1440) * 100;
+type Fascia = [number, number];
 
 /**
- * Linea del piano: in alto le 24 ore (tempo libero, attività, ora attuale e la finestra ingrandita),
- * sotto l'ingrandimento sulle prossime 3 ore con i nomi e il margine d'errore di ogni attività.
- * Per un altro giorno la finestra parte dalla prima attività o dalla prima fascia libera.
+ * Linea del piano: in alto le 24 ore (fasce libere cliccabili, attività, impegni fissi, ora attuale);
+ * sotto gli orari della fascia scelta e la sua barra a segmenti, un segmento per attività col numero d'ordine.
  */
-function LineaPiano({ blocchi, fasce, ora, rank, margine, oggi }: { blocchi: Blocco[]; fasce: [number, number][]; ora?: number; rank: Map<string, number>; margine: number; oggi: string }) {
-  const lavoro = blocchi;
-  if (!fasce.length && !lavoro.length) return null;
-  const inizio = ora ?? Math.min(...[...lavoro.map((b) => b.da), ...fasce.map(([a]) => a), 8 * 60]);
-  const da = Math.max(0, Math.min(1440 - ORE_ZOOM * 60, Math.floor(inizio / 5) * 5));
-  const a = da + ORE_ZOOM * 60;
-  const q = (m: number) => ((m - da) / (a - da)) * 100;
+function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: Blocco[]; fasce: Fascia[]; sel: number; onSel: (i: number) => void; ora?: number; rank: Map<string, number>; oggi: string }) {
+  if (!fasce.length) return null;
+  const f = fasce[Math.max(0, Math.min(sel, fasce.length - 1))];
   const livello = (b: Blocco) => (b.pausa ? 'pausa' : `p${barLevel(score(b.item, oggi))}`);
-  const visibili = lavoro.filter((b) => b.a > da && b.da < a);
+  const dentro = blocchi.filter((b) => !b.fisso && b.a > f[0] && b.da < f[1]);
+  const q = (m: number) => ((Math.min(f[1], Math.max(f[0], m)) - f[0]) / (f[1] - f[0])) * 100;
   return (
     <div className="linea-piano">
-      <div className="lp-24" role="img" aria-label="Le 24 ore del giorno">
-        {fasce.map(([f, g], k) => <i key={`f${k}`} className="lp-libero" style={{ left: `${pct(f)}%`, width: `${pct(g - f)}%` }} />)}
-        {lavoro.map((b) => <i key={`${b.item.id}-${b.da}`} className={clsx('lp-blocco', b.fisso ? 'fisso' : livello(b))} style={{ left: `${pct(b.da)}%`, width: `${pct(b.a - b.da)}%` }} />)}
-        <i className="lp-finestra" style={{ left: `${pct(da)}%`, width: `${pct(a - da)}%` }} />
+      <div className="lp-24">
+        {fasce.map(([x, y], i) => {
+          const passata = ora !== undefined && y <= ora;
+          return (
+            <button key={`f${i}`} type="button" disabled={passata} aria-label={`Fascia libera ${orario(x)}-${orario(y)}`} aria-pressed={sel === i}
+              className={clsx('lp-fascia', sel === i && 'sel', passata && 'passata')} style={{ left: `${pct(x)}%`, width: `${pct(y - x)}%` }} onClick={() => onSel(i)} />
+          );
+        })}
+        {blocchi.map((b) => <i key={`${b.item.id}-${b.da}`} className={clsx('lp-blocco', b.fisso ? 'fisso' : livello(b))} style={{ left: `${pct(b.da)}%`, width: `${pct(b.a - b.da)}%` }} />)}
         {ora !== undefined && <i className="lp-ora" style={{ left: `${pct(ora)}%` }} />}
       </div>
       <div className="lp-ticks" aria-hidden="true">{[0, 6, 12, 18].map((h) => <span key={h} style={{ left: `${(h / 24) * 100}%` }}>{h}</span>)}<span style={{ right: 0 }}>24</span></div>
-      <div className="lp-zoom">
-        {fasce.map(([f, g], k) => {
-          const l = Math.max(da, f);
-          const r = Math.min(a, g);
-          return r > l ? <i key={`z${k}`} className="lp-libero" style={{ left: `${q(l)}%`, width: `${q(r) - q(l)}%` }} /> : null;
-        })}
-        {visibili.map((b) => {
-          const l = Math.max(da, b.da);
-          const r = Math.min(a, b.a);
-          const mg = b.fisso || b.pausa ? 0 : Math.max(1, Math.round((b.a - b.da) * margine));
-          const mr = Math.min(a, b.a + mg);
-          return (
-            <span key={`${b.item.id}-${b.da}`}>
-              <span className={clsx('lp-b', b.fisso ? 'fisso' : livello(b))} style={{ left: `${q(l)}%`, width: `${q(r) - q(l)}%` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}`}>
-                {rank.get(b.item.id) ? `${rank.get(b.item.id)} · ` : ''}{b.item.titolo}
-              </span>
-              {mr > r && <span className={clsx('lp-m', livello(b))} style={{ left: `${q(r)}%`, width: `${q(mr) - q(r)}%` }} />}
-            </span>
-          );
-        })}
-        {ora !== undefined && ora >= da && ora <= a && <i className="lp-ora" style={{ left: `${q(ora)}%` }} />}
-      </div>
-      <div className="lp-ticks lp-t2" aria-hidden="true">
-        {[0, 1, 2, 3].map((k) => <span key={k} style={k === 0 ? { left: 0 } : k === 3 ? { right: 0 } : { left: `${(k / 3) * 100}%` }}>{k === 0 && ora !== undefined ? 'adesso' : orario(da + k * 60)}</span>)}
+      <div className="lp-orari"><span>{orario(f[0])}</span><span>{orario(f[1])}</span></div>
+      <div className="lp-seg" role="img" aria-label={`Attività dalle ${orario(f[0])} alle ${orario(f[1])}`}>
+        {dentro.map((b) => (
+          <span key={`${b.item.id}-${b.da}`} className={clsx('lp-s', livello(b))} style={{ left: `${q(b.da)}%`, width: `calc(${q(b.a) - q(b.da)}% - 2px)` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}`}>
+            {rank.get(b.item.id) ?? ''}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -86,6 +70,19 @@ export function Oggi() {
   useEffect(() => { const t = setInterval(() => setMinutoCorrente(Math.floor(Date.now() / 60000)), 60_000); return () => clearInterval(t); }, []);
   const piano = useMemo(() => (disp ? pianifica(items, disp, oggi, minutoCorrente * 60000) : null), [items, disp, oggi, minutoCorrente]);
   const [meseAperto, setMeseAperto] = useState(false);
+  // fascia libera scelta nella barra (per giorno); di default quella in corso o la prossima
+  const [fasciaScelta, setFasciaScelta] = useState<Record<string, number>>({});
+  const minutiOra = new Date(minutoCorrente * 60000).getHours() * 60 + new Date(minutoCorrente * 60000).getMinutes();
+  const fasceDi = (g: string): Fascia[] => (disp ? fasceLibere(disp, g) : []);
+  const fasciaDi = (g: string, fasce: Fascia[]) => {
+    if (!fasce.length) return -1;
+    const passata = (i: number) => g === oggi && fasce[i][1] <= minutiOra;
+    const s = fasciaScelta[g];
+    if (s !== undefined && s < fasce.length && !passata(s)) return s;
+    const i = fasce.findIndex((_, k) => !passata(k));
+    return i >= 0 ? i : fasce.length - 1;
+  };
+  const inFascia = (bl: Blocco, f?: Fascia) => !f || (bl.da < f[1] && bl.a > f[0]);
   const [giornoScelto, setGiornoState] = useState<string>(scelta.giorno ?? oggi);
   const giorno = giornoScelto < oggi && giornoScelto !== scelta.giorno ? oggi : giornoScelto;
   const setGiorno = (d: string) => { scelta.giorno = d === oggi ? undefined : d; setGiornoState(d); };
@@ -211,6 +208,8 @@ export function Oggi() {
       : g.voci.map(riga));
 
   const pianoOggi = piano?.giorni[0];
+  const fasceOggi = fasceDi(oggi);
+  const selOggi = fasciaDi(oggi, fasceOggi);
   const totaleOggi = piano && disp ? minutiDisponibili(disp, oggi, oggi, minutoCorrente * 60000) : 0;
   const fuoriOggi = piano ? v.fare.filter((e) => { const d = dueDate(e.item); return d !== undefined && d <= oggi && !pianoOggi?.blocchi.some((x) => x.item.id === e.item.id); }) : [];
 
@@ -221,13 +220,16 @@ export function Oggi() {
     const inBlocco = new Set(blocchi.map((x) => x.item.id));
     const resto = (voci.get(giorno) ?? []).filter((i) => !inBlocco.has(i.id)).sort((x, y) => score(y, oggi) - score(x, oggi));
     const passato = giorno < oggi;
+    const fasceG = fasceDi(giorno);
+    const selG = fasciaDi(giorno, fasceG);
+    const blocchiG = blocchi.filter((x) => inFascia(x, fasceG[selG]));
     return (
       <>
         {!passato && g && (
-          <Gruppo titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`} dettaglio={totale ? `${durata(g.usati)} su ${durata(totale)}` : undefined}>
-            {disp && <LineaPiano blocchi={blocchi} fasce={fasceLibere(disp, giorno)} rank={classifica} margine={margine} oggi={oggi} />}
+          <Gruppo titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`}>
+            <LineaPiano blocchi={blocchi} fasce={fasceG} sel={selG} onSel={(i) => setFasciaScelta((c) => ({ ...c, [giorno]: i }))} rank={classifica} oggi={oggi} />
             {blocchi.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>{totale === 0 ? 'Nessun tempo libero impostato per questo giorno.' : 'Niente di pianificato.'}</div>}
-            {raggruppate(blocchi, bloccoRiga)}
+            {raggruppate(blocchiG, bloccoRiga)}
           </Gruppo>
         )}
         {resto.length > 0 && (
@@ -255,14 +257,14 @@ export function Oggi() {
     <>
       {piano && pianoOggi ? (
         <>
-          <Gruppo titolo="Piano di oggi" dettaglio={totaleOggi ? `${durata(pianoOggi.usati)} su ${durata(totaleOggi)}` : undefined}>
-            {disp && <LineaPiano blocchi={pianoOggi.blocchi} fasce={fasceLibere(disp, oggi)} ora={new Date(minutoCorrente * 60000).getHours() * 60 + new Date(minutoCorrente * 60000).getMinutes()} rank={classifica} margine={margine} oggi={oggi} />}
+          <Gruppo titolo="Piano di oggi">
+            <LineaPiano blocchi={pianoOggi.blocchi} fasce={fasceOggi} sel={selOggi} onSel={(i) => setFasciaScelta((c) => ({ ...c, [oggi]: i }))} ora={minutiOra} rank={classifica} oggi={oggi} />
             {pianoOggi.blocchi.length === 0 && (
               <div className="t2" style={{ padding: '14px 0' }}>
                 {totaleOggi === 0 && !pianoOggi.blocchi.length ? 'Oggi non hai tempo libero impostato (o la giornata è finita).' : 'Niente da pianificare per oggi.'}
               </div>
             )}
-            {raggruppate(pianoOggi.blocchi, bloccoRiga)}
+            {raggruppate(pianoOggi.blocchi.filter((x) => inFascia(x, fasceOggi[selOggi])), bloccoRiga)}
           </Gruppo>
           {fuoriOggi.length > 0 && (
             <Gruppo titolo="Non entrano oggi" dettaglio={fuoriOggi.length}>
