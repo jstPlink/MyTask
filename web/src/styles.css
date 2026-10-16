@@ -384,7 +384,7 @@ a { color: var(--accent); }
 .row.p2 { --c: var(--amber); --cs: var(--amber-soft); }
 .row.p1 { --c: var(--soft); --cs: var(--surface2); }
 .row.p1, .row.p2, .row.p3 { border-left: 0; padding: 12px 0; align-items: center; }
-.row.p1 .cb, .row.p2 .cb, .row.p3 .cb { border-color: var(--c); margin-top: 0; }
+.row.p1 .cb, .row.p2 .cb, .row.p3 .cb { border-color: var(--c); background: var(--cs); margin-top: 0; }
 .row.p1 .cb.done, .row.p2 .cb.done, .row.p3 .cb.done { background: var(--c); border-color: var(--c); }
 .row .rank { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
 .row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }

@@ -7,6 +7,7 @@ import { saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { clsx } from '../lib/util.ts';
 import { BadgeTipo } from './Icone.tsx';
+import { useLayer } from './nav.tsx';
 
 /** Si apre al segno di fatto su film, serie, anime, giochi, libri e ricette: voto e commento, poi la voce risulta fatta oggi. */
 export function RecensioneSheet() {
@@ -25,6 +26,8 @@ export function RecensioneSheet() {
     document.addEventListener('keydown', esc);
     return () => document.removeEventListener('keydown', esc);
   }, [item]);
+
+  useLayer('recensione', !!item, chiudiRecensione);
 
   if (!item) return null;
 

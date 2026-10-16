@@ -29,7 +29,7 @@ export function Curiosita() {
           />
         ))}
       </div>
-      <Fab onClick={() => nav.nuova({ tipo: 'curiosita' })} label="Nuova curiosità" />
+      <Fab />
     </>
   );
 }

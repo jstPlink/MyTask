@@ -2,12 +2,13 @@ import { useMemo } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
 import { barLevel, dueDate, isOverdue, score } from '../../../shared/priority.ts';
 import { listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto, revisione } from '../../../shared/views.ts';
+import { margineAtteso, percentuale } from '../../../shared/stima.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
 import { completaVoce } from '../lib/actions.ts';
 import { Empty, Fab, GruppoProgetto, Row, Sec, Seg, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
-import { mapsUrl } from '../lib/util.ts';
+import { mapsUrl, nomeTempo } from '../lib/util.ts';
 
 const SUB: { id: SubFare; nome: string }[] = [
   { id: 'azioni', nome: 'Attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
@@ -20,8 +21,6 @@ export function Fare() {
   const nRev = useMemo(() => revisione(items, oggi).length, [items, oggi]);
   const aperte = items.filter((i) => !i.eliminato && (i.tipo === 'azione' || i.tipo === 'progetto' || i.tipo === 'esperienza') && i.stato !== 'fatto' && i.stato !== 'saltato').length;
 
-  const nuova = () => nav.nuova({ tipo: nav.fareSub === 'progetti' ? 'progetto' : nav.fareSub === 'esperienze' ? 'esperienza' : 'azione' });
-
   return (
     <>
       <Top title="Attività" sub={`${aperte} aperte${nRev ? ` · ${nRev} in revisione` : ''}`} right={<PulsanteAspetto />} />
@@ -31,7 +30,7 @@ export function Fare() {
         {nav.fareSub === 'progetti' && <Progetti />}
         {nav.fareSub === 'esperienze' && <Esperienze />}
       </div>
-      <Fab onClick={nuova} label="Nuova voce" />
+      <Fab />
     </>
   );
 }
@@ -41,6 +40,7 @@ function Azioni() {
   const items = useItems();
   const oggi = useOggi();
   const lista = useMemo(() => listaAzioni(items, oggi), [items, oggi]);
+  const margine = useMemo(() => margineAtteso(items), [items]);
   const gruppi = useMemo(() => raggruppaPerProgetto(lista, items), [lista, items]);
   const riga = ({ item, punteggio }: (typeof lista)[number]) => {
     const d = dueDate(item);
@@ -49,7 +49,7 @@ function Azioni() {
       <Row
         key={item.id}
         titolo={item.titolo}
-        meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${item.sforzoMin} min` : undefined].filter(Boolean).join(' · ')}
+        meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${nomeTempo(item.sforzoMin)} ${percentuale(margine)}` : undefined].filter(Boolean).join(' · ')}
         right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
         level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
         rank={lista.findIndex((x) => x.item.id === item.id) + 1}

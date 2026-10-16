@@ -44,7 +44,7 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 | **Collezioni** | Film, Serie, Anime, Giochi, Libri, Ricette | Type Video, Gioco, Libri, Cibo |
 | **Curiosità** | Cose da approfondire | Type "Info" |
 | **Inbox** | Idee catturate al volo, ancora da smistare | Nuovo |
-| **Archivio** | Tutto ciò che è completato, consultabile come diario | Status "Done" |
+| **Completato** (ex Archivio) | Tutto ciò che è completato, consultabile come diario | Status "Done" |
 | **Revisione** | Voci scadute o dimenticate, da ripianificare o chiudere | Nuovo |
 
 ### 2.1 Navigazione (telefono)
@@ -52,7 +52,7 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 - **Cinque schede in basso** con icona (Oggi, Attività, Intrattenimento, Curiosità, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
 - **Attività** (prima "Fare") contiene tre sezioni: Attività, Progetti ed Esperienze.
 - **Intrattenimento** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette). Le **Curiosità** hanno una scheda propria.
-- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Revisione, Archivio, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
+- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Revisione, Completato, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza rigida.
 
 ### 2.2 Estetica (stile e palette approvati dall'utente)
@@ -86,7 +86,7 @@ Layout identico ai mockup minimalisti, con questi cambi:
 
 Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
 
-- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Archivio, Persone, Luoghi; Aspetto, Notifiche, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
+- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Completato, Persone, Luoghi; Aspetto, Notifiche, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
 - **Da 1300 px:** il dettaglio si apre in un pannello a destra e la voce aperta è evidenziata nell'elenco.
 - **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca, pulsante Stile e aspetto e "+ Nuova voce" (il tipo segue la sezione in cui si è).
 - **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, nelle persone, nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
@@ -101,7 +101,7 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 - **Oggi a sezioni:** Routine, Piano di oggi e Non entrano oggi sono schede separate e distanziate (la riga "Nei prossimi giorni" e la vecchia lista "Prossimi 7 giorni" non ci sono più). Nel giorno si scorre con lo swipe (a sinistra il giorno dopo, a destra quello prima; non scatta sullo scorrimento verticale o sui filtri scorrevoli). La navigazione tra giorni è un riquadro unico con le frecce ai lati.
 - **Giorno e mese in Oggi:** Oggi è un'unica pagina e mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro). Non c'è più il selettore Giorno/Mese: toccando il nome del giorno (con la freccetta) si apre una finestra con il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza rigida o scaduta); toccando un giorno la finestra si chiude e si vede quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine, Revisione e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
 - **Stato di sincronizzazione:** in Oggi (telefono) compare solo se si è offline o ci sono modifiche in attesa; nella barra laterale del sito resta sempre visibile.
-- **Indietro:** la cronologia ricorda anche le schede e le sotto-sezioni visitate; il tasto indietro del telefono o del browser le ripercorre.
+- **Indietro (pila unica):** ogni spostamento è una voce della cronologia del browser: cambio scheda o sotto-sezione, apertura di una schermata o di una voce, apertura di una finestra (cattura rapida, scelta del mese, voto, "quanto ci hai messo"). Il tasto indietro del telefono, quello del browser e il pulsante "Indietro" dell'app ripercorrono esattamente l'ordine inverso: prima si chiude la finestra aperta, poi si torna alla schermata precedente, poi alla scheda precedente. Aprire qualcosa da una finestra la chiude senza lasciare voci in sospeso (`web/src/App.tsx`, `useLayer` in `web/src/ui/nav.tsx`).
 
 ### 2.3.2 Piano della giornata (implementato)
 
@@ -141,6 +141,14 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Tre pulsanti in fila:** in fondo alla scheda "Elimina", "Archivia" e "Completato" stanno uno accanto all'altro.
 - **Barra in basso:** la scheda attiva ha lo sfondo che copre icona e testo.
 - **Rotazione:** l'app Android resta sempre in verticale (`screenOrientation` nel manifest).
+
+### 2.4.2 Cattura, stime del tempo e scadenza rigida (implementato)
+
+- **Pulsante "+":** in ogni scheda (e "+ Nuova nota" sullo schermo largo) apre sempre "Cosa ti è venuto in mente?". Il salvataggio crea una **bozza in Inbox** (anche se il tipo è chiaro), da rivedere e smistare aprendola.
+- **Scadenza rigida:** appena si imposta una data compare il checkbox "Scadenza rigida", subito sotto la Data.
+- **Attività:** la lista mostra tutte le attività aperte (anche quelle in Revisione), con i task dei progetti raggruppati sotto il progetto.
+- **Completato:** la voce "Archivio" di Altro si chiama ora "Completato".
+- **Stima con margine d'errore** (`shared/stima.ts`, con test): ogni attività ha un margine d'errore atteso. Parte da ±30% (vale come 3 misurazioni) e si affina con l'uso: al segno di fatto di un'attività l'app chiede, in una finestra facoltativa, "Quanto ci hai messo?" (campo `durataRealeMin`); l'errore medio |reale − stimato| / stimato delle attività completate sposta il margine verso l'alto o il basso (tra 5% e 100%). Per una nuova nota l'app cerca attività simili già fatte (somiglianza tra le parole del titolo, fino a 5), usa la mediana dei loro tempi reali come stima e mostra margine e intervallo atteso; nella cattura rapida la stima viene inserita da sola, nella scheda compare un suggerimento con "Usa". Il margine si vede in Attività e in Oggi accanto al tempo (es. "30 min ±30%"). Il piano della giornata non lo usa ancora per allargare i blocchi.
 
 ### 2.5 Feedback aptico e animazioni (implementato)
 
@@ -360,7 +368,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | Parte | Stato |
 |---|---|
 | Server: login, sessioni, limite ai tentativi, CORS per l'app, sincronizzazione, esportazione JSON, versione, copia giornaliera | Fatto, con test; in funzione sul NAS |
-| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Revisione, Archivio, Persone, Luoghi, Cosa guardo stasera, ricerca, editor completo, Aspetto, Notifiche, Account | Fatta, provata nel browser su dati reali importati |
+| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Revisione, Completato, Persone, Luoghi, Cosa guardo stasera, ricerca, editor completo, Aspetto, Notifiche, Account | Fatta, provata nel browser su dati reali importati |
 | Layout per schermi larghi (barra laterale, pannello di dettaglio, cruscotto, griglia della routine, scorciatoie N, /, Esc) | Fatto e provato nel browser a 1440, 1100 e 375 px |
 | Uso offline: modifiche in coda e sincronizzazione al ritorno della rete | Provato in locale |
 | Importazione da Notion con report e caricamento da file nell'app | Fatta; il caricamento nell'app è provato in locale |
@@ -389,7 +397,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.1 | Prima stesura: aree, modello dati, regole, architettura proposta, roadmap |
 | 2026-10-15 | 0.2 | Confermati: routine, persone, luoghi, scadenza rigida, Gemini come provider IA, 26 voci scadute in Revisione, collegamento Google Calendar predisposto. Aggiunta sezione 4.7 (progetti e voci con figli) |
 | 2026-10-15 | 0.3 | Fase 0 chiusa. Confermati: gestione voci con figli, promemoria ripetuti con insistenza, widget rimandati, Cloudflare Tunnel come accesso, PWA + APK Capacitor, link a Seafile incollati. Aggiunta sezione 5.1 (sicurezza e risorse) |
-| 2026-10-15 | 0.4 | Prima bozza dei mockup minimalisti (17 schermate: Oggi, cattura rapida, Altro, Azioni, dettaglio azione, Progetti, dettaglio progetto, Esperienze, Film, Cosa guardo stasera, dettaglio collezione, Curiosità, Routine, Revisione, Archivio, Persone, Luoghi). Aggiunta sezione 2.1 (navigazione) |
+| 2026-10-15 | 0.4 | Prima bozza dei mockup minimalisti (17 schermate: Oggi, cattura rapida, Altro, Azioni, dettaglio azione, Progetti, dettaglio progetto, Esperienze, Film, Cosa guardo stasera, dettaglio collezione, Curiosità, Routine, Revisione, Completato, Persone, Luoghi). Aggiunta sezione 2.1 (navigazione) |
 | 2026-10-15 | 0.5 | Layout approvato dall'utente. Prima proposta estetica: accento indaco (alternative verde e petrolio), colore d'avviso arancio, tema chiaro e scuro, stesse 17 schermate (`02-estetica.html`). Aggiunta sezione 2.2. Corretto nei mockup l'esempio con data passata (le date future sono esempi) |
 | 2026-10-15 | 0.6 | Stile e palette approvati. Accento predefinito Verde, con Petrolio e Indaco selezionabili. Aggiunta schermata 18 (Altro > Aspetto: tema Sistema/Chiaro/Scuro e colore) e voce "Aspetto" nel menu Altro. Il tema si salva sul dispositivo |
 | 2026-10-15 | 0.7 | Mockup confermati. Scritta l'applicazione (fasi 3 e 4): server, app web, importazione da Notion, Docker. Aggiunta sezione 4.8 (cosa compare in Oggi) e 8.1 (stato dell'implementazione). Sincronizzazione per voce invece che per campo. Rilevamento dei duplicati nella cattura rapida |
@@ -419,3 +427,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.20.0 | Pulsanti Elimina, Archivia, Completato (in quest'ordine); "Da parte" diventa "Archiviate"; tolti i "Prossimi 7 giorni" da Oggi; Cosa guardo stasera con Con chi (solo, partner, amici), piattaforme di base, mood, energia e tipologia al posto del tempo disponibile |
 | 2026-10-16 | 0.21.0 | Tolta la riga "Nei prossimi giorni" da Oggi. Curiosità diventa una scheda principale (cinque schede in basso e voce nella barra laterale). Nel piano, pause di 15 minuti con una curiosità tra le attività grandi. Tolto il selettore Giorno/Mese: il nome del giorno apre una finestra con il mese. Pulsante tondo "Stile e aspetto" in cima alle schede principali e nella barra in alto. Colori di base con contrasto più alto di almeno il 5%. Le attività senza scadenza ferme da 45 giorni vanno in Revisione. Il tempo libero ora si sincronizza tra telefono e sito (tabella `settings` sul server, campo `impostazioni` in `/api/sync`); per vederlo servono la nuova app e l'immagine aggiornata sul NAS |
 | 2026-10-16 | 0.22.0 | Task collegato al progetto: campo Progetto in prima posizione nella scheda di un'attività e raggruppamento sotto la testata del progetto (con avanzamento) in Attività e in Oggi (mockup locale `09-task-progetto.html`, variante C) |
+| 2026-10-16 | 0.23.0 | Pila unica di navigazione con finestre nella cronologia; "+" sempre cattura con bozza in Inbox; checkbox Scadenza rigida sotto la data; Attività con tutte le voci; Archivio diventa Completato; tolta l'etichetta "oggi" in Oggi; checkbox con tinta della priorità; stima dei tempi con margine d'errore che si affina (sezione 2.4.2) |

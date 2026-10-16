@@ -146,8 +146,10 @@ export function TabBar() {
   );
 }
 
-export function Fab({ onClick, label = 'Nuova voce' }: { onClick: () => void; label?: string }) {
-  return <button className="fab" onClick={onClick} aria-label={label}>+</button>;
+/** Pulsante "+": da ogni schermata apre la cattura rapida ("Cosa ti è venuto in mente?"). */
+export function Fab() {
+  const nav = useNav();
+  return <button className="fab" onClick={() => nav.openCapture(true)} aria-label="Cattura rapida">+</button>;
 }
 
 export interface VoceScelta<T extends string> { id: T; nome: string; icona: ReactNode }

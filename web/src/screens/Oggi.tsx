@@ -9,8 +9,9 @@ import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useDisponibilita, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, segnaRoutine } from '../lib/actions.ts';
 import { Fab, Gruppo, GruppoProgetto, Icona, Row, Top } from '../ui/kit.tsx';
-import { useNav } from '../ui/nav.tsx';
-import { clsx } from '../lib/util.ts';
+import { useLayer, useNav } from '../ui/nav.tsx';
+import { clsx, nomeTempo } from '../lib/util.ts';
+import { margineAtteso, percentuale } from '../../../shared/stima.ts';
 import { GrigliaMese, type SegnoGiorno } from './Calendario.tsx';
 
 // il giorno scelto resta finché l'app è aperta (anche aprendo una voce e tornando indietro)
@@ -24,6 +25,7 @@ export function Oggi() {
   const sync = useSyncStatus();
   const nav = useNav();
   const v = useMemo(() => vistaOggi(items, oggi), [items, oggi]);
+  const margine = useMemo(() => margineAtteso(items), [items]);
   const disp = useDisponibilita();
   const [minutoCorrente, setMinutoCorrente] = useState(() => Math.floor(Date.now() / 60000));
   useEffect(() => { const t = setInterval(() => setMinutoCorrente(Math.floor(Date.now() / 60000)), 60_000); return () => clearInterval(t); }, []);
@@ -85,7 +87,7 @@ export function Oggi() {
     const i = e.item;
     const pezzi: string[] = [];
     if (e.padre) pezzi.push('prossimo passo');
-    if (i.sforzoMin) pezzi.push(i.sforzoMin >= 60 ? `${i.sforzoMin / 60} ore` : `${i.sforzoMin} min`);
+    if (i.sforzoMin) pezzi.push(`${nomeTempo(i.sforzoMin)} ${percentuale(margine)}`);
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return pezzi.join(' · ');
   };
@@ -93,7 +95,7 @@ export function Oggi() {
     const d = dueDate(e.item);
     if (!d) return null;
     const ritardo = daysOverdue(e.item, oggi);
-    if (d === oggi) return <span className="hard">oggi</span>;
+    if (d === oggi) return null; // in Oggi la scadenza di oggi è già chiara
     if (ritardo > 0) return <span className="hard">{ritardo === 1 ? 'ieri' : `${ritardo} gg fa`}</span>;
     return e.item.rigida ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
   };
@@ -260,6 +262,7 @@ export function Oggi() {
     </div>
   );
 
+  useLayer('mese', meseAperto, () => setMeseAperto(false));
   const scegli = (d: string) => { setGiorno(d); setMeseAperto(false); };
   useEffect(() => {
     if (!meseAperto) return;
@@ -320,7 +323,7 @@ export function Oggi() {
               <Icona nome="inbox" size={22} />
               {v.inbox > 0 && <span className="circ-badge">{v.inbox > 99 ? '99+' : v.inbox}</span>}
             </button>
-            <button className="circ" onClick={() => nav.push({ k: 'altro' })} aria-label="Altro: archivio, persone, luoghi, impostazioni">
+            <button className="circ" onClick={() => nav.push({ k: 'altro' })} aria-label="Altro: completato, persone, luoghi, impostazioni">
               <Icona nome="altro" size={22} />
             </button>
           </div>
@@ -336,7 +339,7 @@ export function Oggi() {
         </div>
       </div>
       {mese}
-      <Fab onClick={() => nav.openCapture(true)} label="Cattura rapida" />
+      <Fab />
     </>
   );
 }

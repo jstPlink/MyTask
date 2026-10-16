@@ -56,7 +56,7 @@ export function Scoprire() {
           );
         })}
       </div>
-      <Fab onClick={() => nav.nuova({ tipo: sub })} label="Nuova voce" />
+      <Fab />
     </>
   );
 }

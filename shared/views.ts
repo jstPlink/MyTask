@@ -136,9 +136,9 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
 
 export function listaAzioni(items: Item[], today: string, now: number = Date.now()): Entry[] {
   const tutte = live(items);
-  const inRevisione = new Set(revisione(items, today, now).map((v) => v.item.id));
+  // tutte le attività aperte, comprese quelle in Revisione (scadute o ferme da tempo)
   return tutte
-    .filter((i) => i.tipo === 'azione' && !i.inbox && isOpen(i) && !inRevisione.has(i.id) && !parcheggiata(i))
+    .filter((i) => i.tipo === 'azione' && !i.inbox && isOpen(i) && !parcheggiata(i))
     .map((i) => {
       const padre = i.padreId ? tutte.find((p) => p.id === i.padreId && p.tipo === 'progetto') : undefined;
       const eff = withInheritance(i, padre);

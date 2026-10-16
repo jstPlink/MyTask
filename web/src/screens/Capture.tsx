@@ -6,9 +6,10 @@ import { useItems } from '../lib/hooks.ts';
 import { interpretaIA } from '../lib/api.ts';
 import { assicuraPersone } from '../lib/actions.ts';
 import { saveItem } from '../lib/store.ts';
+import { margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { useNav } from '../ui/nav.tsx';
-import { clsx, newId } from '../lib/util.ts';
+import { clsx, newId, nomeTempo } from '../lib/util.ts';
 
 interface RiconoscimentoVocale { lang: string; interimResults: boolean; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null; start(): void; stop(): void }
 type CostruttoreVocale = new () => RiconoscimentoVocale;
@@ -30,6 +31,8 @@ export function Capture() {
   const locale = useMemo(() => (testo.trim() ? parseCapture(testo) : undefined), [testo]);
   const proposta = ia ?? locale;
   const items = useItems();
+  const stima = useMemo(() => (proposta?.tipo === 'azione' ? stimaPer(proposta.titolo, items) : undefined), [items, proposta]);
+  const margine = useMemo(() => stima?.margine ?? margineAtteso(items), [stima, items]);
   const esistente = useMemo(() => {
     if (!proposta) return undefined;
     const k = chiaveTitolo(proposta.titolo);
@@ -54,17 +57,18 @@ export function Capture() {
 
   const salva = () => {
     if (!proposta) return;
-    const item = proposalToItem(proposta, newId(), Date.now());
+    const item = { ...proposalToItem(proposta, newId(), Date.now()), inbox: true }; // bozza da rivedere in Inbox
+    // stima del tempo in base alle attività simili già fatte
+    if (item.tipo === 'azione' && item.sforzoMin === undefined && stima) item.sforzoMin = stima.minuti;
     assicuraPersone(item);
     saveItem(item);
     nav.openCapture(false);
-    mostraToast(item.inbox ? 'Salvata in Inbox' : `Salvata come ${NOMI_TIPO[item.tipo].toLowerCase()}`, { label: 'Modifica', fn: () => nav.push({ k: 'item', id: item.id }) });
+    mostraToast('Bozza salvata in Inbox', { label: 'Apri', fn: () => nav.push({ k: 'item', id: item.id }) });
   };
 
   const modifica = () => {
     if (!proposta) return;
     const { id: _id, creato: _c, aggiornato: _a, ...resto } = proposalToItem(proposta, newId(), Date.now());
-    nav.openCapture(false);
     nav.push({ k: 'item', nuovo: resto });
   };
 
@@ -99,8 +103,13 @@ export function Capture() {
             <div className="t1" style={{ fontSize: 17 }}>{proposta.titolo}</div>
             <div className="t2" style={{ marginTop: 6 }}>
               {[NOMI_TIPO[proposta.tipo], proposta.piattaforma, proposta.consigliatoDa && `consigliato da ${proposta.consigliatoDa}`, proposta.conChi && `con ${proposta.conChi}`, proposta.inizio && formatShort(proposta.inizio)].filter(Boolean).join(' · ')}
-              {!proposta.sicura && ' · tipo incerto: va in Inbox'}
+              
             </div>
+            {proposta.tipo === 'azione' && (
+              <div className="t2" style={{ marginTop: 6 }}>
+                {stima ? <>Tempo stimato: <b>{nomeTempo(stima.minuti)} {percentuale(stima.margine)}</b> (da {stima.campioni} {stima.campioni === 1 ? 'attività simile' : 'attività simili'})</> : <>Nessuna attività simile per stimare il tempo · errore atteso {percentuale(margine)}</>}
+              </div>
+            )}
             {esistente && (
               <div className="t2 warn" style={{ marginTop: 8 }}>
                 Ce l'hai già: {NOMI_TIPO[esistente.tipo].toLowerCase()}{esistente.stato === 'fatto' ? ` finito il ${formatShortYear(esistente.completatoIl ?? esistente.inizio ?? '')}` : ' in lista'}.
@@ -109,12 +118,12 @@ export function Capture() {
             <div className="btns">
               {esistente ? (
                 <>
-                  <button className="btn solid" onClick={() => { chiudi(); nav.push({ k: 'item', id: esistente.id }); }}>Apri quella</button>
+                  <button className="btn solid" onClick={() => { rec.current?.stop(); nav.push({ k: 'item', id: esistente.id }); }}>Apri quella</button>
                   <button className="btn" onClick={salva}>Salva lo stesso</button>
                 </>
               ) : (
                 <>
-                  <button className="btn solid" onClick={salva}>Salva</button>
+                  <button className="btn solid" onClick={salva}>Salva in Inbox</button>
                   <button className="btn" onClick={modifica}>Modifica</button>
                 </>
               )}
@@ -123,7 +132,7 @@ export function Capture() {
         ) : (
           <div className="t2" style={{ textAlign: 'center', margin: '16px 0 6px' }}>Scrivi o detta: film, cose da fare, posti, idee.</div>
         )}
-        <div className="t2" style={{ textAlign: 'center' }}>{navigator.onLine ? 'Una riga basta: poi la smisti con calma.' : 'Senza connessione: capisco da solo, oppure salvo in Inbox.'}</div>
+        <div className="t2" style={{ textAlign: 'center' }}>{navigator.onLine ? 'Una riga basta: diventa una bozza in Inbox, poi la rivedi con calma.' : 'Senza connessione: capisco da solo, oppure salvo in Inbox.'}</div>
       </div>
     </>
   );

@@ -41,7 +41,7 @@ export function Altro() {
         {voce('Inbox', nInbox ? `${nInbox} da smistare` : 'vuota', { k: 'inbox' })}
         {voce('Revisione', nRev, { k: 'revisione' })}
         {voce('Archiviate', nParte || undefined, { k: 'daparte' })}
-        {voce('Archivio', nArch, { k: 'archivio' })}
+        {voce('Completato', nArch, { k: 'archivio' })}
         {voce('Persone', undefined, { k: 'persone' })}
         {voce('Luoghi', undefined, { k: 'luoghi' })}
         <Sec a="App" />
@@ -180,7 +180,7 @@ export function Revisione() {
   );
 }
 
-// ------------------------------------------------------------------ Archivio
+// ------------------------------------------------------------------ Completato (ex Archivio)
 
 const FILTRI_ARCHIVIO: Record<string, Tipo[] | undefined> = {
   Tutto: undefined, Film: ['film'], Serie: ['serie'], Anime: ['anime'], Libri: ['libro'], Giochi: ['gioco'], Attività: ['azione', 'progetto', 'esperienza'],
@@ -199,7 +199,7 @@ export function Archivio() {
   return (
     <>
       <Back />
-      <Top title="Archivio" sub={`${lista.length} completati`} />
+      <Top title="Completato" sub={`${lista.length} completati`} />
       <div className="scroll">
         <Chips scroll voci={Object.keys(FILTRI_ARCHIVIO)} attivo={filtro} onChange={setFiltro} />
         {lista.length === 0 && <Empty>Ancora niente qui.</Empty>}

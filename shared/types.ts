@@ -63,6 +63,8 @@ export interface Item {
   // priorità e collezioni
   importanza?: number; // 1-5, azioni e progetti
   sforzoMin?: number;
+  /** Minuti che l'attività ha richiesto davvero (chiesti al completamento), per affinare stime e margine d'errore. */
+  durataRealeMin?: number;
   interesse?: number; // 1-5, collezioni, esperienze e curiosità
   area?: string; // Casa, Burocrazia, Digitale, Salute, Lavoro...
 

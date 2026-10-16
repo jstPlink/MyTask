@@ -8,6 +8,7 @@ import { getItem, getItems, saveItem } from './store.ts';
 import { mostraToast } from './toast.ts';
 import { newId } from './util.ts';
 import { chiediRecensione } from './recensione.ts';
+import { chiediDurata } from './durata.ts';
 
 export function nuovaVoce(p: Partial<Item> & { tipo: Tipo; titolo: string }): Item {
   const now = Date.now();
@@ -38,6 +39,9 @@ export function completaVoce(item: Item) {
   const prima = item;
   const dopo = completa(item, oggi, Date.now());
   saveItem(dopo);
+
+  // attività: si chiede (facoltativo) quanto tempo c'è voluto, per affinare le stime
+  if (item.tipo === 'azione' && !item.ricorrenza) chiediDurata(dopo);
 
   const padre = item.padreId ? getItem(item.padreId) : undefined;
   if (padre && isOpen(padre) && !figli(getItems(), padre.id).some(isOpen)) {

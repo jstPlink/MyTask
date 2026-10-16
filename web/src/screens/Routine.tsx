@@ -77,7 +77,7 @@ export function Routine() {
           </>
         )}
       </div>
-      <Fab onClick={() => nav.nuova({ tipo: 'routine', fascia: 'sera' })} label="Nuova routine" />
+      <Fab />
     </>
   );
 }

@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import type { Tipo } from '../../../shared/types.ts';
 import { Icona } from './kit.tsx';
 import { useNav } from './nav.tsx';
 
@@ -14,15 +13,6 @@ export function TopBar() {
     if (!t) return;
     setTesto('');
     nav.openCapture(true, t);
-  };
-
-  // il tipo della "nuova voce" segue la sezione in cui ci si trova
-  const tipoCorrente = (): Tipo => {
-    if (nav.tab === 'fare') return nav.fareSub === 'progetti' ? 'progetto' : nav.fareSub === 'esperienze' ? 'esperienza' : 'azione';
-    if (nav.tab === 'scoprire') return nav.scoprireSub;
-    if (nav.tab === 'curiosita') return 'curiosita';
-    if (nav.tab === 'routine') return 'routine';
-    return 'azione';
   };
 
   return (
@@ -49,7 +39,7 @@ export function TopBar() {
         <kbd aria-hidden="true">/</kbd>
       </div>
       <button className="circ" onClick={() => nav.vai({ k: 'aspetto' })} aria-label="Stile e aspetto"><Icona nome="aspetto" size={22} /></button>
-      <button className="btn solid" onClick={() => nav.nuova({ tipo: tipoCorrente() })}>+ Nuova voce</button>
+      <button className="btn solid" onClick={() => nav.openCapture(true)}>+ Nuova nota</button>
     </div>
   );
 }

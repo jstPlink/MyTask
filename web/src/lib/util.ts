@@ -25,3 +25,8 @@ export function pallini(n: number | undefined, max = 5): string {
 export function clsx(...a: (string | false | undefined | null)[]): string {
   return a.filter(Boolean).join(' ');
 }
+
+/** Durata in minuti a parole: 15 min, 2 ore, 1 giorno. */
+export function nomeTempo(m: number): string {
+  return m >= 1440 && m % 1440 === 0 ? `${m / 1440} ${m === 1440 ? 'giorno' : 'giorni'}` : m >= 60 ? `${+(m / 60).toFixed(1)} ${m === 60 ? 'ora' : 'ore'}` : `${m} min`;
+}

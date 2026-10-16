@@ -12,7 +12,8 @@ import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stas
 import { Back, DotsPick, Field, Gruppo, Row, Scelta, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { useNav } from '../ui/nav.tsx';
-import { clsx, mapsUrl, newId } from '../lib/util.ts';
+import { clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
+import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
 
 type GruppoTipo = 'azione' | 'progetto' | 'esperienza' | 'routine' | 'intrattenimento' | 'ricetta' | 'curiosita' | 'persona';
 const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita'];
@@ -33,7 +34,7 @@ const PROMEMORIA_PRESET: { giorni: number; nome: string }[] = [
 ];
 
 const SFORZI = [5, 15, 30, 60, 120, 240, 360, 480, 720, 1440];
-const nomeSforzo = (m: number) => (m === 1440 ? '1 giorno' : m >= 60 ? `${m / 60} ${m === 60 ? 'ora' : 'ore'}` : `${m} min`);
+const nomeSforzo = nomeTempo;
 
 const TIPI_PIATTO = ['Antipasto', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Piatto unico', 'Zuppa', 'Pane e lievitati', 'Bevanda'];
 
@@ -68,6 +69,9 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const persone = useMemo(() => nomiPersone(tutte), [tutte]);
   const piattaforme = useMemo(() => [...new Set(tutte.map((i) => i.piattaforma).filter((x): x is string => !!x))], [tutte]);
   const progetti = useMemo(() => tutte.filter((i) => !i.eliminato && i.tipo === 'progetto' && i.id !== d.id && (i.id === d.padreId || (i.stato !== 'fatto' && i.stato !== 'saltato' && i.stato !== 'parcheggiato'))), [tutte, d.id, d.padreId]);
+  // stima del tempo: da attività simili già fatte, con il margine d'errore atteso
+  const suggerita = useMemo(() => (t === 'azione' && d.titolo.trim().length >= 3 ? stimaPer(d.titolo, tutte.filter((i) => i.id !== d.id)) : undefined), [tutte, t, d.titolo, d.id]);
+  const margine = useMemo(() => (suggerita ? suggerita.margine : margineAtteso(tutte)), [suggerita, tutte]);
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
   const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
@@ -180,6 +184,11 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               </Field>
             )}
             <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: e.target.value ? d.rigida : undefined, oraInizio: e.target.value ? d.oraInizio : undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>
+            {d.inizio && (
+              <Field label="Scadenza rigida">
+                <button type="button" role="checkbox" aria-checked={!!d.rigida} aria-label="Scadenza rigida" className={clsx('cb sq', d.rigida && 'done')} onClick={() => up({ rigida: d.rigida ? undefined : true })} />
+              </Field>
+            )}
             {IS_AZIONE(t) && <Field label="Importanza"><DotsPick label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>}
             {t === 'esperienza' && <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
             {IS_AZIONE(t) && (
@@ -189,11 +198,22 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                 </select>
               </Field>
             )}
+            {IS_AZIONE(t) && (d.sforzoMin || suggerita) && (
+              <div className="t2" style={{ padding: '6px 0 10px' }}>
+                {d.sforzoMin ? (
+                  <>Errore atteso <b>{percentuale(margine)}</b>: tra {nomeTempo(intervallo(d.sforzoMin, margine)[0])} e {nomeTempo(intervallo(d.sforzoMin, margine)[1])}.</>
+                ) : suggerita && (
+                  <>
+                    Stima suggerita da {suggerita.campioni} {suggerita.campioni === 1 ? 'attività simile' : 'attività simili'}: <b>{nomeTempo(suggerita.minuti)} {percentuale(suggerita.margine)}</b>{' '}
+                    <button type="button" className="chip" onClick={() => up({ sforzoMin: suggerita.minuti })}>Usa</button>
+                  </>
+                )}
+              </div>
+            )}
             {t === 'esperienza' && d.titolo.trim() && (
               <a className="field link" href={mapsUrl(d.titolo, d.zona)} target="_blank" rel="noreferrer"><b style={{ fontWeight: 620 }}>Apri in Google Maps</b><span className="muted">›</span></a>
             )}
             {d.inizio && <Field label="Ora"><input type="time" value={d.oraInizio ?? ''} onChange={(e) => up({ oraInizio: e.target.value || undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>}
-            {d.inizio && <Field label="Scadenza rigida"><Toggle on={!!d.rigida} label="Scadenza rigida" onChange={(v) => up({ rigida: v || undefined })} /></Field>}
             {d.inizio && (
               <>
                 <div className="t2" style={{ marginTop: 12 }}>Promemoria (alle 9:00)</div>
@@ -325,6 +345,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {d.stato === 'fatto' && (
           <Gruppo titolo="Completata">
             <div className="field"><span>Fatta il</span><span>{d.completatoIl ? formatShortYear(d.completatoIl, oggi) : '—'}</span></div>
+            {d.durataRealeMin !== undefined && <div className="field"><span>Tempo impiegato</span><span>{nomeTempo(d.durataRealeMin)}{d.sforzoMin ? ` (stimato ${nomeTempo(d.sforzoMin)})` : ''}</span></div>}
             {d.voto !== undefined && <div className="field"><span>Voto</span><span>{d.voto} / 10</span></div>}
             {d.commento && <div className="t2" style={{ padding: '10px 0 12px', whiteSpace: 'pre-wrap' }}>{d.commento}</div>}
           </Gruppo>
