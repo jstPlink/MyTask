@@ -19,7 +19,7 @@ import { Login } from './screens/Login.tsx';
 import { TempoLibero } from './screens/TempoLibero.tsx';
 import { RecensioneSheet } from './ui/Recensione.tsx';
 import { DurataSheet } from './ui/DurataSheet.tsx';
-import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Luoghi, PersonaDetail, Persone, Revisione, Stasera } from './screens/Secondarie.tsx';
+import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Revisione, Stasera } from './screens/Secondarie.tsx';
 
 interface Posizione { tab: Tab; fareSub: SubFare; scoprireSub: SubScoprire }
 /** Una voce della cronologia: dove si è (scheda, pila di schermate) e quali finestre sono aperte. */
@@ -34,9 +34,6 @@ function Schermata({ s }: { s: Screen }) {
     case 'revisione': return <Revisione />;
     case 'archivio': return <Archivio />;
     case 'daparte': return <DaParte />;
-    case 'persone': return <Persone />;
-    case 'persona': return <PersonaDetail id={s.id} />;
-    case 'luoghi': return <Luoghi />;
     case 'aspetto': return <Aspetto />;
     case 'tempolibero': return <TempoLibero />;
     case 'stasera': return <Stasera />;

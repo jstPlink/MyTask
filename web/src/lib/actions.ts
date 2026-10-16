@@ -3,7 +3,7 @@ import { formatShort, today } from '../../../shared/dates.ts';
 import { completa, riapri } from '../../../shared/recurrence.ts';
 import { toggleOggi } from '../../../shared/routine.ts';
 import { isOpen } from '../../../shared/priority.ts';
-import { figli, nomiPersone } from '../../../shared/views.ts';
+import { figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
 import { mostraToast } from './toast.ts';
 import { newId } from './util.ts';
@@ -13,20 +13,6 @@ import { chiediDurata } from './durata.ts';
 export function nuovaVoce(p: Partial<Item> & { tipo: Tipo; titolo: string }): Item {
   const now = Date.now();
   return { id: newId(), stato: 'da_fare', creato: now, aggiornato: now, ...p };
-}
-
-/** Crea la persona se non esiste ancora (confronto senza maiuscole). */
-export function assicuraPersona(nome?: string) {
-  const n = nome?.trim();
-  if (!n) return;
-  if (nomiPersone(getItems()).some((x) => x.toLowerCase() === n.toLowerCase())) return;
-  saveItem(nuovaVoce({ tipo: 'persona', titolo: n }));
-}
-
-export function assicuraPersone(item: Pick<Item, 'consigliatoDa' | 'conChi' | 'persone'>) {
-  assicuraPersona(item.consigliatoDa);
-  assicuraPersona(item.conChi);
-  item.persone?.forEach(assicuraPersona);
 }
 
 /** Spunta una voce. Offre "Annulla" e, se era l'ultimo passo di un progetto, di chiudere il progetto. */

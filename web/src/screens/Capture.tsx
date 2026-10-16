@@ -4,7 +4,6 @@ import { chiaveTitolo, parseCapture, proposalToItem, type Proposta } from '../..
 import { formatShort, formatShortYear } from '../../../shared/dates.ts';
 import { useItems } from '../lib/hooks.ts';
 import { interpretaIA } from '../lib/api.ts';
-import { assicuraPersone } from '../lib/actions.ts';
 import { saveItem } from '../lib/store.ts';
 import { margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
 import { mostraToast } from '../lib/toast.ts';
@@ -60,7 +59,6 @@ export function Capture() {
     const item = { ...proposalToItem(proposta, newId(), Date.now()), inbox: true }; // bozza da rivedere in Inbox
     // stima del tempo in base alle attività simili già fatte
     if (item.tipo === 'azione' && item.sforzoMin === undefined && stima) item.sforzoMin = stima.minuti;
-    assicuraPersone(item);
     saveItem(item);
     nav.openCapture(false);
     mostraToast('Bozza salvata in Inbox', { label: 'Apri', fn: () => nav.push({ k: 'item', id: item.id }) });

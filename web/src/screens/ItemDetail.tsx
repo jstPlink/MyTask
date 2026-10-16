@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { barLevel, componentiPunteggio, dueDate, score } from '../../../shared/priority.ts';
-import { avanzamento, figli, listaAzioni, nomiPersone } from '../../../shared/views.ts';
+import { avanzamento, figli, listaAzioni, nomiUsati } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { assicuraPersone, completaVoce, nuovaVoce, riapriVoce } from '../lib/actions.ts';
+import { completaVoce, nuovaVoce, riapriVoce } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
@@ -51,7 +51,6 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     if (!x.titolo.trim()) return;
     const s = JSON.stringify(x);
     if (s === ultimoSalvato.current) return;
-    assicuraPersone(x);
     saveItem({ ...x, inbox: undefined }); // una voce modificata nell'editor è considerata smistata
     ultimoSalvato.current = s;
   };
@@ -66,7 +65,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const up = (p: Partial<Item>) => setD((x) => ({ ...x, ...p }));
   const t = d.tipo;
   const oggi = today();
-  const persone = useMemo(() => nomiPersone(tutte), [tutte]);
+  const persone = useMemo(() => nomiUsati(tutte), [tutte]);
   const piattaforme = useMemo(() => [...new Set(tutte.map((i) => i.piattaforma).filter((x): x is string => !!x))], [tutte]);
   const progetti = useMemo(() => tutte.filter((i) => !i.eliminato && i.tipo === 'progetto' && i.id !== d.id && (i.id === d.padreId || (i.stato !== 'fatto' && i.stato !== 'saltato' && i.stato !== 'parcheggiato'))), [tutte, d.id, d.padreId]);
   // stima del tempo: da attività simili già fatte, con il margine d'errore atteso

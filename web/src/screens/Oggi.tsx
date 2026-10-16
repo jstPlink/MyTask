@@ -373,7 +373,7 @@ export function Oggi() {
               <Icona nome="inbox" size={22} />
               {v.inbox > 0 && <span className="circ-badge">{v.inbox > 99 ? '99+' : v.inbox}</span>}
             </button>
-            <button className="circ" onClick={() => nav.push({ k: 'altro' })} aria-label="Altro: completato, persone, luoghi, impostazioni">
+            <button className="circ" onClick={() => nav.push({ k: 'altro' })} aria-label="Altro: completato, impostazioni">
               <Icona nome="altro" size={22} />
             </button>
           </div>

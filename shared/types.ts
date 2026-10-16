@@ -85,6 +85,8 @@ export interface Item {
   durataMin?: number;
   /** Film, serie e anime: stato d'animo che richiedono (Spensierato, Rilassante…). */
   mood?: string;
+  /** Quando i dati di genere, mood, energia, durata e pagine sono stati cercati su internet (millisecondi). */
+  arricchitoIl?: number;
   /** Film, serie e anime: energia che richiedono per essere seguiti. */
   energia?: 'bassa' | 'media' | 'alta';
   /** Pagine di un libro (cercate online al momento della creazione). */

@@ -58,6 +58,8 @@ export function Sidebar() {
 
   return (
     <aside className="side" aria-label="Navigazione">
+      <div className="sb-brand"><i aria-hidden="true" />MyTask</div>
+
       <div className="sb-top">
         <button className="btn solid sb-nuova" onClick={() => nav.openCapture(true)}>+ Nuova nota <kbd aria-hidden="true">N</kbd></button>
         <div className="sb-cerca">
@@ -66,11 +68,9 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="sb-brand"><i aria-hidden="true" />MyTask</div>
-
       <Link main nome="Oggi" icona="oggi" on={inTab('oggi')} n={n.oggi} onClick={() => apriTab('oggi')} />
 
-      <Link main nome="Attività" icona="fare" on={inTab('fare') && !subVisibili('fare')} onClick={() => apriTab('fare')} />
+      <Link main nome="Attività" icona="fare" n={n.azioni + n.progetti + n.esperienze} on={inTab('fare') && !subVisibili('fare')} onClick={() => apriTab('fare')} />
       {nav.tab === 'fare' && !schermata && (
         <div className="sb-subs">
           {SUB_FARE.map((s) => <Link key={s.id} sub nome={s.nome} n={n[s.id]} on={inTab('fare') && nav.fareSub === s.id} onClick={() => apriFare(s.id)} />)}
@@ -98,8 +98,6 @@ export function Sidebar() {
         <div className="sb-sec">Altro</div>
         <Link nome="Archiviate" n={n.daparte} on={scr('daparte')} onClick={() => vai({ k: 'daparte' })} />
         <Link nome="Completato" on={scr('archivio')} onClick={() => vai({ k: 'archivio' })} />
-        <Link nome="Persone" on={scr('persone') || scr('persona')} onClick={() => vai({ k: 'persone' })} />
-        <Link nome="Luoghi" on={scr('luoghi')} onClick={() => vai({ k: 'luoghi' })} />
       </div>
 
       <div className="sb-spacer" />

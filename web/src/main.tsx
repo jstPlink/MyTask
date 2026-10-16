@@ -10,6 +10,7 @@ import { avviaPromemoria } from './lib/reminders.ts';
 import { avviaNotificheNative, isNative } from './lib/native.ts';
 import { avviaHaptic } from './lib/haptic.ts';
 import { sistemaPersoneEChecklist } from './lib/migrazioni.ts';
+import { avviaArricchimento } from './lib/arricchimento.ts';
 
 avviaTema();
 avviaHaptic();
@@ -21,6 +22,7 @@ async function avvia() {
   subscribe(() => { sistemaPersoneEChecklist(); });
   createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
   avviaSync();
+  avviaArricchimento();
   if (isNative()) {
     avviaNotificheNative();
   } else {

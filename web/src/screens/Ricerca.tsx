@@ -23,19 +23,18 @@ export function Ricerca() {
         {risultati.map((i) => {
           const chiusa = i.stato === 'fatto' || i.stato === 'saltato';
           const d = dueDate(i);
-          const persona = i.tipo === 'persona';
           return (
             <Row
               key={i.id}
               titolo={i.titolo}
               meta={[NOMI_TIPO[i.tipo], i.piattaforma, chiusa ? (i.stato === 'saltato' ? 'saltata' : 'completata') : undefined].filter(Boolean).join(' · ')}
               right={d && !chiusa ? formatShortYear(d, oggi) : undefined}
-              check={persona ? 'none' : i.tipo === 'azione' || i.tipo === 'progetto' ? 'circle' : 'square'}
+              check={i.tipo === 'azione' || i.tipo === 'progetto' ? 'circle' : 'square'}
               done={chiusa}
               light={chiusa}
               selected={nav.openId === i.id}
-              onCheck={persona || chiusa ? undefined : () => completaVoce(i)}
-              onOpen={() => (persona ? nav.push({ k: 'persona', id: i.id }) : nav.push({ k: 'item', id: i.id }))}
+              onCheck={chiusa ? undefined : () => completaVoce(i)}
+              onOpen={() => nav.push({ k: 'item', id: i.id })}
             />
           );
         })}

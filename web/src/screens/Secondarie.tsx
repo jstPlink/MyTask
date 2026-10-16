@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { NOMI_TIPO, type Item, type Tipo } from '../../../shared/types.ts';
 import { addDays, formatShortYear, monthKey, monthLabel, relativeDays, today } from '../../../shared/dates.ts';
 import { dueDate } from '../../../shared/priority.ts';
-import { daParte, archivio, dataChiusura, inbox, luoghi, persone, revisione, zoneUsate } from '../../../shared/views.ts';
+import { daParte, archivio, dataChiusura, inbox, revisione } from '../../../shared/views.ts';
 import { COMPAGNIE, ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE, suggerisciStasera, type Compagnia } from '../../../shared/stasera.ts';
 import { useAspetto, useAuth, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, nuovaVoce, ripianifica, saltaVoce } from '../lib/actions.ts';
@@ -15,7 +15,7 @@ import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { Back, Chips, Empty, Field, Row, Sec, Seg, Toggle, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
-import { clsx, mapsUrl } from '../lib/util.ts';
+import { clsx } from '../lib/util.ts';
 
 // ------------------------------------------------------------------ Altro
 
@@ -40,8 +40,6 @@ export function Altro() {
         {voce('Revisione', nRev, { k: 'revisione' })}
         {voce('Archiviate', nParte || undefined, { k: 'daparte' })}
         {voce('Completato', nArch, { k: 'archivio' })}
-        {voce('Persone', undefined, { k: 'persone' })}
-        {voce('Luoghi', undefined, { k: 'luoghi' })}
         <Sec a="App" />
         {voce('Tempo libero', undefined, { k: 'tempolibero' })}
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
@@ -211,99 +209,6 @@ export function Archivio() {
                 selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
             ))}
           </div>
-        ))}
-      </div>
-    </>
-  );
-}
-
-// ------------------------------------------------------------------ Persone
-
-export function Persone() {
-  const nav = useNav();
-  const items = useItems();
-  const [solo, setSolo] = useState('Tutte');
-  const [nuova, setNuova] = useState('');
-  const lista = useMemo(() => persone(items).filter((p) => solo === 'Tutte' || p.persona.daContattare), [items, solo]);
-  const aggiungi = (e: FormEvent) => {
-    e.preventDefault();
-    const n = nuova.trim();
-    if (!n) return;
-    const esiste = persone(items).find((p) => p.persona.titolo.toLowerCase() === n.toLowerCase());
-    if (esiste) nav.push({ k: 'persona', id: esiste.persona.id });
-    else { const p = nuovaVoce({ tipo: 'persona', titolo: n }); saveItem(p); }
-    setNuova('');
-  };
-  return (
-    <>
-      <Back />
-      <Top title="Persone" />
-      <div className="scroll">
-        <Chips voci={['Tutte', 'Da contattare']} attivo={solo} onChange={setSolo} />
-        <form className="field" onSubmit={aggiungi}>
-          <input style={{ textAlign: 'left' }} value={nuova} placeholder="Aggiungi una persona" onChange={(e) => setNuova(e.target.value)} />
-          <button className="chip" disabled={!nuova.trim()}>Aggiungi</button>
-        </form>
-        {lista.length === 0 && <Empty>Nessuna persona.</Empty>}
-        {lista.map(({ persona: p, collegamenti, consigliati }) => (
-          <Row key={p.id} titolo={p.titolo} check="none"
-            meta={`${collegamenti} ${collegamenti === 1 ? 'collegamento' : 'collegamenti'}${consigliati ? ` · ha consigliato ${consigliati}` : ''}`}
-            right={p.daContattare ? <span className="badge solid">contatta</span> : undefined}
-            onOpen={() => nav.push({ k: 'persona', id: p.id })} />
-        ))}
-      </div>
-    </>
-  );
-}
-
-export function PersonaDetail({ id }: { id: string }) {
-  const nav = useNav();
-  const items = useItems();
-  const p = items.find((i) => i.id === id);
-  const collegate = useMemo(() => {
-    if (!p) return [];
-    const n = p.titolo.toLowerCase();
-    return items.filter((i) => !i.eliminato && i.tipo !== 'persona' && ((i.persone ?? []).some((x) => x.toLowerCase() === n) || i.consigliatoDa?.toLowerCase() === n || i.conChi?.toLowerCase() === n));
-  }, [items, p]);
-  if (!p || p.eliminato) return <><Back /><Empty>Persona non trovata.</Empty></>;
-  return (
-    <>
-      <Back label="Persone" />
-      <Top title={p.titolo} sub={`${collegate.length} collegamenti`} />
-      <div className="scroll">
-        <Field label="Nome"><input value={p.titolo} onChange={(e) => saveItem({ ...p, titolo: e.target.value })} /></Field>
-        <Field label="Da contattare"><Toggle on={!!p.daContattare} label="Da contattare" onChange={(v) => saveItem({ ...p, daContattare: v || undefined })} /></Field>
-        <Field label="Note"><input value={p.note ?? ''} onChange={(e) => saveItem({ ...p, note: e.target.value || undefined })} /></Field>
-        <Sec a="Collegata a" />
-        {collegate.length === 0 && <div className="t2" style={{ padding: '10px 0' }}>Nessuna voce. Scrivila in «Consigliato da», «Con chi» o «Persone».</div>}
-        {collegate.map((i) => <Row key={i.id} titolo={i.titolo} meta={[NOMI_TIPO[i.tipo], i.consigliatoDa?.toLowerCase() === p.titolo.toLowerCase() ? 'consigliato da lei/lui' : undefined].filter(Boolean).join(' · ')} check="none" selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />)}
-        <div className="btns col" style={{ marginTop: 22 }}>
-          <button className="btn danger" onClick={() => { if (window.confirm(`Eliminare «${p.titolo}»? Le voci collegate restano.`)) { removeItem(p.id); nav.pop(); } }}>Elimina persona</button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ------------------------------------------------------------------ Luoghi
-
-export function Luoghi() {
-  const nav = useNav();
-  const items = useItems();
-  const [zona, setZona] = useState('Tutti');
-  const zone = useMemo(() => zoneUsate(items), [items]);
-  const lista = useMemo(() => luoghi(items, zona === 'Tutti' ? undefined : zona), [items, zona]);
-  return (
-    <>
-      <Back />
-      <Top title="Luoghi" sub="Da visitare" />
-      <div className="scroll">
-        <Chips scroll voci={['Tutti', ...zone]} attivo={zona} onChange={setZona} />
-        {lista.length === 0 && <Empty>Nessun luogo con una zona. Aggiungila alle esperienze.</Empty>}
-        {lista.map((i) => (
-          <Row key={i.id} titolo={i.titolo} meta={i.zona} check="square" level={(i.interesse ?? 3) >= 4 ? 3 : (i.interesse ?? 3) === 3 ? 2 : 1}
-            right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
-            onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
         ))}
       </div>
     </>

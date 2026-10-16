@@ -227,37 +227,11 @@ export function archivio(items: Item[]): Item[] {
     .sort((a, b) => dataChiusura(b).localeCompare(dataChiusura(a)));
 }
 
-export interface VocePersona { persona: Item; collegamenti: number; consigliati: number }
-
-export function persone(items: Item[]): VocePersona[] {
-  const tutte = live(items);
-  return tutte
-    .filter((i) => i.tipo === 'persona')
-    .map((p) => {
-      const n = p.titolo.toLowerCase();
-      const collegate = tutte.filter((i) => i.tipo !== 'persona' && (
-        (i.persone ?? []).some((x) => x.toLowerCase() === n) ||
-        i.consigliatoDa?.toLowerCase() === n ||
-        i.conChi?.toLowerCase() === n));
-      return { persona: p, collegamenti: collegate.length, consigliati: collegate.filter((i) => i.consigliatoDa?.toLowerCase() === n).length };
-    })
-    .sort((a, b) => Number(!!b.persona.daContattare) - Number(!!a.persona.daContattare) || b.collegamenti - a.collegamenti || a.persona.titolo.localeCompare(b.persona.titolo, 'it'));
-}
-
-export function nomiPersone(items: Item[]): string[] {
-  return live(items).filter((i) => i.tipo === 'persona').map((i) => i.titolo).sort((a, b) => a.localeCompare(b, 'it'));
-}
-
-export function zoneUsate(items: Item[]): string[] {
+/** Nomi già scritti in "Consigliato da" e "Con chi", per il completamento automatico. */
+export function nomiUsati(items: Item[]): string[] {
   const set = new Set<string>();
-  for (const i of live(items)) if (i.zona) set.add(i.zona);
+  for (const i of live(items)) for (const n of [i.consigliatoDa, i.conChi]) if (n?.trim()) set.add(n.trim());
   return [...set].sort((a, b) => a.localeCompare(b, 'it'));
-}
-
-export function luoghi(items: Item[], zona?: string): Item[] {
-  return live(items)
-    .filter((i) => i.tipo === 'esperienza' && isOpen(i) && (i.zona || i.luogo) && (!zona || i.zona === zona))
-    .sort((a, b) => (a.zona ?? '').localeCompare(b.zona ?? '', 'it') || (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo, 'it'));
 }
 
 /** Ricerca per parole nel titolo, nelle note e nei campi di testo. Tutte le parole devono comparire. */
@@ -267,6 +241,7 @@ export function cercaVoci(items: Item[], q: string, max = 60): Item[] {
   const chiave = (i: Item) => chiaveTitolo([i.titolo, i.note, i.consigliatoDa, i.conChi, i.area, i.zona, i.piattaforma, i.genere, ...(i.persone ?? []), ...(i.checklist ?? []).map((c) => c.testo)].filter(Boolean).join(' '));
   const primo = chiaveTitolo(parole[0]);
   return live(items)
+    .filter((i) => i.tipo !== 'persona')
     .map((i) => ({ i, k: chiave(i) }))
     .filter(({ k }) => parole.every((p) => k.includes(p)))
     .sort((a, b) => {

@@ -483,3 +483,5 @@ a { color: var(--accent); }
 .sb-cerca input { width: 100%; background: var(--surface2); border: 1.5px solid transparent; border-radius: 12px; padding: 11px 40px 11px 14px; outline: none; font-size: 15px; }
 .sb-cerca input:focus { border-color: var(--accent); }
 .sb-cerca kbd { color: var(--mid); background: var(--surface); }
+
+.linea-piano { margin-bottom: 18px; }

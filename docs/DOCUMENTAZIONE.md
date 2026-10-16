@@ -52,7 +52,7 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 - **Cinque schede in basso** con icona (Oggi, Attività, Intrattenimento, Curiosità, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
 - **Attività** (prima "Fare") contiene tre sezioni: Attività, Progetti ed Esperienze.
 - **Intrattenimento** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette). Le **Curiosità** hanno una scheda propria.
-- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Revisione, Completato, Persone, Luoghi, Aspetto, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
+- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Revisione, Archiviate, Completato, Tempo libero, Aspetto, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza rigida.
 
 ### 2.2 Estetica (stile e palette approvati dall'utente)
@@ -86,10 +86,10 @@ Layout identico ai mockup minimalisti, con questi cambi:
 
 Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
 
-- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Completato, Persone, Luoghi; Aspetto, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
+- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Completato; Tempo libero, Aspetto, Account; versione e, solo se si è offline, lo stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
 - **Dettaglio in finestra (0.29.0):** da 900 px la voce si apre in una finestra in sovraimpressione al centro, sopra la schermata corrente (non più a tutta pagina né in un pannello a destra); si chiude con "Indietro", Esc o toccando lo sfondo.
 - **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca, pulsante Stile e aspetto e "+ Nuova voce" (il tipo segue la sezione in cui si è).
-- **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, nelle persone, nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
+- **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, in "consigliato da" e "con chi", nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
 - **Oggi** è un cruscotto a due colonne (cose da fare; routine, revisione e inbox). **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
 - **Scorciatoie da tastiera:** N (cattura rapida), / (ricerca), Esc (chiude la conferma, la ricerca o il pannello). Spostarsi nell'elenco con J e K e segnare fatto con F non sono ancora implementati.
 - La cattura rapida si apre al centro, come finestra, invece che dal basso.
@@ -166,6 +166,13 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Blocco di priorità nella scheda (0.30.0, variante C1):** riquadro col contorno del colore della priorità; il numero grande è la **posizione** in classifica (1 = la più prioritaria, "3ª da fare su 28"), niente punteggio; a destra la targhetta "Priorità alta/media/bassa"; sotto quattro barre con quanto pesano urgenza, importanza, poco sforzo ed età, e una riga con scadenza, importanza a parole e tempo con margine d'errore.
 - **Barra del piano per attività:** la barra del tempo libero in Oggi è divisa in un segmento per blocco, colorato dalla priorità (le pause sono più chiare); ogni riga del piano mostra il margine d'errore (es. "margine ±9 min"). Dalla 0.31.0 il piano usa la **linea a fasce** (mockup `17-piano-c2-orari.html`, variante 4): in alto la barra sottile delle 24 ore con le fasce libere **cliccabili** (tempo libero, attività colorate dalla priorità, impegni fissi con bordo, ora attuale; le fasce già passate sono disattivate); sotto gli orari di inizio e fine della fascia scelta e la sua barra a segmenti, un segmento per attività con il numero d'ordine nello stile dei pallini (sfondo tenue, contorno e numero del colore della priorità). L'elenco sotto mostra solo le attività di quella fascia, con il margine d'errore di ciascuna; di default è scelta la fascia in corso o la prossima. Tolto il riepilogo "ore usate su totale". Se una fascia è molto lunga e le attività vicine, i segmenti stretti possono sovrapporsi. Mockup locali: `10`-`17` in `docs/mockups/`.
 
+### 2.4.3 Arricchimento da internet e cosa guardo stasera (implementato, 0.33.0)
+
+- **Cosa fa:** quando una voce di tipo film, serie, anime, gioco o libro ha dati mancanti, l'app li cerca su internet da sola, in background: **genere** (per film, serie e anime la tipologia dell'app: Comico, Drammatico, Azione, Thriller, Horror, Fantascienza, Fantasy, Animazione, Documentario), **mood** (Spensierato, Rilassante, Emozionante, Intenso, Riflessivo), **energia / impegno mentale** (bassa, media, alta), **durata** dei film e **pagine** dei libri. Per giochi e libri il genere è il testo trovato. I dati si salvano nella voce (e si sincronizzano), quindi i filtri di "Cosa guardo stasera" funzionano davvero.
+- **Fonti:** Wikidata (gratuita e senza chiave; al servizio va solo il titolo) e, per le pagine dei libri, Open Library. Mood ed energia si ricavano dai generi con regole fisse (`shared/arricchimento.ts`, con test). Non si sovrascrive mai ciò che l'utente ha già scritto.
+- **Voci già inserite:** vengono arricchite automaticamente al primo avvio con rete, una alla volta (circa una ogni 2 secondi, per non superare i limiti del servizio); nelle sessioni successive si completano quelle rimaste. `arricchitoIl` ricorda quando è stata fatta la ricerca: una voce non trovata si riprova dopo 30 giorni. Se il titolo non corrisponde a nulla (o a un omonimo sbagliato) il campo si corregge a mano dalla scheda.
+- **Persone e Luoghi:** le sezioni sono state eliminate dall'app e dal sito. "Consigliato da" e "Con chi" restano campi di testo.
+
 ### 2.5 Feedback aptico e animazioni (implementato)
 
 - **Intensità aptica:** nell'app Android il tocco usa un plugin nostro (`HapticaPlugin`) con ampiezza ridotta del 30% rispetto ai valori standard di Capacitor (leggero 77 invece di 110, marcato 126 invece di 180); nel browser del telefono la vibrazione dura 6 ms (10 per il segno di fatto).
@@ -196,9 +203,9 @@ Un'unica tabella **Elemento** (`shared/types.ts`) con un campo `tipo`. Sul serve
 | `importanza` (1-5), `sforzoMin`, `area` | azioni e progetti |
 | `interesse` (1-5) | collezioni, esperienze e curiosità |
 | `padreId`, `checklist[]` | sotto-task (un solo livello) e liste semplici dentro una voce |
-| `persone[]`, `daContattare` | persone collegate (completamento automatico); flag sulle voci di tipo persona |
-| `zona`, `luogo`, `linkMaps` | lista luoghi con zona e link a Google Maps, senza mappa propria |
-| `piattaforma`, `consigliatoDa`, `conChi`, `durataMin`, `genere` | collezioni |
+| `persone[]`, `daContattare` | non più usati (le sezioni Persone e Luoghi sono state tolte); restano nei dati vecchi, ignorati |
+| `zona`, `luogo`, `linkMaps` | non più usati dalle schermate (restano nei dati vecchi) |
+| `piattaforma`, `consigliatoDa`, `conChi`, `durataMin`, `genere`, `mood`, `energia`, `pagine`, `arricchitoIl` | collezioni (gli ultimi cinque si compilano da soli, vedi 2.4.3) |
 | `voto`, `completatoIl` | collezioni e archivio |
 | `fascia`, `volteSettimana`, `obiettivo`, `oraPromemoria`, `log[]` | routine: momento della giornata, quota settimanale, obiettivo minimo, ora del promemoria, giorni in cui è stata fatta |
 
@@ -257,7 +264,7 @@ Una riga di testo (o dettatura) crea una voce. Esempio: "Titolo di un film, me l
 - Si vede la proposta in una scheda di conferma: **Salva** o **Modifica**.
 - Se il tipo è incerto la voce va in **Inbox**, da smistare con un tocco (Attività, Esperienza, Film, Serie, Gioco, Libro, Curiosità).
 - Se esiste già una voce con lo stesso titolo (senza badare a maiuscole, accenti e apostrofi) l'app lo segnala e propone di aprire quella.
-- Le persone nominate (consigliato da, con chi) vengono create da sole se non esistono.
+- I nomi di "consigliato da" e "con chi" sono solo testo (con completamento automatico dai nomi già scritti): non esistono più le voci di tipo persona.
 - Offline funziona solo l'interpretazione locale; le voci si sincronizzano al ritorno della rete.
 
 ### 4.6 Sincronizzazione e offline
@@ -384,7 +391,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | Parte | Stato |
 |---|---|
 | Server: login, sessioni, limite ai tentativi, CORS per l'app, sincronizzazione, esportazione JSON, versione, copia giornaliera | Fatto, con test; in funzione sul NAS |
-| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Revisione, Completato, Persone, Luoghi, Cosa guardo stasera, ricerca, editor completo, Aspetto, Account | Fatta, provata nel browser su dati reali importati |
+| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Revisione, Completato, Cosa guardo stasera, ricerca, editor completo, Aspetto, Account | Fatta, provata nel browser su dati reali importati |
 | Layout per schermi larghi (barra laterale, pannello di dettaglio, cruscotto, griglia della routine, scorciatoie N, /, Esc) | Fatto e provato nel browser a 1440, 1100 e 375 px |
 | Uso offline: modifiche in coda e sincronizzazione al ritorno della rete | Provato in locale |
 | Importazione da Notion con report e caricamento da file nell'app | Fatta; il caricamento nell'app è provato in locale |
@@ -453,3 +460,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.30.0 | Blocco di priorità della scheda in variante C1: posizione, targhetta con il livello, contorno colorato, componenti del punteggio, senza punteggio numerico |
 | 2026-10-16 | 0.31.0 | Piano di Oggi: barra delle 24 ore con fasce libere cliccabili, orari della fascia e barra a segmenti numerata (C2); elenco filtrato sulla fascia; tolto il riepilogo ore/attività |
 | 2026-10-16 | 0.32.0 | Tempo stimato nelle curiosità (15 min), importanza con slider; vista web: Nuova nota e ricerca in cima alla barra laterale, finestra della voce più alta, Oggi senza Inbox e con la routine sopra il piano |
+| 2026-10-16 | 0.33.0 | Arricchimento automatico di film, serie, anime, giochi e libri (genere, mood, energia, durata, pagine) per i filtri di "Cosa guardo stasera", anche per le voci già inserite; eliminate le sezioni Persone e Luoghi; barra laterale web con nome app, nuova nota e ricerca e contatore totale su Attività; più spazio sotto la timeline; mockup dell'interesse (locale, `18-interesse-righe.html`) |
