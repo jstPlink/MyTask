@@ -3,10 +3,9 @@ import type { Tipo } from '../../../shared/types.ts';
 import { collezione, piattformeUsate } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
 import { completaVoce } from '../lib/actions.ts';
-import { Chips, Empty, Fab, Row, Seg, Top } from '../ui/kit.tsx';
+import { Chips, Empty, Fab, PalliniInteresse, Row, Seg, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubScoprire } from '../ui/nav.tsx';
-import { pallini } from '../lib/util.ts';
 
 const SUB: { id: SubScoprire; nome: string }[] = [
   { id: 'film', nome: 'Film' }, { id: 'serie', nome: 'Serie' }, { id: 'anime', nome: 'Anime' }, { id: 'gioco', nome: 'Giochi' },
@@ -46,7 +45,8 @@ export function Scoprire() {
             <Row
               key={i.id}
               titolo={i.titolo}
-              meta={<><span className="dots">{pallini(interesse)}</span>{meta ? ' · ' : ''}{meta}</>}
+              meta={meta || undefined}
+              right={<PalliniInteresse valore={interesse} />}
               level={interesse >= 4 ? 3 : interesse === 3 ? 2 : 1}
               check="square"
               light={interesse <= 1}

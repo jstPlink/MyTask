@@ -485,3 +485,8 @@ a { color: var(--accent); }
 .sb-cerca kbd { color: var(--mid); background: var(--surface); }
 
 .linea-piano { margin-bottom: 18px; }
+
+/* interesse: cinque pallini da 22 px */
+.pal-int { display: inline-flex; align-items: center; gap: 6px; }
+.pal-int i { display: block; flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--soft); }
+.pal-int i.on { background: var(--accent); border-color: var(--accent); }

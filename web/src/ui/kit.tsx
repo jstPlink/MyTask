@@ -119,6 +119,15 @@ export function SliderImportanza({ valore, onChange, label }: { valore?: number;
   );
 }
 
+/** Interesse da 1 a 5 con cinque pallini grandi (22 px): nelle righe di intrattenimento e curiosità. */
+export function PalliniInteresse({ valore }: { valore: number }) {
+  return (
+    <span className="pal-int" role="img" aria-label={`Interesse ${valore} su 5`}>
+      {[1, 2, 3, 4, 5].map((n) => <i key={n} className={clsx(n <= valore && 'on')} />)}
+    </span>
+  );
+}
+
 export type NomeIcona = 'oggi' | 'fare' | 'scoprire' | 'curiosita' | 'routine' | 'inbox' | 'altro' | 'aspetto';
 
 /** Icone delle sezioni principali (tratto semplice, prendono il colore del testo). */
