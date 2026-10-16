@@ -86,7 +86,7 @@ test('piano: senza fasce non pianifica nulla e usa i valori suggeriti', () => {
 });
 
 // ---- migrazioni di persone e checklist
-import { ripristinaChecklistProgetto, spostaInNote } from './migrazioni.ts';
+import { ripristinaChecklistProgetto, segnaImportataDaRivedere, spostaInNote } from './migrazioni.ts';
 
 test('migrazione: persone e checklist passano nelle note, ma non la checklist dei progetti', () => {
   const a = mk({ note: 'Idee', persone: ['Mario'], checklist: [{ id: 'x', testo: 'Torta', fatto: true }, { id: 'y', testo: 'Inviti', fatto: false }] });
@@ -167,4 +167,14 @@ test('piano: ogni curiosità serve a una sola pausa e le pause sono al massimo d
   assert.equal(new Set(pause.map((x) => x.item.id)).size, pause.length);
   for (const g of p.giorni) assert.ok(g.blocchi.filter((x) => x.pausa).length <= 2);
   assert.ok(pause.length >= 1);
+});
+
+test('migrazione: le attività importate da Notion e mai toccate vanno in Revisione, una volta sola', () => {
+  const imp = mk({ id: 'n0123456789ab', creato: 5, aggiornato: 5 });
+  const r = segnaImportataDaRivedere(imp)!;
+  assert.equal(r.daRivedere, true);
+  assert.equal(segnaImportataDaRivedere({ ...imp, aggiornato: 6 }), undefined); // già toccata
+  assert.equal(segnaImportataDaRivedere({ ...imp, id: 'a1b2c3d4e5f60718' }), undefined); // creata nell'app
+  assert.equal(segnaImportataDaRivedere({ ...imp, stato: 'fatto' }), undefined);
+  assert.equal(segnaImportataDaRivedere({ ...imp, tipo: 'film' }), undefined);
 });

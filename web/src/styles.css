@@ -47,7 +47,7 @@ a { color: var(--accent); }
 .tabs button i { width: 20px; height: 20px; border: 1.8px solid currentColor; border-radius: 7px; }
 .tabs button.on { color: var(--accent); font-weight: 700; }
 .tabs button.on i { background: var(--accent); }
-.fab { position: absolute; right: 18px; bottom: calc(env(safe-area-inset-bottom) + 76px); width: 54px; height: 54px; border-radius: 18px; background: var(--accent); color: var(--on-accent); font-size: 30px; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); z-index: 5; }
+.fab { position: absolute; right: 18px; bottom: calc(env(safe-area-inset-bottom) + 76px); width: 62px; height: 62px; border-radius: 20px; background: var(--accent); color: var(--on-accent); font-size: 36px; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); z-index: 5; }
 
 .sec { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); margin: 18px 0 2px; display: flex; justify-content: space-between; font-weight: 600; }
 .row { display: flex; gap: 11px; align-items: flex-start; padding: 11px 0 11px 11px; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; width: 100%; }
@@ -501,8 +501,13 @@ a { color: var(--accent); }
 .row.ctr .right { display: flex; align-items: center; }
 
 /* vista web: più aria in cima alla barra laterale e sotto la barra del giorno */
-.side .sb-brand { padding-bottom: 30px; }
-.side .sb-top { margin-bottom: 32px; }
-.wide-dash .dash > div > .card.tap { margin: 4px 0 16px; width: 100%; }
+.side .sb-brand { padding-bottom: 18px; }
+.side .sb-top { margin: 0 0 14px; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.wide-dash .dash > div > .card.tap { margin: 16px 0; width: 100%; }
 
 .wide-dash .dash { grid-template-columns: minmax(0, 1fr); max-width: 820px; }
+
+/* cattura: elenco delle note con le stesse parole */
+.capture-sheet { max-height: 88dvh; overflow-y: auto; }
+.capture-simili { max-height: 46dvh; overflow-y: auto; }
+.shell .capture-sheet { max-height: 80vh; }

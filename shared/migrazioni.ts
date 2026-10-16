@@ -1,5 +1,6 @@
 // Migrazioni dei dati: funzioni pure (stesso input, stesso output), usate all'avvio dell'app.
 import type { Item, VoceChecklist } from './types.ts';
+import { isOpen } from './priority.ts';
 
 const BLOCCO_CHECKLIST = /(?:^|\n\n)Checklist:\n((?:- \[[ xX]\] .*(?:\n|$))+)/;
 
@@ -32,4 +33,17 @@ export function ripristinaChecklistProgetto(i: Item, nuovoId: () => string): Ite
   });
   const note = i.note.replace(BLOCCO_CHECKLIST, '').trim();
   return { ...i, checklist: voci, note: note || undefined };
+}
+
+/** Le voci create dall'importazione di Notion hanno un identificativo di 13 caratteri ("n" + 12 cifre esadecimali). */
+export const èImportata = (i: Item) => /^n[0-9a-f]{12}$/.test(i.id);
+
+/**
+ * Attività e progetti importati da Notion e mai toccati dall'importazione in poi (data di modifica uguale a quella di creazione)
+ * vanno in Revisione. Il salvataggio cambia la data di modifica, quindi la regola scatta una sola volta per voce.
+ */
+export function segnaImportataDaRivedere(i: Item): Item | undefined {
+  if (!èImportata(i) || (i.tipo !== 'azione' && i.tipo !== 'progetto')) return undefined;
+  if (!isOpen(i) || i.stato === 'parcheggiato' || i.inbox || i.daRivedere || i.aggiornato !== i.creato) return undefined;
+  return { ...i, daRivedere: true };
 }

@@ -5,7 +5,7 @@ import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.
 import { score, daysOverdue, barLevel } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
-import { vistaOggi, revisione, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto } from './views.ts';
+import { vistaOggi, revisione, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
 import { parseCapture } from './capture.ts';
 import { suggerisciStasera } from './stasera.ts';
 
@@ -213,4 +213,14 @@ test('revisione: un\'attività senza scadenza che non si tocca da tanto va rivis
   assert.equal(revisione([{ ...vecchia, aggiornato: NOW }], OGGI, NOW).length, 0);
   assert.ok(!vistaOggi([vecchia], OGGI, NOW).fare.some((e) => e.item.id === vecchia.id));
   assert.equal(vistaOggi([vecchia], OGGI, NOW).revisione, 1);
+});
+
+test('cattura: trova le note con le stesse parole anche in forme diverse', () => {
+  const a = mk({ titolo: 'Pagare il bollo auto' });
+  const b = mk({ titolo: 'Pagamento bollo della moto' });
+  const c = mk({ titolo: 'Chiamare il dentista' });
+  const trovate = cercaSimili([a, b, c], 'pagare bollo').map((i) => i.id);
+  assert.ok(trovate.includes(a.id) && trovate.includes(b.id));
+  assert.ok(!trovate.includes(c.id));
+  assert.deepEqual(cercaSimili([a, b, c], ''), []);
 });

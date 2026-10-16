@@ -63,6 +63,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   useEffect(() => () => salva(ref.current), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const up = (p: Partial<Item>) => setD((x) => ({ ...x, ...p }));
+  // aprire una voce messa in Revisione vale come averla vista: esce dalla Revisione (si salva da sola)
+  useEffect(() => { if (id && iniziale.daRivedere) setD((x) => ({ ...x, daRivedere: undefined })); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const t = d.tipo;
   const oggi = today();
   const persone = useMemo(() => nomiUsati(tutte), [tutte]);

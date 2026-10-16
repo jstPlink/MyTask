@@ -170,6 +170,9 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 - **Oggi sul web (0.36.0):** una sola colonna: titolo, barra del giorno, **Revisione** (solo se ci sono voci da rivedere), routine e piano. Nella barra laterale c'è più spazio tra il logo e "+ Nuova nota" e tra la ricerca e le sezioni. Mockup locali dei numeri sotto la barra (senza linee guida): `20-numeri-sotto-barra.html`.
 
+- **Barra laterale e Oggi web (0.38.0):** il logo, il blocco "+ Nuova nota" con la ricerca e le sezioni sono separati da divisori, come i gruppi più in basso; tra la barra del giorno, la Revisione e la routine c'è lo stesso spazio (16 px). Il pulsante "+" sul telefono è più grande (62 px).
+- **Revisione delle voci importate:** le attività e i progetti importati da Notion (identificativo "n" + 12 cifre) che non sono mai stati toccati dopo l'importazione (data di modifica uguale a quella di creazione) vengono messi in **Revisione** una sola volta, all'avvio (`segnaImportataDaRivedere` in `shared/migrazioni.ts`, con test). Aprire una voce da rivedere nella scheda la toglie dalla Revisione.
+
 ### 2.4.3 Arricchimento da internet e cosa guardo stasera (implementato, 0.33.0)
 
 - **Cosa fa:** quando una voce di tipo film, serie, anime, gioco o libro ha dati mancanti, l'app li cerca su internet da sola, in background: **genere** (per film, serie e anime la tipologia dell'app: Comico, Drammatico, Azione, Thriller, Horror, Fantascienza, Fantasy, Animazione, Documentario), **mood** (Spensierato, Rilassante, Emozionante, Intenso, Riflessivo), **energia / impegno mentale** (bassa, media, alta), **durata** dei film e **pagine** dei libri. Per giochi e libri il genere è il testo trovato. I dati si salvano nella voce (e si sincronizzano), quindi i filtri di "Cosa guardo stasera" funzionano davvero.
@@ -260,16 +263,9 @@ Le abitudini non sono task: non scadono e non finiscono.
 - Nessuna colpa sui giorni saltati: si guardano i conteggi settimanali, non le serie perfette.
 - Una routine con interesse quasi nullo (chitarra) resta in **Parcheggiato** e non compare in Oggi finché non viene attivata.
 
-### 4.5 Cattura rapida
+### 4.5 Cattura rapida (cambiata nella 0.38.0)
 
-Una riga di testo (o dettatura) crea una voce. Esempio: "Titolo di un film, me l'ha consigliato Mario, su Netflix".
-
-- L'app interpreta subito la riga **senza IA** (tipo, titolo, piattaforma, chi l'ha consigliato, con chi, data come "domani"); se c'è connessione e la chiave Gemini è configurata sul server, l'IA affina la proposta; se non risponde resta quella locale.
-- Si vede la proposta in una scheda di conferma: **Salva** o **Modifica**.
-- Se il tipo è incerto la voce va in **Inbox**, da smistare con un tocco (Attività, Esperienza, Film, Serie, Gioco, Libro, Curiosità).
-- Se esiste già una voce con lo stesso titolo (senza badare a maiuscole, accenti e apostrofi) l'app lo segnala e propone di aprire quella.
-- I nomi di "consigliato da" e "con chi" sono solo testo (con completamento automatico dai nomi già scritti): non esistono più le voci di tipo persona.
-- Offline funziona solo l'interpretazione locale; le voci si sincronizzano al ritorno della rete.
+Una riga di testo (o dettatura) crea una **bozza in Inbox**: **il testo non viene interpretato** (nessun tipo, data o persona dedotti, nessuna IA). Mentre si scrive compaiono **tutte le note che contengono le stesse parole**, anche in forme diverse (stessa radice, per esempio "pagare" e "pagamento"), con tipo e stato, così si capisce subito se la nota esiste già; toccandone una si apre. "Salva in Inbox" (o Invio) salva il testo così com'è; il tipo si sceglie poi aprendo la bozza dall'Inbox (`cercaSimili` in `shared/views.ts`, con test). Offline funziona allo stesso modo; le voci si sincronizzano al ritorno della rete.
 
 ### 4.6 Sincronizzazione e offline
 
@@ -469,3 +465,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.35.0 | Pallini dell'interesse dimezzati (11 px) e checkbox/pallini centrati in verticale sulla riga |
 | 2026-10-16 | 0.36.0 | Vista web: Revisione sotto la barra del giorno e sopra la routine, più spazio nella barra laterale; mockup dei numeri sotto la barra della fascia |
 | 2026-10-16 | 0.37.0 | Piano di Oggi: numeri d'ordine come pallini sotto la barra della fascia (stile B1, senza linee guida) |
+| 2026-10-16 | 0.38.0 | Cattura rapida senza interpretazione, con elenco delle note che contengono le stesse parole; attività importate da Notion e mai toccate in Revisione; divisori nella barra laterale web e spazi uniformi in Oggi; pulsante + più grande sul telefono |

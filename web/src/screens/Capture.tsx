@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { NOMI_TIPO } from '../../../shared/types.ts';
-import { chiaveTitolo, parseCapture, proposalToItem, type Proposta } from '../../../shared/capture.ts';
-import { formatShort, formatShortYear } from '../../../shared/dates.ts';
+import { cercaSimili } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { interpretaIA } from '../lib/api.ts';
+import { nuovaVoce } from '../lib/actions.ts';
 import { saveItem } from '../lib/store.ts';
-import { margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
 import { mostraToast } from '../lib/toast.ts';
+import { Row } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
-import { clsx, newId, nomeTempo } from '../lib/util.ts';
+import { clsx } from '../lib/util.ts';
 
 interface RiconoscimentoVocale { lang: string; interimResults: boolean; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null; start(): void; stop(): void }
 type CostruttoreVocale = new () => RiconoscimentoVocale;
@@ -18,56 +17,29 @@ function vocale(): CostruttoreVocale | undefined {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
 }
 
+/**
+ * Cattura rapida: il testo non viene interpretato. Si salva così com'è come bozza in Inbox
+ * e, mentre si scrive, compaiono tutte le note che contengono le stesse parole (anche in forme diverse),
+ * per accorgersi subito se la nota esiste già.
+ */
 export function Capture() {
   const nav = useNav();
   const [testo, setTesto] = useState(nav.captureText);
-  const [ia, setIa] = useState<Proposta | undefined>();
-  const [pensa, setPensa] = useState(false);
   const [ascolta, setAscolta] = useState(false);
   const rec = useRef<RiconoscimentoVocale | undefined>(undefined);
   const Voce = useMemo(vocale, []);
-
-  const locale = useMemo(() => (testo.trim() ? parseCapture(testo) : undefined), [testo]);
-  const proposta = ia ?? locale;
   const items = useItems();
-  const stima = useMemo(() => (proposta?.tipo === 'azione' ? stimaPer(proposta.titolo, items) : undefined), [items, proposta]);
-  const margine = useMemo(() => stima?.margine ?? margineAtteso(items), [stima, items]);
-  const esistente = useMemo(() => {
-    if (!proposta) return undefined;
-    const k = chiaveTitolo(proposta.titolo);
-    return k ? items.find((i) => !i.eliminato && i.tipo !== 'persona' && chiaveTitolo(i.titolo) === k) : undefined;
-  }, [items, proposta]);
-
-  // interpretazione con IA poco dopo che smetti di scrivere; se non disponibile resta quella locale
-  useEffect(() => {
-    setIa(undefined);
-    const t = testo.trim();
-    if (t.length < 3) return;
-    let attivo = true;
-    const timer = setTimeout(async () => {
-      setPensa(true);
-      const r = await interpretaIA(t);
-      if (attivo) { setIa(r); setPensa(false); }
-    }, 700);
-    return () => { attivo = false; clearTimeout(timer); setPensa(false); };
-  }, [testo]);
+  const simili = useMemo(() => cercaSimili(items, testo), [items, testo]);
 
   const chiudi = () => { rec.current?.stop(); nav.openCapture(false); };
 
   const salva = () => {
-    if (!proposta) return;
-    const item = { ...proposalToItem(proposta, newId(), Date.now()), inbox: true }; // bozza da rivedere in Inbox
-    // stima del tempo in base alle attività simili già fatte
-    if (item.tipo === 'azione' && item.sforzoMin === undefined && stima) item.sforzoMin = stima.minuti;
+    const titolo = testo.trim();
+    if (!titolo) return;
+    const item = nuovaVoce({ tipo: 'azione', titolo, inbox: true }); // bozza da rivedere in Inbox
     saveItem(item);
     nav.openCapture(false);
     mostraToast('Bozza salvata in Inbox', { label: 'Apri', fn: () => nav.push({ k: 'item', id: item.id }) });
-  };
-
-  const modifica = () => {
-    if (!proposta) return;
-    const { id: _id, creato: _c, aggiornato: _a, ...resto } = proposalToItem(proposta, newId(), Date.now());
-    nav.push({ k: 'item', nuovo: resto });
   };
 
   const parla = () => {
@@ -87,50 +59,35 @@ export function Capture() {
   return (
     <>
       <div className="dim" onClick={chiudi} />
-      <div className="sheet" role="dialog" aria-label="Cattura rapida">
+      <div className="sheet capture-sheet" role="dialog" aria-label="Cattura rapida">
         <div className="grip" />
         <form onSubmit={(e) => { e.preventDefault(); salva(); }}>
           <div className="input">
             <input autoFocus value={testo} onChange={(e) => setTesto(e.target.value)} placeholder="Cosa ti è venuto in mente?" aria-label="Appunto" />
             {Voce && <button type="button" className={clsx('mic', ascolta && 'on')} aria-label={ascolta ? 'Smetti di ascoltare' : 'Detta'} onClick={parla}>●</button>}
           </div>
-        </form>
-        {proposta ? (
-          <div className="card strong">
-            <div className="t2">{ia ? 'L’IA ha capito:' : pensa ? 'Capito così (l’IA sta controllando…):' : 'Ho capito:'}</div>
-            <div className="t1" style={{ fontSize: 17 }}>{proposta.titolo}</div>
-            <div className="t2" style={{ marginTop: 6 }}>
-              {[NOMI_TIPO[proposta.tipo], proposta.piattaforma, proposta.consigliatoDa && `consigliato da ${proposta.consigliatoDa}`, proposta.conChi && `con ${proposta.conChi}`, proposta.inizio && formatShort(proposta.inizio)].filter(Boolean).join(' · ')}
-              
-            </div>
-            {proposta.tipo === 'azione' && (
-              <div className="t2" style={{ marginTop: 6 }}>
-                {stima ? <>Tempo stimato: <b>{nomeTempo(stima.minuti)} {percentuale(stima.margine)}</b> (da {stima.campioni} {stima.campioni === 1 ? 'attività simile' : 'attività simili'})</> : <>Nessuna attività simile per stimare il tempo · errore atteso {percentuale(margine)}</>}
-              </div>
-            )}
-            {esistente && (
-              <div className="t2 warn" style={{ marginTop: 8 }}>
-                Ce l'hai già: {NOMI_TIPO[esistente.tipo].toLowerCase()}{esistente.stato === 'fatto' ? ` finito il ${formatShortYear(esistente.completatoIl ?? esistente.inizio ?? '')}` : ' in lista'}.
-              </div>
-            )}
-            <div className="btns">
-              {esistente ? (
-                <>
-                  <button className="btn solid" onClick={() => { rec.current?.stop(); nav.push({ k: 'item', id: esistente.id }); }}>Apri quella</button>
-                  <button className="btn" onClick={salva}>Salva lo stesso</button>
-                </>
-              ) : (
-                <>
-                  <button className="btn solid" onClick={salva}>Salva in Inbox</button>
-                  <button className="btn" onClick={modifica}>Modifica</button>
-                </>
-              )}
-            </div>
+          <div className="btns">
+            <button type="submit" className="btn solid" disabled={!testo.trim()}>Salva in Inbox</button>
           </div>
-        ) : (
-          <div className="t2" style={{ textAlign: 'center', margin: '16px 0 6px' }}>Scrivi o detta: film, cose da fare, posti, idee.</div>
+        </form>
+        {testo.trim() && (
+          <div className="capture-simili">
+            <div className="t2" style={{ margin: '12px 0 2px' }}>
+              {simili.length === 0 ? 'Nessuna nota con queste parole: è nuova.' : `${simili.length} ${simili.length === 1 ? 'nota contiene' : 'note contengono'} queste parole`}
+            </div>
+            {simili.map((i) => (
+              <Row
+                key={i.id}
+                titolo={i.titolo}
+                meta={[NOMI_TIPO[i.tipo], i.piattaforma, i.stato === 'fatto' ? 'completata' : i.stato === 'saltato' ? 'saltata' : i.stato === 'parcheggiato' ? 'archiviata' : i.inbox ? 'in Inbox' : undefined].filter(Boolean).join(' · ')}
+                check="none"
+                light={i.stato === 'fatto' || i.stato === 'saltato'}
+                onOpen={() => { rec.current?.stop(); nav.push({ k: 'item', id: i.id }); }}
+              />
+            ))}
+          </div>
         )}
-        <div className="t2" style={{ textAlign: 'center' }}>{navigator.onLine ? 'Una riga basta: diventa una bozza in Inbox, poi la rivedi con calma.' : 'Senza connessione: capisco da solo, oppure salvo in Inbox.'}</div>
+        {!testo.trim() && <div className="t2" style={{ textAlign: 'center', margin: '16px 0 6px' }}>Scrivi o detta: la nota si salva com'è, in Inbox. Qui sotto vedi se esiste già.</div>}
       </div>
     </>
   );

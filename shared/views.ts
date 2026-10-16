@@ -252,3 +252,22 @@ export function cercaVoci(items: Item[], q: string, max = 60): Item[] {
     .slice(0, max)
     .map(({ i }) => i);
 }
+
+/**
+ * Note che contengono le parole scritte, anche in forme diverse (stessa radice): serve a non inserire due volte la stessa nota.
+ * Prima quelle con più parole in comune, poi le aperte, poi le più recenti.
+ */
+export function cercaSimili(items: Item[], q: string, max = 30): Item[] {
+  const parole = chiaveTitolo(q).split(' ').filter((p) => p.length >= 2);
+  if (parole.length === 0) return [];
+  const radici = parole.map((p) => (p.length > 5 ? p.slice(0, p.length - 2) : p));
+  const minimo = parole.length <= 2 ? 1 : Math.ceil(parole.length / 2);
+  const chiave = (i: Item) => chiaveTitolo([i.titolo, i.note, i.consigliatoDa, i.conChi, i.piattaforma, i.genere, ...(i.checklist ?? []).map((c) => c.testo)].filter(Boolean).join(' '));
+  return live(items)
+    .filter((i) => i.tipo !== 'persona')
+    .map((i) => { const k = chiave(i); return { i, punti: radici.filter((r) => k.includes(r)).length }; })
+    .filter((x) => x.punti >= minimo)
+    .sort((a, b) => b.punti - a.punti || Number(isClosed(a.i)) - Number(isClosed(b.i)) || b.i.aggiornato - a.i.aggiornato)
+    .slice(0, max)
+    .map((x) => x.i);
+}
