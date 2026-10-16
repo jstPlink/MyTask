@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
-import { barLevel, dueDate, isOverdue, score } from '../../../shared/priority.ts';
-import { listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto, revisione } from '../../../shared/views.ts';
+import { barLevel, dueDate, isOverdue, score, withInheritance } from '../../../shared/priority.ts';
+import { figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto, revisione } from '../../../shared/views.ts';
 import { margineAtteso, percentuale } from '../../../shared/stima.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
-import { completaVoce } from '../lib/actions.ts';
+import { completaVoce, riapriVoce } from '../lib/actions.ts';
 import { Empty, Fab, GruppoProgetto, Row, Sec, Seg, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
@@ -74,22 +74,38 @@ function Progetti() {
   const items = useItems();
   const oggi = useOggi();
   const lista = useMemo(() => listaProgetti(items, oggi), [items, oggi]);
+  if (lista.length === 0) return <Empty>Nessun progetto attivo.</Empty>;
+  const gruppo = (p: (typeof lista)[number]) => {
+    const passi = figli(items, p.progetto.id).filter((c) => c.stato !== 'parcheggiato');
+    const aperti = passi.filter((c) => c.stato !== 'fatto' && c.stato !== 'saltato').sort((a, b) => score(withInheritance(b, p.progetto), oggi) - score(withInheritance(a, p.progetto), oggi));
+    const chiusi = passi.filter((c) => c.stato === 'fatto' || c.stato === 'saltato');
+    const riga = (c: (typeof passi)[number], chiuso: boolean) => {
+      const d = dueDate(c);
+      return (
+        <Row key={c.id} titolo={c.titolo} done={chiuso} light={chiuso} struck={chiuso}
+          meta={chiuso ? undefined : c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
+          right={d && !chiuso ? (c.rigida || isOverdue(c, oggi) ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
+          level={chiuso ? undefined : barLevel(score(withInheritance(c, p.progetto), oggi))}
+          onCheck={() => (chiuso ? riapriVoce(c) : completaVoce(c))}
+          selected={nav.openId === c.id} onOpen={() => nav.push({ k: 'item', id: c.id })} />
+      );
+    };
+    return (
+      <GruppoProgetto key={p.progetto.id} progetto={p.progetto} fatti={p.fatti} totale={p.totale}>
+        {aperti.map((c) => riga(c, false))}
+        {chiusi.map((c) => riga(c, true))}
+        {passi.length === 0 && <div className="t2" style={{ padding: '12px 14px' }}>Nessun task: aggiungili aprendo il progetto.</div>}
+      </GruppoProgetto>
+    );
+  };
   const attivi = lista.filter((p) => !p.fermo);
   const fermi = lista.filter((p) => p.fermo);
-  if (lista.length === 0) return <Empty>Nessun progetto attivo.</Empty>;
-  const card = (p: (typeof lista)[number], forte: boolean) => (
-    <button key={p.progetto.id} className={forte ? 'card strong' : 'card'} style={{ width: '100%', textAlign: 'left' }} onClick={() => nav.push({ k: 'item', id: p.progetto.id })}>
-      <div className="t1" style={forte ? { fontSize: 17 } : undefined}>{p.progetto.titolo}</div>
-      <div className="bar"><i style={{ width: `${p.totale ? (p.fatti / p.totale) * 100 : 0}%` }} /></div>
-      <div className="t2">{p.totale ? `${p.fatti} su ${p.totale}` : 'Senza passi'}{p.prossimo ? ` · prossimo: ${p.prossimo.titolo}` : ''}</div>
-    </button>
-  );
   return (
     <>
-      {attivi.map((p, i) => card(p, i === 0))}
+      {attivi.map(gruppo)}
       {fermi.length > 0 && <>
         <Sec a="Fermi da oltre 30 giorni" />
-        {fermi.map((p) => card(p, false))}
+        {fermi.map(gruppo)}
       </>}
     </>
   );

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { clsx } from '../lib/util.ts';
 import { useNav, type Tab } from './nav.tsx';
-import { BadgeTipo } from './Icone.tsx';
 import type { Item } from '../../../shared/types.ts';
 
 export function Top({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
@@ -204,7 +203,9 @@ export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto
   return (
     <section className="gp">
       <button className="gp-h" onClick={() => nav.push({ k: 'item', id: progetto.id })} aria-label={`Apri il progetto ${progetto.titolo}`}>
-        <BadgeTipo tipo="progetto" size={28} />
+        <span className="gp-ic" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+        </span>
         <b>{progetto.titolo}</b>
         {totale > 0 && <span>{fatti} / {totale}</span>}
       </button>
