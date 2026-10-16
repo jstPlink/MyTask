@@ -24,6 +24,7 @@ export function Curiosita() {
             meta={i.note?.split('\n')[0]}
             right={<PalliniInteresse valore={i.interesse ?? 3} />}
             check="square"
+            centrato
             onCheck={() => completaVoce(i)}
             selected={nav.openId === i.id}
             onOpen={() => nav.push({ k: 'item', id: i.id })}

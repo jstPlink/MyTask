@@ -487,6 +487,11 @@ a { color: var(--accent); }
 .linea-piano { margin-bottom: 18px; }
 
 /* interesse: cinque pallini da 22 px */
-.pal-int { display: inline-flex; align-items: center; gap: 6px; }
-.pal-int i { display: block; flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--soft); }
+.pal-int { display: inline-flex; align-items: center; gap: 5px; }
+.pal-int i { display: block; flex: none; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--soft); }
 .pal-int i.on { background: var(--accent); border-color: var(--accent); }
+
+/* righe con checkbox e parte destra centrati sulla riga */
+.row.ctr { align-items: center; }
+.row.ctr .cb { margin-top: 0; }
+.row.ctr .right { display: flex; align-items: center; }

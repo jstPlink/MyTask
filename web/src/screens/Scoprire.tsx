@@ -49,6 +49,7 @@ export function Scoprire() {
               right={<PalliniInteresse valore={interesse} />}
               level={interesse >= 4 ? 3 : interesse === 3 ? 2 : 1}
               check="square"
+              centrato
               light={interesse <= 1}
               onCheck={() => completaVoce(i)}
               selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })}

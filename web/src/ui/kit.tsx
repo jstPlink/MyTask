@@ -31,6 +31,8 @@ export interface RowProps {
   /** Colonna a sinistra del titolo, per l'orario nel piano della giornata. */
   ora?: ReactNode;
   level?: 1 | 2 | 3;
+  /** Checkbox e parte destra centrati in verticale sulla riga. */
+  centrato?: boolean;
   /** Posizione in classifica (1 = la prima da fare): numero colorato a destra, nel colore del livello. */
   rank?: number;
   check?: 'circle' | 'square' | 'none';
@@ -42,7 +44,7 @@ export interface RowProps {
   onOpen?: () => void;
 }
 
-export function Row({ titolo, meta, right, ora, level, rank, check = 'circle', done, light, struck, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, ora, level, rank, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
       {check !== 'none' && (
@@ -66,7 +68,7 @@ export function Row({ titolo, meta, right, ora, level, rank, check = 'circle', d
       {rank !== undefined && <span className="rank" aria-label={`Posizione ${rank}`}>{rank}</span>}
     </>
   );
-  const cls = clsx('row', level && `p${level}`, selected && 'sel');
+  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel');
   return onOpen ? <button className={cls} onClick={onOpen}>{body}</button> : <div className={cls}>{body}</div>;
 }
 
