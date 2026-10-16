@@ -58,6 +58,14 @@ export function Sidebar() {
 
   return (
     <aside className="side" aria-label="Navigazione">
+      <div className="sb-top">
+        <button className="btn solid sb-nuova" onClick={() => nav.openCapture(true)}>+ Nuova nota <kbd aria-hidden="true">N</kbd></button>
+        <div className="sb-cerca">
+          <input id="ricerca" type="search" value={nav.query} onChange={(e) => nav.setQuery(e.target.value)} placeholder="Cerca…" aria-label="Cerca" />
+          <kbd aria-hidden="true">/</kbd>
+        </div>
+      </div>
+
       <div className="sb-brand"><i aria-hidden="true" />MyTask</div>
 
       <Link main nome="Oggi" icona="oggi" on={inTab('oggi')} n={n.oggi} onClick={() => apriTab('oggi')} />

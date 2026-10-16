@@ -105,6 +105,20 @@ export function DotsPick({ valore, onChange, label }: { valore?: number; onChang
   );
 }
 
+const NOMI_IMPORTANZA = ['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'];
+
+/** Importanza da 1 a 5 con uno slider (sostituisce i cinque pallini). */
+export function SliderImportanza({ valore, onChange, label }: { valore?: number; onChange: (v: number) => void; label: string }) {
+  const v = valore ?? 3;
+  return (
+    <div className="slider">
+      <input type="range" min={1} max={5} step={1} value={v} aria-label={label} aria-valuetext={NOMI_IMPORTANZA[v]}
+        style={{ '--p': `${((v - 1) / 4) * 100}%` } as React.CSSProperties} onChange={(e) => onChange(Number(e.target.value))} />
+      <div className="slider-l"><span>bassa</span><b>{NOMI_IMPORTANZA[v]}</b><span>alta</span></div>
+    </div>
+  );
+}
+
 export type NomeIcona = 'oggi' | 'fare' | 'scoprire' | 'curiosita' | 'routine' | 'inbox' | 'altro' | 'aspetto';
 
 /** Icone delle sezioni principali (tratto semplice, prendono il colore del testo). */

@@ -142,11 +142,13 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
     grandiGiorno.set(p.data, grandi + 1);
     const rimasto = l[k];
     if (grandi % 2 !== 0 || !rimasto || (pauseGiorno.get(p.data) ?? 0) >= MAX_PAUSE_GIORNO) return;
-    if (rimasto[1] - rimasto[0] < DURATA_PAUSA + BLOCCO_MINIMO) return;
-    const c = pool.shift();
+    const c = pool[0];
     if (!c) return;
-    p.riserva = { item: c, da: rimasto[0], a: rimasto[0] + DURATA_PAUSA };
-    l[k] = [rimasto[0] + DURATA_PAUSA, rimasto[1]];
+    const durataPausa = Math.max(PASSO, arrotonda(c.sforzoMin ?? DURATA_PAUSA));
+    if (rimasto[1] - rimasto[0] < durataPausa + BLOCCO_MINIMO) return;
+    pool.shift();
+    p.riserva = { item: c, da: rimasto[0], a: rimasto[0] + durataPausa };
+    l[k] = [rimasto[0] + durataPausa, rimasto[1]];
     pauseGiorno.set(p.data, (pauseGiorno.get(p.data) ?? 0) + 1);
   };
 

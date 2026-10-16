@@ -9,7 +9,7 @@ import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
-import { Back, DotsPick, Field, Gruppo, Row, Scelta, Toggle, Top } from '../ui/kit.tsx';
+import { Back, DotsPick, Field, Gruppo, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
@@ -41,7 +41,7 @@ const TIPI_PIATTO = ['Antipasto', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Piat
 export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }) {
   const nav = useNav();
   const tutte = useItems();
-  const iniziale = useMemo<Item>(() => (id && getItem(id)) || nuovaVoce({ tipo: nuovo?.tipo ?? 'azione', titolo: '', ...nuovo }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const iniziale = useMemo<Item>(() => (id && getItem(id)) || nuovaVoce({ tipo: nuovo?.tipo ?? 'azione', titolo: '', ...(nuovo?.tipo === 'curiosita' ? { sforzoMin: 15 } : {}), ...nuovo }), []); // eslint-disable-line react-hooks/exhaustive-deps
   const [d, setD] = useState<Item>(iniziale);
   const ultimoSalvato = useRef<string>(id && getItem(id) ? JSON.stringify(iniziale) : '');
   const ref = useRef(d);
@@ -117,6 +117,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     if (nt !== 'azione') p.padreId = undefined;
     if (HA_INTERESSE(nt) && d.interesse === undefined) p.interesse = 3;
     if (IS_AZIONE(nt) && d.importanza === undefined) p.importanza = 3;
+    if (nt === 'curiosita' && d.sforzoMin === undefined) p.sforzoMin = 15;
     if (nt === 'routine') { p.fascia = d.fascia ?? 'sera'; p.log = d.log ?? []; }
     up(p);
   };
@@ -209,7 +210,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                 <button type="button" role="checkbox" aria-checked={!!d.rigida} aria-label="Scadenza rigida" className={clsx('cb sq', d.rigida && 'done')} onClick={() => up({ rigida: d.rigida ? undefined : true })} />
               </Field>
             )}
-            {IS_AZIONE(t) && <Field label="Importanza"><DotsPick label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>}
+            {IS_AZIONE(t) && <Field label="Importanza"><SliderImportanza label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>}
             {t === 'esperienza' && <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
             {IS_AZIONE(t) && (
               <Field label="Tempo stimato">
@@ -259,6 +260,11 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {t === 'curiosita' && (
           <Gruppo titolo="Interesse">
             <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
+            <Field label="Tempo stimato">
+              <select value={d.sforzoMin ?? 15} onChange={(e) => up({ sforzoMin: Number(e.target.value) })}>
+                {[...new Set([...SFORZI, d.sforzoMin ?? 15])].sort((a, b) => a - b).map((m) => <option key={m} value={m}>{nomeSforzo(m)}</option>)}
+              </select>
+            </Field>
           </Gruppo>
         )}
 

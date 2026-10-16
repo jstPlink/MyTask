@@ -118,5 +118,6 @@ export function proposalToItem(p: Proposta, id: string, now: number): Item {
     inizio: p.inizio,
     interesse: ['film', 'serie', 'anime', 'gioco', 'libro', 'ricetta', 'curiosita', 'esperienza'].includes(p.tipo) ? 3 : undefined,
     importanza: ['azione', 'progetto'].includes(p.tipo) ? 3 : undefined,
+    sforzoMin: p.tipo === 'curiosita' ? 15 : undefined,
   };
 }

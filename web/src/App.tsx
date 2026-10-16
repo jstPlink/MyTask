@@ -7,7 +7,6 @@ import { clsx } from './lib/util.ts';
 import { NavContext, type Nav, type Screen, type SubFare, type SubScoprire, type Tab } from './ui/nav.tsx';
 import { TabBar } from './ui/kit.tsx';
 import { Sidebar } from './ui/Sidebar.tsx';
-import { TopBar } from './ui/TopBar.tsx';
 import { Oggi } from './screens/Oggi.tsx';
 import { Fare } from './screens/Fare.tsx';
 import { Scoprire } from './screens/Scoprire.tsx';
@@ -159,7 +158,7 @@ export function App() {
         return;
       }
       if (scrivendo || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); document.getElementById('cattura-rapida')?.focus(); }
+      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); openCapture(true); }
       else if (e.key === '/') { e.preventDefault(); document.getElementById('ricerca')?.focus(); }
     };
     window.addEventListener('keydown', onKey);
@@ -207,7 +206,6 @@ export function App() {
       <div className="shell">
         <Sidebar />
         <main className="main">
-          <TopBar />
           <div className="main-body">{principale}</div>
         </main>
         {voceAperta && (

@@ -123,6 +123,9 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 - **Barra laterale (0.27.0):** il contatore di Revisione compare solo se ci sono voci da rivedere; l'indicatore di sincronizzazione compare solo quando il sito è offline. La schermata **Notifiche** è stata tolta (telefono e web): le notifiche continuano a funzionare, il permesso viene chiesto al primo avvio dell'app Android e, se negato, si riattiva dalle impostazioni di Android.
 
+- **Importanza e curiosità (0.32.0):** l'importanza di attività e progetti si sceglie con uno **slider** da 1 a 5 (etichette molto bassa ... molto alta) al posto dei pallini; le curiosità hanno il campo **Tempo stimato** (di base 15 minuti, anche se create dalla cattura) e la pausa curiosità nel piano dura quanto il loro tempo.
+- **Vista web (0.32.0):** tolta la barra in alto: in cima alla barra laterale ci sono il pulsante **+ Nuova nota** (apre "Cosa ti è venuto in mente?", scorciatoia N) e subito sotto la **ricerca** (scorciatoia /); la finestra della voce è più alta (fino al 96% dello schermo); in Oggi non c'è più la scheda Inbox e la Routine sta tra la barra del giorno e il piano.
+
 ### 2.4 Telefono: icone e pulsanti circolari (implementato)
 
 - **Icone** per le sezioni principali (Oggi: sole; Fare: spunta in un quadrato; Intrattenimento: bussola; Routine: frecce che si ripetono), nella barra in basso con un'evidenziazione tonda sulla scheda attiva, e nella barra laterale del sito.
@@ -449,3 +452,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.29.0 | Vista web: la voce si apre in una finestra in sovraimpressione al centro; mockup delle varianti del blocco di priorità C con la posizione (1 = più prioritaria) come numero principale (locale, `13-blocco-priorita-c.html`) |
 | 2026-10-16 | 0.30.0 | Blocco di priorità della scheda in variante C1: posizione, targhetta con il livello, contorno colorato, componenti del punteggio, senza punteggio numerico |
 | 2026-10-16 | 0.31.0 | Piano di Oggi: barra delle 24 ore con fasce libere cliccabili, orari della fascia e barra a segmenti numerata (C2); elenco filtrato sulla fascia; tolto il riepilogo ore/attività |
+| 2026-10-16 | 0.32.0 | Tempo stimato nelle curiosità (15 min), importanza con slider; vista web: Nuova nota e ricerca in cima alla barra laterale, finestra della voce più alta, Oggi senza Inbox e con la routine sopra il piano |

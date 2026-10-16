@@ -348,16 +348,9 @@ export function Oggi() {
         <Top title="Oggi" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} cose da fare`} />
         <div className="scroll wide-dash" {...tocco}>
           <div className="dash">
-            <div>{navGiorno}<div key={giorno} className={clsx('giorno-cont', direzione)}>{eOggi ? faroggi : altroGiorno}</div></div>
+            <div>{navGiorno}<div key={giorno} className={clsx('giorno-cont', direzione)}>{eOggi && routine}{eOggi ? faroggi : altroGiorno}</div></div>
             <div className="dash-side">
-              {eOggi && routine}
               {revisione}
-              {v.inbox > 0 && (
-                <button className="card tap" onClick={() => nav.vai({ k: 'inbox' })}>
-                  <span><span className="t2" style={{ display: 'block' }}>Inbox</span><b>{v.inbox} {v.inbox === 1 ? 'idea' : 'idee'} da smistare</b></span>
-                  <span className="muted">›</span>
-                </button>
-              )}
             </div>
           </div>
         </div>
