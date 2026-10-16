@@ -348,10 +348,7 @@ export function Oggi() {
         <Top title="Oggi" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} cose da fare`} />
         <div className="scroll wide-dash" {...tocco}>
           <div className="dash">
-            <div>{navGiorno}<div key={giorno} className={clsx('giorno-cont', direzione)}>{eOggi && routine}{eOggi ? faroggi : altroGiorno}</div></div>
-            <div className="dash-side">
-              {revisione}
-            </div>
+            <div>{navGiorno}{eOggi && revisione}<div key={giorno} className={clsx('giorno-cont', direzione)}>{eOggi && routine}{eOggi ? faroggi : altroGiorno}</div></div>
           </div>
         </div>
         {mese}

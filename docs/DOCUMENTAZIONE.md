@@ -168,6 +168,8 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 - **Interesse a pallini grandi (0.34.0):** nelle righe di intrattenimento e di curiosità l'interesse (1-5) è mostrato a destra con cinque pallini da 11 px (dalla 0.35.0; erano 22 px) pieni nel colore d'accento o vuoti con il contorno, senza numero, con checkbox e pallini centrati in verticale sulla riga; non compare più nella riga delle informazioni. Mockup locali: `18-interesse-righe.html`, `19-interesse-pallini.html`.
 
+- **Oggi sul web (0.36.0):** una sola colonna: titolo, barra del giorno, **Revisione** (solo se ci sono voci da rivedere), routine e piano. Nella barra laterale c'è più spazio tra il logo e "+ Nuova nota" e tra la ricerca e le sezioni. Mockup locali dei numeri sotto la barra (senza linee guida): `20-numeri-sotto-barra.html`.
+
 ### 2.4.3 Arricchimento da internet e cosa guardo stasera (implementato, 0.33.0)
 
 - **Cosa fa:** quando una voce di tipo film, serie, anime, gioco o libro ha dati mancanti, l'app li cerca su internet da sola, in background: **genere** (per film, serie e anime la tipologia dell'app: Comico, Drammatico, Azione, Thriller, Horror, Fantascienza, Fantasy, Animazione, Documentario), **mood** (Spensierato, Rilassante, Emozionante, Intenso, Riflessivo), **energia / impegno mentale** (bassa, media, alta), **durata** dei film e **pagine** dei libri. Per giochi e libri il genere è il testo trovato. I dati si salvano nella voce (e si sincronizzano), quindi i filtri di "Cosa guardo stasera" funzionano davvero.
@@ -465,3 +467,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.33.0 | Arricchimento automatico di film, serie, anime, giochi e libri (genere, mood, energia, durata, pagine) per i filtri di "Cosa guardo stasera", anche per le voci già inserite; eliminate le sezioni Persone e Luoghi; barra laterale web con nome app, nuova nota e ricerca e contatore totale su Attività; più spazio sotto la timeline; mockup dell'interesse (locale, `18-interesse-righe.html`) |
 | 2026-10-16 | 0.34.0 | Interesse con cinque pallini grandi (22 px) a destra nelle righe di intrattenimento e curiosità, senza contatore |
 | 2026-10-16 | 0.35.0 | Pallini dell'interesse dimezzati (11 px) e checkbox/pallini centrati in verticale sulla riga |
+| 2026-10-16 | 0.36.0 | Vista web: Revisione sotto la barra del giorno e sopra la routine, più spazio nella barra laterale; mockup dei numeri sotto la barra della fascia |
