@@ -15,10 +15,12 @@ export interface Entry {
   punteggio: number;
 }
 
-export type MotivoRevisione = 'scaduta' | 'manuale' | 'fermo';
+export type MotivoRevisione = 'scaduta' | 'manuale' | 'fermo' | 'vecchia';
 export interface VoceRevisione { item: Item; motivo: MotivoRevisione; giorni: number }
 
 const GIORNI_PROGETTO_FERMO = 30;
+/** Un'attività senza scadenza che non viene toccata da tanto va rivista: forse la priorità o gli altri parametri non sono più giusti. */
+export const GIORNI_ATTIVITA_VECCHIA = 45;
 
 export const live = (items: Item[]) => items.filter((i) => !i.eliminato);
 
@@ -54,7 +56,10 @@ export function revisione(items: Item[], today: string, now: number = Date.now()
     const giorni = daysOverdue(i, today);
     if (giorni > SOGLIA_REVISIONE_GIORNI) out.push({ item: i, motivo: 'scaduta', giorni });
     else if (i.daRivedere) out.push({ item: i, motivo: 'manuale', giorni });
-    else if (i.tipo === 'progetto') {
+    else if (i.tipo === 'azione' && !i.padreId && !dueDate(i)) {
+      const eta = Math.floor((now - i.aggiornato) / 86400000);
+      if (eta > GIORNI_ATTIVITA_VECCHIA) out.push({ item: i, motivo: 'vecchia', giorni: eta });
+    } else if (i.tipo === 'progetto') {
       const ultimo = Math.max(i.aggiornato, ...figli(tutte, i.id).map((c) => c.aggiornato));
       if (now - ultimo > GIORNI_PROGETTO_FERMO * 86400000 && prossimoPasso(i, tutte)) {
         out.push({ item: i, motivo: 'fermo', giorni: Math.floor((now - ultimo) / 86400000) });

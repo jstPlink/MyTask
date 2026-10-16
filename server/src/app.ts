@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import fastifyStatic from '@fastify/static';
-import type { Item, SyncRequest, SyncResponse } from '../../shared/types.ts';
+import type { ImpostazioniSync, Item, SyncRequest, SyncResponse } from '../../shared/types.ts';
 import { today } from '../../shared/dates.ts';
 import type { Config } from './config.ts';
 import { Store } from './db.ts';
@@ -26,6 +26,17 @@ const SESSIONE_MS = 180 * 24 * 3600 * 1000;
 const MAX_ITEM_BYTES = 200_000;
 
 export interface AppDeps { config: Config; store: Store; fetchFn?: typeof fetch; now?: () => number }
+
+/** Impostazioni: poche chiavi semplici, ognuna con una data di modifica e un valore di dimensione ragionevole. */
+function impostazioniValide(x: unknown): x is ImpostazioniSync {
+  if (!x || typeof x !== 'object' || Array.isArray(x)) return false;
+  const voci = Object.entries(x as Record<string, unknown>);
+  return voci.length <= 10 && voci.every(([k, v]) => {
+    const i = v as { valore?: unknown; aggiornato?: unknown } | null;
+    return /^[A-Za-z0-9_]{1,40}$/.test(k) && !!i && typeof i.aggiornato === 'number' && Number.isFinite(i.aggiornato)
+      && JSON.stringify(i.valore ?? null).length <= 20_000;
+  });
+}
 
 function itemValido(x: unknown): x is Item {
   if (!x || typeof x !== 'object') return false;
@@ -108,14 +119,16 @@ export async function buildApp({ config, store, fetchFn, now = Date.now }: AppDe
     const since = typeof body?.since === 'number' && body.since >= 0 ? body.since : 0;
     const changes = Array.isArray(body?.changes) ? body.changes : [];
     if (!changes.every(itemValido)) { reply.code(400).send({ error: 'voce_non_valida' }); return undefined; }
+    if (body?.impostazioni !== undefined && !impostazioniValide(body.impostazioni)) { reply.code(400).send({ error: 'impostazioni_non_valide' }); return undefined; }
     store.applyChanges(changes);
-    return { items: store.changesSince(since), seq: store.maxSeq() };
+    if (body?.impostazioni) store.applySettings(body.impostazioni);
+    return { items: store.changesSince(since), seq: store.maxSeq(), impostazioni: store.allSettings() };
   });
 
   app.get('/api/export', async (req, reply) => {
     if (!autentica(req)) return reply.code(401).send({ error: 'non_autenticato' });
     reply.header('content-disposition', `attachment; filename="mytask-${today(new Date(now()))}.json"`);
-    return { esportato: new Date(now()).toISOString(), voci: store.allItems() };
+    return { esportato: new Date(now()).toISOString(), voci: store.allItems(), impostazioni: store.allSettings() };
   });
 
   app.post('/api/ai/capture', async (req, reply) => {

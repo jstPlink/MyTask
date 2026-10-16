@@ -142,3 +142,26 @@ test('health: indica la versione del server', async () => {
   assert.match(r.json().versione, /^\d+\.\d+\.\d+$/);
   await app.close();
 });
+
+test('impostazioni: il tempo libero passa da un dispositivo all\'altro e vince la modifica più recente', async () => {
+  const { app, login } = await setup();
+  const token = (await login()).json().token as string;
+  const h = { authorization: `Bearer ${token}` };
+  const sync = async (payload: object) => (await app.inject({ method: 'POST', url: '/api/sync', headers: h, payload })).json() as { impostazioni?: Record<string, { valore: unknown; aggiornato: number }> };
+  const sera = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]) };
+  const mattina = { settimana: Array.from({ length: 7 }, () => [{ da: '07:00', a: '09:00' }]) };
+
+  // il telefono imposta il tempo libero; il sito, che parte da zero, lo riceve
+  await sync({ since: 0, changes: [], impostazioni: { tempoLibero: { valore: sera, aggiornato: 1000 } } });
+  assert.deepEqual((await sync({ since: 0, changes: [] })).impostazioni?.tempoLibero, { valore: sera, aggiornato: 1000 });
+  // una modifica più vecchia non sostituisce quella già salvata, una più recente sì
+  assert.equal((await sync({ since: 0, changes: [], impostazioni: { tempoLibero: { valore: mattina, aggiornato: 500 } } })).impostazioni?.tempoLibero?.aggiornato, 1000);
+  assert.deepEqual((await sync({ since: 0, changes: [], impostazioni: { tempoLibero: { valore: mattina, aggiornato: 2000 } } })).impostazioni?.tempoLibero?.valore, mattina);
+  // chiavi o valori non ammessi vengono rifiutati
+  assert.equal((await app.inject({ method: 'POST', url: '/api/sync', headers: h, payload: { since: 0, changes: [], impostazioni: { 'chiave non valida!': { valore: 1, aggiornato: 1 } } } })).statusCode, 400);
+  assert.equal((await app.inject({ method: 'POST', url: '/api/sync', headers: h, payload: { since: 0, changes: [], impostazioni: { x: { valore: 'a'.repeat(30000), aggiornato: 1 } } } })).statusCode, 400);
+  // l'esportazione le include
+  const esp = (await app.inject({ method: 'GET', url: '/api/export', headers: h })).json() as { impostazioni: Record<string, unknown> };
+  assert.ok('tempoLibero' in esp.impostazioni);
+  await app.close();
+});

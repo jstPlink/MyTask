@@ -133,3 +133,38 @@ test('stasera: la compagnia riconosce partner e amici e non filtra per durata', 
   assert.equal(suggerisciStasera([altro, coppia], { compagnia: 'partner' })[0].item.titolo, 'Serie in coppia');
   assert.equal(suggerisciStasera([altro, coppia], {}).length, 2);
 });
+
+test('piano: dopo un\'attività grande c\'è una pausa curiosità, poi si riparte', async () => {
+  const { DURATA_PAUSA } = await import('./piano.ts');
+  const grande = mk({ titolo: 'Grande', importanza: 5, sforzoMin: 90 });
+  const piccola = mk({ titolo: 'Piccola', importanza: 3, sforzoMin: 30 });
+  const cur = mk({ tipo: 'curiosita', titolo: 'Come funziona il GPS', interesse: 5 });
+  const serata: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]) };
+  const b = pianifica([grande, piccola, cur], serata, OGGI, NOW).giorni[0].blocchi;
+  assert.deepEqual(b.map((x) => x.item.titolo), ['Grande', 'Come funziona il GPS', 'Piccola']);
+  assert.equal(b[1].pausa, true);
+  assert.equal(b[1].a - b[1].da, DURATA_PAUSA);
+  assert.equal(orario(b[2].da), '19:45'); // la pausa sposta in avanti l'attività successiva
+});
+
+test('piano: niente pausa senza curiosità, con soli lavori piccoli o senza spazio', () => {
+  const grande = mk({ importanza: 5, sforzoMin: 90 });
+  const piccola = mk({ importanza: 3, sforzoMin: 30 });
+  const cur = mk({ tipo: 'curiosita', titolo: 'Una curiosità' });
+  const serata: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]) };
+  assert.ok(!pianifica([grande, piccola], serata, OGGI, NOW).giorni[0].blocchi.some((x) => x.pausa));
+  assert.ok(!pianifica([piccola, mk({ importanza: 2, sforzoMin: 45 }), cur], serata, OGGI, NOW).giorni[0].blocchi.some((x) => x.pausa));
+  const stretta: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '19:40' }]) };
+  assert.ok(!pianifica([grande, cur], stretta, OGGI, NOW).giorni[0].blocchi.some((x) => x.pausa)); // 90 min + pausa non lasciano spazio ad altro lavoro
+});
+
+test('piano: ogni curiosità serve a una sola pausa e le pause sono al massimo due al giorno', () => {
+  const grandi = [1, 2, 3, 4, 5].map((n) => mk({ titolo: `G${n}`, importanza: 5, sforzoMin: 60 }));
+  const curs = [1, 2, 3].map((n) => mk({ tipo: 'curiosita', titolo: `C${n}` }));
+  const lunga: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '09:00', a: '19:00' }]) };
+  const p = pianifica([...grandi, ...curs], lunga, OGGI, NOW);
+  const pause = p.giorni.flatMap((g) => g.blocchi).filter((x) => x.pausa);
+  assert.equal(new Set(pause.map((x) => x.item.id)).size, pause.length);
+  for (const g of p.giorni) assert.ok(g.blocchi.filter((x) => x.pausa).length <= 2);
+  assert.ok(pause.length >= 1);
+});

@@ -1,6 +1,7 @@
 import type { SyncResponse } from '../../../shared/types.ts';
 import { applyRemote, getAuth, getSince, markSent, pendingCount, setAuth, setOnLocalChange, setSince, takeDirty } from './store.ts';
 import { apiBase } from './api.ts';
+import { applicaDaServer, impostazioniDaInviare, subscribeDisponibilita } from './disponibilita.ts';
 import { debounce } from './util.ts';
 
 export interface StatoSync { online: boolean; inCorso: boolean; errore?: string; ultima?: number; inAttesa: number }
@@ -14,6 +15,8 @@ export const subscribeSync = (fn: () => void) => { listeners.add(fn); return () 
 
 let inVolo = false;
 let richiestaPendente = false;
+/** True mentre si applica il tempo libero arrivato dal server: non deve far partire un nuovo invio. */
+let applicando = false;
 
 /** Invia le modifiche locali e riceve quelle degli altri dispositivi. Non fa nulla senza rete o senza accesso. */
 export async function sync(): Promise<void> {
@@ -27,7 +30,7 @@ export async function sync(): Promise<void> {
     const res = await fetch(`${apiBase()}/api/sync`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-      body: JSON.stringify({ since: getSince(), changes }),
+      body: JSON.stringify({ since: getSince(), changes, impostazioni: impostazioniDaInviare() }),
     });
     if (res.status === 401) {
       await setAuth({ email: getAuth().email }); // la sessione è scaduta: serve rifare l'accesso, i dati restano
@@ -39,6 +42,8 @@ export async function sync(): Promise<void> {
     await markSent(changes);
     await applyRemote(data.items);
     await setSince(data.seq);
+    applicando = true;
+    try { applicaDaServer(data.impostazioni); } finally { applicando = false; }
     set({ ultima: Date.now(), online: true });
   } catch (e) {
     set({ errore: e instanceof Error ? e.message : 'Sincronizzazione non riuscita' });
@@ -53,6 +58,7 @@ const sincronizzaPoi = debounce(() => { void sync(); }, 1200);
 
 export function avviaSync() {
   setOnLocalChange(() => { set({ inAttesa: pendingCount() }); sincronizzaPoi(); });
+  subscribeDisponibilita(() => { if (!applicando) sincronizzaPoi(); });
   window.addEventListener('online', () => { set({ online: true }); void sync(); });
   window.addEventListener('offline', () => set({ online: false }));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void sync(); });

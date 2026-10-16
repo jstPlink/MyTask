@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.20.0
+- **Versione documento:** 0.21.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -13,8 +13,8 @@ Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel
 Regole fisse per chi sviluppa (anche Claude), da rispettare a ogni modifica:
 
 1. **Anteprima in locale:** sito e server in localhost, con il sito collegato al server vero (`MYTASK_SERVER`, vedi `web/vite.config.ts`), così l'utente vede le modifiche prima di pubblicarle.
-2. **Telefono sempre aggiornato:** dopo ogni modifica l'app Android sul telefono va aggiornata (debug wireless, `adb install -r`, senza disinstallare per non perdere i dati locali). L'APK si costruisce solo su GitHub Actions, quindi serve prima commit e push e poi aspettare la build.
-3. **Commit solo se serve:** si chiede il commit solo quando è necessario per vedere le modifiche (cioè per l'aggiornamento del telefono); non si fanno commit o push per altri motivi senza che l'utente lo chieda.
+2. **Telefono sempre aggiornato, senza chiedere il permesso:** l'app Android sul telefono si aggiorna ogni volta che è possibile (debug wireless, `adb install -r`, senza disinstallare per non perdere i dati locali), senza chiedere conferma. Se serve davvero disinstallare e reinstallare (per esempio perché cambia la chiave di firma), si può fare senza chiedere, ma prima si salvano i dati locali: si apre l'app con la rete attiva per farli sincronizzare con il server e, se si può, si copiano in un file per reinserirli dopo; a reinstallazione fatta si riaccede e si controlla che le voci siano tornate (altrimenti si reimportano da quel file con Altro > Account > Importa). L'APK si costruisce solo su GitHub Actions, quindi l'aggiornamento è possibile quando esiste una build pubblicata, cioè dopo che l'utente ha chiesto commit e push; se il telefono non è raggiungibile (debug wireless spento) si dice e si riprova alla richiesta successiva.
+3. **Commit e push solo su richiesta dell'utente:** non si fanno mai da soli, nemmeno per aggiornare il telefono; si aspetta sempre che l'utente li chieda. Quando li chiede si fa tutto di seguito: commit, push, attesa della build e aggiornamento del telefono.
 4. **Versione e documentazione:** si aumenta la versione a ogni commit e si annota il registro in fondo a questo documento.
 5. **Privacy:** niente screenshot del telefono (può mostrare notifiche private); per verificare si usa il browser o i test.
 
@@ -49,10 +49,10 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 
 ### 2.1 Navigazione (telefono)
 
-- **Quattro schede in basso** con icona (Oggi, Attività, Intrattenimento, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
+- **Cinque schede in basso** con icona (Oggi, Attività, Intrattenimento, Curiosità, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
 - **Attività** (prima "Fare") contiene tre sezioni: Attività, Progetti ed Esperienze.
-- **Intrattenimento** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette) e le Curiosità.
-- **Inbox** e **Altro** sono i due pulsanti tondi in alto a destra in "Oggi". Altro apre: Inbox, Revisione, Archivio, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
+- **Intrattenimento** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette). Le **Curiosità** hanno una scheda propria.
+- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Revisione, Archivio, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza rigida.
 
 ### 2.2 Estetica (stile e palette approvati dall'utente)
@@ -63,16 +63,20 @@ Layout identico ai mockup minimalisti, con questi cambi:
 - **Aspetto modificabile dalle impostazioni** (Altro > Aspetto): tema Sistema / Chiaro / Scuro e colore d'accento. Si applica subito, viene salvato sul dispositivo e funziona offline.
 - **Un colore d'avviso** (arancio), riservato a scadenze rigide e voci scadute.
 - **Tutto il resto neutro**, con sfondo caldo e superfici bianche (chiaro) o grigio scuro (scuro).
+- **Contrasto:** i colori di base (testo, testo secondario, testo tenue, linee, rilievi e superficie) hanno un contrasto verso lo sfondo più alto di almeno il 5% (rapporto WCAG) rispetto alla versione precedente, con la stessa tinta neutra. Nel tema chiaro lo sfondo è un po' più scuro, così le schede bianche risaltano di più.
 - **Tema chiaro e tema scuro** con la stessa gerarchia; il tema segue il sistema, con possibilità di forzarlo.
 - **Angoli più morbidi**; l'ombra compare solo sull'elemento più importante della schermata.
 - **Priorità**: la barra a sinistra usa tre intensità dell'accento (alta piena, media 42%, bassa quasi invisibile).
 
 | Token | Chiaro | Scuro |
 |---|---|---|
-| Sfondo | #F7F6F2 | #0E0F12 |
-| Superficie | #FFFFFF | #181A1F |
-| Testo | #1C1C21 | #EDEDF2 |
-| Secondario | #6C6C75 | #A0A0AC |
+| Sfondo | #F1F0EC | #0E0F12 |
+| Superficie | #FFFFFF | #1D1F23 |
+| Rilievo | #E3E1DC | #272930 |
+| Linee | #DDDAD4 | #2F3138 |
+| Testo | #111115 | #F3F3F6 |
+| Secondario | #65656E | #A5A5B0 |
+| Tenue | #919199 | #72737D |
 | Accento Verde (predefinito) | #2F7D5B | #6FCF9B |
 | Accento Petrolio | #0E7490 | #4FC3DD |
 | Accento Indaco | #4F46E5 | #9A9EFF |
@@ -82,9 +86,9 @@ Layout identico ai mockup minimalisti, con questi cambi:
 
 Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
 
-- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sette collezioni, Routine; "Da sistemare": Inbox e Revisione con contatori; Archivio, Persone, Luoghi; Aspetto, Notifiche, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
+- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Archivio, Persone, Luoghi; Aspetto, Notifiche, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
 - **Da 1300 px:** il dettaglio si apre in un pannello a destra e la voce aperta è evidenziata nell'elenco.
-- **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca e "+ Nuova voce" (il tipo segue la sezione in cui si è).
+- **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca, pulsante Stile e aspetto e "+ Nuova voce" (il tipo segue la sezione in cui si è).
 - **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, nelle persone, nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
 - **Oggi** è un cruscotto a due colonne (cose da fare; routine, revisione e inbox). **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
 - **Scorciatoie da tastiera:** N (cattura rapida), / (ricerca), Esc (chiude la conferma, la ricerca o il pannello). Spostarsi nell'elenco con J e K e segnare fatto con F non sono ancora implementati.
@@ -94,8 +98,8 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 
 - **Stile delle righe (P1):** ogni riga con priorità ha il checkbox bordato nel colore del livello (arancio-rosso = alta, ambra = media, grigio = bassa) e, a destra, un pallino con contorno colorato e sfondo tenue che contiene il numero d'ordine (1 = la prima da fare), senza raggruppamenti né sfondi sulle righe. Il numero è la posizione per punteggio nell'elenco delle attività, tra i blocchi del giorno nel piano di Oggi (gli impegni con orario fisso non lo hanno) e nella lista semplice di Oggi. Le liste di Intrattenimento ed Esperienze hanno il checkbox colorato ma non il numero.
 - **Tag e area:** tolti dall'interfaccia (nessuna pillola sulle righe, nessun filtro per area; il campo `area` resta solo nei dati).
-- **Oggi a sezioni:** Routine, Piano di oggi, Non entrano oggi e Nei prossimi giorni (la vecchia lista "Prossimi 7 giorni" non c'è più) sono schede separate e distanziate. Toccando un giorno in "Nei prossimi giorni" si apre quel giorno. Nella vista giorno si scorre con lo swipe (a sinistra il giorno dopo, a destra quello prima; non scatta sullo scorrimento verticale o sui filtri scorrevoli). La navigazione tra giorni è un riquadro unico con le frecce ai lati.
-- **Giorno e mese in Oggi:** Oggi è un'unica pagina. Di default mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro), con il selettore Giorno/Mese si apre il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza rigida o scaduta): toccando un giorno si torna alla vista giorno su quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine, Revisione e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
+- **Oggi a sezioni:** Routine, Piano di oggi e Non entrano oggi sono schede separate e distanziate (la riga "Nei prossimi giorni" e la vecchia lista "Prossimi 7 giorni" non ci sono più). Nel giorno si scorre con lo swipe (a sinistra il giorno dopo, a destra quello prima; non scatta sullo scorrimento verticale o sui filtri scorrevoli). La navigazione tra giorni è un riquadro unico con le frecce ai lati.
+- **Giorno e mese in Oggi:** Oggi è un'unica pagina e mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro). Non c'è più il selettore Giorno/Mese: toccando il nome del giorno (con la freccetta) si apre una finestra con il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza rigida o scaduta); toccando un giorno la finestra si chiude e si vede quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine, Revisione e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
 - **Stato di sincronizzazione:** in Oggi (telefono) compare solo se si è offline o ci sono modifiche in attesa; nella barra laterale del sito resta sempre visibile.
 - **Indietro:** la cronologia ricorda anche le schede e le sotto-sezioni visitate; il tasto indietro del telefono o del browser le ripercorre.
 
@@ -107,9 +111,11 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Algoritmo:** si prendono le azioni aperte e i prossimi passi dei progetti (stessi candidati di Oggi), ordinati per punteggio di priorità. Ognuna va nella prima fascia libera con spazio sufficiente, partendo da oggi (e per oggi dall'ora attuale), entro 14 giorni. Durata = sforzo stimato, 30 minuti se non è stimato.
 - **Rimandare:** se non c'è spazio, le meno prioritarie passano ai giorni successivi. In Oggi compaiono in "Non entrano oggi" quelle che scadono oggi o sono scadute, con il giorno e l'ora a cui sono state spostate. Se finiscono dopo la scadenza il blocco è segnato "oltre la scadenza".
 - **Spezzare:** le attività oltre i 60 minuti si dividono in blocchi (minimo 30 minuti) su più fasce e giorni ("parte 1 di 2"); quelle più brevi non si spezzano.
+- **Pause curiosità:** dopo un blocco grande (60 minuti o più), ogni due blocchi grandi dello stesso giorno, il piano inserisce una pausa di 15 minuti con una curiosità da approfondire, per spezzare il ritmo; al massimo due al giorno, una curiosità diversa per ogni pausa (prima le più interessanti, a parità le più vecchie), e solo se nella fascia resta spazio per altro lavoro. Nel piano compaiono come "Pausa curiosità" e si spuntano come approfondite.
 - **Impegni con orario:** le voci con data e ora di inizio restano dove sono e tolgono tempo libero.
 - **Oggi:** "Piano di oggi" è una giornata scandita da blocchi con ora di inizio e durata, con una barra del tempo usato sul tempo libero; sotto, un riepilogo dei prossimi giorni. Il piano si ricalcola a ogni modifica e ogni minuto, quindi segue l'ora che passa.
-- **Non ancora:** eccezioni per un singolo giorno (il modello le prevede), tempo libero sincronizzato tra dispositivi, piano nel calendario.
+- **Sincronizzazione del tempo libero:** il tempo libero viaggia nella stessa sincronizzazione delle voci (campo `impostazioni` di `/api/sync`, tabella `settings` del server, chiave `tempoLibero`). Ogni dispositivo ricorda quando l'ha modificato e vince la modifica più recente, così telefono e sito vedono gli stessi orari. Serve l'app e il server alla 0.21.0 o successiva; un valore impostato con una versione precedente sale al primo collegamento.
+- **Non ancora:** eccezioni per un singolo giorno (il modello le prevede), piano nel calendario.
 
 ### 2.4 Telefono: icone e pulsanti circolari (implementato)
 
@@ -199,6 +205,8 @@ Le collezioni non hanno punteggio di urgenza: si ordinano per **interesse**, fil
 
 Calcolato: data finale passata e stato diverso da fatto/saltato. Le voci scadute compaiono nell'area **Revisione**, con azioni rapide: ripianifica, segna come saltato, segna come fatto.
 
+Entrano in Revisione anche le **attività senza scadenza che non vengono modificate da più di 45 giorni** (costante `GIORNI_ATTIVITA_VECCHIA` in `shared/views.ts`), perché la priorità o altri parametri potrebbero non essere più giusti. Le azioni sono: "Va ancora bene" (conferma e riparte il conteggio), "Cambia priorità e parametri" (apre la scheda), "Parcheggia" e "Salta". Non riguarda le attività con scadenza, quelle parcheggiate, i sotto-task e i progetti (che hanno la loro regola dei 30 giorni). Finché sono in Revisione, queste attività non compaiono in Oggi né nel piano.
+
 ### 4.3 Promemoria
 
 - Possono essere singoli o ripetuti (giornalieri, settimanali, ogni N giorni, a orari fissi).
@@ -263,8 +271,8 @@ Come vengono importati i padri (le regole esatte stanno in `server/scripts/regol
 2. **Da fare oggi**: tutte le voci con scadenza oggi o scaduta da non più di 2 giorni, più le voci senza data con il punteggio più alto, fino a un massimo di 5 (se le scadenze sono di più, compaiono tutte). A parità di punteggio vengono prima quelle già in corso.
 3. Di un progetto compare **solo il prossimo passo**, con le eredità di importanza e scadenza.
 4. Le **esperienze senza data** non compaiono mai in Oggi: sono una lista di desideri.
-5. **Prossimi 7 giorni**: qualunque voce aperta con scadenza nei 7 giorni successivi.
-6. Le voci scadute da **più di 2 giorni**, quelle segnate "da rivedere" e i progetti fermi da 30 giorni vanno in **Revisione**, non in Oggi né nelle liste di Fare.
+5. I giorni successivi si guardano scegliendo il giorno dalla finestra del mese (il piano copre 14 giorni).
+6. Le voci scadute da **più di 2 giorni**, quelle segnate "da rivedere" e i progetti fermi da 30 giorni e le attività senza scadenza ferme da 45 giorni vanno in **Revisione**, non in Oggi né nelle liste di Fare.
 7. Le voci parcheggiate non compaiono in Oggi.
 
 ### 4.9 Tipi e regole di smistamento nell'importazione
@@ -408,3 +416,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-15 | 0.19.0 | Stile J per le righe: sfondo sfumato nel colore del livello, checkbox colorato, numero d'ordine a destra (sezione 2.3.1) |
 | 2026-10-15 | 0.19.1 | Stile P1 al posto del J: checkbox colorato e pallino numerato con contorno a destra, righe senza sfondo colorato (sezione 2.3.1) |
 | 2026-10-15 | 0.20.0 | Pulsanti Elimina, Archivia, Completato (in quest'ordine); "Da parte" diventa "Archiviate"; tolti i "Prossimi 7 giorni" da Oggi; Cosa guardo stasera con Con chi (solo, partner, amici), piattaforme di base, mood, energia e tipologia al posto del tempo disponibile |
+| 2026-10-16 | 0.21.0 | Tolta la riga "Nei prossimi giorni" da Oggi. Curiosità diventa una scheda principale (cinque schede in basso e voce nella barra laterale). Nel piano, pause di 15 minuti con una curiosità tra le attività grandi. Tolto il selettore Giorno/Mese: il nome del giorno apre una finestra con il mese. Pulsante tondo "Stile e aspetto" in cima alle schede principali e nella barra in alto. Colori di base con contrasto più alto di almeno il 5%. Le attività senza scadenza ferme da 45 giorni vanno in Revisione. Il tempo libero ora si sincronizza tra telefono e sito (tabella `settings` sul server, campo `impostazioni` in `/api/sync`); per vederlo servono la nuova app e l'immagine aggiornata sul NAS |

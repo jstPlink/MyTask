@@ -19,7 +19,7 @@ function Link({ nome, on, sub, main, n, warn, icona, onClick }: { nome: string; 
 const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }];
 const SUB_SCOPRIRE: { id: SubScoprire; nome: string }[] = [
   { id: 'film', nome: 'Film' }, { id: 'serie', nome: 'Serie' }, { id: 'anime', nome: 'Anime' }, { id: 'gioco', nome: 'Giochi' },
-  { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' }, { id: 'curiosita', nome: 'Curiosità' },
+  { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' },
 ];
 
 /** Barra laterale per schermi larghi: sostituisce le schede in basso e il menu "Altro". */
@@ -75,6 +75,8 @@ export function Sidebar() {
           {SUB_SCOPRIRE.map((s) => <Link key={s.id} sub nome={s.nome} n={n[s.id]} on={inTab('scoprire') && nav.scoprireSub === s.id} onClick={() => apriScoprire(s.id)} />)}
         </div>
       )}
+
+      <Link main nome="Curiosità" icona="curiosita" on={inTab('curiosita')} n={n.curiosita} onClick={() => apriTab('curiosita')} />
 
       <Link main nome="Routine" icona="routine" on={inTab('routine')} onClick={() => apriTab('routine')} />
 

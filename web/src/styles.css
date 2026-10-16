@@ -8,7 +8,7 @@
 
 :root[data-theme=light] {
   color-scheme: light;
-  --bg: #F7F6F2; --surface: #FFFFFF; --surface2: #EFEDE7; --ink: #1C1C21; --mid: #6C6C75; --soft: #9A9AA2; --line: #E8E5DE;
+  --bg: #F1F0EC; --surface: #FFFFFF; --surface2: #E3E1DC; --ink: #111115; --mid: #65656E; --soft: #919199; --line: #DDDAD4;
   --warn: #D1430B; --warn-soft: #FDEBE2; --shadow: 0 6px 20px rgba(30,30,40,.10); --on-accent: #FFFFFF;
   --accent: var(--accent-l); --accent-soft: var(--accent-soft-l);
   --o-verde: #2F7D5B; --o-petrolio: #0E7490; --o-indaco: #4F46E5;
@@ -17,7 +17,7 @@
 }
 :root[data-theme=dark] {
   color-scheme: dark;
-  --bg: #0E0F12; --surface: #181A1F; --surface2: #23252C; --ink: #EDEDF2; --mid: #A0A0AC; --soft: #6E6F7A; --line: #2B2D35;
+  --bg: #0E0F12; --surface: #1D1F23; --surface2: #272930; --ink: #F3F3F6; --mid: #A5A5B0; --soft: #72737D; --line: #2F3138;
   --warn: #FF9466; --warn-soft: #3A2218; --shadow: 0 6px 24px rgba(0,0,0,.55); --on-accent: #0E0F12;
   --accent: var(--accent-d); --accent-soft: var(--accent-soft-d);
   --o-verde: #6FCF9B; --o-petrolio: #4FC3DD; --o-indaco: #9A9EFF;
@@ -388,3 +388,11 @@ a { color: var(--accent); }
 .row.p1 .cb.done, .row.p2 .cb.done, .row.p3 .cb.done { background: var(--c); border-color: var(--c); }
 .row .rank { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
 .row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }
+
+/* ---------- Giorno scelto con finestra del mese, cinque schede ---------- */
+.giorno-scelta { display: block; width: 100%; padding: 4px 8px; border-radius: 12px; text-align: center; }
+.giorno-scelta:hover { background: var(--surface2); }
+.giorno-scelta b i { font-style: normal; font-size: 12px; margin-left: 6px; color: var(--mid); }
+.giorno-nome { flex: 1; }
+.tabs button { font-size: 10.5px; padding: 0 2px; }
+@media (max-width: 420px) { .tabs button { font-size: 10px; } .tabs button .ic { width: 46px; } }

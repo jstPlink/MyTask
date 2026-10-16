@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'react';
 import type { Item } from '../../../shared/types.ts';
 
-export type Tab = 'oggi' | 'fare' | 'scoprire' | 'routine';
+export type Tab = 'oggi' | 'fare' | 'scoprire' | 'curiosita' | 'routine';
 export type SubFare = 'azioni' | 'progetti' | 'esperienze';
-export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'ricetta' | 'curiosita';
+export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'ricetta';
 
 export type Screen =
   | { k: 'item'; id?: string; nuovo?: Partial<Item> }

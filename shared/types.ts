@@ -106,5 +106,9 @@ export interface Item {
   daContattare?: boolean;
 }
 
-export interface SyncRequest { since: number; changes: Item[] }
-export interface SyncResponse { items: Item[]; seq: number }
+/** Impostazione dell'utente sincronizzata tra i dispositivi (per ora il tempo libero): vince la più recente. */
+export interface ImpostazioneSync { valore: unknown; aggiornato: number }
+export type ImpostazioniSync = Record<string, ImpostazioneSync>;
+
+export interface SyncRequest { since: number; changes: Item[]; impostazioni?: ImpostazioniSync }
+export interface SyncResponse { items: Item[]; seq: number; impostazioni?: ImpostazioniSync }

@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Item } from '../../shared/types.ts';
+import type { ImpostazioniSync, Item } from '../../shared/types.ts';
 
 export interface Utente { id: number; email: string; hash: string }
 
@@ -32,6 +32,7 @@ export class Store {
       );
       CREATE INDEX IF NOT EXISTS items_seq ON items(seq);
       CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS settings (k TEXT PRIMARY KEY, v TEXT NOT NULL, updated INTEGER NOT NULL);
       INSERT OR IGNORE INTO meta(k, v) VALUES ('seq', 0);
     `);
   }
@@ -113,6 +114,22 @@ export class Store {
   changesSince(seq: number): Item[] {
     const rows = this.db.prepare('SELECT data FROM items WHERE seq > ? ORDER BY seq').all(seq) as { data: string }[];
     return rows.map((r) => JSON.parse(r.data) as Item);
+  }
+
+  /** Impostazioni dell'utente (per ora il tempo libero): vince il valore con la data di modifica più recente. */
+  applySettings(s: ImpostazioniSync): void {
+    const get = this.db.prepare('SELECT updated FROM settings WHERE k = ?');
+    const put = this.db.prepare('INSERT INTO settings(k, v, updated) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, updated = excluded.updated');
+    for (const [k, x] of Object.entries(s)) {
+      const ex = get.get(k) as { updated: number } | undefined;
+      if (ex && ex.updated >= x.aggiornato) continue;
+      put.run(k, JSON.stringify(x.valore), x.aggiornato);
+    }
+  }
+
+  allSettings(): ImpostazioniSync {
+    const rows = this.db.prepare('SELECT k, v, updated FROM settings').all() as { k: string; v: string; updated: number }[];
+    return Object.fromEntries(rows.map((r) => [r.k, { valore: JSON.parse(r.v) as unknown, aggiornato: r.updated }]));
   }
 
   allItems(): Item[] {

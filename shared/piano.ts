@@ -3,7 +3,7 @@
 import type { Item } from './types.ts';
 import { addDays } from './dates.ts';
 import { dueDate } from './priority.ts';
-import { candidatiOggi, type Entry } from './views.ts';
+import { candidatiOggi, curiosita, type Entry } from './views.ts';
 
 /** Fascia di tempo libero, orari HH:MM. */
 export interface FasciaOraria { da: string; a: string }
@@ -37,6 +37,8 @@ export interface Blocco {
   fisso?: boolean;
   /** Finisce dopo la scadenza: il tempo prima non bastava. */
   inRitardo?: boolean;
+  /** Pausa breve con una curiosità, tra un'attività grande e l'altra: `item` è la curiosità. */
+  pausa?: boolean;
 }
 
 export interface GiornoPiano {
@@ -60,6 +62,15 @@ const DURATA_PREDEFINITA = 30;
 const SOGLIA_SPEZZABILE = 60;
 const BLOCCO_MINIMO = 30;
 const PASSO = 5;
+/** Un blocco di almeno questa durata è "grande": dopo ogni secondo blocco grande del giorno si prova a inserire una pausa curiosità. */
+export const SOGLIA_GRANDE = 60;
+export const DURATA_PAUSA = 15;
+const MAX_PAUSE_GIORNO = 2;
+
+interface Pezzo extends Omit<Blocco, 'parte' | 'inRitardo' | 'pausa'> {
+  /** Pausa curiosità riservata subito dopo questo pezzo. */
+  riserva?: { item: Item; da: number; a: number };
+}
 
 export const minuti = (hhmm: string): number => {
   const [h, m] = hhmm.split(':').map(Number);
@@ -119,6 +130,26 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
     }
   }
 
+  // curiosità per le pause: prima le più interessanti, a parità le più vecchie; ognuna una volta sola
+  const pool = curiosita(items)
+    .filter((c) => c.stato !== 'parcheggiato')
+    .sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.aggiornato - b.aggiornato);
+  const grandiGiorno = new Map<string, number>();
+  const pauseGiorno = new Map<string, number>();
+  /** Dopo un pezzo grande (e ogni due), riserva una pausa curiosità se nella fascia resta spazio per altro lavoro. */
+  const riservaPausa = (p: Pezzo, l: Gap[], k: number) => {
+    const grandi = grandiGiorno.get(p.data) ?? 0;
+    grandiGiorno.set(p.data, grandi + 1);
+    const rimasto = l[k];
+    if (grandi % 2 !== 0 || !rimasto || (pauseGiorno.get(p.data) ?? 0) >= MAX_PAUSE_GIORNO) return;
+    if (rimasto[1] - rimasto[0] < DURATA_PAUSA + BLOCCO_MINIMO) return;
+    const c = pool.shift();
+    if (!c) return;
+    p.riserva = { item: c, da: rimasto[0], a: rimasto[0] + DURATA_PAUSA };
+    l[k] = [rimasto[0] + DURATA_PAUSA, rimasto[1]];
+    pauseGiorno.set(p.data, (pauseGiorno.get(p.data) ?? 0) + 1);
+  };
+
   const fuori: Entry[] = [];
   const ordinati = [...flessibili].sort((a, b) => b.punteggio - a.punteggio);
   for (const e of ordinati) {
@@ -126,7 +157,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
     const totale = durataDi(i);
     const scadenza = dueDate(i);
     const spezzabile = totale > SOGLIA_SPEZZABILE;
-    const pezzi: Omit<Blocco, 'parte' | 'inRitardo'>[] = [];
+    const pezzi: Pezzo[] = [];
     let resto = totale;
 
     for (const g of giorni) {
@@ -138,13 +169,17 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
         if (spezzabile) {
           const presa = Math.min(resto, spazio);
           if (presa < BLOCCO_MINIMO && presa < resto) continue;
-          pezzi.push({ item: i, padre: e.padre, data: g.data, da: s, a: s + presa });
+          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + presa };
+          pezzi.push(pezzo);
           l.splice(k, 1, ...(presa < spazio ? [[s + presa, f] as Gap] : []));
+          if (presa >= SOGLIA_GRANDE && presa < spazio) riservaPausa(pezzo, l, k);
           if (presa >= spazio) k--;
           resto -= presa;
         } else if (spazio >= totale) {
-          pezzi.push({ item: i, padre: e.padre, data: g.data, da: s, a: s + totale });
+          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + totale };
+          pezzi.push(pezzo);
           l.splice(k, 1, ...(totale < spazio ? [[s + totale, f] as Gap] : []));
+          if (totale >= SOGLIA_GRANDE && totale < spazio) riservaPausa(pezzo, l, k);
           resto = 0;
         }
       }
@@ -154,7 +189,8 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
       // non entra nell'orizzonte: i pezzi già assegnati vengono annullati
       for (const p of pezzi) {
         const l = gaps.get(p.data)!;
-        l.push([p.da, p.a]);
+        if (p.riserva) { pool.unshift(p.riserva.item); pauseGiorno.set(p.data, (pauseGiorno.get(p.data) ?? 1) - 1); }
+        l.push([p.da, p.riserva ? p.riserva.a : p.a]);
         l.sort((a, b) => a[0] - b[0]);
         const unite: Gap[] = [];
         for (const x of l) {
@@ -170,7 +206,10 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
     const ultimaData = pezzi[pezzi.length - 1].data;
     const inRitardo = !!scadenza && ultimaData > scadenza;
     pezzi.forEach((p, n) => {
-      giorni.find((g) => g.data === p.data)!.blocchi.push({ ...p, parte: pezzi.length > 1 ? { n: n + 1, di: pezzi.length } : undefined, inRitardo });
+      const { riserva, ...blocco } = p;
+      const giorno = giorni.find((g) => g.data === p.data)!;
+      giorno.blocchi.push({ ...blocco, parte: pezzi.length > 1 ? { n: n + 1, di: pezzi.length } : undefined, inRitardo });
+      if (riserva) giorno.blocchi.push({ item: riserva.item, data: p.data, da: riserva.da, a: riserva.a, pausa: true });
     });
   }
 

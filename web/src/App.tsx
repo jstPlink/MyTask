@@ -11,6 +11,7 @@ import { TopBar } from './ui/TopBar.tsx';
 import { Oggi } from './screens/Oggi.tsx';
 import { Fare } from './screens/Fare.tsx';
 import { Scoprire } from './screens/Scoprire.tsx';
+import { Curiosita } from './screens/Curiosita.tsx';
 import { Routine } from './screens/Routine.tsx';
 import { Ricerca } from './screens/Ricerca.tsx';
 import { ItemDetail } from './screens/ItemDetail.tsx';
@@ -151,6 +152,7 @@ export function App() {
       {tab === 'oggi' && <Oggi />}
       {tab === 'fare' && <Fare />}
       {tab === 'scoprire' && <Scoprire />}
+      {tab === 'curiosita' && <Curiosita />}
       {tab === 'routine' && <Routine />}
     </>
   );

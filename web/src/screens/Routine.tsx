@@ -6,6 +6,7 @@ import { useItems, useOggi } from '../lib/hooks.ts';
 import { segnaRoutine, segnaRoutineGiorno } from '../lib/actions.ts';
 import { saveItem } from '../lib/store.ts';
 import { Empty, Fab, Sec, Top } from '../ui/kit.tsx';
+import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 
@@ -56,7 +57,7 @@ export function Routine() {
 
   return (
     <>
-      <Top title="Routine" sub={`Settimana dal ${formatShort(lunedi)} al ${formatShort(addDays(lunedi, 6))}`} />
+      <Top title="Routine" sub={`Settimana dal ${formatShort(lunedi)} al ${formatShort(addDays(lunedi, 6))}`} right={<PulsanteAspetto />} />
       <div className={clsx('scroll', nav.wide && 'wide-board')}>
         {attive.length === 0 && <Empty>Nessuna routine attiva. Aggiungine una con il pulsante +.</Empty>}
         {griglia}

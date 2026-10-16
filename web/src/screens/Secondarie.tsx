@@ -129,13 +129,17 @@ export function Revisione() {
       <>
         <Back />
         <Top title="Revisione" sub="Tutto in ordine" />
-        <div className="scroll"><Empty>Niente da rivedere. Le voci scadute da più di due giorni o i progetti fermi compaiono qui.</Empty></div>
+        <div className="scroll"><Empty>Niente da rivedere. Le voci scadute da più di due giorni, i progetti fermi e le attività senza modifiche da molto tempo compaiono qui.</Empty></div>
       </>
     );
   }
   const i = v.item;
   const fatte = totale.current - lista.length;
-  const quando = v.motivo === 'scaduta' ? `Scaduta ${relativeDays(dueDate(i)!, oggi)}` : v.motivo === 'fermo' ? `Progetto fermo da ${v.giorni} giorni` : 'Da rivedere';
+  const quando = v.motivo === 'scaduta' ? `Scaduta ${relativeDays(dueDate(i)!, oggi)}`
+    : v.motivo === 'fermo' ? `Progetto fermo da ${v.giorni} giorni`
+    : v.motivo === 'vecchia' ? `Senza modifiche da ${v.giorni} giorni: priorità e parametri sono ancora giusti?`
+    : 'Da rivedere';
+  const stantia = v.motivo === 'fermo' || v.motivo === 'vecchia';
   const opzioni: [string, string][] = [['Domani', addDays(oggi, 1)], ['Tra una settimana', addDays(oggi, 7)], ['Tra un mese', addDays(oggi, 30)]];
 
   return (
@@ -151,14 +155,15 @@ export function Revisione() {
           {i.note && <div className="t2" style={{ marginTop: 6 }}>{i.note.slice(0, 140)}</div>}
           {!pianifica ? (
             <div className="btns col">
-              {v.motivo === 'fermo'
-                ? <button className="btn solid" onClick={() => saveItem({ ...i })}>Va avanti, ci lavoro</button>
+              {stantia
+                ? <button className="btn solid" onClick={() => saveItem({ ...i })}>{v.motivo === 'vecchia' ? 'Va ancora bene' : 'Va avanti, ci lavoro'}</button>
                 : <button className="btn solid" onClick={() => setPianifica(true)}>Ripianifica</button>}
-              {v.motivo === 'fermo'
+              {v.motivo === 'vecchia' && <button className="btn" onClick={() => nav.push({ k: 'item', id: i.id })}>Cambia priorità e parametri</button>}
+              {stantia
                 ? <button className="btn" onClick={() => saveItem({ ...i, stato: 'parcheggiato' })}>Parcheggia</button>
                 : <button className="btn" onClick={() => completaVoce(i)}>Segna fatto</button>}
               <button className="btn" onClick={() => saltaVoce(i)}>Salta</button>
-              <button className="chip" style={{ alignSelf: 'center' }} onClick={() => nav.push({ k: 'item', id: i.id })}>Apri la voce</button>
+              {v.motivo !== 'vecchia' && <button className="chip" style={{ alignSelf: 'center' }} onClick={() => nav.push({ k: 'item', id: i.id })}>Apri la voce</button>}
             </div>
           ) : (
             <div className="btns col">

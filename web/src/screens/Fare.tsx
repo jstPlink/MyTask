@@ -5,6 +5,7 @@ import { listaAzioni, listaEsperienze, listaProgetti, revisione } from '../../..
 import { useItems, useOggi } from '../lib/hooks.ts';
 import { completaVoce } from '../lib/actions.ts';
 import { Empty, Fab, Row, Sec, Seg, Top } from '../ui/kit.tsx';
+import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
 import { mapsUrl } from '../lib/util.ts';
 
@@ -23,7 +24,7 @@ export function Fare() {
 
   return (
     <>
-      <Top title="Attività" sub={`${aperte} aperte${nRev ? ` · ${nRev} in revisione` : ''}`} />
+      <Top title="Attività" sub={`${aperte} aperte${nRev ? ` · ${nRev} in revisione` : ''}`} right={<PulsanteAspetto />} />
       <div className="scroll">
         <Seg nav voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
         {nav.fareSub === 'azioni' && <Azioni />}

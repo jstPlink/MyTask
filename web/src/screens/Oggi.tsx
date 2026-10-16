@@ -8,14 +8,13 @@ import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useDisponibilita, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, segnaRoutine } from '../lib/actions.ts';
-import { Fab, Gruppo, Icona, Row, Seg, Top } from '../ui/kit.tsx';
+import { Fab, Gruppo, Icona, Row, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 import { GrigliaMese, type SegnoGiorno } from './Calendario.tsx';
 
-type Vista = 'giorno' | 'mese';
-// vista e giorno scelti restano finché l'app è aperta (anche aprendo una voce e tornando indietro)
-const scelta: { vista: Vista; giorno: string | undefined } = { vista: 'giorno', giorno: undefined };
+// il giorno scelto resta finché l'app è aperta (anche aprendo una voce e tornando indietro)
+const scelta: { giorno: string | undefined } = { giorno: undefined };
 const TIPI_DATATI = new Set(['azione', 'progetto', 'esperienza']);
 const durata = (min: number) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`);
 
@@ -29,16 +28,10 @@ export function Oggi() {
   const [minutoCorrente, setMinutoCorrente] = useState(() => Math.floor(Date.now() / 60000));
   useEffect(() => { const t = setInterval(() => setMinutoCorrente(Math.floor(Date.now() / 60000)), 60_000); return () => clearInterval(t); }, []);
   const piano = useMemo(() => (disp ? pianifica(items, disp, oggi, minutoCorrente * 60000) : null), [items, disp, oggi, minutoCorrente]);
-  const [vista, setVistaState] = useState<Vista>(scelta.vista);
+  const [meseAperto, setMeseAperto] = useState(false);
   const [giornoScelto, setGiornoState] = useState<string>(scelta.giorno ?? oggi);
   const giorno = giornoScelto < oggi && giornoScelto !== scelta.giorno ? oggi : giornoScelto;
-  const setVista = (x: Vista) => { scelta.vista = x; setVistaState(x); };
   const setGiorno = (d: string) => { scelta.giorno = d === oggi ? undefined : d; setGiornoState(d); };
-  const selettore = (
-    <div style={nav.wide ? { maxWidth: 300 } : undefined}>
-      <Seg<Vista> voci={[{ id: 'giorno', nome: 'Giorno' }, { id: 'mese', nome: 'Mese' }]} attivo={vista} onChange={setVista} />
-    </div>
-  );
   const voci = useMemo(() => {
     const m = new Map<string, Item[]>();
     for (const i of items) {
@@ -60,8 +53,11 @@ export function Oggi() {
     <div className="giorno-nav">
       <button onClick={() => vaiGiorno(addDays(giorno, -1))} aria-label="Giorno precedente">‹</button>
       <div className="giorno-nome">
-        <b>{giorno === oggi ? 'Oggi' : formatLong(giorno)}</b>
-        {giorno === oggi ? <span>{formatLong(giorno)}</span> : <button className="giorno-oggi" onClick={() => vaiGiorno(oggi)}>Torna a oggi</button>}
+        <button className="giorno-scelta" onClick={() => setMeseAperto(true)} aria-haspopup="dialog" aria-label="Scegli un altro giorno">
+          <b>{giorno === oggi ? 'Oggi' : formatLong(giorno)}<i aria-hidden="true">▾</i></b>
+          {giorno === oggi && <span>{formatLong(giorno)}</span>}
+        </button>
+        {giorno !== oggi && <button className="giorno-oggi" onClick={() => vaiGiorno(oggi)}>Torna a oggi</button>}
       </div>
       <button onClick={() => vaiGiorno(addDays(giorno, 1))} aria-label="Giorno successivo">›</button>
     </div>
@@ -72,7 +68,7 @@ export function Oggi() {
     onTouchStart: (e: React.TouchEvent) => {
       const t = e.touches[0];
       const dentroScorrevole = (e.target as HTMLElement).closest('.scroll-x, input, textarea, select');
-      inizioTocco.current = dentroScorrevole || vista !== 'giorno' ? null : { x: t.clientX, y: t.clientY };
+      inizioTocco.current = dentroScorrevole || meseAperto ? null : { x: t.clientX, y: t.clientY };
     },
     onTouchEnd: (e: React.TouchEvent) => {
       const i = inizioTocco.current;
@@ -120,11 +116,23 @@ export function Oggi() {
   // posizione in classifica dei blocchi del giorno mostrato (per priorità, gli impegni con orario fisso non contano)
   const classifica = new Map<string, number>(
     (piano?.giorni.find((x) => x.data === giorno)?.blocchi ?? [])
-      .filter((x) => !x.fisso)
+      .filter((x) => !x.fisso && !x.pausa)
       .sort((x, y) => score(y.item, oggi) - score(x.item, oggi))
       .map((x, n) => [x.item.id, n + 1] as [string, number]),
   );
-  const bloccoRiga = (bl: NonNullable<typeof piano>['giorni'][number]['blocchi'][number]) => (
+  const bloccoRiga = (bl: NonNullable<typeof piano>['giorni'][number]['blocchi'][number]) => bl.pausa ? (
+    <Row
+      key={`${bl.item.id}-${bl.da}`}
+      titolo={bl.item.titolo}
+      ora={<>{orario(bl.da)}<small>{durata(bl.a - bl.da)}</small></>}
+      meta="Pausa curiosità"
+      check="square"
+      light
+      onCheck={() => completaVoce(bl.item)}
+      selected={nav.openId === bl.item.id}
+      onOpen={() => nav.push({ k: 'item', id: bl.item.id })}
+    />
+  ) : (
     <Row
       key={`${bl.item.id}-${bl.da}`}
       titolo={bl.item.titolo}
@@ -142,7 +150,6 @@ export function Oggi() {
   const pianoOggi = piano?.giorni[0];
   const totaleOggi = piano && disp ? minutiDisponibili(disp, oggi, oggi, minutoCorrente * 60000) : 0;
   const fuoriOggi = piano ? v.fare.filter((e) => { const d = dueDate(e.item); return d !== undefined && d <= oggi && !pianoOggi?.blocchi.some((x) => x.item.id === e.item.id); }) : [];
-  const prossimiGiorni = piano ? piano.giorni.slice(1, 7).filter((g) => g.blocchi.length > 0) : [];
 
   const altroGiorno = (() => {
     const g = piano?.giorni.find((x) => x.data === giorno);
@@ -206,16 +213,6 @@ export function Oggi() {
               })}
             </Gruppo>
           )}
-          {prossimiGiorni.length > 0 && (
-            <Gruppo titolo="Nei prossimi giorni" dettaglio={`${prossimiGiorni.length} ${prossimiGiorni.length === 1 ? 'giorno' : 'giorni'}`}>
-              {prossimiGiorni.map((g) => (
-                <button key={g.data} className="field link giorno-voce" onClick={() => vaiGiorno(g.data)} aria-label={`Apri ${formatLong(g.data)}`}>
-                  <span style={{ textTransform: 'capitalize' }}><b>{g.data === addDays(oggi, 1) ? 'Domani' : formatLong(g.data)}</b></span>
-                  <span className="muted">{g.blocchi.length} {g.blocchi.length === 1 ? 'attività' : 'attività'} · {durata(g.usati)} ›</span>
-                </button>
-              ))}
-            </Gruppo>
-          )}
           {piano.fuori.length > 0 && <div className="t2" style={{ padding: '10px 0' }}>{piano.fuori.length} {piano.fuori.length === 1 ? 'attività non entra' : 'attività non entrano'} nelle prossime due settimane: servono più fasce di tempo libero.</div>}
         </>
       ) : (
@@ -257,8 +254,26 @@ export function Oggi() {
     </div>
   );
 
-  const scegli = (d: string) => { setGiorno(d); setVista('giorno'); };
-  const mese = <div style={{ maxWidth: 520 }}><GrigliaMese key={giorno} giorno={giorno} oggi={oggi} segni={segni} onScegli={scegli} /></div>;
+  const scegli = (d: string) => { setGiorno(d); setMeseAperto(false); };
+  useEffect(() => {
+    if (!meseAperto) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setMeseAperto(false); } };
+    window.addEventListener('keydown', esc, true);
+    return () => window.removeEventListener('keydown', esc, true);
+  }, [meseAperto]);
+  const mese = meseAperto && (
+    <>
+      <div className="dim" onClick={() => setMeseAperto(false)} />
+      <div className="sheet" role="dialog" aria-label="Scegli un giorno">
+        <div className="grip" />
+        <GrigliaMese key={giorno} giorno={giorno} oggi={oggi} segni={segni} onScegli={scegli} />
+        <div className="btns">
+          <button className="btn" onClick={() => setMeseAperto(false)}>Chiudi</button>
+          {giorno !== oggi && <button className="btn solid" onClick={() => scegli(oggi)}>Torna a oggi</button>}
+        </div>
+      </div>
+    </>
+  );
   const eOggi = giorno === oggi;
 
   if (nav.wide) {
@@ -266,8 +281,7 @@ export function Oggi() {
       <>
         <Top title="Oggi" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} cose da fare`} />
         <div className="scroll wide-dash" {...tocco}>
-          {selettore}
-          {vista === 'mese' ? mese : <div className="dash">
+          <div className="dash">
             <div>{navGiorno}<div key={giorno} className={clsx('giorno-cont', direzione)}>{eOggi ? faroggi : altroGiorno}</div></div>
             <div className="dash-side">
               {eOggi && routine}
@@ -279,8 +293,9 @@ export function Oggi() {
                 </button>
               )}
             </div>
-          </div>}
+          </div>
         </div>
+        {mese}
       </>
     );
   }
@@ -292,6 +307,9 @@ export function Oggi() {
         sub={formatLong(oggi)}
         right={
           <div className="header-circles">
+            <button className="circ" onClick={() => nav.push({ k: 'aspetto' })} aria-label="Stile e aspetto">
+              <Icona nome="aspetto" size={22} />
+            </button>
             <button className="circ" onClick={() => nav.push({ k: 'inbox' })} aria-label={`Inbox, ${v.inbox} da smistare`}>
               <Icona nome="inbox" size={22} />
               {v.inbox > 0 && <span className="circ-badge">{v.inbox > 99 ? '99+' : v.inbox}</span>}
@@ -303,19 +321,15 @@ export function Oggi() {
         }
       />
       <div className="scroll" {...tocco}>
-        {selettore}
-        {vista === 'mese' ? mese : (
-          <>
-            {navGiorno}
-            <div key={giorno} className={clsx('giorno-cont', direzione)}>
-              {eOggi && routine}
-              {eOggi ? faroggi : altroGiorno}
-              {eOggi && revisione}
-              {eOggi && stato}
-            </div>
-          </>
-        )}
+        {navGiorno}
+        <div key={giorno} className={clsx('giorno-cont', direzione)}>
+          {eOggi && routine}
+          {eOggi ? faroggi : altroGiorno}
+          {eOggi && revisione}
+          {eOggi && stato}
+        </div>
       </div>
+      {mese}
       <Fab onClick={() => nav.openCapture(true)} label="Cattura rapida" />
     </>
   );

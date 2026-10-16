@@ -180,3 +180,22 @@ test('ricerca: tutte le parole, anche nelle note, senza accenti né maiuscole', 
   assert.deepEqual(cercaVoci([a, b, c], '   '), []);
   assert.deepEqual(cercaVoci([a, b, c], 'altro'), []); // le voci eliminate non compaiono
 });
+
+test('revisione: un\'attività senza scadenza che non si tocca da tanto va rivista', async () => {
+  const { GIORNI_ATTIVITA_VECCHIA } = await import('./views.ts');
+  const giorno = 86400000;
+  const vecchia = mk({ titolo: 'Vecchia', aggiornato: NOW - (GIORNI_ATTIVITA_VECCHIA + 1) * giorno });
+  const recente = mk({ titolo: 'Recente', aggiornato: NOW - 10 * giorno });
+  const conScadenza = mk({ titolo: 'Con scadenza', fine: '2026-12-31', aggiornato: NOW - 90 * giorno });
+  const parcheggiata = mk({ titolo: 'Parcheggiata', stato: 'parcheggiato', aggiornato: NOW - 90 * giorno });
+  const progetto = mk({ tipo: 'progetto', titolo: 'Progetto', aggiornato: NOW });
+  const figlia = mk({ padreId: progetto.id, titolo: 'Figlia', aggiornato: NOW - 90 * giorno });
+  const r = revisione([vecchia, recente, conScadenza, parcheggiata, progetto, figlia], OGGI, NOW);
+  assert.deepEqual(r.map((x) => x.item.titolo), ['Vecchia']);
+  assert.equal(r[0].motivo, 'vecchia');
+  assert.equal(r[0].giorni, GIORNI_ATTIVITA_VECCHIA + 1);
+  // una volta confermata (aggiornata) esce dalla revisione, e non compare più in Oggi finché è in revisione
+  assert.equal(revisione([{ ...vecchia, aggiornato: NOW }], OGGI, NOW).length, 0);
+  assert.ok(!vistaOggi([vecchia], OGGI, NOW).fare.some((e) => e.item.id === vecchia.id));
+  assert.equal(vistaOggi([vecchia], OGGI, NOW).revisione, 1);
+});
