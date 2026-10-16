@@ -83,7 +83,7 @@ export function Sidebar() {
       <div className="sb-group">
         <div className="sb-sec">Da sistemare</div>
         <Link nome="Inbox" n={n.inbox} on={scr('inbox')} onClick={() => vai({ k: 'inbox' })} />
-        <Link nome="Revisione" n={n.revisione} warn on={scr('revisione')} onClick={() => vai({ k: 'revisione' })} />
+        <Link nome="Revisione" n={n.revisione || undefined} warn on={scr('revisione')} onClick={() => vai({ k: 'revisione' })} />
       </div>
 
       <div className="sb-group">
@@ -98,13 +98,10 @@ export function Sidebar() {
       <div className="sb-group">
         <Link nome="Tempo libero" on={scr('tempolibero')} onClick={() => vai({ k: 'tempolibero' })} />
         <Link nome="Aspetto" on={scr('aspetto')} onClick={() => vai({ k: 'aspetto' })} />
-        <Link nome="Notifiche" on={scr('notifiche')} onClick={() => vai({ k: 'notifiche' })} />
         <Link nome="Account" on={scr('account')} onClick={() => vai({ k: 'account' })} />
       </div>
       <div className="sb-foot">
-        <span className={clsx('pill-sync', !sync.online && 'off')}>
-          {!sync.online ? 'Offline' : sync.inAttesa ? `${sync.inAttesa} da sincronizzare` : 'Sincronizzato'}
-        </span>
+        {!sync.online && <span className="pill-sync off">Offline</span>}
         <div>MyTask · versione {VERSIONE}</div>
       </div>
     </aside>

@@ -12,8 +12,6 @@ import { apiBase, scaricaEsportazione, logout } from '../lib/api.ts';
 import { VERSIONE } from '../version.ts';
 import { sync } from '../lib/sync.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
-import { chiediPermessoNotifiche, permessoNotifiche } from '../lib/reminders.ts';
-import { chiediPermessoNotificheNative, isNative, permessoNotificheNative, type PermessoNotifiche } from '../lib/native.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { Back, Chips, Empty, Field, Row, Sec, Seg, Toggle, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
@@ -47,7 +45,6 @@ export function Altro() {
         <Sec a="App" />
         {voce('Tempo libero', undefined, { k: 'tempolibero' })}
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
-        {voce('Notifiche', permessoNotifiche() === 'granted' ? 'attive' : undefined, { k: 'notifiche' })}
         <div className="field"><span>Calendario</span><span className="muted">non collegato</span></div>
         {voce('Account e sincronizzazione', undefined, { k: 'account' })}
         <div className="t2" style={{ textAlign: 'center', marginTop: 24 }}>MyTask · versione {VERSIONE}</div>
@@ -341,36 +338,6 @@ export function Aspetto() {
           <div className="btns"><span className="btn solid">Salva</span><span className="btn">Annulla</span></div>
         </div>
         <div className="t2" style={{ marginTop: 12 }}>Il tema si applica subito e resta salvato sul dispositivo, anche offline.</div>
-      </div>
-    </>
-  );
-}
-
-// ------------------------------------------------------------------ Notifiche
-
-export function Notifiche() {
-  const nativa = isNative();
-  const [perm, setPerm] = useState<PermessoNotifiche>(nativa ? 'default' : permessoNotifiche());
-  useEffect(() => { if (nativa) void permessoNotificheNative().then(setPerm); }, [nativa]);
-  return (
-    <>
-      <Back label="Altro" />
-      <Top title="Notifiche" sub="Impostazioni" />
-      <div className="scroll">
-        <div className="card">
-          <div className="t1">{perm === 'granted' ? 'Notifiche attive' : perm === 'denied' ? 'Notifiche bloccate' : perm === 'non_supportate' ? 'Non supportate da questo browser' : 'Notifiche non ancora attive'}</div>
-          <div className="t2" style={{ marginTop: 4 }}>
-            {nativa ? 'I promemoria sono programmati nel telefono e arrivano anche ad app chiusa.' : "Nel browser i promemoria arrivano finché l'app è aperta. Con l'app Android installata arrivano anche ad app chiusa."}
-          </div>
-          {perm === 'default' && <div className="btns"><button className="btn solid" onClick={async () => setPerm(nativa ? await chiediPermessoNotificheNative() : await chiediPermessoNotifiche())}>Attiva le notifiche</button></div>}
-          {perm === 'denied' && <div className="t2" style={{ marginTop: 8 }}>{nativa ? 'Per riattivarle apri le impostazioni di Android, Notifiche, MyTask.' : 'Per riattivarle usa le impostazioni del sito nel browser.'}</div>}
-        </div>
-        <Sec a="Come funzionano" />
-        <div className="t2" style={{ lineHeight: 1.6 }}>
-          · Scadenze: scegli i promemoria (7 giorni, 1 giorno prima…) nella scheda di ogni voce.<br />
-          · Insistenza: attivala su una voce e il promemoria si ripete finché non la spunti.<br />
-          · Routine: imposta l'orario del promemoria nella routine.
-        </div>
       </div>
     </>
   );

@@ -9,7 +9,7 @@ export type Screen =
   | { k: 'item'; id?: string; nuovo?: Partial<Item> }
   | { k: 'altro' } | { k: 'inbox' } | { k: 'revisione' } | { k: 'archivio' } | { k: 'daparte' }
   | { k: 'persone' } | { k: 'persona'; id: string } | { k: 'luoghi' }
-  | { k: 'aspetto' } | { k: 'tempolibero' } | { k: 'notifiche' } | { k: 'stasera' } | { k: 'account' };
+  | { k: 'aspetto' } | { k: 'tempolibero' } | { k: 'stasera' } | { k: 'account' };
 
 export interface Nav {
   tab: Tab;

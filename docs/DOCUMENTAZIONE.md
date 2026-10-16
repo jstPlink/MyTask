@@ -52,7 +52,7 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 - **Cinque schede in basso** con icona (Oggi, Attività, Intrattenimento, Curiosità, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
 - **Attività** (prima "Fare") contiene tre sezioni: Attività, Progetti ed Esperienze.
 - **Intrattenimento** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette). Le **Curiosità** hanno una scheda propria.
-- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Revisione, Completato, Persone, Luoghi, Aspetto, Notifiche, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
+- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Revisione, Completato, Persone, Luoghi, Aspetto, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza rigida.
 
 ### 2.2 Estetica (stile e palette approvati dall'utente)
@@ -86,7 +86,7 @@ Layout identico ai mockup minimalisti, con questi cambi:
 
 Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
 
-- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Completato, Persone, Luoghi; Aspetto, Notifiche, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
+- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Completato, Persone, Luoghi; Aspetto, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
 - **Da 1300 px:** il dettaglio si apre in un pannello a destra e la voce aperta è evidenziata nell'elenco.
 - **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca, pulsante Stile e aspetto e "+ Nuova voce" (il tipo segue la sezione in cui si è).
 - **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, nelle persone, nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
@@ -120,6 +120,8 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Barra in alto e barra laterale (0.26.0):** cattura rapida e ricerca hanno la stessa larghezza; tolti l'icona Aspetto (resta nella barra laterale) e il pulsante "+ Nuova voce" (la cattura resta nella barra e con N); le cinque sezioni principali della barra laterale (Oggi, Attività, Intrattenimento, Curiosità, Routine) hanno la stessa dimensione delle altre voci.
 
 - **Barra in alto e barra laterale (0.26.0):** cattura rapida e ricerca hanno la stessa larghezza; tolti l'icona Aspetto (resta nella barra laterale) e il pulsante "+ Nuova voce" (la cattura resta nella barra e con N); le cinque sezioni principali della barra laterale hanno la stessa dimensione delle altre voci.
+
+- **Barra laterale (0.27.0):** il contatore di Revisione compare solo se ci sono voci da rivedere; l'indicatore di sincronizzazione compare solo quando il sito è offline. La schermata **Notifiche** è stata tolta (telefono e web): le notifiche continuano a funzionare, il permesso viene chiesto al primo avvio dell'app Android e, se negato, si riattiva dalle impostazioni di Android.
 
 ### 2.4 Telefono: icone e pulsanti circolari (implementato)
 
@@ -379,7 +381,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | Parte | Stato |
 |---|---|
 | Server: login, sessioni, limite ai tentativi, CORS per l'app, sincronizzazione, esportazione JSON, versione, copia giornaliera | Fatto, con test; in funzione sul NAS |
-| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Revisione, Completato, Persone, Luoghi, Cosa guardo stasera, ricerca, editor completo, Aspetto, Notifiche, Account | Fatta, provata nel browser su dati reali importati |
+| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Revisione, Completato, Persone, Luoghi, Cosa guardo stasera, ricerca, editor completo, Aspetto, Account | Fatta, provata nel browser su dati reali importati |
 | Layout per schermi larghi (barra laterale, pannello di dettaglio, cruscotto, griglia della routine, scorciatoie N, /, Esc) | Fatto e provato nel browser a 1440, 1100 e 375 px |
 | Uso offline: modifiche in coda e sincronizzazione al ritorno della rete | Provato in locale |
 | Importazione da Notion con report e caricamento da file nell'app | Fatta; il caricamento nell'app è provato in locale |
@@ -442,3 +444,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.24.0 | Task figli rientrati nei gruppi; checkbox senza colore di priorità; scheda Progetti con lo stesso aspetto a gruppi e tutti i task; interesse a pallini nelle Curiosità; barre di scorrimento nascoste; icona progetto neutra con contorno |
 | 2026-10-16 | 0.25.0 | Attività con tutti i conteggi e le esperienze; nuovo blocco di priorità nella scheda; barra del piano divisa per attività con margine per blocco; mockup barra a 24 ore |
 | 2026-10-16 | 0.26.0 | Vista web: barra laterale con voci tutte della stessa dimensione, cattura e ricerca della stessa larghezza, tolti Aspetto e Nuova voce dalla barra in alto; mockup barra a 24 ore con 5 varianti |
+| 2026-10-16 | 0.27.0 | Revisione senza contatore se vuota; sincronizzazione visibile solo offline nella barra web; tolta la schermata Notifiche; mockup D (ore con altezza minima, scorrevole) ed E (4 varianti) |
