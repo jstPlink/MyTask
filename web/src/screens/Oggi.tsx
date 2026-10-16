@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { fasceLibere, minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
@@ -26,7 +26,36 @@ type Fascia = [number, number];
  * Linea del piano: in alto le 24 ore (fasce libere cliccabili, attività, impegni fissi, ora attuale);
  * sotto gli orari della fascia scelta e la sua barra a segmenti, un segmento per attività col numero d'ordine.
  */
+const DIAMETRO_NUMERO = 24;
+
+/** Centri (px) dei numeri sotto la barra: sotto il centro di ogni segmento, spostati di lato quando si toccherebbero. */
+function posizioniNumeri(centri: number[], larghezza: number): number[] {
+  const r = DIAMETRO_NUMERO / 2;
+  const passo = DIAMETRO_NUMERO + 4;
+  const out = centri.map((c) => Math.min(larghezza - r, Math.max(r, c)));
+  for (let i = 1; i < out.length; i++) if (out[i] - out[i - 1] < passo) out[i] = out[i - 1] + passo;
+  const eccesso = out.length ? out[out.length - 1] + r - larghezza : 0;
+  if (eccesso > 0) {
+    for (let i = out.length - 1; i >= 0; i--) {
+      out[i] -= eccesso;
+      if (i > 0 && out[i] - out[i - 1] < passo) out[i - 1] = out[i] - passo;
+    }
+  }
+  return out;
+}
+
 function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: Blocco[]; fasce: Fascia[]; sel: number; onSel: (i: number) => void; ora?: number; rank: Map<string, number>; oggi: string }) {
+  const contenitore = useRef<HTMLDivElement>(null);
+  const [larghezza, setLarghezza] = useState(300);
+  useLayoutEffect(() => {
+    const e = contenitore.current;
+    if (!e) return;
+    const misura = () => setLarghezza(e.clientWidth || 300);
+    misura();
+    const ro = new ResizeObserver(misura);
+    ro.observe(e);
+    return () => ro.disconnect();
+  }, [fasce.length]);
   if (!fasce.length) return null;
   const f = fasce[Math.max(0, Math.min(sel, fasce.length - 1))];
   const livello = (b: Blocco) => (b.pausa ? 'pausa' : `p${barLevel(score(b.item, oggi))}`);
@@ -47,12 +76,19 @@ function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: 
       </div>
       <div className="lp-ticks" aria-hidden="true">{[0, 6, 12, 18].map((h) => <span key={h} style={{ left: `${(h / 24) * 100}%` }}>{h}</span>)}<span style={{ right: 0 }}>24</span></div>
       <div className="lp-orari"><span>{orario(f[0])}</span><span>{orario(f[1])}</span></div>
-      <div className="lp-seg" role="img" aria-label={`Attività dalle ${orario(f[0])} alle ${orario(f[1])}`}>
+      <div className="lp-bs" role="img" aria-label={`Attività dalle ${orario(f[0])} alle ${orario(f[1])}`}>
         {dentro.map((b) => (
-          <span key={`${b.item.id}-${b.da}`} className={clsx('lp-s', livello(b))} style={{ left: `${q(b.da)}%`, width: `calc(${q(b.a) - q(b.da)}% - 2px)` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}`}>
-            {rank.get(b.item.id) ?? ''}
-          </span>
+          <i key={`${b.item.id}-${b.da}`} className={livello(b)} style={{ left: `${q(b.da)}%`, width: `calc(${q(b.a) - q(b.da)}% - 2px)` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}`} />
         ))}
+      </div>
+      <div className="lp-nr" ref={contenitore}>
+        {(() => {
+          const conNumero = dentro.filter((b) => rank.get(b.item.id));
+          const px = posizioniNumeri(conNumero.map((b) => ((q(b.da) + q(b.a)) / 200) * larghezza), larghezza);
+          return conNumero.map((b, k) => (
+            <span key={`${b.item.id}-${b.da}`} className={clsx('lp-n', livello(b))} style={{ left: `${px[k]}px` }}>{rank.get(b.item.id)}</span>
+          ));
+        })()}
       </div>
     </div>
   );

@@ -451,11 +451,15 @@ a { color: var(--accent); }
 .lp-ticks span { position: absolute; transform: translateX(-50%); }
 .lp-ticks span[style*="right"] { transform: none; }
 .lp-orari { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
-.lp-seg { position: relative; height: 26px; border-radius: 9px; background: var(--surface2); margin: 6px 0 6px; }
-.lp-s { position: absolute; top: 0; bottom: 0; min-width: 26px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; --c: var(--soft); --cs: var(--surface2); background: var(--cs); border: 2.5px solid var(--c); color: var(--c); overflow: hidden; }
-.lp-s.p3 { --c: var(--warn); --cs: var(--warn-soft); }
-.lp-s.p2 { --c: var(--amber); --cs: var(--amber-soft); }
-.lp-s.pausa { --c: var(--accent); --cs: var(--accent-soft); }
+.lp-bs { position: relative; height: 10px; border-radius: 5px; background: var(--surface2); margin: 8px 0 0; }
+.lp-bs i { position: absolute; top: 0; bottom: 0; border-radius: 5px; display: block; background: var(--soft); }
+.lp-bs i.p3 { background: var(--warn); }
+.lp-bs i.p2 { background: var(--amber); }
+.lp-bs i.pausa { background: var(--accent); opacity: .6; }
+.lp-nr { position: relative; height: 36px; margin-top: 8px; }
+.lp-n { position: absolute; top: 0; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; --c: var(--soft); --cs: var(--surface2); color: var(--c); background: var(--cs); border: 2.5px solid var(--c); }
+.lp-n.p3 { --c: var(--warn); --cs: var(--warn-soft); }
+.lp-n.p2 { --c: var(--amber); --cs: var(--amber-soft); }
 
 /* vista web: la voce si apre in una finestra in sovraimpressione */
 .modal-voce { position: fixed; z-index: 30; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(660px, 92vw); height: min(96vh, 1070px); background: var(--bg); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; animation: entra .2s ease-out backwards; }
