@@ -396,3 +396,13 @@ a { color: var(--accent); }
 .giorno-nome { flex: 1; }
 .tabs button { font-size: 10.5px; padding: 0 2px; }
 @media (max-width: 420px) { .tabs button { font-size: 10px; } .tabs button .ic { width: 46px; } }
+
+/* ---------- Attività raggruppate sotto il progetto ---------- */
+.gp { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin: 12px 0; animation: entra .26s ease-out backwards; }
+.gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 12px; background: var(--accent-soft); text-align: left; }
+.gp-h b { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
+.gp-h span { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.gp-bar { height: 4px; background: var(--surface2); }
+.gp-bar i { display: block; height: 100%; background: var(--accent); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.gp .row { padding-right: 12px; }
+.gp .row:last-child { border-bottom: 0; }

@@ -67,6 +67,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const oggi = today();
   const persone = useMemo(() => nomiPersone(tutte), [tutte]);
   const piattaforme = useMemo(() => [...new Set(tutte.map((i) => i.piattaforma).filter((x): x is string => !!x))], [tutte]);
+  const progetti = useMemo(() => tutte.filter((i) => !i.eliminato && i.tipo === 'progetto' && i.id !== d.id && (i.id === d.padreId || (i.stato !== 'fatto' && i.stato !== 'saltato' && i.stato !== 'parcheggiato'))), [tutte, d.id, d.padreId]);
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
   const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
@@ -102,6 +103,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
 
   const cambiaTipo = (nt: Tipo) => {
     const p: Partial<Item> = { tipo: nt, inbox: undefined };
+    if (nt !== 'azione') p.padreId = undefined;
     if (HA_INTERESSE(nt) && d.interesse === undefined) p.interesse = 3;
     if (IS_AZIONE(nt) && d.importanza === undefined) p.importanza = 3;
     if (nt === 'routine') { p.fascia = d.fascia ?? 'sera'; p.log = d.log ?? []; }
@@ -170,6 +172,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
 
         {IS_DATATO(t) && (
           <Gruppo titolo={NOMI_TIPO[t]}>
+            {t === 'azione' && (
+              <Field label="Progetto">
+                <select value={d.padreId ?? ''} onChange={(e) => up({ padreId: e.target.value || undefined })}>
+                  <option value="">Nessuno</option>{progetti.map((p) => <option key={p.id} value={p.id}>{p.titolo}</option>)}
+                </select>
+              </Field>
+            )}
             <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: e.target.value ? d.rigida : undefined, oraInizio: e.target.value ? d.oraInizio : undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>
             {IS_AZIONE(t) && <Field label="Importanza"><DotsPick label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>}
             {t === 'esperienza' && <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}

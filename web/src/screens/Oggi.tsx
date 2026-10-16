@@ -3,12 +3,12 @@ import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { minutiDisponibili, orario, pianifica } from '../../../shared/piano.ts';
 import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score } from '../../../shared/priority.ts';
-import { vistaOggi, type Entry } from '../../../shared/views.ts';
+import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useDisponibilita, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, segnaRoutine } from '../lib/actions.ts';
-import { Fab, Gruppo, Icona, Row, Top } from '../ui/kit.tsx';
+import { Fab, Gruppo, GruppoProgetto, Icona, Row, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 import { GrigliaMese, type SegnoGiorno } from './Calendario.tsx';
@@ -84,7 +84,7 @@ export function Oggi() {
   const meta = (e: Entry) => {
     const i = e.item;
     const pezzi: string[] = [];
-    if (e.padre) pezzi.push(`${e.padre.titolo} · prossimo passo`);
+    if (e.padre) pezzi.push('prossimo passo');
     if (i.sforzoMin) pezzi.push(i.sforzoMin >= 60 ? `${i.sforzoMin / 60} ore` : `${i.sforzoMin} min`);
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return pezzi.join(' · ');
@@ -137,7 +137,7 @@ export function Oggi() {
       key={`${bl.item.id}-${bl.da}`}
       titolo={bl.item.titolo}
       ora={<>{orario(bl.da)}<small>{durata(bl.a - bl.da)}</small></>}
-      meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? `${bl.padre.titolo} · prossimo passo` : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined].filter(Boolean).join(' · ') || undefined}
+      meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? 'prossimo passo' : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined].filter(Boolean).join(' · ') || undefined}
       right={bl.inRitardo ? <span className="piano-avviso">oltre la scadenza</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
       level={barLevel(score(bl.item, oggi))}
       rank={bl.fisso ? undefined : classifica.get(bl.item.id)}
@@ -146,6 +146,12 @@ export function Oggi() {
       onOpen={() => nav.push({ k: 'item', id: bl.item.id })}
     />
   );
+
+  /** Righe in ordine, con le attività dello stesso progetto riunite sotto la sua testata. */
+  const raggruppate = <T extends { padre?: Item }>(voci: T[], riga: (v: T) => React.ReactNode) =>
+    raggruppaPerProgetto(voci, items).map((g) => g.progetto
+      ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
+      : g.voci.map(riga));
 
   const pianoOggi = piano?.giorni[0];
   const totaleOggi = piano && disp ? minutiDisponibili(disp, oggi, oggi, minutoCorrente * 60000) : 0;
@@ -164,7 +170,7 @@ export function Oggi() {
           <Gruppo titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`} dettaglio={totale ? `${durata(g.usati)} su ${durata(totale)}` : undefined}>
             {totale > 0 && <div className={clsx('piano-barra', g.usati >= totale && 'pieno')} aria-hidden="true"><i style={{ width: `${Math.min(100, (g.usati / totale) * 100)}%` }} /></div>}
             {blocchi.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>{totale === 0 ? 'Nessun tempo libero impostato per questo giorno.' : 'Niente di pianificato.'}</div>}
-            {blocchi.map(bloccoRiga)}
+            {raggruppate(blocchi, bloccoRiga)}
           </Gruppo>
         )}
         {resto.length > 0 && (
@@ -199,7 +205,7 @@ export function Oggi() {
                 {totaleOggi === 0 && !pianoOggi.blocchi.length ? 'Oggi non hai tempo libero impostato (o la giornata è finita).' : 'Niente da pianificare per oggi.'}
               </div>
             )}
-            {pianoOggi.blocchi.map(bloccoRiga)}
+            {raggruppate(pianoOggi.blocchi, bloccoRiga)}
           </Gruppo>
           {fuoriOggi.length > 0 && (
             <Gruppo titolo="Non entrano oggi" dettaglio={fuoriOggi.length}>
@@ -222,9 +228,9 @@ export function Oggi() {
             <span className="muted">›</span>
           </button>
           {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Intrattenimento».</div>}
-          {v.fare.map((e, pos) => (
+          {raggruppate(v.fare, (e) => (
             <Row
-              rank={pos + 1}
+              rank={v.fare.indexOf(e) + 1}
               key={e.item.id}
               titolo={e.item.titolo}
               meta={meta(e)}

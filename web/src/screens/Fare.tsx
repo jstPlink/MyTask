@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
 import { barLevel, dueDate, isOverdue, score } from '../../../shared/priority.ts';
-import { listaAzioni, listaEsperienze, listaProgetti, revisione } from '../../../shared/views.ts';
+import { listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto, revisione } from '../../../shared/views.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
 import { completaVoce } from '../lib/actions.ts';
-import { Empty, Fab, Row, Sec, Seg, Top } from '../ui/kit.tsx';
+import { Empty, Fab, GruppoProgetto, Row, Sec, Seg, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
 import { mapsUrl } from '../lib/util.ts';
@@ -41,26 +41,30 @@ function Azioni() {
   const items = useItems();
   const oggi = useOggi();
   const lista = useMemo(() => listaAzioni(items, oggi), [items, oggi]);
+  const gruppi = useMemo(() => raggruppaPerProgetto(lista, items), [lista, items]);
+  const riga = ({ item, punteggio }: (typeof lista)[number]) => {
+    const d = dueDate(item);
+    const scaduta = isOverdue(item, oggi);
+    return (
+      <Row
+        key={item.id}
+        titolo={item.titolo}
+        meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${item.sforzoMin} min` : undefined].filter(Boolean).join(' · ')}
+        right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
+        level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
+        rank={lista.findIndex((x) => x.item.id === item.id) + 1}
+        light={item.stato === 'parcheggiato'}
+        onCheck={() => completaVoce(item)}
+        selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}
+      />
+    );
+  };
   return (
     <>
       {lista.length === 0 && <Empty>Nessuna attività aperta.</Empty>}
-      {lista.map(({ item, punteggio }, pos) => {
-        const d = dueDate(item);
-        const scaduta = isOverdue(item, oggi);
-        return (
-          <Row
-            key={item.id}
-            titolo={item.titolo}
-            meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${item.sforzoMin} min` : undefined].filter(Boolean).join(' · ')}
-            right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
-            level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
-            rank={pos + 1}
-            light={item.stato === 'parcheggiato'}
-            onCheck={() => completaVoce(item)}
-            selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}
-          />
-        );
-      })}
+      {gruppi.map((g) => g.progetto
+        ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
+        : g.voci.map(riga))}
     </>
   );
 }

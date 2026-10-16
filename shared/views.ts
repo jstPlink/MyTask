@@ -135,12 +135,29 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
 }
 
 export function listaAzioni(items: Item[], today: string, now: number = Date.now()): Entry[] {
-  const aree = live(items).filter((i) => i.tipo === 'azione' && !i.padreId && !i.inbox && isOpen(i));
+  const tutte = live(items);
   const inRevisione = new Set(revisione(items, today, now).map((v) => v.item.id));
-  return aree
-    .filter((i) => !inRevisione.has(i.id) && !parcheggiata(i))
-    .map((i) => ({ item: i, punteggio: score(i, today, now) }))
+  return tutte
+    .filter((i) => i.tipo === 'azione' && !i.inbox && isOpen(i) && !inRevisione.has(i.id) && !parcheggiata(i))
+    .map((i) => {
+      const padre = i.padreId ? tutte.find((p) => p.id === i.padreId && p.tipo === 'progetto') : undefined;
+      const eff = withInheritance(i, padre);
+      return { item: i, padre, punteggio: score(eff, today, now) };
+    })
     .sort((a, b) => b.punteggio - a.punteggio);
+}
+
+/** Raggruppa le voci per progetto: il gruppo sta dove sta la sua voce più prioritaria; le attività senza progetto restano singole. */
+export function raggruppaPerProgetto<T extends { padre?: Item }>(voci: T[], items: Item[]): { progetto?: Item; fatti: number; totale: number; voci: T[] }[] {
+  const out: { progetto?: Item; fatti: number; totale: number; voci: T[] }[] = [];
+  const perId = new Map<string, (typeof out)[number]>();
+  for (const v of voci) {
+    if (!v.padre) { out.push({ fatti: 0, totale: 0, voci: [v] }); continue; }
+    let g = perId.get(v.padre.id);
+    if (!g) { g = { progetto: v.padre, ...avanzamento(v.padre, items), voci: [] }; perId.set(v.padre.id, g); out.push(g); }
+    g.voci.push(v);
+  }
+  return out;
 }
 
 /** Voci messe da parte ("Da parte"), le più recenti prima. */

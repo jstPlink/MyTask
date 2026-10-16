@@ -5,7 +5,7 @@ import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.
 import { score, daysOverdue, barLevel } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
-import { vistaOggi, revisione, avanzamento, listaProgetti } from './views.ts';
+import { vistaOggi, revisione, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto } from './views.ts';
 import { parseCapture } from './capture.ts';
 import { suggerisciStasera } from './stasera.ts';
 
@@ -74,6 +74,21 @@ test('Oggi: un progetto compare con il solo prossimo passo', () => {
   assert.equal(v.fare[0].padre?.titolo, 'Progetto');
   assert.deepEqual(avanzamento(p, [p, a, b]), { fatti: 0, totale: 2 });
   assert.equal(listaProgetti([p, a, b], OGGI, NOW)[0].prossimo?.titolo, 'Passo 1');
+});
+
+test('Attività: i task di un progetto stanno insieme sotto di esso, gli altri restano singoli', () => {
+  const p = mk({ tipo: 'progetto', titolo: 'Bagno' });
+  const a = mk({ titolo: 'A', padreId: p.id, importanza: 5, fine: '2026-10-16' });
+  const libera = mk({ titolo: 'Libera', importanza: 3 });
+  const b = mk({ titolo: 'B', padreId: p.id, importanza: 1 });
+  const tutte = [p, a, libera, b];
+  const g = raggruppaPerProgetto(listaAzioni(tutte, OGGI, NOW), tutte);
+  assert.equal(g.length, 2);
+  assert.equal(g[0].progetto?.titolo, 'Bagno');
+  assert.deepEqual(g[0].voci.map((e) => e.item.titolo), ['A', 'B']);
+  assert.deepEqual({ fatti: g[0].fatti, totale: g[0].totale }, { fatti: 0, totale: 2 });
+  assert.equal(g[1].progetto, undefined);
+  assert.equal(g[1].voci[0].item.titolo, 'Libera');
 });
 
 test('Oggi: le voci scadute da molto vanno in Revisione, non in Oggi', () => {

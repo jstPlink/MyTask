@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { clsx } from '../lib/util.ts';
 import { useNav, type Tab } from './nav.tsx';
+import { BadgeTipo } from './Icone.tsx';
+import type { Item } from '../../../shared/types.ts';
 
 export function Top({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
   return (
@@ -189,6 +191,22 @@ export function Gruppo({ titolo, dettaglio, children }: { titolo?: string; detta
   return (
     <section className="gruppo">
       {titolo && <h3 className="gruppo-t">{titolo}{dettaglio !== undefined && <span className="gruppo-d">{dettaglio}</span>}</h3>}
+      {children}
+    </section>
+  );
+}
+
+/** Testata di progetto con le sue attività sotto: nome, avanzamento (fatti su totale) e barra. */
+export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto: Item; fatti: number; totale: number; children: ReactNode }) {
+  const nav = useNav();
+  return (
+    <section className="gp">
+      <button className="gp-h" onClick={() => nav.push({ k: 'item', id: progetto.id })} aria-label={`Apri il progetto ${progetto.titolo}`}>
+        <BadgeTipo tipo="progetto" size={28} />
+        <b>{progetto.titolo}</b>
+        {totale > 0 && <span>{fatti} / {totale}</span>}
+      </button>
+      {totale > 0 && <div className="gp-bar"><i style={{ width: `${(fatti / totale) * 100}%` }} /></div>}
       {children}
     </section>
   );
