@@ -1,5 +1,5 @@
 import type { Disponibilita, FasciaOraria } from '../../../shared/piano.ts';
-import { minuti } from '../../../shared/piano.ts';
+import { PAUSA_PREDEFINITA, minuti } from '../../../shared/piano.ts';
 import { useDisponibilita } from '../lib/hooks.ts';
 import { copiaSuggerita, impostaDisponibilita, usaSuggerita } from '../lib/disponibilita.ts';
 import { Back, Sec, Top } from '../ui/kit.tsx';
@@ -32,6 +32,17 @@ export function TempoLibero() {
               ? <button className="btn solid" onClick={usaSuggerita}>Usa le fasce suggerite</button>
               : <button className="btn" onClick={() => impostaDisponibilita(copiaSuggerita())}>Ripristina quelle suggerite</button>}
           </div>
+        </div>
+        <Sec a="Pausa tra le attività" />
+        <div className="gruppo">
+          <div className="field">
+            <span>Pausa dopo ogni attività</span>
+            <select value={d.pausaMin ?? PAUSA_PREDEFINITA} disabled={!disp} aria-label="Pausa tra le attività"
+              onChange={(e) => impostaDisponibilita({ ...d, pausaMin: Number(e.target.value) })}>
+              {[...new Set([0, 5, 10, 15, 20, 30, 45, 60, d.pausaMin ?? PAUSA_PREDEFINITA])].sort((a, b) => a - b).map((m) => <option key={m} value={m}>{m === 0 ? 'Nessuna' : `${m} min`}</option>)}
+            </select>
+          </div>
+          <div className="t2" style={{ padding: '2px 0 10px' }}>{disp ? `Di base ${PAUSA_PREDEFINITA} minuti: il piano lascia questo tempo tra un'attività e la successiva.` : 'Imposta prima le fasce di tempo libero.'}</div>
         </div>
         <Sec a="Fasce per giorno" />
         {GIORNI.map((nome, g) => (

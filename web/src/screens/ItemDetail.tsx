@@ -179,7 +179,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             </div>
             <div className="prio-dati">
               <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
-              <span>Importanza {['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'][d.importanza ?? 3]}</span>
+              <span>Importanza {['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'][Math.round(d.importanza ?? 3)]}</span>
               {d.sforzoMin ? <span>{nomeSforzo(d.sforzoMin)} {percentuale(margine)}</span> : null}
             </div>
           </div>

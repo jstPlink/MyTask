@@ -8,7 +8,7 @@ const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
 const OGGI = '2026-10-15';
 let n = 0;
 const mk = (p: Partial<Item>): Item => ({ id: `p${++n}`, tipo: 'azione', titolo: `Voce ${n}`, stato: 'da_fare', creato: NOW, aggiornato: NOW, ...p });
-const sera: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '20:00' }]) };
+const sera: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '20:00' }]), pausaMin: 0 };
 
 test('piano: ordine per priorità dentro la fascia, in sequenza', () => {
   const a = mk({ titolo: 'Poco importante', importanza: 1, sforzoMin: 30 });
@@ -139,7 +139,7 @@ test('piano: dopo un\'attività grande c\'è una pausa curiosità, poi si ripart
   const grande = mk({ titolo: 'Grande', importanza: 5, sforzoMin: 90 });
   const piccola = mk({ titolo: 'Piccola', importanza: 3, sforzoMin: 30 });
   const cur = mk({ tipo: 'curiosita', titolo: 'Come funziona il GPS', interesse: 5 });
-  const serata: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]) };
+  const serata: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), pausaMin: 0 };
   const b = pianifica([grande, piccola, cur], serata, OGGI, NOW).giorni[0].blocchi;
   assert.deepEqual(b.map((x) => x.item.titolo), ['Grande', 'Come funziona il GPS', 'Piccola']);
   assert.equal(b[1].pausa, true);
@@ -177,4 +177,17 @@ test('migrazione: le attività importate da Notion e mai toccate vanno in Revisi
   assert.equal(segnaImportataDaRivedere({ ...imp, id: 'a1b2c3d4e5f60718' }), undefined); // creata nell'app
   assert.equal(segnaImportataDaRivedere({ ...imp, stato: 'fatto' }), undefined);
   assert.equal(segnaImportataDaRivedere({ ...imp, tipo: 'film' }), undefined);
+});
+
+test('piano: tra un\'attività e la successiva c\'è la pausa (5 minuti di base, regolabile)', () => {
+  const a = mk({ titolo: 'Prima', importanza: 5, sforzoMin: 30 });
+  const b = mk({ titolo: 'Seconda', importanza: 3, sforzoMin: 30 });
+  const base: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '20:00' }]) };
+  const x = pianifica([a, b], base, OGGI, NOW).giorni[0].blocchi;
+  assert.equal(orario(x[0].a), '18:30');
+  assert.equal(orario(x[1].da), '18:35'); // 5 minuti di pausa
+  const y = pianifica([a, b], { ...base, pausaMin: 15 }, OGGI, NOW).giorni[0].blocchi;
+  assert.equal(orario(y[1].da), '18:45');
+  const z = pianifica([a, b], { ...base, pausaMin: 0 }, OGGI, NOW).giorni[0].blocchi;
+  assert.equal(orario(z[1].da), '18:30');
 });

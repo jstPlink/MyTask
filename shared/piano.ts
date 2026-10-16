@@ -13,7 +13,12 @@ export interface Disponibilita {
   settimana: FasciaOraria[][];
   /** Fasce di un giorno preciso (YYYY-MM-DD) al posto di quelle della settimana. */
   eccezioni?: Record<string, FasciaOraria[]>;
+  /** Minuti di pausa lasciati tra un'attività e la successiva (PAUSA_PREDEFINITA se non impostato). */
+  pausaMin?: number;
 }
+
+/** Pausa di base tra due attività, in minuti. */
+export const PAUSA_PREDEFINITA = 5;
 
 export const DISPONIBILITA_SUGGERITA: Disponibilita = {
   settimana: [
@@ -68,6 +73,8 @@ export const DURATA_PAUSA = 15;
 const MAX_PAUSE_GIORNO = 2;
 
 interface Pezzo extends Omit<Blocco, 'parte' | 'inRitardo' | 'pausa'> {
+  /** Fine del tempo tolto dalla fascia libera: il blocco più la pausa che lo segue. */
+  fino: number;
   /** Pausa curiosità riservata subito dopo questo pezzo. */
   riserva?: { item: Item; da: number; a: number };
 }
@@ -103,6 +110,7 @@ const durataDi = (i: Item) => Math.max(PASSO, arrotonda(i.sforzoMin ?? DURATA_PR
 export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now: number = Date.now(), giorniOrizzonte = ORIZZONTE_GIORNI): Piano {
   const nowD = new Date(now);
   const minutiOra = arrotonda(nowD.getHours() * 60 + nowD.getMinutes());
+  const pausa = Math.max(0, Math.round(disp.pausaMin ?? PAUSA_PREDEFINITA));
 
   const giorni: GiornoPiano[] = Array.from({ length: giorniOrizzonte }, (_, n) => addDays(oggi, n)).map((data) => ({ data, blocchi: [], liberi: 0, usati: 0 }));
   const gaps = new Map<string, Gap[]>();
@@ -171,17 +179,19 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
         if (spezzabile) {
           const presa = Math.min(resto, spazio);
           if (presa < BLOCCO_MINIMO && presa < resto) continue;
-          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + presa };
+          const fino = s + Math.min(spazio, presa + pausa);
+          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + presa, fino };
           pezzi.push(pezzo);
-          l.splice(k, 1, ...(presa < spazio ? [[s + presa, f] as Gap] : []));
-          if (presa >= SOGLIA_GRANDE && presa < spazio) riservaPausa(pezzo, l, k);
-          if (presa >= spazio) k--;
+          l.splice(k, 1, ...(fino < f ? [[fino, f] as Gap] : []));
+          if (presa >= SOGLIA_GRANDE && fino < f) riservaPausa(pezzo, l, k);
+          if (fino >= f) k--;
           resto -= presa;
         } else if (spazio >= totale) {
-          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + totale };
+          const fino = s + Math.min(spazio, totale + pausa);
+          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + totale, fino };
           pezzi.push(pezzo);
-          l.splice(k, 1, ...(totale < spazio ? [[s + totale, f] as Gap] : []));
-          if (totale >= SOGLIA_GRANDE && totale < spazio) riservaPausa(pezzo, l, k);
+          l.splice(k, 1, ...(fino < f ? [[fino, f] as Gap] : []));
+          if (totale >= SOGLIA_GRANDE && fino < f) riservaPausa(pezzo, l, k);
           resto = 0;
         }
       }
@@ -192,7 +202,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
       for (const p of pezzi) {
         const l = gaps.get(p.data)!;
         if (p.riserva) { pool.unshift(p.riserva.item); pauseGiorno.set(p.data, (pauseGiorno.get(p.data) ?? 1) - 1); }
-        l.push([p.da, p.riserva ? p.riserva.a : p.a]);
+        l.push([p.da, p.riserva ? p.riserva.a : p.fino]);
         l.sort((a, b) => a[0] - b[0]);
         const unite: Gap[] = [];
         for (const x of l) {
@@ -208,7 +218,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
     const ultimaData = pezzi[pezzi.length - 1].data;
     const inRitardo = !!scadenza && ultimaData > scadenza;
     pezzi.forEach((p, n) => {
-      const { riserva, ...blocco } = p;
+      const { riserva, fino: _fino, ...blocco } = p;
       const giorno = giorni.find((g) => g.data === p.data)!;
       giorno.blocchi.push({ ...blocco, parte: pezzi.length > 1 ? { n: n + 1, di: pezzi.length } : undefined, inRitardo });
       if (riserva) giorno.blocchi.push({ item: riserva.item, data: p.data, da: riserva.da, a: riserva.a, pausa: true });

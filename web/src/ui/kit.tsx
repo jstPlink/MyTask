@@ -109,19 +109,24 @@ export function DotsPick({ valore, onChange, label }: { valore?: number; onChang
 
 const NOMI_IMPORTANZA = ['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'];
 
-/** Importanza da 1 a 5 con uno slider (sostituisce i cinque pallini). */
+/**
+ * Importanza da 1 a 5 con uno slider continuo a cuneo: si allarga verso destra e passa dal grigio al rosso
+ * (come le priorità), senza etichette di testo. Il cursore prende il colore del punto raggiunto.
+ */
 export function SliderImportanza({ valore, onChange, label }: { valore?: number; onChange: (v: number) => void; label: string }) {
   const v = valore ?? 3;
+  const p = Math.min(1, Math.max(0, (v - 1) / 4)) * 100;
+  const stile = { '--p': `${p}%`, '--col': `color-mix(in srgb, var(--soft) ${100 - p}%, var(--warn) ${p}%)` } as React.CSSProperties;
   return (
-    <div className="slider">
-      <input type="range" min={1} max={5} step={1} value={v} aria-label={label} aria-valuetext={NOMI_IMPORTANZA[v]}
-        style={{ '--p': `${((v - 1) / 4) * 100}%` } as React.CSSProperties} onChange={(e) => onChange(Number(e.target.value))} />
-      <div className="slider-l"><span>bassa</span><b>{NOMI_IMPORTANZA[v]}</b><span>alta</span></div>
+    <div className="slider-c" style={stile}>
+      <div className="slider-tr" aria-hidden="true"><i /></div>
+      <input type="range" min={1} max={5} step={0.05} value={v} aria-label={label} aria-valuetext={NOMI_IMPORTANZA[Math.round(v)]}
+        onChange={(e) => onChange(Math.round(Number(e.target.value) * 100) / 100)} />
     </div>
   );
 }
 
-/** Interesse da 1 a 5 con cinque pallini grandi (22 px): nelle righe di intrattenimento e curiosità. */
+/** Interesse da 1 a 5 con cinque pallini (11 px): nelle righe di intrattenimento e curiosità. */
 export function PalliniInteresse({ valore }: { valore: number }) {
   return (
     <span className="pal-int" role="img" aria-label={`Interesse ${valore} su 5`}>

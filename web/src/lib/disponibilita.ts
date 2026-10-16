@@ -19,6 +19,7 @@ export function valida(p: unknown): Disponibilita | null {
   return {
     settimana: d.settimana.map((g) => (Array.isArray(g) ? g.filter(fasciaValida) : [])),
     eccezioni: d.eccezioni && typeof d.eccezioni === 'object' ? d.eccezioni : undefined,
+    pausaMin: typeof d.pausaMin === 'number' && d.pausaMin >= 0 && d.pausaMin <= 120 ? Math.round(d.pausaMin) : undefined,
   };
 }
 
