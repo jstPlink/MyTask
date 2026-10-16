@@ -87,7 +87,7 @@ Layout identico ai mockup minimalisti, con questi cambi:
 Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
 
 - **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Completato, Persone, Luoghi; Aspetto, Account; versione e stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
-- **Da 1300 px:** il dettaglio si apre in un pannello a destra e la voce aperta è evidenziata nell'elenco.
+- **Dettaglio in finestra (0.29.0):** da 900 px la voce si apre in una finestra in sovraimpressione al centro, sopra la schermata corrente (non più a tutta pagina né in un pannello a destra); si chiude con "Indietro", Esc o toccando lo sfondo.
 - **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca, pulsante Stile e aspetto e "+ Nuova voce" (il tipo segue la sezione in cui si è).
 - **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, nelle persone, nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
 - **Oggi** è un cruscotto a due colonne (cose da fare; routine, revisione e inbox). **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
@@ -446,3 +446,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.26.0 | Vista web: barra laterale con voci tutte della stessa dimensione, cattura e ricerca della stessa larghezza, tolti Aspetto e Nuova voce dalla barra in alto; mockup barra a 24 ore con 5 varianti |
 | 2026-10-16 | 0.27.0 | Revisione senza contatore se vuota; sincronizzazione visibile solo offline nella barra web; tolta la schermata Notifiche; mockup D (ore con altezza minima, scorrevole) ed E (4 varianti) |
 | 2026-10-16 | 0.28.0 | Piano di Oggi con la linea E3 (24 ore + zoom sulle prossime 3 ore, margine per attività); mockup del blocco di priorità (locale, `12-blocco-priorita.html`) |
+| 2026-10-16 | 0.29.0 | Vista web: la voce si apre in una finestra in sovraimpressione al centro; mockup delle varianti del blocco di priorità C con la posizione (1 = più prioritaria) come numero principale (locale, `13-blocco-priorita-c.html`) |

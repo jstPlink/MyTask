@@ -193,26 +193,30 @@ export function App() {
     );
   }
 
-  // schermi larghi: barra laterale, area principale e, se c'è spazio, pannello di dettaglio
-  const nelPannello = xl && top?.k === 'item' ? top : undefined;
+  // schermi larghi: barra laterale, area principale e, per una voce aperta, una finestra in sovraimpressione
+  const voceAperta = top?.k === 'item' ? top : undefined;
+  const base = [...stack].reverse().find((s) => s.k !== 'item');
   const principale: ReactNode = query.trim().length >= 2
     ? <Ricerca />
-    : top && !nelPannello
-      ? <div className={clsx('page', (stack.length > 1 || top.k === 'item') && 'keep-back')}><Schermata key={chiaveSchermata(stack, top)} s={top} /></div>
+    : base
+      ? <div className="page"><Schermata key={chiaveSchermata(stack, base)} s={base} /></div>
       : <div className="page">{tabScreen}</div>;
 
   return (
     <NavContext.Provider value={nav}>
-      <div className={clsx('shell', nelPannello && 'with-pane')}>
+      <div className="shell">
         <Sidebar />
         <main className="main">
           <TopBar />
           <div className="main-body">{principale}</div>
         </main>
-        {nelPannello && (
-          <aside className="pane" aria-label="Dettaglio">
-            <Schermata key={chiaveSchermata(stack, nelPannello)} s={nelPannello} />
-          </aside>
+        {voceAperta && (
+          <>
+            <div className="dim" onClick={pop} />
+            <div className="modal-voce" role="dialog" aria-label="Dettaglio">
+              <Schermata key={chiaveSchermata(stack, voceAperta)} s={voceAperta} />
+            </div>
+          </>
         )}
         {capture && <Capture />}
         <RecensioneSheet />

@@ -456,3 +456,10 @@ a { color: var(--accent); }
 .lp-m { position: absolute; top: 9px; bottom: 9px; border-radius: 0 8px 8px 0; opacity: .45; background: repeating-linear-gradient(45deg, var(--soft) 0 3px, transparent 3px 6px); }
 .lp-m.p3 { background: repeating-linear-gradient(45deg, var(--warn) 0 3px, transparent 3px 6px); }
 .lp-m.p2 { background: repeating-linear-gradient(45deg, var(--amber) 0 3px, transparent 3px 6px); }
+
+/* vista web: la voce si apre in una finestra in sovraimpressione */
+.modal-voce { position: fixed; z-index: 30; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(660px, 92vw); height: min(86vh, 820px); background: var(--bg); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; animation: entra .2s ease-out backwards; }
+.modal-voce .scroll { max-width: none; padding: 0 22px 32px; }
+.modal-voce .back { margin: 6px 10px 0; }
+.shell .dim { position: fixed; }
+.modal-voce .back { display: inline-flex; }
