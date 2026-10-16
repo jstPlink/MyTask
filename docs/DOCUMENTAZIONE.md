@@ -153,6 +153,10 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Gruppi di progetto (0.24.0):** i task sotto la testata sono rientrati e allineati (stessa indentazione per aperti e chiusi); l'icona del progetto è una cartella senza colore dentro un tondino con contorno. Il checkbox dei task non cambia più colore con la priorità (resta solo il numero d'ordine colorato). La scheda **Progetti** usa lo stesso aspetto: un gruppo per progetto con tutti i suoi task (aperti per priorità, poi i completati barrati).
 - **Curiosità:** ogni riga mostra l'interesse con cinque pallini. Le barre di scorrimento delle pagine sono nascoste.
 
+- **Attività (0.25.0):** l'intestazione elenca i conteggi reali ("N attività · N progetti · N esperienze", più quelle da rivedere) e la scheda Attività mostra tutto: i task (raggruppati per progetto) e, sotto, le esperienze (comprese quelle in Revisione).
+- **Blocco di priorità nella scheda:** tondo col punteggio colorato dal livello (alta/media/bassa), titolo \"Priorità …\", barra del punteggio e riga con scadenza, importanza e tempo con margine.
+- **Barra del piano per attività:** la barra del tempo libero in Oggi è divisa in un segmento per blocco, colorato dalla priorità (le pause sono più chiare); ogni riga del piano mostra il margine d'errore (es. "margine ±9 min"). Mockup locale della barra a 24 ore con linea dell'ora attuale: `docs/mockups/10-piano-24h.html` (variante B, da approvare).
+
 ### 2.5 Feedback aptico e animazioni (implementato)
 
 - **Intensità aptica:** nell'app Android il tocco usa un plugin nostro (`HapticaPlugin`) con ampiezza ridotta del 30% rispetto ai valori standard di Capacitor (leggero 77 invece di 110, marcato 126 invece di 180); nel browser del telefono la vibrazione dura 6 ms (10 per il segno di fatto).
@@ -432,3 +436,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.22.0 | Task collegato al progetto: campo Progetto in prima posizione nella scheda di un'attività e raggruppamento sotto la testata del progetto (con avanzamento) in Attività e in Oggi (mockup locale `09-task-progetto.html`, variante C) |
 | 2026-10-16 | 0.23.0 | Pila unica di navigazione con finestre nella cronologia; "+" sempre cattura con bozza in Inbox; checkbox Scadenza rigida sotto la data; Attività con tutte le voci; Archivio diventa Completato; tolta l'etichetta "oggi" in Oggi; checkbox con tinta della priorità; stima dei tempi con margine d'errore che si affina (sezione 2.4.2) |
 | 2026-10-16 | 0.24.0 | Task figli rientrati nei gruppi; checkbox senza colore di priorità; scheda Progetti con lo stesso aspetto a gruppi e tutti i task; interesse a pallini nelle Curiosità; barre di scorrimento nascoste; icona progetto neutra con contorno |
+| 2026-10-16 | 0.25.0 | Attività con tutti i conteggi e le esperienze; nuovo blocco di priorità nella scheda; barra del piano divisa per attività con margine per blocco; mockup barra a 24 ore |

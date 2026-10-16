@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
-import { dueDate, score } from '../../../shared/priority.ts';
+import { barLevel, dueDate, score } from '../../../shared/priority.ts';
 import { avanzamento, figli, nomiPersone } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
 import { assicuraPersone, completaVoce, nuovaVoce, riapriVoce } from '../lib/actions.ts';
@@ -154,11 +154,19 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
       />
       <div className="scroll">
         {puntegg !== undefined && d.stato !== 'fatto' && (
-          <div className="card strong">
-            <div className="t2">Punteggio di priorità</div>
-            <div className="big">{puntegg}</div>
-            <div className="t2">
-              {due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'} · importanza {d.importanza ?? 3}{d.sforzoMin ? ` · ${nomeSforzo(d.sforzoMin)}` : ''}
+          <div className={clsx('prio', `p${barLevel(puntegg)}`)} aria-label={`Punteggio di priorità ${puntegg} su 100`}>
+            <div className="prio-testa">
+              <span className="prio-n">{puntegg}</span>
+              <div className="prio-t">
+                <b>Priorità {['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}</b>
+                <span>Punteggio su 100</span>
+              </div>
+            </div>
+            <div className="prio-bar" aria-hidden="true"><i style={{ width: `${puntegg}%` }} /></div>
+            <div className="prio-dati">
+              <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
+              <span>Importanza {d.importanza ?? 3}/5</span>
+              {d.sforzoMin ? <span>{nomeSforzo(d.sforzoMin)} {percentuale(margine)}</span> : null}
             </div>
           </div>
         )}

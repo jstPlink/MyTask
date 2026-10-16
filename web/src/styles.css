@@ -409,3 +409,24 @@ a { color: var(--accent); }
 .scroll, .main-body, .pane .scroll { scrollbar-width: none; }
 .scroll::-webkit-scrollbar, .main-body::-webkit-scrollbar { display: none; }
 .gp .row:last-child { border-bottom: 0; }
+
+/* ---------- Blocco di priorità nella scheda di una voce ---------- */
+.prio { --c: var(--soft); --cs: var(--surface2); background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: 16px; padding: 14px 16px 12px; margin: 6px 0 14px; }
+.prio.p3 { --c: var(--warn); --cs: var(--warn-soft); }
+.prio.p2 { --c: var(--amber); --cs: var(--amber-soft); }
+.prio-testa { display: flex; align-items: center; gap: 14px; }
+.prio-n { width: 52px; height: 52px; flex: none; border-radius: 50%; border: 3px solid var(--c); background: var(--cs); color: var(--c); display: grid; place-items: center; font-size: 21px; font-weight: 800; }
+.prio-t { display: flex; flex-direction: column; min-width: 0; }
+.prio-t b { font-size: 17px; }
+.prio-t span { font-size: 12px; color: var(--mid); }
+.prio-bar { height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; margin: 12px 0 10px; }
+.prio-bar i { display: block; height: 100%; background: var(--c); border-radius: 3px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.prio-dati { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--mid); }
+
+/* barra del piano divisa per attività */
+.piano-seg { display: flex; gap: 2px; height: 10px; border-radius: 5px; background: var(--surface2); overflow: hidden; margin: 6px 0 4px; }
+.piano-seg i { display: block; height: 100%; background: var(--soft); min-width: 3px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.piano-seg i.p3 { background: var(--warn); }
+.piano-seg i.p2 { background: var(--amber); }
+.piano-seg i.p1 { background: var(--soft); }
+.piano-seg i.pausa { background: var(--accent); opacity: .5; }

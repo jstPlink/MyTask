@@ -181,8 +181,7 @@ export function listaProgetti(items: Item[], today: string, now: number = Date.n
 export interface VistaEsperienze { conData: Item[]; perZona: [string, Item[]][] }
 
 export function listaEsperienze(items: Item[], today: string, now: number = Date.now()): VistaEsperienze {
-  const inRevisione = new Set(revisione(items, today, now).map((v) => v.item.id));
-  const e = live(items).filter((i) => i.tipo === 'esperienza' && isOpen(i) && !i.inbox && !inRevisione.has(i.id));
+  const e = live(items).filter((i) => i.tipo === 'esperienza' && isOpen(i) && !i.inbox && !parcheggiata(i));
   const conData = e.filter((i) => dueDate(i)).sort((a, b) => (dueDate(a) ?? '').localeCompare(dueDate(b) ?? ''));
   const senza = e.filter((i) => !dueDate(i)).sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo));
   const mappa = new Map<string, Item[]>();

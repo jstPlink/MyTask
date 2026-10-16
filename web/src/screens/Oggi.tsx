@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
-import { minutiDisponibili, orario, pianifica } from '../../../shared/piano.ts';
+import { minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
 import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score } from '../../../shared/priority.ts';
 import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
@@ -18,6 +18,22 @@ import { GrigliaMese, type SegnoGiorno } from './Calendario.tsx';
 const scelta: { giorno: string | undefined } = { giorno: undefined };
 const TIPI_DATATI = new Set(['azione', 'progetto', 'esperienza']);
 const durata = (min: number) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`);
+
+/** Barra del tempo libero divisa per attività: ogni segmento è un blocco, colorato dalla priorità. */
+function BarraPiano({ blocchi, totale, oggi }: { blocchi: Blocco[]; totale: number; oggi: string }) {
+  const lavoro = blocchi.filter((b) => !b.fisso);
+  const usati = lavoro.reduce((n, b) => n + (b.a - b.da), 0);
+  const base = Math.max(totale, usati);
+  if (base <= 0) return null;
+  return (
+    <div className={clsx('piano-seg', usati >= totale && 'pieno')} role="img" aria-label={`${durata(usati)} pianificati su ${durata(totale)}`}>
+      {lavoro.map((b) => (
+        <i key={`${b.item.id}-${b.da}`} className={clsx(b.pausa ? 'pausa' : `p${barLevel(score(b.item, oggi))}`)}
+          style={{ width: `${((b.a - b.da) / base) * 100}%` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}`} />
+      ))}
+    </div>
+  );
+}
 
 export function Oggi() {
   const items = useItems();
@@ -139,7 +155,7 @@ export function Oggi() {
       key={`${bl.item.id}-${bl.da}`}
       titolo={bl.item.titolo}
       ora={<>{orario(bl.da)}<small>{durata(bl.a - bl.da)}</small></>}
-      meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? 'prossimo passo' : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined].filter(Boolean).join(' · ') || undefined}
+      meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? 'prossimo passo' : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined, bl.fisso ? undefined : `margine ±${nomeTempo(Math.max(1, Math.round((bl.a - bl.da) * margine)))}`].filter(Boolean).join(' · ') || undefined}
       right={bl.inRitardo ? <span className="piano-avviso">oltre la scadenza</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
       level={barLevel(score(bl.item, oggi))}
       rank={bl.fisso ? undefined : classifica.get(bl.item.id)}
@@ -170,7 +186,7 @@ export function Oggi() {
       <>
         {!passato && g && (
           <Gruppo titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`} dettaglio={totale ? `${durata(g.usati)} su ${durata(totale)}` : undefined}>
-            {totale > 0 && <div className={clsx('piano-barra', g.usati >= totale && 'pieno')} aria-hidden="true"><i style={{ width: `${Math.min(100, (g.usati / totale) * 100)}%` }} /></div>}
+            <BarraPiano blocchi={blocchi} totale={totale} oggi={oggi} />
             {blocchi.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>{totale === 0 ? 'Nessun tempo libero impostato per questo giorno.' : 'Niente di pianificato.'}</div>}
             {raggruppate(blocchi, bloccoRiga)}
           </Gruppo>
@@ -201,7 +217,7 @@ export function Oggi() {
       {piano && pianoOggi ? (
         <>
           <Gruppo titolo="Piano di oggi" dettaglio={totaleOggi ? `${durata(pianoOggi.usati)} su ${durata(totaleOggi)}` : undefined}>
-            {totaleOggi > 0 && <div className={clsx('piano-barra', pianoOggi.usati >= totaleOggi && 'pieno')} aria-hidden="true"><i style={{ width: `${Math.min(100, (pianoOggi.usati / totaleOggi) * 100)}%` }} /></div>}
+            <BarraPiano blocchi={pianoOggi.blocchi} totale={totaleOggi} oggi={oggi} />
             {pianoOggi.blocchi.length === 0 && (
               <div className="t2" style={{ padding: '14px 0' }}>
                 {totaleOggi === 0 && !pianoOggi.blocchi.length ? 'Oggi non hai tempo libero impostato (o la giornata è finita).' : 'Niente da pianificare per oggi.'}

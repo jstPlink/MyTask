@@ -19,11 +19,13 @@ export function Fare() {
   const items = useItems();
   const oggi = useOggi();
   const nRev = useMemo(() => revisione(items, oggi).length, [items, oggi]);
-  const aperte = items.filter((i) => !i.eliminato && (i.tipo === 'azione' || i.tipo === 'progetto' || i.tipo === 'esperienza') && i.stato !== 'fatto' && i.stato !== 'saltato').length;
+  const nAttivita = useMemo(() => listaAzioni(items, oggi).length, [items, oggi]);
+  const nProgetti = useMemo(() => listaProgetti(items, oggi).length, [items, oggi]);
+  const nEsperienze = useMemo(() => { const v = listaEsperienze(items, oggi); return v.conData.length + v.perZona.reduce((n, [, l]) => n + l.length, 0); }, [items, oggi]);
 
   return (
     <>
-      <Top title="Attività" sub={`${aperte} aperte${nRev ? ` · ${nRev} in revisione` : ''}`} right={<PulsanteAspetto />} />
+      <Top title="Attività" sub={`${nAttivita} ${nAttivita === 1 ? 'attività' : 'attività'} · ${nProgetti} ${nProgetti === 1 ? 'progetto' : 'progetti'} · ${nEsperienze} ${nEsperienze === 1 ? 'esperienza' : 'esperienze'}${nRev ? ` · ${nRev} da rivedere` : ''}`} right={<PulsanteAspetto />} />
       <div className="scroll">
         <Seg nav voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
         {nav.fareSub === 'azioni' && <Azioni />}
@@ -65,6 +67,7 @@ function Azioni() {
       {gruppi.map((g) => g.progetto
         ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
         : g.voci.map(riga))}
+      <RigheEsperienze titolo />
     </>
   );
 }
@@ -112,6 +115,15 @@ function Progetti() {
 }
 
 function Esperienze() {
+  const items = useItems();
+  const oggi = useOggi();
+  const v = useMemo(() => listaEsperienze(items, oggi), [items, oggi]);
+  if (v.conData.length + v.perZona.length === 0) return <Empty>Nessuna esperienza in lista.</Empty>;
+  return <RigheEsperienze />;
+}
+
+/** Esperienze con data e "da fare quando capita". Con `titolo` compaiono anche nella lista Attività, sotto una sezione. */
+function RigheEsperienze({ titolo }: { titolo?: boolean }) {
   const nav = useNav();
   const items = useItems();
   const oggi = useOggi();
@@ -120,9 +132,10 @@ function Esperienze() {
     () => v.perZona.flatMap(([, l]) => l).sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo, 'it')),
     [v],
   );
-  if (v.conData.length + quandoCapita.length === 0) return <Empty>Nessuna esperienza in lista.</Empty>;
+  if (v.conData.length + quandoCapita.length === 0) return null;
   return (
     <>
+      {titolo && <Sec a="Esperienze" />}
       {v.conData.length > 0 && <Sec a="Con data" />}
       {v.conData.map((i) => (
         <Row key={i.id} titolo={i.titolo} meta={i.oraInizio}
