@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { Icona } from './kit.tsx';
 import { useNav } from './nav.tsx';
 
 /** Barra in alto per schermi larghi: cattura rapida, ricerca e nuova voce. */
@@ -38,8 +37,6 @@ export function TopBar() {
         />
         <kbd aria-hidden="true">/</kbd>
       </div>
-      <button className="circ" onClick={() => nav.vai({ k: 'aspetto' })} aria-label="Stile e aspetto"><Icona nome="aspetto" size={22} /></button>
-      <button className="btn solid" onClick={() => nav.openCapture(true)}>+ Nuova nota</button>
     </div>
   );
 }

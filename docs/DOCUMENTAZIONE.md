@@ -117,6 +117,10 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 - **Sincronizzazione del tempo libero:** il tempo libero viaggia nella stessa sincronizzazione delle voci (campo `impostazioni` di `/api/sync`, tabella `settings` del server, chiave `tempoLibero`). Ogni dispositivo ricorda quando l'ha modificato e vince la modifica più recente, così telefono e sito vedono gli stessi orari. Serve l'app e il server alla 0.21.0 o successiva; un valore impostato con una versione precedente sale al primo collegamento.
 - **Non ancora:** eccezioni per un singolo giorno (il modello le prevede), piano nel calendario.
 
+- **Barra in alto e barra laterale (0.26.0):** cattura rapida e ricerca hanno la stessa larghezza; tolti l'icona Aspetto (resta nella barra laterale) e il pulsante "+ Nuova voce" (la cattura resta nella barra e con N); le cinque sezioni principali della barra laterale (Oggi, Attività, Intrattenimento, Curiosità, Routine) hanno la stessa dimensione delle altre voci.
+
+- **Barra in alto e barra laterale (0.26.0):** cattura rapida e ricerca hanno la stessa larghezza; tolti l'icona Aspetto (resta nella barra laterale) e il pulsante "+ Nuova voce" (la cattura resta nella barra e con N); le cinque sezioni principali della barra laterale hanno la stessa dimensione delle altre voci.
+
 ### 2.4 Telefono: icone e pulsanti circolari (implementato)
 
 - **Icone** per le sezioni principali (Oggi: sole; Fare: spunta in un quadrato; Intrattenimento: bussola; Routine: frecce che si ripetono), nella barra in basso con un'evidenziazione tonda sulla scheda attiva, e nella barra laterale del sito.
@@ -437,3 +441,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-16 | 0.23.0 | Pila unica di navigazione con finestre nella cronologia; "+" sempre cattura con bozza in Inbox; checkbox Scadenza rigida sotto la data; Attività con tutte le voci; Archivio diventa Completato; tolta l'etichetta "oggi" in Oggi; checkbox con tinta della priorità; stima dei tempi con margine d'errore che si affina (sezione 2.4.2) |
 | 2026-10-16 | 0.24.0 | Task figli rientrati nei gruppi; checkbox senza colore di priorità; scheda Progetti con lo stesso aspetto a gruppi e tutti i task; interesse a pallini nelle Curiosità; barre di scorrimento nascoste; icona progetto neutra con contorno |
 | 2026-10-16 | 0.25.0 | Attività con tutti i conteggi e le esperienze; nuovo blocco di priorità nella scheda; barra del piano divisa per attività con margine per blocco; mockup barra a 24 ore |
+| 2026-10-16 | 0.26.0 | Vista web: barra laterale con voci tutte della stessa dimensione, cattura e ricerca della stessa larghezza, tolti Aspetto e Nuova voce dalla barra in alto; mockup barra a 24 ore con 5 varianti |
