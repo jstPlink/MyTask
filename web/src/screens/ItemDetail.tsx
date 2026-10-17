@@ -11,6 +11,7 @@ import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { Back, DotsPick, Field, Gruppo, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
+import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
 import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
@@ -33,7 +34,6 @@ const PROMEMORIA_PRESET: { giorni: number; nome: string }[] = [
   { giorni: 7, nome: '7 giorni prima' }, { giorni: 3, nome: '3 giorni prima' }, { giorni: 1, nome: '1 giorno prima' }, { giorni: 0, nome: 'Il giorno stesso' },
 ];
 
-const SFORZI = [5, 15, 30, 60, 120, 240, 360, 480, 720, 1440];
 const nomeSforzo = nomeTempo;
 
 const TIPI_PIATTO = ['Antipasto', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Piatto unico', 'Zuppa', 'Pane e lievitati', 'Bevanda'];
@@ -214,11 +214,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {IS_AZIONE(t) && <Field label="Importanza"><SliderImportanza label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>}
             {t === 'esperienza' && <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
             {IS_AZIONE(t) && (
-              <Field label="Tempo stimato">
-                <select value={d.sforzoMin ?? ''} onChange={(e) => up({ sforzoMin: e.target.value ? Number(e.target.value) : undefined })}>
-                  <option value="">Non stimato</option>{SFORZI.map((m) => <option key={m} value={m}>{nomeSforzo(m)}</option>)}
-                </select>
-              </Field>
+              <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} />
             )}
             {IS_AZIONE(t) && (d.sforzoMin || suggerita) && (
               <div className="t2" style={{ padding: '6px 0 10px' }}>
@@ -261,11 +257,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {t === 'curiosita' && (
           <Gruppo titolo="Interesse">
             <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
-            <Field label="Tempo stimato">
-              <select value={d.sforzoMin ?? 15} onChange={(e) => up({ sforzoMin: Number(e.target.value) })}>
-                {[...new Set([...SFORZI, d.sforzoMin ?? 15])].sort((a, b) => a - b).map((m) => <option key={m} value={m}>{nomeSforzo(m)}</option>)}
-              </select>
-            </Field>
+            <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m ?? 15 })} />
           </Gruppo>
         )}
 

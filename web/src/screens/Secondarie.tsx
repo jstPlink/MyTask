@@ -14,7 +14,7 @@ import { sync } from '../lib/sync.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { Back, Chips, Empty, Field, Row, Sec, Seg, Toggle, Top } from '../ui/kit.tsx';
-import { useNav } from '../ui/nav.tsx';
+import { useLayer, useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 
 // ------------------------------------------------------------------ Altro
@@ -118,6 +118,7 @@ export function Revisione() {
   const v = lista[0];
 
   useEffect(() => { setPianifica(false); setData(''); }, [v?.item.id]);
+  useLayer('pianifica', pianifica, () => setPianifica(false)); // "indietro" chiude il pannello della data
 
   if (!v) {
     return (

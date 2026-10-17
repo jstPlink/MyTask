@@ -191,3 +191,52 @@ test('piano: tra un\'attività e la successiva c\'è la pausa (5 minuti di base,
   const z = pianifica([a, b], { ...base, pausaMin: 0 }, OGGI, NOW).giorni[0].blocchi;
   assert.equal(orario(z[1].da), '18:30');
 });
+
+// ---- stima del tempo scritta a mano
+import { leggiDurata, scomponi, scriviDurata } from './tempo.ts';
+
+test('tempo: legge minuti, ore e giorni scritti a mano', () => {
+  const m = (t: string) => { const r = leggiDurata(t); return r.ok ? r.minuti : 'errore'; };
+  assert.equal(m('45m'), 45);
+  assert.equal(m('6h'), 360);
+  assert.equal(m('4d'), 5760);
+  assert.equal(m('4g'), 5760);
+  assert.equal(m('5g 6h'), 5 * 1440 + 360);
+  assert.equal(m('1h30'), 90);
+  assert.equal(m('1h 30m'), 90);
+  assert.equal(m('1:30'), 90);
+  assert.equal(m('1,5h'), 90);
+  assert.equal(m('90'), 90);
+  assert.equal(m('2 ore'), 120);
+  assert.equal(m('1 giorno 2 ore 15 min'), 1440 + 120 + 15);
+  assert.equal(m(''), undefined);
+  assert.equal(m('abc'), 'errore');
+  assert.equal(m('5 6h'), 'errore');
+  assert.equal(m('0'), 'errore');
+  assert.equal(m('3x'), 'errore');
+});
+
+test('tempo: scrive e scompone le durate', () => {
+  assert.equal(scriviDurata(45), '45m');
+  assert.equal(scriviDurata(390), '6h 30m');
+  assert.equal(scriviDurata(1440), '1g');
+  assert.equal(scriviDurata(7500), '5g 5h');
+  assert.equal(scriviDurata(undefined), '');
+  assert.deepEqual(scomponi(1440 + 135), { g: 1, h: 2, m: 15 });
+  const r = leggiDurata(scriviDurata(8123));
+  assert.ok(r.ok && r.minuti === 8123);
+});
+
+// ---- indirizzo del server al login
+import { componiIndirizzo, indirizzoValido, separaIndirizzo } from './indirizzo.ts';
+
+test('indirizzo: separa lo schema e ricompone', () => {
+  assert.deepEqual(separaIndirizzo('https://mytask.fplinio.it/'), { schema: 'https', resto: 'mytask.fplinio.it' });
+  assert.deepEqual(separaIndirizzo('HTTP://192.168.1.5:8787'), { schema: 'http', resto: '192.168.1.5:8787' });
+  assert.deepEqual(separaIndirizzo('mytask.fplinio.it'), { schema: 'https', resto: 'mytask.fplinio.it' });
+  assert.deepEqual(separaIndirizzo('mytask.fplinio.it', 'http'), { schema: 'http', resto: 'mytask.fplinio.it' });
+  assert.equal(componiIndirizzo('https', 'mytask.fplinio.it'), 'https://mytask.fplinio.it');
+  assert.equal(componiIndirizzo('http', 'https://altro.it/'), 'https://altro.it');
+  assert.ok(indirizzoValido('mytask.fplinio.it') && indirizzoValido('192.168.1.5:8787') && indirizzoValido('localhost:5173'));
+  assert.ok(!indirizzoValido('') && !indirizzoValido('mytask') && !indirizzoValido('ciao come va'));
+});

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Item } from '../../shared/types.ts';
 import { useAuth, useToast } from './lib/hooks.ts';
+import { App as CapApp } from '@capacitor/app';
 import { useMediaQuery } from './lib/media.ts';
+import { isNative } from './lib/native.ts';
 import { chiudiToast } from './lib/toast.ts';
 import { clsx } from './lib/util.ts';
 import { NavContext, type Nav, type Screen, type SubFare, type SubScoprire, type Tab } from './ui/nav.tsx';
@@ -54,6 +56,10 @@ function ToastView() {
   );
 }
 
+// Nell'app Android la pila è gestita da noi (nessun uso della cronologia del WebView) e il tasto indietro del telefono
+// arriva dal plugin App: così funziona sempre, senza dipendere da come il WebView conta le voci di cronologia.
+const NATIVO = isNative();
+
 export function App() {
   const auth = useAuth();
   const wide = useMediaQuery('(min-width: 900px)');
@@ -70,6 +76,7 @@ export function App() {
   const metti = (s: Istantanea) => { snapRef.current = s; setSnap(s); };
 
   useEffect(() => {
+    if (NATIVO) return;
     history.replaceState({ i: 0 }, '');
     const onPop = (e: PopStateEvent) => {
       indietroInCorso.current = false;
@@ -87,7 +94,7 @@ export function App() {
     const h = hist.current;
     h.list = [...h.list.slice(0, h.i + 1), next];
     h.i += 1;
-    history.pushState({ i: h.i }, '');
+    if (!NATIVO) history.pushState({ i: h.i }, '');
     metti(next);
   }, []);
   /** Spostamento verso una nuova posizione: eventuali finestre aperte vengono chiuse senza passare dalla cronologia. */
@@ -99,11 +106,25 @@ export function App() {
   }, [spingi]);
   const indietro = useCallback(() => {
     if (indietroInCorso.current) return;
-    if (hist.current.i > 0) { indietroInCorso.current = true; history.back(); return; }
+    if (hist.current.i > 0) {
+      if (NATIVO) { hist.current.i -= 1; metti(hist.current.list[hist.current.i]); return; }
+      indietroInCorso.current = true; history.back(); return;
+    }
     const cur = snapRef.current;
     if (cur.layers.length) metti({ ...cur, layers: cur.layers.slice(0, -1) });
     else if (cur.stack.length) metti({ ...cur, stack: cur.stack.slice(0, -1) });
   }, []);
+
+  // tasto indietro del telefono: chiude il pannello in cima, poi risale la pila; a pila vuota esce dall'app
+  useEffect(() => {
+    if (!NATIVO) return;
+    const ascolto = CapApp.addListener('backButton', () => {
+      const cur = snapRef.current;
+      if (hist.current.i > 0 || cur.layers.length || cur.stack.length) indietro();
+      else void CapApp.exitApp();
+    });
+    return () => { void ascolto.then((h) => h.remove()); };
+  }, [indietro]);
 
   const openLayer = useCallback((id: string) => {
     const cur = snapRef.current;

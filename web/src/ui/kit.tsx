@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { clsx } from '../lib/util.ts';
-import { useNav, type Tab } from './nav.tsx';
+import { useLayer, useNav, type Tab } from './nav.tsx';
 import type { Item } from '../../../shared/types.ts';
 import { battito } from '../lib/battito.ts';
 
@@ -190,6 +190,8 @@ export interface VoceScelta<T extends string> { id: T; nome: string; icona: Reac
 export function Scelta<T extends string>({ label, valore, voci, onChange }: { label: string; valore: T; voci: VoceScelta<T>[]; onChange: (v: T) => void }) {
   const [aperto, setAperto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  // il menu è un pannello della pila: "indietro" lo chiude senza lasciare la schermata
+  useLayer('scelta', aperto, () => setAperto(false));
   useEffect(() => {
     if (!aperto) return;
     const chiudi = (e: Event) => { if (!ref.current?.contains(e.target as Node)) setAperto(false); };

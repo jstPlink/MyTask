@@ -511,3 +511,19 @@ a { color: var(--accent); }
 .capture-sheet { max-height: 88dvh; overflow-y: auto; }
 .capture-simili { max-height: 46dvh; overflow-y: auto; }
 .shell .capture-sheet { max-height: 80vh; }
+
+/* ---------- Tempo stimato: scrittura libera e selettore giorni/ore/minuti ---------- */
+.campo-tempo input { flex: 1; min-width: 0; }
+.campo-tempo input[aria-invalid=true] { color: var(--warn); }
+.tempo-cols { display: flex; justify-content: center; gap: 26px; margin: 18px 0 8px; }
+.tempo-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.tempo-passo { width: 56px; height: 44px; border-radius: 14px; background: var(--surface2); font-size: 22px; text-align: center; }
+.tempo-passo:active { transform: scale(.94); }
+.tempo-val { min-width: 64px; text-align: center; font-size: 34px; font-weight: 750; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.tempo-val small { display: block; font-size: 12px; font-weight: 600; color: var(--mid); }
+.tempo-totale { text-align: center; margin-bottom: 4px; }
+
+/* ---------- Login: indirizzo del server con schema a parte ---------- */
+.login-server { display: flex; gap: 8px; }
+.login-server select { flex: none; background: var(--surface2); border: 1.5px solid var(--line); border-radius: 12px; padding: 0 10px; font-size: 16px; font-weight: 650; color: var(--ink); outline: none; }
+.login-server input { flex: 1; min-width: 0; }
