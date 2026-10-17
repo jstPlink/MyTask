@@ -7,7 +7,7 @@ import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score, urgency } fro
 import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
-import { useDisponibilita, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
+import { useDisponibilita, useItems, useMinuto, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, segnaRoutine } from '../lib/actions.ts';
 import { Fab, Sezione, GruppoProgetto, Icona, Row, Top } from '../ui/kit.tsx';
 import { useLayer, useNav } from '../ui/nav.tsx';
@@ -95,8 +95,7 @@ export function Oggi() {
   const v = useMemo(() => vistaOggi(items, oggi), [items, oggi]);
   const margine = useMemo(() => margineAtteso(items), [items]);
   const disp = useDisponibilita();
-  const [minutoCorrente, setMinutoCorrente] = useState(() => Math.floor(Date.now() / 60000));
-  useEffect(() => { const t = setInterval(() => setMinutoCorrente(Math.floor(Date.now() / 60000)), 60_000); return () => clearInterval(t); }, []);
+  const minutoCorrente = useMinuto();
   const piano = useMemo(() => (disp ? pianifica(items, disp, oggi, minutoCorrente * 60000) : null), [items, disp, oggi, minutoCorrente]);
   const [meseAperto, setMeseAperto] = useState(false);
   // fascia libera scelta nella barra (per giorno); di default quella in corso o la prossima
@@ -206,7 +205,7 @@ export function Oggi() {
   const bloccoRiga = (bl: NonNullable<typeof piano>['giorni'][number]['blocchi'][number]) => bl.pausa ? (
     <Row
       key={`${bl.item.id}-${bl.da}`}
-      titolo={bl.item.titolo}
+      titolo={bl.item.titolo} tipo={bl.item.tipo}
       ora={<>{orario(bl.da)}<small>{durata(bl.a - bl.da)}</small></>}
       meta="Pausa curiosità"
       check="square"
@@ -218,7 +217,7 @@ export function Oggi() {
   ) : (
     <Row
       key={`${bl.item.id}-${bl.da}`}
-      titolo={bl.item.titolo}
+      titolo={bl.item.titolo} tipo={bl.item.tipo}
       ora={<>{orario(bl.da)}<small>{durata(bl.a - bl.da)}</small></>}
       meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? 'prossimo passo' : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined, bl.fisso ? undefined : `margine ±${nomeTempo(Math.max(1, Math.round((bl.a - bl.da) * margine)))}`].filter(Boolean).join(' · ') || undefined}
       right={bl.inRitardo ? <span className="piano-avviso">oltre la scadenza</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
@@ -265,7 +264,7 @@ export function Oggi() {
         {resto.length > 0 && (
           <Sezione titolo={passato ? 'Rimaste aperte' : 'Con scadenza questo giorno'} dettaglio={resto.length}>
             {resto.map((i) => (
-              <Row key={i.id} titolo={i.titolo} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
+              <Row key={i.id} titolo={i.titolo} tipo={i.tipo} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
                 level={barLevel(score(i, oggi))} check={i.tipo === 'esperienza' ? 'square' : 'circle'}
                 right={i.rigida || passato ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : undefined}
                 onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
@@ -301,7 +300,7 @@ export function Oggi() {
               {fuoriOggi.map((e) => {
                 const dove = dovePianificata(e.item.id);
                 return (
-                  <Row key={e.item.id} titolo={e.item.titolo} light
+                  <Row key={e.item.id} titolo={e.item.titolo} tipo={e.item.tipo} light
                     meta={dove ? `rimandata a ${nomeGiorno(dove.data)} alle ${orario(dove.da)}` : 'senza spazio nelle prossime due settimane'}
                     right={destra(e)} onCheck={() => completaVoce(e.item)} selected={nav.openId === e.item.id} onOpen={() => nav.push({ k: 'item', id: e.item.id })} />
                 );
@@ -322,7 +321,7 @@ export function Oggi() {
               rank={v.fare.indexOf(e) + 1}
               urgenza={urgency(e.item, oggi)}
               key={e.item.id}
-              titolo={e.item.titolo}
+              titolo={e.item.titolo} tipo={e.item.tipo}
               meta={meta(e)}
               right={destra(e)}
               level={barLevel(e.punteggio)}

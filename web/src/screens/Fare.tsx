@@ -50,7 +50,7 @@ function Azioni() {
     return (
       <Row
         key={item.id}
-        titolo={item.titolo}
+        titolo={item.titolo} tipo={item.tipo}
         meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${nomeTempo(item.sforzoMin)} ${percentuale(margine)}` : undefined].filter(Boolean).join(' · ')}
         right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
         level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
@@ -90,7 +90,7 @@ function Progetti() {
     const riga = (c: (typeof passi)[number], chiuso: boolean) => {
       const d = dueDate(c);
       return (
-        <Row key={c.id} titolo={c.titolo} done={chiuso} light={chiuso} struck={chiuso}
+        <Row key={c.id} titolo={c.titolo} tipo={c.tipo} done={chiuso} light={chiuso} struck={chiuso}
           meta={chiuso ? undefined : c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
           right={d && !chiuso ? (c.rigida || isOverdue(c, oggi) ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
           level={chiuso ? undefined : barLevel(score(withInheritance(c, p.progetto), oggi))}
@@ -136,13 +136,13 @@ function RigheEsperienze({ titolo }: { titolo?: boolean }) {
   );
   if (v.conData.length + quandoCapita.length === 0) return null;
   const righeConData = v.conData.map((i) => (
-    <Row key={i.id} titolo={i.titolo} meta={i.oraInizio}
+    <Row key={i.id} titolo={i.titolo} tipo={i.tipo} meta={i.oraInizio} interesse={i.interesse ?? 3}
       right={i.rigida ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi)}
       level={barLevel(score(i, oggi))} onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
   ));
   const righeQuandoCapita = quandoCapita.map((i) => (
-    <Row key={i.id} titolo={i.titolo} light check="square"
-      level={(i.interesse ?? 3) >= 4 ? 3 : (i.interesse ?? 3) === 3 ? 2 : 1}
+    <Row key={i.id} titolo={i.titolo} tipo={i.tipo} light check="square"
+      interesse={i.interesse ?? 3}
       right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
       onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
   ));

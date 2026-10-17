@@ -3,7 +3,7 @@ import type { Tipo } from '../../../shared/types.ts';
 import { collezione, piattformeUsate } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
 import { completaVoce } from '../lib/actions.ts';
-import { Chips, Empty, Fab, PalliniInteresse, Row, Seg, Top, Sezione } from '../ui/kit.tsx';
+import { Chips, Empty, Fab, Row, Seg, Top, Sezione } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubScoprire } from '../ui/nav.tsx';
 
@@ -47,10 +47,9 @@ export function Scoprire() {
           return (
             <Row
               key={i.id}
-              titolo={i.titolo}
+              titolo={i.titolo} tipo={i.tipo}
               meta={meta || undefined}
-              right={<PalliniInteresse valore={interesse} />}
-              level={interesse >= 4 ? 3 : interesse === 3 ? 2 : 1}
+              interesse={interesse}
               check="square"
               centrato
               light={interesse <= 1}

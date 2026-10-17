@@ -64,19 +64,15 @@ export function completaVoce(item: Item) {
 }
 
 /**
- * Sposta un passo di un progetto di una posizione (su = -1, giù = +1). L'ordine è anche la priorità:
- * il primo passo aperto è il prossimo da fare. Tutti i passi ricevono una posizione, così l'ordine resta stabile.
+ * Imposta l'ordine dei passi aperti di un progetto (`idsNuovi`, dal primo all'ultimo). L'ordine è anche la priorità:
+ * il primo passo aperto è il prossimo da fare. I passi parcheggiati restano al loro posto; tutti ricevono una posizione.
  */
-export function spostaPasso(padreId: string, idPasso: string, direzione: -1 | 1) {
+export function ordinaPassi(padreId: string, idsNuovi: string[]) {
   const lista = figli(getItems(), padreId);
-  const visibili = lista.filter((c) => c.stato !== 'parcheggiato');
-  const da = visibili.findIndex((c) => c.id === idPasso);
-  const a = da + direzione;
-  if (da < 0 || a < 0 || a >= visibili.length) return;
-  const nuovo = [...lista];
-  const posDa = nuovo.findIndex((c) => c.id === visibili[da].id);
-  const posA = nuovo.findIndex((c) => c.id === visibili[a].id);
-  [nuovo[posDa], nuovo[posA]] = [nuovo[posA], nuovo[posDa]];
+  const visibili = new Set(lista.filter((c) => c.stato !== 'parcheggiato').map((c) => c.id));
+  const per = new Map(lista.map((c) => [c.id, c]));
+  const coda = idsNuovi.filter((i) => visibili.has(i));
+  const nuovo = lista.map((c) => (visibili.has(c.id) ? per.get(coda.shift() ?? c.id)! : c));
   nuovo.forEach((c, n) => { if (c.ordine !== n) saveItem({ ...c, ordine: n }); });
 }
 

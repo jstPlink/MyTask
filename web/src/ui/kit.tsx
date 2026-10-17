@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { clsx } from '../lib/util.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
-import type { Item } from '../../../shared/types.ts';
+import { GlifoTipo } from './Icone.tsx';
+import type { Item, Tipo } from '../../../shared/types.ts';
 import { battito } from '../lib/battito.ts';
 
 export function Top({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
@@ -29,13 +30,17 @@ export interface RowProps {
   titolo: string;
   meta?: ReactNode;
   right?: ReactNode;
-  /** Colonna a sinistra del titolo, per l'orario nel piano della giornata. */
+  /** Colonna a sinistra, prima della priorità, per l'orario nel piano della giornata. */
   ora?: ReactNode;
+  /** Tipo della nota: la sua icona compare, piccola, nella riga grigia sotto il titolo. */
+  tipo?: Tipo;
   level?: 1 | 2 | 3;
   /** Checkbox e parte destra centrati in verticale sulla riga. */
   centrato?: boolean;
   /** Posizione in classifica (1 = la prima da fare): numero colorato a destra, nel colore del livello. */
   rank?: number;
+  /** Interesse 1-5 (Intrattenimento, Curiosità, Esperienze): numero in un pallino verde che si riempie con l'interesse, fermo. */
+  interesse?: number;
   /** Urgenza 0-100: il numero d'ordine batte a ritmo crescente con l'urgenza (fermo se 0 o assente). */
   urgenza?: number;
   check?: 'circle' | 'square' | 'none';
@@ -47,12 +52,22 @@ export interface RowProps {
   onOpen?: () => void;
 }
 
-export function Row({ titolo, meta, right, ora, level, rank, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
+      {ora && <div className="piano-ora">{ora}</div>}
+      {rank !== undefined && <span className="rank" style={urgenza ? battito(urgenza) : undefined} aria-label={`Posizione ${rank}`}>{rank}</span>}
+      {interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${interesse}`)} role="img" aria-label={`Interesse ${interesse} su 5`}>{interesse}</span>}
+      <div className="grow">
+        <div className="line">
+          <div className={clsx('t1', light && 'light', struck && 'struck')}>{titolo}</div>
+        </div>
+        {(meta || tipo) && <div className="t2">{tipo && <GlifoTipo tipo={tipo} />}{meta}</div>}
+      </div>
+      {right && <div className="right">{right}</div>}
       {check !== 'none' && (
         <span
-          className={clsx('cb', check === 'square' && 'sq', done && 'done')}
+          className={clsx('cb', done && 'done')}
           role={onCheck ? 'checkbox' : undefined}
           aria-checked={onCheck ? !!done : undefined}
           aria-label={onCheck ? `Segna «${titolo}»` : undefined}
@@ -60,15 +75,6 @@ export function Row({ titolo, meta, right, ora, level, rank, urgenza, check = 'c
           style={onCheck ? { cursor: 'pointer' } : undefined}
         />
       )}
-      {ora && <div className="piano-ora">{ora}</div>}
-      <div className="grow">
-        <div className="line">
-          <div className={clsx('t1', light && 'light', struck && 'struck')}>{titolo}</div>
-        </div>
-        {meta && <div className="t2">{meta}</div>}
-      </div>
-      {right && <div className="right">{right}</div>}
-      {rank !== undefined && <span className="rank" style={urgenza ? battito(urgenza) : undefined} aria-label={`Posizione ${rank}`}>{rank}</span>}
     </>
   );
   const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel');

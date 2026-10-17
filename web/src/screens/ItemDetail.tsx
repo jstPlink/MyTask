@@ -4,11 +4,12 @@ import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { barLevel, componentiPunteggio, dueDate, score } from '../../../shared/priority.ts';
 import { avanzamento, figli, listaAzioni, nomiUsati } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { completaVoce, nuovaVoce, riapriVoce, spostaPasso } from '../lib/actions.ts';
+import { completaVoce, nuovaVoce, ordinaPassi, riapriVoce } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
+import { useRiordino } from '../ui/riordina.tsx';
 import { Back, DotsPick, Field, Gruppo, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
@@ -91,6 +92,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
   const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
+  const ordChecklist = useRiordino(checklist.map((c) => c.id), (idsNuovi) => setCheck(idsNuovi.map((i) => checklist.find((c) => c.id === i)!)));
+  const ordPassi = useRiordino(passi.map((c) => c.id), (idsNuovi) => ordinaPassi(d.id, idsNuovi));
   const avanz = t === 'progetto' ? avanzamento(d, tutte) : undefined;
   const [oreTesto, setOreTesto] = useState(() => (d.durataMin ? String(+(d.durataMin / 60).toFixed(1)).replace('.', ',') : ''));
   const [ricercaPagine, setRicercaPagine] = useState<'' | 'cerco' | 'trovate' | 'nonTrovate'>('');
@@ -355,27 +358,29 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {t === 'progetto' && (
           <Gruppo titolo={`Checklist${avanz && avanz.totale ? ` · ${avanz.fatti} su ${avanz.totale}` : ''}`}>
             {avanz && avanz.totale > 0 && <div className="bar"><i style={{ width: `${(avanz.fatti / avanz.totale) * 100}%` }} /></div>}
-            {checklist.map((c, n) => (
-              <div key={c.id} className="row" style={{ alignItems: 'center' }}>
-                <button className={clsx('cb sq', c.fatto && 'done')} aria-label={`Segna «${c.testo}»`} onClick={() => setCheck(checklist.map((x) => x.id === c.id ? { ...x, fatto: !x.fatto } : x))} />
-                <div className={clsx('grow t1 light', c.fatto && 'struck')}>{c.testo}</div>
-                <Frecce su={n > 0} giu={n < checklist.length - 1} nome={c.testo}
-                  onSu={() => setCheck(scambia(checklist, n, n - 1))} onGiu={() => setCheck(scambia(checklist, n, n + 1))} />
-                <button className="chip" aria-label="Togli la voce" onClick={() => setCheck(checklist.filter((x) => x.id !== c.id))}>✕</button>
-              </div>
-            ))}
-            {passi.map((c, n) => (
-              <div key={c.id} className="row passo-riga" style={{ alignItems: 'center' }}>
-                <button className={clsx('cb', c.stato === 'fatto' && 'done')} role="checkbox" aria-checked={c.stato === 'fatto'} aria-label={`Segna «${c.titolo}»`} onClick={() => (c.stato === 'fatto' ? riapriVoce(c) : completaVoce(c))} />
-                <button className="passo-titolo" onClick={() => nav.push({ k: 'item', id: c.id })}>
-                  <span className={clsx('t1', c.stato === 'fatto' && 'light struck')}>{c.titolo}</span>
-                  {dueDate(c) && <span className="t2" style={{ display: 'block' }}>{formatShortYear(dueDate(c)!, oggi)}</span>}
-                </button>
-                <Frecce su={n > 0} giu={n < passi.length - 1} nome={c.titolo}
-                  onSu={() => spostaPasso(d.id, c.id, -1)} onGiu={() => spostaPasso(d.id, c.id, 1)} />
-              </div>
-            ))}
-            {(passi.length > 1 || checklist.length > 1) && <div className="t2" style={{ padding: '6px 0 4px' }}>L'ordine è la priorità: il primo passo aperto è il prossimo da fare. Usa le frecce per spostarli.</div>}
+            <div ref={ordChecklist.cont} className="riordinabile">
+              {ordChecklist.ordinati(checklist).map((c) => (
+                <div key={c.id} className={clsx('row', ordChecklist.preso === c.id && 'sollevata')} {...ordChecklist.presa(c.id)}>
+                  <span className="maniglia" data-grip aria-hidden="true"><i /></span>
+                  <div className={clsx('grow t1 light', c.fatto && 'struck')}>{c.testo}</div>
+                  <button className="chip" aria-label="Togli la voce" onClick={() => setCheck(checklist.filter((x) => x.id !== c.id))}>✕</button>
+                  <button className={clsx('cb', c.fatto && 'done')} aria-label={`Segna «${c.testo}»`} onClick={() => setCheck(checklist.map((x) => x.id === c.id ? { ...x, fatto: !x.fatto } : x))} />
+                </div>
+              ))}
+            </div>
+            <div ref={ordPassi.cont} className="riordinabile">
+              {ordPassi.ordinati(passi).map((c) => (
+                <div key={c.id} className={clsx('row passo-riga', ordPassi.preso === c.id && 'sollevata')} {...ordPassi.presa(c.id)}>
+                  <span className="maniglia" data-grip aria-hidden="true"><i /></span>
+                  <button className="passo-titolo" onClick={() => nav.push({ k: 'item', id: c.id })}>
+                    <span className={clsx('t1', c.stato === 'fatto' && 'light struck')}>{c.titolo}</span>
+                    {dueDate(c) && <span className="t2" style={{ display: 'block' }}>{formatShortYear(dueDate(c)!, oggi)}</span>}
+                  </button>
+                  <button className={clsx('cb', c.stato === 'fatto' && 'done')} role="checkbox" aria-checked={c.stato === 'fatto'} aria-label={`Segna «${c.titolo}»`} onClick={() => (c.stato === 'fatto' ? riapriVoce(c) : completaVoce(c))} />
+                </div>
+              ))}
+            </div>
+            {(passi.length > 1 || checklist.length > 1) && <div className="t2" style={{ padding: '6px 0 4px' }}>L'ordine è la priorità: il primo passo aperto è il prossimo da fare. Tieni premuta una riga, o trascinala dal bordo sinistro, per spostarla.</div>}
             <AggiungiRiga placeholder="Aggiungi un passo" onAdd={(txt) => setCheck([...checklist, { id: newId(), testo: txt, fatto: false }])} />
           </Gruppo>
         )}
@@ -430,16 +435,5 @@ function AggiungiRiga({ placeholder, onAdd }: { placeholder: string; onAdd: (v: 
       <input value={v} placeholder={placeholder} style={{ textAlign: 'left' }} onChange={(e) => setV(e.target.value)} />
       <button type="submit" className="chip" disabled={!v.trim()}>Aggiungi</button>
     </form>
-  );
-}
-
-const scambia = <T,>(lista: T[], da: number, a: number): T[] => { const x = [...lista]; [x[da], x[a]] = [x[a], x[da]]; return x; };
-
-function Frecce({ su, giu, nome, onSu, onGiu }: { su: boolean; giu: boolean; nome: string; onSu: () => void; onGiu: () => void }) {
-  return (
-    <span className="frecce">
-      <button type="button" className="freccia" disabled={!su} aria-label={`Sposta «${nome}» più in alto`} onClick={onSu}>▲</button>
-      <button type="button" className="freccia" disabled={!giu} aria-label={`Sposta «${nome}» più in basso`} onClick={onGiu}>▼</button>
-    </span>
   );
 }

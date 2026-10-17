@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { curiosita } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
 import { completaVoce } from '../lib/actions.ts';
-import { Empty, Fab, PalliniInteresse, Row, Top, Sezione } from '../ui/kit.tsx';
+import { Empty, Fab, Row, Top, Sezione } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav } from '../ui/nav.tsx';
 
@@ -22,9 +22,9 @@ export function Curiosita() {
           {lista.map((i) => (
             <Row
               key={i.id}
-              titolo={i.titolo}
+              titolo={i.titolo} tipo="curiosita"
               meta={i.note?.split('\n')[0]}
-              right={<PalliniInteresse valore={i.interesse ?? 3} />}
+              interesse={i.interesse ?? 3}
               check="square"
               centrato
               onCheck={() => completaVoce(i)}

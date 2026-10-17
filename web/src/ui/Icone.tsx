@@ -51,3 +51,8 @@ export function BadgeStato({ stato, size = 24 }: { stato: Stato; size?: number }
     </span>
   );
 }
+
+/** Piccola icona del tipo di nota, senza sfondo: prende il colore del testo (per la riga grigia sotto il titolo). */
+export function GlifoTipo({ tipo, size = 14 }: { tipo: Tipo; size?: number }) {
+  return <svg className="glifo-tipo" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">{GLIFI[tipo]}</svg>;
+}

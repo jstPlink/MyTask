@@ -192,7 +192,7 @@ export function Archivio() {
           <div key={k}>
             <Sec a={monthLabel(`${k}-01`)} />
             {voci.map((i) => (
-              <Row key={i.id} titolo={i.titolo} done={i.stato === 'fatto'} light={i.stato === 'saltato'}
+              <Row key={i.id} titolo={i.titolo} tipo={i.tipo} done={i.stato === 'fatto'} light={i.stato === 'saltato'}
                 meta={[NOMI_TIPO[i.tipo], i.stato === 'saltato' ? 'saltata' : undefined, formatShortYear(dataChiusura(i))].filter(Boolean).join(' · ')}
                 right={i.voto ? `${i.voto}/10` : undefined}
                 onCheck={() => saveItem({ ...i, stato: 'da_fare', completatoIl: undefined })}
