@@ -68,7 +68,6 @@ function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: 
           </i>
         ))}
       </div>
-      {dentro.some((b) => b.margineMin) && <div className="lp-leg"><i aria-hidden="true" />tratteggio: margine d'errore sulla stima</div>}
       <div className="lp-nr" ref={contenitore}>
         {(() => {
           const conNumero = dentro.filter((b) => rank.get(b.item.id));
@@ -310,7 +309,6 @@ export function Oggi() {
             )}
             {raggruppate(pianoOggi.blocchi.filter((x) => inFascia(x, fasceOggi[selOggi])), bloccoRiga)}
           </Sezione>
-          {piano.fuori.length > 0 && <div className="t2" style={{ padding: '10px 0' }}>{piano.fuori.length} {piano.fuori.length === 1 ? 'attività non entra' : 'attività non entrano'} nelle prossime due settimane: servono più fasce di tempo libero.</div>}
         </>
       ) : (
         <Sezione titolo="Da fare oggi" dettaglio={v.fare.length || undefined}>

@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.53.0
+- **Versione documento:** 0.53.1
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -499,6 +499,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-17 | 0.51.0 | Piano di oggi: tempo reale = stima + margine (`pianifica(..., margine)`, `Blocco.margineMin`), il margine è la coda tratteggiata del segmento nella barra con legenda; tolta la sezione «Non entrano oggi»; scadenza rigida con lucchetto (classe `.hard.rigida`) invece del pallino; «scaduta» al posto di «oltre la scadenza» |
 | 2026-10-17 | 0.52.0 | Widget Android «Oggi» (proposta C, trasparente) in due versioni, MyTask · chiaro e MyTask · scuro: in cima un campo per scrivere una nota in Inbox (finestrella, senza aprire l'app), sotto la lista di oggi con orario, posizione e checkbox per spuntare. Nativo in `web/android/.../Widget*.java`; l'app scrive la lista (`web/src/lib/widget.ts`, `shared/widget.ts`) e applica note e spunte accodate dal widget appena viene aperta |
 | 2026-10-17 | 0.53.0 | Tempo libero flessibile: interruttore in Impostazioni › Tempo libero (Fasce fisse / Orari flessibili); in modalità flessibile ogni sera all'ora scelta una notifica chiede gli orari liberi del giorno dopo e prepara il calendario (`Disponibilita.flessibile`, `oraChiedi`, `fasceDelGiorno`, `richiesteOrari`, schermata `OrariGiorno`). Widget: orario sotto il titolo e pallino di priorità che batte come nell'app (ViewFlipper a quadri) |
+| 2026-10-17 | 0.53.1 | Oggi: tolto l'avviso «x attività non entrano nelle prossime due settimane»; linea divisoria tra la timeline del piano e la lista delle attività; tolta la legenda del tratteggio sotto la barra (il margine resta tratteggiato) |
 
 
 ## Widget della schermata Home (0.52.0)
