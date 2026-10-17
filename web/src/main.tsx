@@ -8,6 +8,7 @@ import { avviaSync } from './lib/sync.ts';
 import { avviaTema } from './lib/theme.ts';
 import { avviaPromemoria } from './lib/reminders.ts';
 import { avviaNotificheNative, isNative } from './lib/native.ts';
+import { avviaWidget } from './lib/widget.ts';
 import { avviaHaptic } from './lib/haptic.ts';
 import { sistemaPersoneEChecklist } from './lib/migrazioni.ts';
 import { avviaArricchimento } from './lib/arricchimento.ts';
@@ -25,6 +26,7 @@ async function avvia() {
   avviaArricchimento();
   if (isNative()) {
     avviaNotificheNative();
+    avviaWidget();
   } else {
     avviaPromemoria();
     registerSW({ immediate: true });

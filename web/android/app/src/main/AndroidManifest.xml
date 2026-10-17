@@ -25,6 +25,51 @@
 
         </activity>
 
+        <receiver
+            android:name=".MyTaskWidgetChiaro"
+            android:label="@string/widget_nome_chiaro"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_chiaro" />
+        </receiver>
+
+        <receiver
+            android:name=".MyTaskWidgetScuro"
+            android:label="@string/widget_nome_scuro"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_scuro" />
+        </receiver>
+
+        <service
+            android:name=".WidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <activity
+            android:name=".AzioneActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay" />
+
+        <activity
+            android:name=".NotaRapidaActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:windowSoftInputMode="stateVisible|adjustResize"
+            android:theme="@android:style/Theme.DeviceDefault.Light.Dialog" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

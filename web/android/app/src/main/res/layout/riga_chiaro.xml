@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/riga"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingTop="9dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="9dp">
+
+    <TextView
+        android:id="@+id/ora"
+        android:layout_width="44dp"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="#2F7D5B"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/rank"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/titolo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#111115"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/cb"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:padding="4dp"
+        android:contentDescription="@string/widget_spunta" />
+</LinearLayout>

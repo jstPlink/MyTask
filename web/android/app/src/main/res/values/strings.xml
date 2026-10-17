@@ -4,4 +4,10 @@
     <string name="title_activity_main">MyTask</string>
     <string name="package_name">app.mytask.android</string>
     <string name="custom_url_scheme">app.mytask.android</string>
+    <string name="widget_scrivi">Scrivi una nota…</string>
+    <string name="widget_vuoto">Tutto fatto per oggi</string>
+    <string name="widget_spunta">Segna come fatta</string>
+    <string name="widget_descrizione">Le cose da fare oggi e un campo per scrivere una nota in Inbox</string>
+    <string name="widget_nome_chiaro">MyTask · chiaro</string>
+    <string name="widget_nome_scuro">MyTask · scuro</string>
 </resources>
