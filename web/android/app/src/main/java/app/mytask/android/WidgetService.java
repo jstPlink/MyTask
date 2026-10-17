@@ -51,24 +51,50 @@ public class WidgetService extends RemoteViewsService {
             boolean fatto = o.optInt("f", 0) == 1;
             String id = o.optString("id");
 
+            // orario del piano sotto il titolo
             String ora = o.optString("o", "");
-            v.setViewVisibility(R.id.ora, ora.isEmpty() ? View.GONE : View.VISIBLE);
-            v.setTextViewText(R.id.ora, ora);
-            v.setTextColor(R.id.ora, fatto ? colore("#919199", "#72737D") : colore("#2F7D5B", "#6FCF9B"));
+            v.setViewVisibility(R.id.sub, ora.isEmpty() ? View.GONE : View.VISIBLE);
+            v.setTextViewText(R.id.sub, ora);
+            v.setTextColor(R.id.sub, fatto ? colore("#919199", "#72737D") : colore("#2F7D5B", "#6FCF9B"));
 
             int rank = o.optInt("r", 0);
             if (rank > 0) {
                 int livello = Math.max(1, Math.min(3, o.optInt("l", 1)));
                 int[] sfondiC = {R.drawable.rank_c_1, R.drawable.rank_c_2, R.drawable.rank_c_3};
                 int[] sfondiS = {R.drawable.rank_s_1, R.drawable.rank_s_2, R.drawable.rank_s_3};
+                int[][] colpoC = {{R.drawable.rank_c_1_a, R.drawable.rank_c_1_b}, {R.drawable.rank_c_2_a, R.drawable.rank_c_2_b}, {R.drawable.rank_c_3_a, R.drawable.rank_c_3_b}};
+                int[][] colpoS = {{R.drawable.rank_s_1_a, R.drawable.rank_s_1_b}, {R.drawable.rank_s_2_a, R.drawable.rank_s_2_b}, {R.drawable.rank_s_3_a, R.drawable.rank_s_3_b}};
                 String[] tintaC = {"#919199", "#B7791F", "#C8501E"};
                 String[] tintaS = {"#72737D", "#E8B04B", "#FF9466"};
-                v.setViewVisibility(R.id.rank, View.VISIBLE);
-                v.setTextViewText(R.id.rank, String.valueOf(rank));
-                v.setInt(R.id.rank, "setBackgroundResource", (s ? sfondiS : sfondiC)[livello - 1]);
-                v.setTextColor(R.id.rank, Color.parseColor((s ? tintaS : tintaC)[livello - 1]));
+                int tinta = Color.parseColor((s ? tintaS : tintaC)[livello - 1]);
+                int pieno = (s ? sfondiS : sfondiC)[livello - 1];
+                int[] colpo = (s ? colpoS : colpoC)[livello - 1];
+                int bpm = fatto ? 0 : o.optInt("b", 0);
+                v.setViewVisibility(R.id.rankbox, View.VISIBLE);
+                if (bpm > 0) {
+                    // pulsazione come nell'app: due colpi (lub-dub) di 450 ms, poi pausa fino al battito successivo
+                    v.setViewVisibility(R.id.rank, View.GONE);
+                    v.setViewVisibility(R.id.rank_flip, View.VISIBLE);
+                    v.removeAllViews(R.id.rank_flip);
+                    int periodo = Math.max(450, Math.min(2550, 60000 / bpm));
+                    int quadri = 3 + Math.max(0, Math.round((periodo - 450) / 150f));
+                    for (int k = 0; k < quadri; k++) {
+                        int sfondo = k == 0 ? colpo[0] : k == 2 ? colpo[1] : pieno;
+                        RemoteViews f = new RemoteViews(c.getPackageName(), R.layout.rank_frame);
+                        f.setTextViewText(R.id.rf, String.valueOf(rank));
+                        f.setTextColor(R.id.rf, tinta);
+                        f.setInt(R.id.rf, "setBackgroundResource", sfondo);
+                        v.addView(R.id.rank_flip, f);
+                    }
+                } else {
+                    v.setViewVisibility(R.id.rank_flip, View.GONE);
+                    v.setViewVisibility(R.id.rank, View.VISIBLE);
+                    v.setTextViewText(R.id.rank, String.valueOf(rank));
+                    v.setInt(R.id.rank, "setBackgroundResource", pieno);
+                    v.setTextColor(R.id.rank, tinta);
+                }
             } else {
-                v.setViewVisibility(R.id.rank, View.GONE);
+                v.setViewVisibility(R.id.rankbox, View.GONE);
             }
 
             SpannableString titolo = new SpannableString(o.optString("t", ""));

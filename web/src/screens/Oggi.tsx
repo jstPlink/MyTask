@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { sistemaNumeri } from '../../../shared/linea.ts';
 import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
-import { fasceLibere, minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
+import { ORA_CHIEDI_PREDEFINITA, fasceLibere, minuti, minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
 import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score, urgency } from '../../../shared/priority.ts';
 import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
@@ -284,8 +284,21 @@ export function Oggi() {
     );
   })();
 
+  // modalità flessibile: dopo l'ora scelta (o se oggi non ha orari) chiede quando si è liberi
+  const domani = addDays(oggi, 1);
+  const chiediDomani = !!disp?.flessibile && !disp.eccezioni?.[domani] && minutiOra >= minuti(disp.oraChiedi ?? ORA_CHIEDI_PREDEFINITA);
+  const chiediOggi = !!disp?.flessibile && !disp.eccezioni?.[oggi];
+  const chiediOrari = (giorno: string, nome: string) => (
+    <button className="card tap" style={{ marginBottom: 10 }} onClick={() => nav.push({ k: 'orari', giorno })}>
+      <span><b>Quando sei libero {nome}?</b><span className="t2" style={{ display: 'block' }}>Inserisci gli orari e preparo il calendario.</span></span>
+      <span className="muted">›</span>
+    </button>
+  );
+
   const faroggi = (
     <>
+      {chiediOggi && chiediOrari(oggi, 'oggi')}
+      {chiediDomani && chiediOrari(domani, 'domani')}
       {piano && pianoOggi ? (
         <>
           <Sezione titolo="Piano di oggi">

@@ -1,27 +1,68 @@
 import type { Disponibilita, FasciaOraria } from '../../../shared/piano.ts';
-import { PAUSA_PREDEFINITA, minuti } from '../../../shared/piano.ts';
+import { ORA_CHIEDI_PREDEFINITA, PAUSA_PREDEFINITA, minuti } from '../../../shared/piano.ts';
+import { addDays, formatLong, today } from '../../../shared/dates.ts';
 import { useDisponibilita } from '../lib/hooks.ts';
 import { copiaSuggerita, impostaDisponibilita, usaSuggerita } from '../lib/disponibilita.ts';
-import { Back, Sec, Top } from '../ui/kit.tsx';
+import { useNav } from '../ui/nav.tsx';
+import { Back, Sec, Seg, Top } from '../ui/kit.tsx';
 
 const GIORNI = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 const durata = (min: number) => `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}`;
 
 export function TempoLibero() {
   const disp = useDisponibilita();
+  const nav = useNav();
+  const oggi = today();
   const d: Disponibilita = disp ?? { settimana: Array.from({ length: 7 }, () => []) };
 
   const cambia = (giorno: number, fasce: FasciaOraria[]) => {
     const settimana = d.settimana.map((f, n) => (n === giorno ? fasce : f));
     impostaDisponibilita({ ...d, settimana });
   };
+  const flex = !!d.flessibile;
+  const inseriti = Object.entries(d.eccezioni ?? {}).filter(([g]) => g >= oggi).sort(([a], [b]) => a.localeCompare(b));
+  const nomeGiorno = (g: string) => (g === oggi ? 'Oggi' : g === addDays(oggi, 1) ? 'Domani' : formatLong(g));
   const totale = d.settimana.reduce((n, g) => n + g.reduce((m, f) => m + Math.max(0, minuti(f.a) - minuti(f.da)), 0), 0);
 
   return (
     <>
       <Back label="Altro" />
-      <Top title="Tempo libero" sub={disp ? `${durata(totale)} a settimana` : 'Non ancora impostato'} />
+      <Top title="Tempo libero" sub={flex ? 'Orari flessibili' : disp ? `${durata(totale)} a settimana` : 'Non ancora impostato'} />
       <div className="scroll">
+        <Sec a="Come gestire il tempo libero" />
+        <div className="gruppo">
+          <Seg voci={[{ id: 'fissa', nome: 'Fasce fisse' }, { id: 'flessibile', nome: 'Orari flessibili' }]} attivo={flex ? 'flessibile' : 'fissa'}
+            onChange={(v) => impostaDisponibilita({ ...d, flessibile: v === 'flessibile' ? true : undefined })} />
+          <div className="t2" style={{ padding: '8px 0 10px' }}>
+            {flex
+              ? 'Ogni sera, all’ora che scegli, l’app ti chiede quando sarai libero il giorno dopo e prepara il calendario con quegli orari. Un giorno senza orari non ha tempo libero.'
+              : 'Le stesse fasce valgono per ogni settimana.'}
+          </div>
+        </div>
+        {flex && (
+          <>
+            <div className="gruppo">
+              <div className="field">
+                <span>Chiedimi gli orari alle</span>
+                <input type="time" value={d.oraChiedi ?? ORA_CHIEDI_PREDEFINITA} aria-label="Ora della richiesta serale" onChange={(e) => e.target.value && impostaDisponibilita({ ...d, oraChiedi: e.target.value })} />
+              </div>
+              <div className="t2" style={{ padding: '2px 0 10px' }}>Serve il permesso per le notifiche. Sul sito la richiesta compare in Oggi.</div>
+            </div>
+            <div className="btns">
+              <button className="btn" onClick={() => nav.push({ k: 'orari', giorno: oggi })}>Orari di oggi</button>
+              <button className="btn solid" onClick={() => nav.push({ k: 'orari', giorno: addDays(oggi, 1) })}>Orari di domani</button>
+            </div>
+            <Sec a="Orari inseriti" b={inseriti.length || undefined} />
+            {inseriti.length === 0 && <div className="t2" style={{ padding: '8px 0' }}>Nessun orario inserito per i prossimi giorni.</div>}
+            {inseriti.map(([g, f]) => (
+              <button key={g} className="field link" onClick={() => nav.push({ k: 'orari', giorno: g })}>
+                <span>{nomeGiorno(g)}</span>
+                <span className="t2">{f.length ? f.map((x) => `${x.da}–${x.a}`).join(', ') : 'nessun tempo libero'}</span>
+              </button>
+            ))}
+          </>
+        )}
+        {!flex && (
         <div className="card">
           <div className="t1">Quando hai tempo per le attività</div>
           <div className="t2" style={{ marginTop: 4 }}>
@@ -33,6 +74,7 @@ export function TempoLibero() {
               : <button className="btn" onClick={() => impostaDisponibilita(copiaSuggerita())}>Ripristina quelle suggerite</button>}
           </div>
         </div>
+        )}
         <Sec a="Pausa tra le attività" />
         <div className="gruppo">
           <div className="field">
@@ -44,8 +86,8 @@ export function TempoLibero() {
           </div>
           <div className="t2" style={{ padding: '2px 0 10px' }}>{disp ? `Di base ${PAUSA_PREDEFINITA} minuti: il piano lascia questo tempo tra un'attività e la successiva.` : 'Imposta prima le fasce di tempo libero.'}</div>
         </div>
-        <Sec a="Fasce per giorno" />
-        {GIORNI.map((nome, g) => (
+        {!flex && <Sec a="Fasce per giorno" />}
+        {!flex && GIORNI.map((nome, g) => (
           <div key={nome} className="tl-giorno">
             <div className="tl-nome">{nome}</div>
             <div className="tl-fasce">

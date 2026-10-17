@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { DISPONIBILITA_SUGGERITA, minuti, orario, pianifica, type Disponibilita } from './piano.ts';
+import { DISPONIBILITA_SUGGERITA, fasceDelGiorno, minutiDisponibili, minuti, orario, pianifica, senzaGiorniPassati, type Disponibilita } from './piano.ts';
+import { richiesteOrari } from './pianifica.ts';
 
 // giovedì 15 ottobre 2026, ore 10:00
 const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
@@ -303,4 +304,40 @@ test('linea del piano: i numeri restano dentro la barra e nell\'ordine, anche se
   const troppi = sistemaNumeri(Array.from({ length: 50 }, (_, i) => i * 6), L);
   assert.ok(troppi.px.every((x) => x >= 0 && x <= L));
   assert.deepEqual(sistemaNumeri([], L).px, []);
+});
+
+test('piano: in modalità flessibile contano solo gli orari inseriti per il giorno', () => {
+  const a = mk({ importanza: 5, sforzoMin: 30 });
+  const flex: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), flessibile: true, pausaMin: 0 };
+  assert.equal(fasceDelGiorno(flex, OGGI).length, 0);
+  assert.equal(pianifica([a], flex, OGGI, NOW).giorni[0].blocchi.length, 0);
+  const conOrari: Disponibilita = { ...flex, eccezioni: { [OGGI]: [{ da: '14:00', a: '15:00' }] } };
+  const b = pianifica([a], conOrari, OGGI, NOW).giorni[0].blocchi;
+  assert.equal(b.length, 1);
+  assert.equal(orario(b[0].da), '14:00');
+  // un giorno senza orari resta senza tempo libero, anche se in modalità fissa avrebbe le fasce della settimana
+  assert.equal(minutiDisponibili(conOrari, '2026-10-16', OGGI, NOW), 0);
+  assert.ok(minutiDisponibili({ ...flex, flessibile: false }, '2026-10-16', OGGI, NOW) > 0);
+});
+
+test('piano: senzaGiorniPassati toglie i giorni vecchi', () => {
+  const r = senzaGiorniPassati({ '2026-10-10': [], '2026-10-15': [{ da: '10:00', a: '11:00' }], '2026-10-16': [] }, OGGI);
+  assert.deepEqual(Object.keys(r ?? {}), ['2026-10-15', '2026-10-16']);
+  assert.equal(senzaGiorniPassati({ '2026-10-01': [] }, OGGI), undefined);
+});
+
+test("notifiche: la richiesta serale degli orari c'è solo in modalità flessibile e salta i giorni già inseriti", () => {
+  const flex: Disponibilita = { settimana: Array.from({ length: 7 }, () => []), flessibile: true, oraChiedi: '21:30' };
+  assert.equal(richiesteOrari({ ...flex, flessibile: false }, new Date(NOW)).length, 0);
+  assert.equal(richiesteOrari(null, new Date(NOW)).length, 0);
+  const r = richiesteOrari(flex, new Date(NOW), 3);
+  assert.equal(r.length, 3);
+  assert.equal(r[0].giorno, '2026-10-16');
+  assert.equal(new Date(r[0].quando).getHours(), 21);
+  assert.equal(new Date(r[0].quando).getMinutes(), 30);
+  const gia = richiesteOrari({ ...flex, eccezioni: { '2026-10-16': [] } }, new Date(NOW), 3);
+  assert.deepEqual(gia.map((x) => x.giorno), ['2026-10-17', '2026-10-18']);
+  // dopo l'ora scelta la richiesta di stasera è già passata
+  const tardi = richiesteOrari(flex, new Date(2026, 9, 15, 22, 0), 2);
+  assert.deepEqual(tardi.map((x) => x.giorno), ['2026-10-17']);
 });

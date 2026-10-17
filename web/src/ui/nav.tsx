@@ -8,7 +8,8 @@ export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'rice
 export type Screen =
   | { k: 'item'; id?: string; nuovo?: Partial<Item> }
   | { k: 'altro' } | { k: 'inbox' } | { k: 'revisione' } | { k: 'archivio' } | { k: 'daparte' }
-  | { k: 'aspetto' } | { k: 'tempolibero' } | { k: 'stasera' } | { k: 'account' };
+  | { k: 'aspetto' } | { k: 'tempolibero' } | { k: 'stasera' } | { k: 'account' }
+  | { k: 'orari'; giorno: string };
 
 export interface Nav {
   tab: Tab;

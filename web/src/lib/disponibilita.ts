@@ -1,6 +1,6 @@
 // Tempo libero per giorno della settimana. Salvato sul dispositivo e sincronizzato con il server,
 // così il telefono e il sito vedono gli stessi orari (vince la modifica più recente).
-import { DISPONIBILITA_SUGGERITA, type Disponibilita, type FasciaOraria } from '../../../shared/piano.ts';
+import { DISPONIBILITA_SUGGERITA, senzaGiorniPassati, type Disponibilita, type FasciaOraria } from '../../../shared/piano.ts';
 import type { ImpostazioniSync } from '../../../shared/types.ts';
 
 const KEY = 'mytask.disponibilita';
@@ -19,6 +19,8 @@ export function valida(p: unknown): Disponibilita | null {
   return {
     settimana: d.settimana.map((g) => (Array.isArray(g) ? g.filter(fasciaValida) : [])),
     eccezioni: d.eccezioni && typeof d.eccezioni === 'object' ? d.eccezioni : undefined,
+    flessibile: d.flessibile === true ? true : undefined,
+    oraChiedi: typeof d.oraChiedi === 'string' && /^\d{2}:\d{2}$/.test(d.oraChiedi) ? d.oraChiedi : undefined,
     pausaMin: typeof d.pausaMin === 'number' && d.pausaMin >= 0 && d.pausaMin <= 120 ? Math.round(d.pausaMin) : undefined,
   };
 }
@@ -62,6 +64,12 @@ export function impostaDisponibilita(d: Disponibilita) {
   corrente = d;
   salva(d, Date.now());
   listeners.forEach((l) => l());
+}
+
+/** Salva gli orari liberi di un giorno (modalità flessibile). Una lista vuota vuol dire «nessun tempo libero». */
+export function impostaOrariGiorno(giorno: string, fasce: FasciaOraria[], oggi: string) {
+  const base: Disponibilita = corrente ?? { settimana: Array.from({ length: 7 }, () => []), flessibile: true };
+  impostaDisponibilita({ ...base, eccezioni: { ...(senzaGiorniPassati(base.eccezioni, oggi) ?? {}), [giorno]: fasce } });
 }
 
 export const copiaSuggerita = (): Disponibilita => JSON.parse(JSON.stringify(DISPONIBILITA_SUGGERITA)) as Disponibilita;

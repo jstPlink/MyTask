@@ -1,9 +1,11 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import type { Item } from '../../../shared/types.ts';
-import { pianificaNotifiche } from '../../../shared/pianifica.ts';
+import { pianificaNotifiche, richiesteOrari } from '../../../shared/pianifica.ts';
 import { debounce } from './util.ts';
 import { getItems, subscribe } from './store.ts';
+import { getDisponibilita, subscribeDisponibilita } from './disponibilita.ts';
+import { richiediOrari } from './richiestaOrari.ts';
 
 /** True dentro l'app Android (Capacitor), false nel browser. */
 export const isNative = (): boolean => Capacitor.isNativePlatform();
@@ -37,15 +39,27 @@ export async function aggiornaNotificheNative(items: Item[]): Promise<void> {
     const { notifications } = await LocalNotifications.getPending();
     if (notifications.length) await LocalNotifications.cancel({ notifications: notifications.map((n) => ({ id: n.id })) });
     const lista = pianificaNotifiche(items, new Date());
-    if (lista.length) {
+    const richieste = richiesteOrari(getDisponibilita(), new Date());
+    if (lista.length || richieste.length) {
       await LocalNotifications.schedule({
-        notifications: lista.map((n) => ({
-          id: n.id,
-          title: n.titolo,
-          body: n.corpo,
-          schedule: { at: new Date(n.quando), allowWhileIdle: true },
-          smallIcon: 'ic_stat_mytask',
-        })),
+        notifications: [
+          ...lista.map((n) => ({
+            id: n.id,
+            title: n.titolo,
+            body: n.corpo,
+            schedule: { at: new Date(n.quando), allowWhileIdle: true },
+            smallIcon: 'ic_stat_mytask',
+          })),
+          // modalità flessibile: la sera chiede gli orari liberi del giorno dopo (toccandola si apre la schermata per inserirli)
+          ...richieste.map((n) => ({
+            id: n.id,
+            title: n.titolo,
+            body: n.corpo,
+            schedule: { at: new Date(n.quando), allowWhileIdle: true },
+            smallIcon: 'ic_stat_mytask',
+            extra: { azione: 'orari', giorno: n.giorno },
+          })),
+        ],
       });
     }
   } catch (e) {
@@ -57,6 +71,11 @@ export async function aggiornaNotificheNative(items: Item[]): Promise<void> {
 export function avviaNotificheNative() {
   const aggiorna = debounce(() => { void aggiornaNotificheNative(getItems()); }, 2000);
   subscribe(aggiorna);
+  subscribeDisponibilita(aggiorna);
+  void LocalNotifications.addListener('localNotificationActionPerformed', (a) => {
+    const extra = a.notification.extra as { azione?: string; giorno?: string } | undefined;
+    if (extra?.azione === 'orari' && extra.giorno) richiediOrari(extra.giorno);
+  });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') aggiorna(); });
   // la prima volta chiede il permesso (Android 13 e successivi lo richiede a voce)
   void (async () => {

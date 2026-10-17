@@ -19,6 +19,8 @@ import { ItemDetail } from './screens/ItemDetail.tsx';
 import { Capture } from './screens/Capture.tsx';
 import { Login } from './screens/Login.tsx';
 import { TempoLibero } from './screens/TempoLibero.tsx';
+import { OrariGiorno } from './screens/OrariGiorno.tsx';
+import { ascoltaRichiestaOrari, prendiRichiestaOrari } from './lib/richiestaOrari.ts';
 import { RecensioneSheet } from './ui/Recensione.tsx';
 import { DurataSheet } from './ui/DurataSheet.tsx';
 import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
@@ -41,10 +43,11 @@ function Schermata({ s }: { s: Screen }) {
     case 'tempolibero': return <TempoLibero />;
     case 'stasera': return <Stasera />;
     case 'account': return <Account />;
+    case 'orari': return <OrariGiorno giorno={s.giorno} />;
   }
 }
 
-const chiaveSchermata = (stack: Screen[], top: Screen) => stack.length + top.k + ('id' in top ? (top.id ?? '') : '');
+const chiaveSchermata = (stack: Screen[], top: Screen) => stack.length + top.k + ('id' in top ? (top.id ?? '') : 'giorno' in top ? top.giorno : '');
 
 function ToastView() {
   const toast = useToast();
@@ -162,6 +165,14 @@ export function App() {
     tab, setTab, vaTab, stack, push, pop, fareSub, setFareSub, scoprireSub, setScoprireSub,
     capture, layers, openLayer, closeLayer, captureText, openCapture, wide, xl, vai, openId, query, setQuery, nuova,
   }), [tab, setTab, vaTab, stack, push, pop, fareSub, setFareSub, scoprireSub, setScoprireSub, capture, layers, openLayer, closeLayer, captureText, openCapture, wide, xl, vai, openId, query, nuova]);
+
+  // toccando la notifica serale si apre la schermata «Quando sei libero?» (modalità flessibile)
+  useEffect(() => {
+    if (!auth.token) return;
+    const apri = () => { const g = prendiRichiestaOrari(); if (g) push({ k: 'orari', giorno: g }); };
+    apri();
+    return ascoltaRichiestaOrari(apri);
+  }, [auth.token, push]);
 
   // scorciatoie da tastiera (schermi larghi): N cattura, / cerca, Esc chiude
   useEffect(() => {

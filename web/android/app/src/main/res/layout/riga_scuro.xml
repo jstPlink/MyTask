@@ -6,38 +6,58 @@
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="4dp"
-    android:paddingTop="9dp"
+    android:paddingTop="7dp"
     android:paddingEnd="4dp"
-    android:paddingBottom="9dp">
+    android:paddingBottom="7dp">
 
-    <TextView
-        android:id="@+id/ora"
-        android:layout_width="44dp"
-        android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:textColor="#6FCF9B"
-        android:textSize="12sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/rank"
+    <FrameLayout
+        android:id="@+id/rankbox"
         android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:gravity="center"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:layout_height="26dp">
 
-    <TextView
-        android:id="@+id/titolo"
+        <TextView
+            android:id="@+id/rank"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <ViewFlipper
+            android:id="@+id/rank_flip"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:autoStart="true"
+            android:flipInterval="150"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="10dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="#F3F3F6"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/titolo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#F3F3F6"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/sub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textColor="#6FCF9B"
+            android:textSize="11.5sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <ImageView
         android:id="@+id/cb"

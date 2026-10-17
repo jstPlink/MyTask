@@ -15,7 +15,17 @@ export interface Disponibilita {
   eccezioni?: Record<string, FasciaOraria[]>;
   /** Minuti di pausa lasciati tra un'attività e la successiva (PAUSA_PREDEFINITA se non impostato). */
   pausaMin?: number;
+  /**
+   * Modalità flessibile: le fasce della settimana non si usano. Il tempo libero di ogni giorno è quello inserito
+   * la sera prima (in `eccezioni`); un giorno senza orari inseriti non ha tempo libero.
+   */
+  flessibile?: boolean;
+  /** Modalità flessibile: ora della sera (HH:MM) a cui l'app chiede gli orari liberi del giorno dopo. */
+  oraChiedi?: string;
 }
+
+/** Ora di base a cui, in modalità flessibile, arriva la richiesta degli orari di domani. */
+export const ORA_CHIEDI_PREDEFINITA = '21:00';
 
 /** Pausa di base tra due attività, in minuti. */
 export const PAUSA_PREDEFINITA = 5;
@@ -95,6 +105,19 @@ function giornoSettimana(iso: string): number {
   return (new Date(y, m - 1, d).getDay() + 6) % 7;
 }
 
+/** Fasce di tempo libero di un giorno: quelle inserite per quel giorno, altrimenti (solo in modalità fissa) quelle della settimana. */
+export function fasceDelGiorno(disp: Disponibilita, data: string): FasciaOraria[] {
+  if (disp.flessibile) return disp.eccezioni?.[data] ?? [];
+  return disp.eccezioni?.[data] ?? disp.settimana[giornoSettimana(data)] ?? [];
+}
+
+/** Toglie le fasce inserite per giorni già passati (prima di `oggi`), così l'impostazione non cresce all'infinito. */
+export function senzaGiorniPassati(eccezioni: Record<string, FasciaOraria[]> | undefined, oggi: string): Record<string, FasciaOraria[]> | undefined {
+  if (!eccezioni) return undefined;
+  const out = Object.fromEntries(Object.entries(eccezioni).filter(([g]) => g >= oggi));
+  return Object.keys(out).length ? out : undefined;
+}
+
 type Gap = [number, number];
 
 function sottrai(gaps: Gap[], da: number, a: number): Gap[] {
@@ -117,7 +140,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
   const giorni: GiornoPiano[] = Array.from({ length: giorniOrizzonte }, (_, n) => addDays(oggi, n)).map((data) => ({ data, blocchi: [], liberi: 0, usati: 0 }));
   const gaps = new Map<string, Gap[]>();
   for (const g of giorni) {
-    const fasce = disp.eccezioni?.[g.data] ?? disp.settimana[giornoSettimana(g.data)] ?? [];
+    const fasce = fasceDelGiorno(disp, g.data);
     let l: Gap[] = fasce.map((f) => [minuti(f.da), minuti(f.a)] as Gap).filter(([s, e]) => e > s).sort((a, b) => a[0] - b[0]);
     if (g.data === oggi) l = l.map(([s, e]) => [Math.max(s, minutiOra), e] as Gap).filter(([s, e]) => e > s);
     gaps.set(g.data, l);
@@ -242,7 +265,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
 export function minutiDisponibili(disp: Disponibilita, data: string, oggi: string, now: number = Date.now()): number {
   const nowD = new Date(now);
   const minutiOra = arrotonda(nowD.getHours() * 60 + nowD.getMinutes());
-  const fasce = disp.eccezioni?.[data] ?? disp.settimana[giornoSettimana(data)] ?? [];
+  const fasce = fasceDelGiorno(disp, data);
   return fasce.reduce((n, f) => {
     const s = data === oggi ? Math.max(minuti(f.da), minutiOra) : minuti(f.da);
     return n + Math.max(0, minuti(f.a) - s);
@@ -251,6 +274,6 @@ export function minutiDisponibili(disp: Disponibilita, data: string, oggi: strin
 
 /** Fasce di tempo libero di un giorno, in minuti dalla mezzanotte (senza togliere l'ora già passata). */
 export function fasceLibere(disp: Disponibilita, data: string): [number, number][] {
-  const fasce = disp.eccezioni?.[data] ?? disp.settimana[giornoSettimana(data)] ?? [];
+  const fasce = fasceDelGiorno(disp, data);
   return fasce.map((f): [number, number] => [minuti(f.da), minuti(f.a)]).filter(([a, b]) => b > a);
 }

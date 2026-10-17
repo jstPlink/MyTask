@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.52.0
+- **Versione documento:** 0.53.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -498,6 +498,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-17 | 0.50.0 | Riga V2 in tutte le liste: priorità a sinistra, icona del tipo nella riga grigia, checkbox quadrato stondato uguale per tutte le note all'estrema destra. Passi e checklist dei progetti si riordinano trascinando, senza frecce. L'interesse (Intrattenimento, Curiosità, Esperienze) è un pallino verde a sinistra con il numero 1-5, sempre più pieno con l'interesse e senza animazione (`interesse` in `Row`). La linea dell'ora sulla timeline si aggiorna anche sul telefono: `useMinuto` ricalcola ogni 15 s e al ritorno in primo piano (i timer in background su Android si fermano) |
 | 2026-10-17 | 0.51.0 | Piano di oggi: tempo reale = stima + margine (`pianifica(..., margine)`, `Blocco.margineMin`), il margine è la coda tratteggiata del segmento nella barra con legenda; tolta la sezione «Non entrano oggi»; scadenza rigida con lucchetto (classe `.hard.rigida`) invece del pallino; «scaduta» al posto di «oltre la scadenza» |
 | 2026-10-17 | 0.52.0 | Widget Android «Oggi» (proposta C, trasparente) in due versioni, MyTask · chiaro e MyTask · scuro: in cima un campo per scrivere una nota in Inbox (finestrella, senza aprire l'app), sotto la lista di oggi con orario, posizione e checkbox per spuntare. Nativo in `web/android/.../Widget*.java`; l'app scrive la lista (`web/src/lib/widget.ts`, `shared/widget.ts`) e applica note e spunte accodate dal widget appena viene aperta |
+| 2026-10-17 | 0.53.0 | Tempo libero flessibile: interruttore in Impostazioni › Tempo libero (Fasce fisse / Orari flessibili); in modalità flessibile ogni sera all'ora scelta una notifica chiede gli orari liberi del giorno dopo e prepara il calendario (`Disponibilita.flessibile`, `oraChiedi`, `fasceDelGiorno`, `richiesteOrari`, schermata `OrariGiorno`). Widget: orario sotto il titolo e pallino di priorità che batte come nell'app (ViewFlipper a quadri) |
 
 
 ## Widget della schermata Home (0.52.0)
@@ -506,3 +507,10 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 - Cosa mostrano: campo «Scrivi una nota…» (apre `NotaRapidaActivity`, la nota va in Inbox) e la lista di oggi nell'ordine del piano (`righeWidget` in `shared/widget.ts`, con test): orario, posizione in classifica colorata per priorità, titolo, checkbox quadrato.
 - Dati: l'app Capacitor invia la lista al widget (plugin `Widget`: `aggiorna`) a ogni modifica, ogni 5 minuti e al ritorno in primo piano. Il widget non legge i dati dell'app e non usa la rete: note e spunte vanno in una coda locale (`WidgetDati`) che l'app svuota (`coda`) e applica (nuova voce con `inbox`, `completa`) alla prima apertura; fino ad allora la riga spuntata appare sbarrata nel widget e la nota non è ancora nell'Inbox.
 - Toccare una riga apre l'app; toccare il checkbox la segna come fatta (di nuovo per annullare, finché l'app non è stata aperta).
+
+## Tempo libero flessibile (0.53.0)
+
+- Impostazioni › Tempo libero: «Fasce fisse» (come prima, stesse fasce ogni settimana) oppure «Orari flessibili». La scelta, l'ora della richiesta e gli orari inseriti viaggiano con la sincronizzazione del tempo libero (`tempoLibero`); gli orari dei giorni passati vengono tolti a ogni salvataggio.
+- Modalità flessibile: le fasce della settimana non contano; il tempo libero di un giorno è solo quello inserito (`eccezioni[giorno]`). Un giorno senza orari non ha tempo libero, quindi il piano resta vuoto.
+- Ogni sera, all'ora scelta (di base 21:00), arriva una notifica locale «Quando sei libero domani?» (programmata per 7 giorni, saltando i giorni già inseriti). Toccandola si apre `OrariGiorno` (fasce con preset Mattina/Pomeriggio/Sera, oppure «Nessun tempo libero»), poi «Prepara il calendario». In Oggi compare lo stesso invito (oggi, o domani dopo l'ora scelta) anche sul sito.
+- Widget: la riga ha l'orario sotto il titolo; il pallino di priorità batte (due colpi di 450 ms e pausa, come l'animazione dell'app) con quadri alternati di un ViewFlipper, al massimo 2,5 s tra un battito e l'altro.
