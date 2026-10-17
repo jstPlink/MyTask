@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { sistemaNumeri } from '../../../shared/linea.ts';
 import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { fasceLibere, minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
@@ -8,7 +9,7 @@ import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useDisponibilita, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { completaVoce, segnaRoutine } from '../lib/actions.ts';
-import { Fab, Gruppo, GruppoProgetto, Icona, Row, Top } from '../ui/kit.tsx';
+import { Fab, Sezione, GruppoProgetto, Icona, Row, Top } from '../ui/kit.tsx';
 import { useLayer, useNav } from '../ui/nav.tsx';
 import { clsx, nomeTempo } from '../lib/util.ts';
 import { margineAtteso, percentuale } from '../../../shared/stima.ts';
@@ -28,34 +29,18 @@ type Fascia = [number, number];
  */
 const DIAMETRO_NUMERO = 24;
 
-/** Centri (px) dei numeri sotto la barra: sotto il centro di ogni segmento, spostati di lato quando si toccherebbero. */
-function posizioniNumeri(centri: number[], larghezza: number): number[] {
-  const r = DIAMETRO_NUMERO / 2;
-  const passo = DIAMETRO_NUMERO + 4;
-  const out = centri.map((c) => Math.min(larghezza - r, Math.max(r, c)));
-  for (let i = 1; i < out.length; i++) if (out[i] - out[i - 1] < passo) out[i] = out[i - 1] + passo;
-  const eccesso = out.length ? out[out.length - 1] + r - larghezza : 0;
-  if (eccesso > 0) {
-    for (let i = out.length - 1; i >= 0; i--) {
-      out[i] -= eccesso;
-      if (i > 0 && out[i] - out[i - 1] < passo) out[i - 1] = out[i] - passo;
-    }
-  }
-  return out;
-}
-
 function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: Blocco[]; fasce: Fascia[]; sel: number; onSel: (i: number) => void; ora?: number; rank: Map<string, number>; oggi: string }) {
   const contenitore = useRef<HTMLDivElement>(null);
   const [larghezza, setLarghezza] = useState(300);
   useLayoutEffect(() => {
     const e = contenitore.current;
     if (!e) return;
-    const misura = () => setLarghezza(e.clientWidth || 300);
+    const misura = () => setLarghezza((l) => (e.clientWidth && e.clientWidth !== l ? e.clientWidth : l));
     misura();
     const ro = new ResizeObserver(misura);
     ro.observe(e);
     return () => ro.disconnect();
-  }, [fasce.length]);
+  }); // a ogni disegno: il contenitore può essere un altro elemento dopo un cambio di giorno
   if (!fasce.length) return null;
   const f = fasce[Math.max(0, Math.min(sel, fasce.length - 1))];
   const livello = (b: Blocco) => (b.pausa ? 'pausa' : `p${barLevel(score(b.item, oggi))}`);
@@ -84,10 +69,18 @@ function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: 
       <div className="lp-nr" ref={contenitore}>
         {(() => {
           const conNumero = dentro.filter((b) => rank.get(b.item.id));
-          const px = posizioniNumeri(conNumero.map((b) => ((q(b.da) + q(b.a)) / 200) * larghezza), larghezza);
-          return conNumero.map((b, k) => (
-            <span key={`${b.item.id}-${b.da}`} className={clsx('lp-n', livello(b))} style={{ left: `${px[k]}px` }}>{rank.get(b.item.id)}</span>
-          ));
+          const centri = conNumero.map((b) => ((q(b.da) + q(b.a)) / 200) * larghezza);
+          const { px, diametro } = sistemaNumeri(centri, larghezza, DIAMETRO_NUMERO);
+          return (
+            <div className="lp-nr-in" style={{ ['--d' as string]: `${diametro}px` }}>
+              <svg className="lp-lg" width={larghezza} height="9" viewBox={`0 0 ${larghezza} 9`} aria-hidden="true">
+                {conNumero.map((b, k) => (Math.abs(px[k] - centri[k]) > 2 ? <line key={`${b.item.id}-${b.da}`} x1={centri[k]} y1="0" x2={px[k]} y2="9" /> : null))}
+              </svg>
+              {conNumero.map((b, k) => (
+                <span key={`${b.item.id}-${b.da}`} className={clsx('lp-n', livello(b))} style={{ left: `${px[k]}px` }}>{rank.get(b.item.id)}</span>
+              ))}
+            </div>
+          );
         })()}
       </div>
     </div>
@@ -190,7 +183,7 @@ export function Oggi() {
 
   const routineFatte = v.routine.filter((r) => fattaOggi(r, oggi)).length;
   const routine = v.routine.length > 0 && (
-    <Gruppo titolo="Routine di oggi" dettaglio={`${routineFatte} su ${v.routine.length}`}>
+    <Sezione titolo="Routine di oggi" dettaglio={`${routineFatte} su ${v.routine.length}`}>
       <div className="chips" style={{ margin: '8px 0 12px' }}>
         {v.routine.map((r) => (
           <button key={r.id} className={clsx('chip', fattaOggi(r, oggi) && 'on')} onClick={() => segnaRoutine(r)} aria-pressed={fattaOggi(r, oggi)}>
@@ -198,7 +191,7 @@ export function Oggi() {
           </button>
         ))}
       </div>
-    </Gruppo>
+    </Sezione>
   );
 
   const dovePianificata = (id: string) => piano?.giorni.flatMap((g) => g.blocchi).find((x) => x.item.id === id && !x.fisso);
@@ -263,21 +256,21 @@ export function Oggi() {
     return (
       <>
         {!passato && g && (
-          <Gruppo titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`}>
+          <Sezione titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`}>
             <LineaPiano blocchi={blocchi} fasce={fasceG} sel={selG} onSel={(i) => setFasciaScelta((c) => ({ ...c, [giorno]: i }))} rank={classifica} oggi={oggi} />
             {blocchi.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>{totale === 0 ? 'Nessun tempo libero impostato per questo giorno.' : 'Niente di pianificato.'}</div>}
             {raggruppate(blocchiG, bloccoRiga)}
-          </Gruppo>
+          </Sezione>
         )}
         {resto.length > 0 && (
-          <Gruppo titolo={passato ? 'Rimaste aperte' : 'Con scadenza questo giorno'} dettaglio={resto.length}>
+          <Sezione titolo={passato ? 'Rimaste aperte' : 'Con scadenza questo giorno'} dettaglio={resto.length}>
             {resto.map((i) => (
               <Row key={i.id} titolo={i.titolo} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
                 level={barLevel(score(i, oggi))} check={i.tipo === 'esperienza' ? 'square' : 'circle'}
                 right={i.rigida || passato ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : undefined}
                 onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
             ))}
-          </Gruppo>
+          </Sezione>
         )}
         {(passato || !g || !disp) && resto.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente in programma questo giorno.</div>}
         {!disp && !passato && (
@@ -294,7 +287,7 @@ export function Oggi() {
     <>
       {piano && pianoOggi ? (
         <>
-          <Gruppo titolo="Piano di oggi">
+          <Sezione titolo="Piano di oggi">
             <LineaPiano blocchi={pianoOggi.blocchi} fasce={fasceOggi} sel={selOggi} onSel={(i) => setFasciaScelta((c) => ({ ...c, [oggi]: i }))} ora={minutiOra} rank={classifica} oggi={oggi} />
             {pianoOggi.blocchi.length === 0 && (
               <div className="t2" style={{ padding: '14px 0' }}>
@@ -302,9 +295,9 @@ export function Oggi() {
               </div>
             )}
             {raggruppate(pianoOggi.blocchi.filter((x) => inFascia(x, fasceOggi[selOggi])), bloccoRiga)}
-          </Gruppo>
+          </Sezione>
           {fuoriOggi.length > 0 && (
-            <Gruppo titolo="Non entrano oggi" dettaglio={fuoriOggi.length}>
+            <Sezione titolo="Non entrano oggi" dettaglio={fuoriOggi.length}>
               {fuoriOggi.map((e) => {
                 const dove = dovePianificata(e.item.id);
                 return (
@@ -313,12 +306,12 @@ export function Oggi() {
                     right={destra(e)} onCheck={() => completaVoce(e.item)} selected={nav.openId === e.item.id} onOpen={() => nav.push({ k: 'item', id: e.item.id })} />
                 );
               })}
-            </Gruppo>
+            </Sezione>
           )}
           {piano.fuori.length > 0 && <div className="t2" style={{ padding: '10px 0' }}>{piano.fuori.length} {piano.fuori.length === 1 ? 'attività non entra' : 'attività non entrano'} nelle prossime due settimane: servono più fasce di tempo libero.</div>}
         </>
       ) : (
-        <Gruppo titolo="Da fare oggi" dettaglio={v.fare.length || undefined}>
+        <Sezione titolo="Da fare oggi" dettaglio={v.fare.length || undefined}>
           <button className="card tap" style={{ marginTop: 8 }} onClick={() => nav.push({ k: 'tempolibero' })}>
             <span><b>Imposta il tuo tempo libero</b><span className="t2" style={{ display: 'block' }}>MyTask distribuirà le attività nella giornata in base a priorità e tempo disponibile.</span></span>
             <span className="muted">›</span>
@@ -338,7 +331,7 @@ export function Oggi() {
               onOpen={() => nav.push({ k: 'item', id: e.item.id })}
             />
           ))}
-        </Gruppo>
+        </Sezione>
       )}
     </>
   );

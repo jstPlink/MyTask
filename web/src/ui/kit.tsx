@@ -249,3 +249,13 @@ export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto
     </section>
   );
 }
+
+/** Sezione di una scheda (stile M3): fascia con titolo grande tra due linee e conteggio, righe libere sotto, senza contenitore. */
+export function Sezione({ titolo, dettaglio, children }: { titolo: string; dettaglio?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="sezione">
+      <h3 className="sz-t"><span>{titolo}</span>{dettaglio !== undefined && dettaglio !== null && dettaglio !== false && <b>{dettaglio}</b>}</h3>
+      <div className="sz-corpo">{children}</div>
+    </section>
+  );
+}

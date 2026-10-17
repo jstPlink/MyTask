@@ -5,7 +5,7 @@ import { figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgett
 import { margineAtteso, percentuale } from '../../../shared/stima.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
 import { completaVoce, riapriVoce } from '../lib/actions.ts';
-import { Empty, Fab, GruppoProgetto, Row, Sec, Seg, Top } from '../ui/kit.tsx';
+import { Empty, Fab, GruppoProgetto, Row, Seg, Sezione, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
 import { mapsUrl, nomeTempo } from '../lib/util.ts';
@@ -65,9 +65,13 @@ function Azioni() {
   return (
     <>
       {lista.length === 0 && <Empty>Nessuna attività aperta.</Empty>}
-      {gruppi.map((g) => g.progetto
-        ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
-        : g.voci.map(riga))}
+      {lista.length > 0 && (
+        <Sezione titolo="Tutte le attività" dettaglio={lista.length}>
+          {gruppi.map((g) => g.progetto
+            ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
+            : g.voci.map(riga))}
+        </Sezione>
+      )}
       <RigheEsperienze titolo />
     </>
   );
@@ -106,11 +110,8 @@ function Progetti() {
   const fermi = lista.filter((p) => p.fermo);
   return (
     <>
-      {attivi.map(gruppo)}
-      {fermi.length > 0 && <>
-        <Sec a="Fermi da oltre 30 giorni" />
-        {fermi.map(gruppo)}
-      </>}
+      {attivi.length > 0 && <Sezione titolo="Progetti" dettaglio={attivi.length}>{attivi.map(gruppo)}</Sezione>}
+      {fermi.length > 0 && <Sezione titolo="Fermi da oltre 30 giorni" dettaglio={fermi.length}>{fermi.map(gruppo)}</Sezione>}
     </>
   );
 }
@@ -134,22 +135,23 @@ function RigheEsperienze({ titolo }: { titolo?: boolean }) {
     [v],
   );
   if (v.conData.length + quandoCapita.length === 0) return null;
+  const righeConData = v.conData.map((i) => (
+    <Row key={i.id} titolo={i.titolo} meta={i.oraInizio}
+      right={i.rigida ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi)}
+      level={barLevel(score(i, oggi))} onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+  ));
+  const righeQuandoCapita = quandoCapita.map((i) => (
+    <Row key={i.id} titolo={i.titolo} light check="square"
+      level={(i.interesse ?? 3) >= 4 ? 3 : (i.interesse ?? 3) === 3 ? 2 : 1}
+      right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
+      onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+  ));
+  // nella lista Attività le esperienze sono una sola sezione; nella sotto-scheda Esperienze sono due
+  if (titolo) return <Sezione titolo="Esperienze" dettaglio={v.conData.length + quandoCapita.length}>{righeConData}{righeQuandoCapita}</Sezione>;
   return (
     <>
-      {titolo && <Sec a="Esperienze" />}
-      {v.conData.length > 0 && <Sec a="Con data" />}
-      {v.conData.map((i) => (
-        <Row key={i.id} titolo={i.titolo} meta={i.oraInizio}
-          right={i.rigida ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi)}
-          level={barLevel(score(i, oggi))} onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
-      ))}
-      {quandoCapita.length > 0 && <Sec a="Da fare quando capita" />}
-      {quandoCapita.map((i) => (
-        <Row key={i.id} titolo={i.titolo} light check="square"
-          level={(i.interesse ?? 3) >= 4 ? 3 : (i.interesse ?? 3) === 3 ? 2 : 1}
-          right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
-          onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
-      ))}
+      {v.conData.length > 0 && <Sezione titolo="Con data" dettaglio={v.conData.length}>{righeConData}</Sezione>}
+      {quandoCapita.length > 0 && <Sezione titolo="Da fare quando capita" dettaglio={quandoCapita.length}>{righeQuandoCapita}</Sezione>}
     </>
   );
 }

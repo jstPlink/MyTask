@@ -280,3 +280,27 @@ test('cronologia: data e ora e tempo trascorso', () => {
   assert.equal(scriviTrascorso((2 * 1440 + 3 * 60 + 10) * 60000), '2 g 3 h');
   assert.equal(scriviTrascorso(20000), 'meno di un minuto');
 });
+
+// ---- numeri sotto la barra del piano
+import { sistemaNumeri } from './linea.ts';
+
+test('linea del piano: i numeri restano dentro la barra e nell\'ordine, anche se sono tanti', () => {
+  const L = 325;
+  // pochi: restano sotto il loro segmento
+  const poche = sistemaNumeri([60, 160, 260], L);
+  assert.deepEqual(poche.px, [60, 160, 260]);
+  assert.equal(poche.diametro, 24);
+  // tanti e vicini: si spostano ma restano dentro [r, L-r]
+  const vicini = sistemaNumeri(Array.from({ length: 10 }, (_, i) => 150 + i * 3), L);
+  for (let i = 1; i < vicini.px.length; i++) assert.ok(vicini.px[i] - vicini.px[i - 1] >= vicini.diametro, 'non si toccano');
+  assert.ok(vicini.px[0] >= vicini.diametro / 2 && vicini.px[9] <= L - vicini.diametro / 2);
+  // venti numeri tutti ammassati a destra (il caso rotto): dentro la barra, cerchi più piccoli
+  const molti = sistemaNumeri(Array.from({ length: 20 }, (_, i) => 300 + i), L);
+  assert.ok(molti.diametro < 24 && molti.diametro >= 12);
+  assert.ok(molti.px.every((x) => x >= molti.diametro / 2 - 0.001 && x <= L - molti.diametro / 2 + 0.001), 'tutti dentro');
+  assert.ok(molti.px.every((x, i) => i === 0 || x >= molti.px[i - 1]), 'ordine mantenuto');
+  // cinquanta numeri: sempre dentro, anche sovrapposti
+  const troppi = sistemaNumeri(Array.from({ length: 50 }, (_, i) => i * 6), L);
+  assert.ok(troppi.px.every((x) => x >= 0 && x <= L));
+  assert.deepEqual(sistemaNumeri([], L).px, []);
+});

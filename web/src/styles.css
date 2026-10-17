@@ -188,9 +188,12 @@ a { color: var(--accent); }
 .topbar .btn { white-space: nowrap; }
 .main-body { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; }
 .page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.shell .top { padding: 20px 22px 6px; }
-.shell .scroll { padding: 0 22px 40px; max-width: 880px; width: 100%; }
-.shell .scroll.wide-dash, .shell .scroll.wide-board { max-width: 1180px; }
+/* schermo largo: titolo e contenuto stanno in una colonna centrata nello spazio a destra della barra laterale (il riquadro che scorre resta largo quanto lo spazio, così la rotellina funziona ovunque) */
+.main { --colonna: 760px; }
+.main .page:has(.wide-board) { --colonna: 1120px; }
+.shell .top { padding: 20px max(22px, calc((100% - var(--colonna)) / 2)) 6px; }
+.shell .scroll { padding: 0 max(22px, calc((100% - var(--colonna)) / 2)) 40px; max-width: none; width: 100%; }
+.shell .scroll.wide-dash, .shell .scroll.wide-board { max-width: none; }
 .shell .fab { display: none; }
 .shell .back { display: none; }
 .shell .pane .back, .shell .keep-back .back { display: inline-flex; }
@@ -397,14 +400,14 @@ a { color: var(--accent); }
 @media (max-width: 420px) { .tabs button { font-size: 10px; } .tabs button .ic { width: 46px; } }
 
 /* ---------- Attività raggruppate sotto il progetto ---------- */
-.gp { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin: 12px -8px; animation: entra .26s ease-out backwards; }
-.gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 8px 11px 7px; background: var(--accent-soft); text-align: left; }
+.gp { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin: 12px -4px; animation: entra .26s ease-out backwards; }
+.gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 8px 11px 8px; background: var(--accent-soft); text-align: left; }
 .gp-h b { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
 .gp-h span { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 .gp-bar { height: 4px; background: var(--surface2); }
 .gp-bar i { display: block; height: 100%; background: var(--accent); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
-/* la cornice del progetto sporge di 8 px per lato (lascia 10 px dal bordo dello schermo): dentro, checkbox e pallino cadono dove cadono nelle righe normali */
-.gp .row { padding-left: 7px; padding-right: 8px; margin: 0; width: 100%; border-left: 0; }
+/* la cornice del progetto sporge di 4 px per lato (restano 14 px dallo schermo): dentro, checkbox e pallino cadono 4 px più verso il centro delle righe normali */
+.gp .row { padding-left: 8px; padding-right: 8px; margin: 0; width: 100%; border-left: 0; }
 .gp .row:last-child { border-bottom: 0; }
 .gp-ic { width: 28px; height: 28px; flex: none; border-radius: 50%; border: 1.8px solid var(--mid); color: var(--mid); background: var(--surface); display: grid; place-items: center; }
 .interesse { font-size: 12px; letter-spacing: 1px; color: var(--accent); white-space: nowrap; }
@@ -459,8 +462,11 @@ a { color: var(--accent); }
 .lp-bs i.p3 { background: var(--warn); }
 .lp-bs i.p2 { background: var(--amber); }
 .lp-bs i.pausa { background: var(--accent); opacity: .6; }
-.lp-nr { position: relative; height: 36px; margin-top: 8px; }
-.lp-n { position: absolute; top: 0; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; --c: var(--soft); --cs: var(--surface2); color: var(--c); background: var(--cs); border: 2.5px solid var(--c); }
+.lp-nr { position: relative; height: 40px; margin-top: 4px; overflow: hidden; }
+.lp-nr-in { position: relative; height: 100%; --d: 24px; }
+.lp-lg { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+.lp-lg line { stroke: var(--soft); stroke-width: 1.2; opacity: .55; }
+.lp-n { position: absolute; top: 9px; transform: translateX(-50%); width: var(--d); height: var(--d); border-radius: 50%; display: grid; place-items: center; font-size: calc(var(--d) * .5); font-weight: 800; font-variant-numeric: tabular-nums; --c: var(--soft); --cs: var(--surface2); color: var(--c); background: var(--cs); border: 2.5px solid var(--c); }
 .lp-n.p3 { --c: var(--warn); --cs: var(--warn-soft); }
 .lp-n.p2 { --c: var(--amber); --cs: var(--amber-soft); }
 
@@ -507,7 +513,7 @@ a { color: var(--accent); }
 .side .sb-top { margin: 0 0 14px; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .wide-dash .dash > div > .card.tap { margin: 16px 0; width: 100%; }
 
-.wide-dash .dash { grid-template-columns: minmax(0, 1fr); max-width: 820px; }
+.wide-dash .dash { grid-template-columns: minmax(0, 1fr); max-width: none; }
 
 /* cattura: elenco delle note con le stesse parole */
 .capture-sheet { max-height: 88dvh; overflow-y: auto; }
@@ -577,3 +583,13 @@ a { color: var(--accent); }
 
 /* ---------- Cronologia della voce ---------- */
 .cron-trascorso { color: var(--accent); font-weight: 700; }
+
+/* ---------- Sezioni delle schede (stile M3): fascia tra due linee, titolo grande, conteggio in accento ---------- */
+.sezione { --sz-p: 18px; margin: 16px calc(var(--sz-p) * -1) 0; }
+.sezione:first-child { margin-top: 8px; }
+.sz-t { margin: 0; padding: 9px var(--sz-p); background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 750; letter-spacing: -.005em; }
+.sz-t b { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--accent); }
+.sz-corpo { padding: 0 var(--sz-p); }
+/* schermo largo: la fascia occupa la colonna centrale (il titolo rientra di 14 px, le righe restano a filo della colonna) */
+.shell .sezione { --sz-p: 14px; margin-left: 0; margin-right: 0; }
+.shell .sz-corpo { padding: 0; }

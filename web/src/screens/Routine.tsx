@@ -5,7 +5,7 @@ import { formatShort, startOfWeek, addDays, weekDays, parseISO } from '../../../
 import { useItems, useOggi } from '../lib/hooks.ts';
 import { segnaRoutine, segnaRoutineGiorno } from '../lib/actions.ts';
 import { saveItem } from '../lib/store.ts';
-import { Empty, Fab, Sec, Top } from '../ui/kit.tsx';
+import { Empty, Fab, Sezione, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
@@ -63,18 +63,17 @@ export function Routine() {
         {griglia}
         {FASCE.map((f) => {
           const l = attive.filter((r) => (r.fascia ?? 'sera') === f);
-          return l.length ? <div key={f}><Sec a={NOMI_FASCIA[f]} />{l.map(riga)}</div> : null;
+          return l.length ? <Sezione key={f} titolo={NOMI_FASCIA[f]} dettaglio={l.length}>{l.map(riga)}</Sezione> : null;
         })}
         {parcheggiate.length > 0 && (
-          <>
-            <Sec a="Parcheggiate" b={parcheggiate.length} />
+          <Sezione titolo="Parcheggiate" dettaglio={parcheggiate.length}>
             {parcheggiate.map((r) => (
               <div key={r.id} className="row" style={{ alignItems: 'center' }}>
                 <div className="grow"><div className="t1 light">{r.titolo}</div><div className="t2">Non compare in Oggi finché non la attivi</div></div>
                 <button className="chip" onClick={() => saveItem({ ...r, stato: 'da_fare' })}>Attiva</button>
               </div>
             ))}
-          </>
+          </Sezione>
         )}
       </div>
       <Fab />
