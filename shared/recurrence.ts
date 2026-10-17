@@ -43,9 +43,9 @@ export function completa(i: Item, today: string, now: number): Item {
       aggiornato: now,
     };
   }
-  return { ...i, stato: 'fatto', completatoIl: today, aggiornato: now };
+  return { ...i, stato: 'fatto', completatoIl: today, completatoTs: now, aggiornato: now };
 }
 
 export function riapri(i: Item, now: number): Item {
-  return { ...i, stato: 'da_fare', completatoIl: undefined, aggiornato: now };
+  return { ...i, stato: 'da_fare', completatoIl: undefined, completatoTs: undefined, aggiornato: now };
 }

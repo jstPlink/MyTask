@@ -3,12 +3,13 @@ import { formatShort, today } from '../../../shared/dates.ts';
 import { completa, riapri } from '../../../shared/recurrence.ts';
 import { toggleOggi } from '../../../shared/routine.ts';
 import { isOpen } from '../../../shared/priority.ts';
-import { figli } from '../../../shared/views.ts';
+import { avanzamento, figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
 import { mostraToast } from './toast.ts';
 import { newId } from './util.ts';
 import { chiediRecensione } from './recensione.ts';
 import { chiediDurata } from './durata.ts';
+import { mostraAvanzamento, type PassoProgetto } from './avanzamento.ts';
 
 export function nuovaVoce(p: Partial<Item> & { tipo: Tipo; titolo: string }): Item {
   const now = Date.now();
@@ -18,18 +19,36 @@ export function nuovaVoce(p: Partial<Item> & { tipo: Tipo; titolo: string }): It
 /** Spunta una voce. Offre "Annulla" e, se era l'ultimo passo di un progetto, di chiudere il progetto. */
 const TIPI_CON_VOTO = new Set<Tipo>(['film', 'serie', 'anime', 'gioco', 'libro', 'ricetta']);
 
+/** Il progetto com'è adesso: passi (checklist e voci figlie) e avanzamento; il passo `idTarget` risulta ancora da fare. */
+function fotografaProgetto(progetto: Item, idTarget: string) {
+  const passi: PassoProgetto[] = [
+    ...(progetto.checklist ?? []).map((c) => ({ id: c.id, testo: c.testo, fatto: c.fatto })),
+    ...figli(getItems(), progetto.id).filter((c) => c.stato !== 'parcheggiato').map((c) => ({ id: c.id, testo: c.titolo, fatto: c.stato === 'fatto' && c.id !== idTarget, target: c.id === idTarget || undefined })),
+  ];
+  return { padre: progetto, passi, prima: avanzamento(progetto, getItems()) };
+}
+
 export function completaVoce(item: Item) {
   // film, serie, libri, giochi…: prima si chiede il voto e un commento, poi si segna come fatto
   if (TIPI_CON_VOTO.has(item.tipo) && !item.ricorrenza) { chiediRecensione(item); return; }
   const oggi = today();
   const prima = item;
+  const padre = item.padreId ? getItem(item.padreId) : undefined;
+  // passo di un progetto: si fotografa il progetto prima del segno di fatto, per l'animazione dell'avanzamento
+  const progetto = padre?.tipo === 'progetto' && !item.ricorrenza ? padre : undefined;
+  const fotoPrima = progetto ? fotografaProgetto(progetto, item.id) : undefined;
   const dopo = completa(item, oggi, Date.now());
   saveItem(dopo);
 
-  // attività: si chiede (facoltativo) quanto tempo c'è voluto, per affinare le stime
-  if (item.tipo === 'azione' && !item.ricorrenza) chiediDurata(dopo);
+  // attività: si chiede (facoltativo) quanto tempo c'è voluto, per affinare le stime; per i passi di un progetto
+  // la richiesta arriva alla fine dell'animazione dell'avanzamento
+  if (item.tipo === 'azione' && !item.ricorrenza) {
+    if (progetto && fotoPrima) mostraAvanzamento({ ...fotoPrima, dopo: avanzamento(progetto, getItems()), alTermine: () => chiediDurata(dopo) });
+    else chiediDurata(dopo);
+  } else if (progetto && fotoPrima) {
+    mostraAvanzamento({ ...fotoPrima, dopo: avanzamento(progetto, getItems()) });
+  }
 
-  const padre = item.padreId ? getItem(item.padreId) : undefined;
   if (padre && isOpen(padre) && !figli(getItems(), padre.id).some(isOpen)) {
     mostraToast(`Ultimo passo di «${padre.titolo}»`, {
       label: 'Chiudi progetto',
@@ -42,6 +61,23 @@ export function completaVoce(item: Item) {
   } else {
     mostraToast('Fatto', { label: 'Annulla', fn: () => saveItem(prima) });
   }
+}
+
+/**
+ * Sposta un passo di un progetto di una posizione (su = -1, giù = +1). L'ordine è anche la priorità:
+ * il primo passo aperto è il prossimo da fare. Tutti i passi ricevono una posizione, così l'ordine resta stabile.
+ */
+export function spostaPasso(padreId: string, idPasso: string, direzione: -1 | 1) {
+  const lista = figli(getItems(), padreId);
+  const visibili = lista.filter((c) => c.stato !== 'parcheggiato');
+  const da = visibili.findIndex((c) => c.id === idPasso);
+  const a = da + direzione;
+  if (da < 0 || a < 0 || a >= visibili.length) return;
+  const nuovo = [...lista];
+  const posDa = nuovo.findIndex((c) => c.id === visibili[da].id);
+  const posA = nuovo.findIndex((c) => c.id === visibili[a].id);
+  [nuovo[posDa], nuovo[posA]] = [nuovo[posA], nuovo[posDa]];
+  nuovo.forEach((c, n) => { if (c.ordine !== n) saveItem({ ...c, ordine: n }); });
 }
 
 export function riapriVoce(item: Item) {

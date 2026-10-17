@@ -4,7 +4,7 @@ import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { barLevel, componentiPunteggio, dueDate, score } from '../../../shared/priority.ts';
 import { avanzamento, figli, listaAzioni, nomiUsati } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { completaVoce, nuovaVoce, riapriVoce } from '../lib/actions.ts';
+import { completaVoce, nuovaVoce, riapriVoce, spostaPasso } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
@@ -12,6 +12,8 @@ import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stas
 import { Back, DotsPick, Field, Gruppo, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
+import { AllegatiNote } from '../ui/AllegatiNote.tsx';
+import { scriviQuando, scriviTrascorso } from '../../../shared/tempo.ts';
 import { useNav } from '../ui/nav.tsx';
 import { clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
 import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
@@ -63,6 +65,19 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   useEffect(() => () => salva(ref.current), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const up = (p: Partial<Item>) => setD((x) => ({ ...x, ...p }));
+
+  // la voce può essere completata fuori da questa scheda (pulsante, finestra del voto o del tempo): la scheda ne segue lo stato
+  const salvataOra = tutte.find((i) => i.id === d.id);
+  useEffect(() => {
+    if (!salvataOra) return;
+    const { stato, completatoIl, completatoTs, voto, commento, durataRealeMin } = salvataOra;
+    setD((x) => (x.stato === stato && x.completatoIl === completatoIl && x.completatoTs === completatoTs && x.voto === voto && x.commento === commento && x.durataRealeMin === durataRealeMin
+      ? x
+      : { ...x, stato, completatoIl, completatoTs, voto, commento, durataRealeMin }));
+    if (ultimoSalvato.current) {
+      try { ultimoSalvato.current = JSON.stringify({ ...JSON.parse(ultimoSalvato.current), stato, completatoIl, completatoTs, voto, commento, durataRealeMin }); } catch { /* ignora */ }
+    }
+  }, [salvataOra?.stato, salvataOra?.completatoIl, salvataOra?.completatoTs, salvataOra?.voto, salvataOra?.commento, salvataOra?.durataRealeMin]); // eslint-disable-line react-hooks/exhaustive-deps
   // aprire una voce messa in Revisione vale come averla vista: esce dalla Revisione (si salva da sola)
   useEffect(() => { if (id && iniziale.daRivedere) setD((x) => ({ ...x, daRivedere: undefined })); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const t = d.tipo;
@@ -340,26 +355,47 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {t === 'progetto' && (
           <Gruppo titolo={`Checklist${avanz && avanz.totale ? ` · ${avanz.fatti} su ${avanz.totale}` : ''}`}>
             {avanz && avanz.totale > 0 && <div className="bar"><i style={{ width: `${(avanz.fatti / avanz.totale) * 100}%` }} /></div>}
-            {checklist.map((c) => (
+            {checklist.map((c, n) => (
               <div key={c.id} className="row" style={{ alignItems: 'center' }}>
                 <button className={clsx('cb sq', c.fatto && 'done')} aria-label={`Segna «${c.testo}»`} onClick={() => setCheck(checklist.map((x) => x.id === c.id ? { ...x, fatto: !x.fatto } : x))} />
                 <div className={clsx('grow t1 light', c.fatto && 'struck')}>{c.testo}</div>
+                <Frecce su={n > 0} giu={n < checklist.length - 1} nome={c.testo}
+                  onSu={() => setCheck(scambia(checklist, n, n - 1))} onGiu={() => setCheck(scambia(checklist, n, n + 1))} />
                 <button className="chip" aria-label="Togli la voce" onClick={() => setCheck(checklist.filter((x) => x.id !== c.id))}>✕</button>
               </div>
             ))}
-            {passi.map((c) => (
-              <Row key={c.id} titolo={c.titolo} done={c.stato === 'fatto'} light={c.stato === 'fatto'} struck={c.stato === 'fatto'}
-                right={dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : null}
-                onCheck={() => (c.stato === 'fatto' ? riapriVoce(c) : completaVoce(c))}
-                onOpen={() => nav.push({ k: 'item', id: c.id })} />
+            {passi.map((c, n) => (
+              <div key={c.id} className="row passo-riga" style={{ alignItems: 'center' }}>
+                <button className={clsx('cb', c.stato === 'fatto' && 'done')} role="checkbox" aria-checked={c.stato === 'fatto'} aria-label={`Segna «${c.titolo}»`} onClick={() => (c.stato === 'fatto' ? riapriVoce(c) : completaVoce(c))} />
+                <button className="passo-titolo" onClick={() => nav.push({ k: 'item', id: c.id })}>
+                  <span className={clsx('t1', c.stato === 'fatto' && 'light struck')}>{c.titolo}</span>
+                  {dueDate(c) && <span className="t2" style={{ display: 'block' }}>{formatShortYear(dueDate(c)!, oggi)}</span>}
+                </button>
+                <Frecce su={n > 0} giu={n < passi.length - 1} nome={c.titolo}
+                  onSu={() => spostaPasso(d.id, c.id, -1)} onGiu={() => spostaPasso(d.id, c.id, 1)} />
+              </div>
             ))}
+            {(passi.length > 1 || checklist.length > 1) && <div className="t2" style={{ padding: '6px 0 4px' }}>L'ordine è la priorità: il primo passo aperto è il prossimo da fare. Usa le frecce per spostarli.</div>}
             <AggiungiRiga placeholder="Aggiungi un passo" onAdd={(txt) => setCheck([...checklist, { id: newId(), testo: txt, fatto: false }])} />
           </Gruppo>
         )}
 
         <Gruppo titolo="Note">
           <textarea className="textarea" value={d.note ?? ''} placeholder="Appunti" onChange={(e) => up({ note: e.target.value || undefined })} />
+          <AllegatiNote link={d.link} immagini={d.immagini} onChange={(p) => up(p)} />
         </Gruppo>
+
+        {getItem(d.id) && (
+          <Gruppo titolo="Cronologia">
+            <div className="field"><span>Creata</span><b style={{ fontWeight: 650 }}>{scriviQuando(d.creato)}</b></div>
+            {d.stato === 'fatto' && (d.completatoTs || d.completatoIl) && (
+              <div className="field"><span>Completata</span><b style={{ fontWeight: 650 }}>{d.completatoTs ? scriviQuando(d.completatoTs) : scriviQuando(new Date(`${d.completatoIl}T12:00:00`).getTime(), true)}</b></div>
+            )}
+            {d.stato === 'fatto' && d.completatoTs && d.completatoTs >= d.creato && (
+              <div className="field"><span>Tempo trascorso</span><span className="cron-trascorso">{scriviTrascorso(d.completatoTs - d.creato)}</span></div>
+            )}
+          </Gruppo>
+        )}
 
         {d.stato === 'fatto' && (
           <Gruppo titolo="Completata">
@@ -394,5 +430,16 @@ function AggiungiRiga({ placeholder, onAdd }: { placeholder: string; onAdd: (v: 
       <input value={v} placeholder={placeholder} style={{ textAlign: 'left' }} onChange={(e) => setV(e.target.value)} />
       <button type="submit" className="chip" disabled={!v.trim()}>Aggiungi</button>
     </form>
+  );
+}
+
+const scambia = <T,>(lista: T[], da: number, a: number): T[] => { const x = [...lista]; [x[da], x[a]] = [x[a], x[da]]; return x; };
+
+function Frecce({ su, giu, nome, onSu, onGiu }: { su: boolean; giu: boolean; nome: string; onSu: () => void; onGiu: () => void }) {
+  return (
+    <span className="frecce">
+      <button type="button" className="freccia" disabled={!su} aria-label={`Sposta «${nome}» più in alto`} onClick={onSu}>▲</button>
+      <button type="button" className="freccia" disabled={!giu} aria-label={`Sposta «${nome}» più in basso`} onClick={onGiu}>▼</button>
+    </span>
   );
 }

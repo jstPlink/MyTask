@@ -11,7 +11,7 @@ import { useNav, type SubFare } from '../ui/nav.tsx';
 import { mapsUrl, nomeTempo } from '../lib/util.ts';
 
 const SUB: { id: SubFare; nome: string }[] = [
-  { id: 'azioni', nome: 'Attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
+  { id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
 ];
 
 export function Fare() {

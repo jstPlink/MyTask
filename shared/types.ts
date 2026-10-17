@@ -49,6 +49,8 @@ export interface Item {
 
   note?: string;
   link?: string[];
+  /** Immagini allegate alle note (JPEG ridotti, come testo `data:`). */
+  immagini?: string[];
 
   // date (YYYY-MM-DD) e orari (HH:MM)
   inizio?: string;
@@ -96,6 +98,10 @@ export interface Item {
   /** Commento lasciato quando si segna come fatto un film, un libro, un gioco… */
   commento?: string;
   completatoIl?: string;
+  /** Quando è stata completata (millisecondi), oltre al giorno: serve per mostrare l'ora. */
+  completatoTs?: number;
+  /** Posizione di un passo dentro il suo progetto (0 = il primo, il più prioritario). */
+  ordine?: number;
 
   // routine
   fascia?: Fascia;

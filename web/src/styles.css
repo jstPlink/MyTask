@@ -291,8 +291,8 @@ a { color: var(--accent); }
 .gruppo .textarea { margin: 8px 0 12px; }
 
 /* ---------- Inbox ---------- */
-.inbox-voce { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 13px 14px; margin: 9px 0; }
-.inbox-voce:hover, .inbox-voce:active { border-color: var(--accent); }
+
+
 .inbox-testo { min-width: 0; }
 
 /* ---------- Animazioni ---------- */
@@ -397,18 +397,20 @@ a { color: var(--accent); }
 @media (max-width: 420px) { .tabs button { font-size: 10px; } .tabs button .ic { width: 46px; } }
 
 /* ---------- Attività raggruppate sotto il progetto ---------- */
-.gp { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin: 12px 0; animation: entra .26s ease-out backwards; }
+.gp { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin: 12px -12px; animation: entra .26s ease-out backwards; }
 .gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 12px; background: var(--accent-soft); text-align: left; }
 .gp-h b { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
 .gp-h span { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 .gp-bar { height: 4px; background: var(--surface2); }
 .gp-bar i { display: block; height: 100%; background: var(--accent); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
-.gp .row { padding-left: 26px; padding-right: 12px; border-left: 0; }
+/* la cornice del progetto sporge di 12 px per lato: dentro, checkbox e pallino cadono dove cadono nelle righe normali */
+.gp .row { padding-left: 11px; padding-right: 12px; margin: 0; width: 100%; border-left: 0; }
+.gp .row:last-child { border-bottom: 0; }
 .gp-ic { width: 28px; height: 28px; flex: none; border-radius: 50%; border: 1.8px solid var(--mid); color: var(--mid); background: var(--surface); display: grid; place-items: center; }
 .interesse { font-size: 12px; letter-spacing: 1px; color: var(--accent); white-space: nowrap; }
 .scroll, .main-body, .pane .scroll { scrollbar-width: none; }
 .scroll::-webkit-scrollbar, .main-body::-webkit-scrollbar { display: none; }
-.gp .row:last-child { border-bottom: 0; }
+
 
 /* ---------- Blocco di priorità nella scheda di una voce ---------- */
 .prio { --c: var(--soft); --cs: var(--surface2); background: var(--surface); border: 2px solid var(--c); border-radius: 16px; padding: 14px 16px 12px; margin: 6px 0 14px; }
@@ -527,3 +529,51 @@ a { color: var(--accent); }
 .login-server { display: flex; gap: 8px; }
 .login-server select { flex: none; background: var(--surface2); border: 1.5px solid var(--line); border-radius: 12px; padding: 0 10px; font-size: 16px; font-weight: 650; color: var(--ink); outline: none; }
 .login-server input { flex: 1; min-width: 0; }
+
+/* ---------- Avanzamento del progetto al completamento di un passo (foglio sul telefono, finestra al centro sul web) ---------- */
+.avz-dim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); opacity: 0; animation: avz-dim 4.2s ease-in-out forwards; }
+.avz-pannello { position: fixed; z-index: 41; background: var(--surface); }
+.avz-foglio { left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; border-radius: 26px 26px 0 0; padding: 16px 18px calc(env(safe-area-inset-bottom) + 22px); box-shadow: 0 -12px 34px rgba(0,0,0,.28); transform: translateY(105%); animation: avz-sale 4.2s cubic-bezier(.2,.8,.2,1) forwards; }
+.avz-modale { left: 50%; top: 50%; width: min(420px, 92vw); border-radius: 20px; padding: 20px 22px; box-shadow: 0 24px 60px rgba(0,0,0,.4); opacity: 0; transform: translate(-50%, -50%) scale(.9); animation: avz-modale 4.2s cubic-bezier(.2,.9,.3,1.1) forwards; }
+.avz-barra { width: var(--da); animation: avz-riempi 4.2s cubic-bezier(.3,.7,.2,1) forwards; }
+.avz-num { display: inline-grid; font-weight: 800; color: var(--accent); }
+.avz-num > span { grid-area: 1 / 1; white-space: nowrap; }
+.avz-n1 { animation: avz-n1 4.2s steps(1) forwards; }
+.avz-n2 { opacity: 0; animation: avz-n2 4.2s steps(1) forwards; }
+.avz-passo { display: flex; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.avz-passo:last-child { border-bottom: 0; }
+.avz-testo { position: relative; font-size: 15px; font-weight: 600; }
+.avz-passo .cb.done + .avz-testo { color: var(--mid); }
+.avz-target .cb { animation: avz-spunta 4.2s ease-out forwards; }
+.avz-target .cb::after { content: "\2713"; font-weight: 700; opacity: 0; animation: avz-segno 4.2s ease forwards; }
+.avz-target .avz-testo { animation: avz-grigio 4.2s ease forwards; }
+.avz-target .avz-testo::after { content: ""; position: absolute; left: 0; top: 55%; height: 2px; background: var(--mid); width: 0; animation: avz-sbarra 4.2s ease forwards; }
+@keyframes avz-dim { 0%, 4% { opacity: 0; } 12%, 80% { opacity: 1; } 92%, 100% { opacity: 0; } }
+@keyframes avz-sale { 0%, 4% { transform: translateY(105%); } 18%, 78% { transform: translateY(0); } 92%, 100% { transform: translateY(105%); } }
+@keyframes avz-modale { 0%, 4% { opacity: 0; transform: translate(-50%, -46%) scale(.9); } 16%, 78% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 92%, 100% { opacity: 0; transform: translate(-50%, -52%) scale(.94); } }
+@keyframes avz-spunta { 0%, 30% { background: transparent; border-color: var(--soft); transform: scale(1); } 36% { transform: scale(1.25); } 42%, 100% { background: var(--accent); border-color: var(--accent); transform: scale(1); } }
+@keyframes avz-segno { 0%, 30% { opacity: 0; } 38%, 100% { opacity: 1; } }
+@keyframes avz-grigio { 0%, 34% { color: var(--ink); } 42%, 100% { color: var(--mid); } }
+@keyframes avz-sbarra { 0%, 34% { width: 0; } 44%, 100% { width: 100%; } }
+@keyframes avz-riempi { 0%, 46% { width: var(--da); } 66%, 100% { width: var(--a); } }
+@keyframes avz-n1 { 0%, 52% { opacity: 1; } 53%, 100% { opacity: 0; } }
+@keyframes avz-n2 { 0%, 52% { opacity: 0; } 53%, 100% { opacity: 1; } }
+
+/* ---------- Link e immagini allegati alle note ---------- */
+.allegati { padding-bottom: 8px; }
+.allegati-foto { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px 0 4px; }
+.allegato { position: relative; border-radius: 12px; overflow: hidden; background: var(--surface2); }
+.allegato img { display: block; width: 100%; height: 120px; object-fit: cover; cursor: zoom-in; }
+.allegato.grande { grid-column: 1 / -1; }
+.allegato.grande img { height: auto; max-height: 420px; object-fit: contain; cursor: zoom-out; }
+.allegato-x { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; text-align: center; font-size: 14px; }
+
+/* ---------- Riordino dei passi di un progetto ---------- */
+.frecce { display: inline-flex; gap: 4px; flex: none; }
+.freccia { width: 34px; height: 34px; border-radius: 10px; background: var(--surface2); font-size: 12px; text-align: center; color: var(--mid); }
+.freccia:disabled { opacity: .3; }
+.freccia:not(:disabled):active { transform: scale(.92); }
+.passo-titolo { flex: 1; min-width: 0; text-align: left; }
+
+/* ---------- Cronologia della voce ---------- */
+.cron-trascorso { color: var(--accent); font-weight: 700; }

@@ -27,7 +27,7 @@ export const live = (items: Item[]) => items.filter((i) => !i.eliminato);
 export function figli(items: Item[], padreId: string): Item[] {
   return live(items)
     .filter((i) => i.padreId === padreId)
-    .sort((a, b) => (a.inizio ?? '9999').localeCompare(b.inizio ?? '9999') || a.creato - b.creato);
+    .sort((a, b) => (a.ordine ?? 1e9) - (b.ordine ?? 1e9) || (a.inizio ?? '9999').localeCompare(b.inizio ?? '9999') || a.creato - b.creato);
 }
 
 export function avanzamento(padre: Item, items: Item[]): { fatti: number; totale: number } {

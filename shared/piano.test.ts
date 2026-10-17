@@ -240,3 +240,43 @@ test('indirizzo: separa lo schema e ricompone', () => {
   assert.ok(indirizzoValido('mytask.fplinio.it') && indirizzoValido('192.168.1.5:8787') && indirizzoValido('localhost:5173'));
   assert.ok(!indirizzoValido('') && !indirizzoValido('mytask') && !indirizzoValido('ciao come va'));
 });
+
+// ---- ordine dei passi di un progetto e ora di completamento
+import { figli, prossimoPasso } from './views.ts';
+import { completa, riapri } from './recurrence.ts';
+
+test('progetto: l\'ordine scelto decide il prossimo passo', () => {
+  const prog = mk({ tipo: 'progetto', titolo: 'Progetto' });
+  const a = mk({ padreId: prog.id, titolo: 'A', ordine: 2 });
+  const b = mk({ padreId: prog.id, titolo: 'B', ordine: 0 });
+  const c = mk({ padreId: prog.id, titolo: 'C', ordine: 1 });
+  const nuovo = mk({ padreId: prog.id, titolo: 'Nuovo senza ordine', creato: NOW + 5000 });
+  assert.deepEqual(figli([prog, a, b, c, nuovo], prog.id).map((x) => x.titolo), ['B', 'C', 'A', 'Nuovo senza ordine']);
+  assert.equal(prossimoPasso(prog, [prog, a, b, c, nuovo])?.titolo, 'B');
+  // chiuso il primo, il prossimo è il secondo in ordine
+  assert.equal(prossimoPasso(prog, [prog, a, { ...b, stato: 'fatto' }, c, nuovo])?.titolo, 'C');
+});
+
+test('completamento: si salva anche l\'ora e riaprendo si toglie', () => {
+  const x = mk({});
+  const fatta = completa(x, OGGI, NOW + 123456);
+  assert.equal(fatta.completatoTs, NOW + 123456);
+  assert.equal(fatta.completatoIl, OGGI);
+  const riaperta = riapri(fatta, NOW + 200000);
+  assert.equal(riaperta.completatoTs, undefined);
+  assert.equal(riaperta.completatoIl, undefined);
+});
+
+// ---- formato di data/ora e tempo trascorso
+import { scriviQuando, scriviTrascorso } from './tempo.ts';
+
+test('cronologia: data e ora e tempo trascorso', () => {
+  const t = new Date(2026, 9, 16, 14, 32).getTime(); // venerdì 16 ottobre 2026, 14:32
+  assert.equal(scriviQuando(t), 'ven 16 ott · 14:32');
+  assert.equal(scriviQuando(t, true), 'ven 16 ott');
+  assert.equal(scriviTrascorso(12 * 60000), '12 min');
+  assert.equal(scriviTrascorso((18 * 60 + 38) * 60000), '18 h 38 min');
+  assert.equal(scriviTrascorso(3 * 3600000), '3 h');
+  assert.equal(scriviTrascorso((2 * 1440 + 3 * 60 + 10) * 60000), '2 g 3 h');
+  assert.equal(scriviTrascorso(20000), 'meno di un minuto');
+});

@@ -65,13 +65,8 @@ export function Inbox() {
       <div className="scroll">
         {lista.length === 0 && <Empty>Tutto smistato. Le idee catturate al volo arrivano qui.</Empty>}
         {lista.map((i) => (
-          <button key={i.id} className="inbox-voce" onClick={() => nav.push({ k: 'item', id: i.id })}>
-            <span className="inbox-testo">
-              <span className="t1">{i.titolo}</span>
-              <span className="t2" style={{ display: 'block' }}>{[i.piattaforma, i.consigliatoDa && `consigliato da ${i.consigliatoDa}`, i.note].filter(Boolean).join(' · ') || 'Apri per smistare'}</span>
-            </span>
-            <span className="muted" aria-hidden="true">›</span>
-          </button>
+          <Row key={i.id} titolo={i.titolo} check="none" onOpen={() => nav.push({ k: 'item', id: i.id })}
+            meta={[i.piattaforma, i.consigliatoDa && `consigliato da ${i.consigliatoDa}`, i.note].filter(Boolean).join(' · ') || 'Apri per smistare'} />
         ))}
       </div>
     </>
@@ -91,13 +86,7 @@ export function DaParte() {
       <div className="scroll">
         {lista.length === 0 && <Empty>Qui finiscono le voci che archivi. Aprine una per ripristinarla.</Empty>}
         {lista.map((i) => (
-          <button key={i.id} className="inbox-voce" onClick={() => nav.push({ k: 'item', id: i.id })}>
-            <span className="inbox-testo">
-              <span className="t1">{i.titolo}</span>
-              <span className="t2" style={{ display: 'block' }}>{[NOMI_TIPO[i.tipo]].filter(Boolean).join(' · ')}</span>
-            </span>
-            <span className="muted" aria-hidden="true">›</span>
-          </button>
+          <Row key={i.id} titolo={i.titolo} check="none" onOpen={() => nav.push({ k: 'item', id: i.id })} meta={NOMI_TIPO[i.tipo]} />
         ))}
       </div>
     </>

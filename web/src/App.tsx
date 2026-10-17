@@ -21,6 +21,7 @@ import { Login } from './screens/Login.tsx';
 import { TempoLibero } from './screens/TempoLibero.tsx';
 import { RecensioneSheet } from './ui/Recensione.tsx';
 import { DurataSheet } from './ui/DurataSheet.tsx';
+import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
 import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Revisione, Stasera } from './screens/Secondarie.tsx';
 
 interface Posizione { tab: Tab; fareSub: SubFare; scoprireSub: SubScoprire }
@@ -204,6 +205,7 @@ export function App() {
           {capture && <Capture />}
           <RecensioneSheet />
           <DurataSheet />
+          <AvanzamentoProgetto />
           <ToastView />
         </div>
       </NavContext.Provider>
@@ -237,6 +239,7 @@ export function App() {
         {capture && <Capture />}
         <RecensioneSheet />
           <DurataSheet />
+          <AvanzamentoProgetto />
         <ToastView />
       </div>
     </NavContext.Provider>
