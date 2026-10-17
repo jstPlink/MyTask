@@ -8,7 +8,7 @@ import { completaVoce, riapriVoce } from '../lib/actions.ts';
 import { Empty, Fab, GruppoProgetto, Row, Seg, Sezione, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
-import { mapsUrl, nomeTempo } from '../lib/util.ts';
+import { clsx, mapsUrl, nomeTempo } from '../lib/util.ts';
 
 const SUB: { id: SubFare; nome: string }[] = [
   { id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
@@ -52,7 +52,7 @@ function Azioni() {
         key={item.id}
         titolo={item.titolo} tipo={item.tipo}
         meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${nomeTempo(item.sforzoMin)} ${percentuale(margine)}` : undefined].filter(Boolean).join(' · ')}
-        right={d ? (item.rigida || scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
+        right={d ? (item.rigida || scaduta ? <span className={clsx('hard', item.rigida && 'rigida')}>{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
         level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
         rank={lista.findIndex((x) => x.item.id === item.id) + 1}
         urgenza={urgency(item, oggi)}
@@ -92,7 +92,7 @@ function Progetti() {
       return (
         <Row key={c.id} titolo={c.titolo} tipo={c.tipo} done={chiuso} light={chiuso} struck={chiuso}
           meta={chiuso ? undefined : c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
-          right={d && !chiuso ? (c.rigida || isOverdue(c, oggi) ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
+          right={d && !chiuso ? (c.rigida || isOverdue(c, oggi) ? <span className={clsx('hard', c.rigida && 'rigida')}>{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
           level={chiuso ? undefined : barLevel(score(withInheritance(c, p.progetto), oggi))}
           onCheck={() => (chiuso ? riapriVoce(c) : completaVoce(c))}
           selected={nav.openId === c.id} onOpen={() => nav.push({ k: 'item', id: c.id })} />
@@ -137,7 +137,7 @@ function RigheEsperienze({ titolo }: { titolo?: boolean }) {
   if (v.conData.length + quandoCapita.length === 0) return null;
   const righeConData = v.conData.map((i) => (
     <Row key={i.id} titolo={i.titolo} tipo={i.tipo} meta={i.oraInizio} interesse={i.interesse ?? 3}
-      right={i.rigida ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi)}
+      right={i.rigida ? <span className="hard rigida">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi)}
       level={barLevel(score(i, oggi))} onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
   ));
   const righeQuandoCapita = quandoCapita.map((i) => (

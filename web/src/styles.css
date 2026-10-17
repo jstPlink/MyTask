@@ -63,7 +63,8 @@ a { color: var(--accent); }
 .badge { display: inline-block; font-size: 11px; font-weight: 600; background: var(--accent-soft); color: var(--accent); padding: 2px 9px; border-radius: 10px; }
 .badge.solid { background: var(--accent); color: var(--on-accent); }
 .hard { font-weight: 700; color: var(--warn); }
-.hard::before { content: "\25CF\00a0"; }
+.hard.rigida::before { content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 4px; vertical-align: -1px; background: currentColor; -webkit-mask: var(--lucchetto) center / contain no-repeat; mask: var(--lucchetto) center / contain no-repeat; }
+:root { --lucchetto: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4' y='10.5' width='16' height='10.5' rx='2.5'/%3E%3Cpath d='M8 10.5V8a4 4 0 0 1 8 0v2.5' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E"); }
 .warn { color: var(--warn); font-weight: 650; }
 .muted { color: var(--mid); }
 
@@ -605,3 +606,9 @@ a { color: var(--accent); }
 /* ---------- Interesse: pallino verde, la saturazione cresce da 1 (quasi vuoto) a 5 (pieno); nessuna animazione ---------- */
 .row .rank-int { --f: 8%; border: 2px solid color-mix(in srgb, var(--accent) calc(40% + var(--f) * .6), transparent); background: color-mix(in srgb, var(--accent) var(--f), transparent); color: var(--accent); animation: none; }
 .rank-int.g2 { --f: 28%; } .rank-int.g3 { --f: 52%; color: var(--bg); } .rank-int.g4 { --f: 76%; color: var(--bg); } .rank-int.g5 { --f: 100%; color: var(--bg); }
+
+/* margine d'errore sulla stima: coda tratteggiata del segmento (il segmento dura già stima + margine) */
+.lp-bs i { overflow: hidden; }
+.lp-bs i .lp-m { position: absolute; right: 0; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--bg) 62%, transparent) 0 2px, transparent 2px 5px); border-left: 1.5px solid color-mix(in srgb, var(--bg) 70%, transparent); }
+.lp-leg { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 10.5px; color: var(--mid); }
+.lp-leg i { width: 16px; height: 8px; border-radius: 3px; background: var(--soft) repeating-linear-gradient(135deg, color-mix(in srgb, var(--bg) 62%, transparent) 0 2px, transparent 2px 5px); }

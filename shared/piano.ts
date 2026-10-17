@@ -42,6 +42,8 @@ export interface Blocco {
   fisso?: boolean;
   /** Finisce dopo la scadenza: il tempo prima non bastava. */
   inRitardo?: boolean;
+  /** Ultimi minuti del blocco che sono margine d'errore sulla stima (il blocco dura già stima + margine). */
+  margineMin?: number;
   /** Pausa breve con una curiosità, tra un'attività grande e l'altra: `item` è la curiosità. */
   pausa?: boolean;
 }
@@ -107,7 +109,7 @@ function sottrai(gaps: Gap[], da: number, a: number): Gap[] {
 
 const durataDi = (i: Item) => Math.max(PASSO, arrotonda(i.sforzoMin ?? DURATA_PREDEFINITA));
 
-export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now: number = Date.now(), giorniOrizzonte = ORIZZONTE_GIORNI): Piano {
+export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now: number = Date.now(), giorniOrizzonte = ORIZZONTE_GIORNI, margine = 0): Piano {
   const nowD = new Date(now);
   const minutiOra = arrotonda(nowD.getHours() * 60 + nowD.getMinutes());
   const pausa = Math.max(0, Math.round(disp.pausaMin ?? PAUSA_PREDEFINITA));
@@ -164,7 +166,10 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
   const ordinati = [...flessibili].sort((a, b) => b.punteggio - a.punteggio);
   for (const e of ordinati) {
     const i = e.item;
-    const totale = durataDi(i);
+    // il tempo reale è sempre la stima più il margine d'errore atteso
+    const base = durataDi(i);
+    const totale = arrotonda(base * (1 + Math.max(0, margine)));
+    const quotaMargine = (totale - base) / totale;
     const scadenza = dueDate(i);
     const spezzabile = totale > SOGLIA_SPEZZABILE;
     const pezzi: Pezzo[] = [];
@@ -180,7 +185,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
           const presa = Math.min(resto, spazio);
           if (presa < BLOCCO_MINIMO && presa < resto) continue;
           const fino = s + Math.min(spazio, presa + pausa);
-          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + presa, fino };
+          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + presa, fino, margineMin: Math.round(presa * quotaMargine) };
           pezzi.push(pezzo);
           l.splice(k, 1, ...(fino < f ? [[fino, f] as Gap] : []));
           if (presa >= SOGLIA_GRANDE && fino < f) riservaPausa(pezzo, l, k);
@@ -188,7 +193,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
           resto -= presa;
         } else if (spazio >= totale) {
           const fino = s + Math.min(spazio, totale + pausa);
-          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + totale, fino };
+          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + totale, fino, margineMin: totale - base };
           pezzi.push(pezzo);
           l.splice(k, 1, ...(fino < f ? [[fino, f] as Gap] : []));
           if (totale >= SOGLIA_GRANDE && fino < f) riservaPausa(pezzo, l, k);

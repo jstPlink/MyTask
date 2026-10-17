@@ -229,7 +229,7 @@ export function Aspetto() {
         ))}
         <Sec a="Anteprima" />
         <div className="card strong">
-          <Row titolo="Rinnovare l’abbonamento" meta="Casa · 20 min" level={3} right={<span className="hard">21 ott</span>} />
+          <Row titolo="Rinnovare l’abbonamento" meta="Casa · 20 min" level={3} right={<span className="hard rigida">21 ott</span>} />
           <div className="btns"><span className="btn solid">Salva</span><span className="btn">Annulla</span></div>
         </div>
         <div className="t2" style={{ marginTop: 12 }}>Il tema si applica subito e resta salvato sul dispositivo, anche offline.</div>

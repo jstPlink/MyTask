@@ -63,9 +63,12 @@ function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: 
       <div className="lp-orari"><span>{orario(f[0])}</span><span>{orario(f[1])}</span></div>
       <div className="lp-bs" role="img" aria-label={`Attività dalle ${orario(f[0])} alle ${orario(f[1])}`}>
         {dentro.map((b) => (
-          <i key={`${b.item.id}-${b.da}`} className={livello(b)} style={{ left: `${q(b.da)}%`, width: `calc(${q(b.a) - q(b.da)}% - 2px)` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}`} />
+          <i key={`${b.item.id}-${b.da}`} className={livello(b)} style={{ left: `${q(b.da)}%`, width: `calc(${q(b.a) - q(b.da)}% - 2px)` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}${b.margineMin ? ` (di cui ${durata(b.margineMin)} di margine)` : ''}`}>
+            {!!b.margineMin && <b className="lp-m" style={{ width: `${(b.margineMin / (b.a - b.da)) * 100}%` }} />}
+          </i>
         ))}
       </div>
+      {dentro.some((b) => b.margineMin) && <div className="lp-leg"><i aria-hidden="true" />tratteggio: margine d'errore sulla stima</div>}
       <div className="lp-nr" ref={contenitore}>
         {(() => {
           const conNumero = dentro.filter((b) => rank.get(b.item.id));
@@ -96,7 +99,7 @@ export function Oggi() {
   const margine = useMemo(() => margineAtteso(items), [items]);
   const disp = useDisponibilita();
   const minutoCorrente = useMinuto();
-  const piano = useMemo(() => (disp ? pianifica(items, disp, oggi, minutoCorrente * 60000) : null), [items, disp, oggi, minutoCorrente]);
+  const piano = useMemo(() => (disp ? pianifica(items, disp, oggi, minutoCorrente * 60000, undefined, margine) : null), [items, disp, oggi, minutoCorrente, margine]);
   const [meseAperto, setMeseAperto] = useState(false);
   // fascia libera scelta nella barra (per giorno); di default quella in corso o la prossima
   const [fasciaScelta, setFasciaScelta] = useState<Record<string, number>>({});
@@ -177,7 +180,7 @@ export function Oggi() {
     const ritardo = daysOverdue(e.item, oggi);
     if (d === oggi) return null; // in Oggi la scadenza di oggi è già chiara
     if (ritardo > 0) return <span className="hard">{ritardo === 1 ? 'ieri' : `${ritardo} gg fa`}</span>;
-    return e.item.rigida ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
+    return e.item.rigida ? <span className="hard rigida">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
   };
 
   const routineFatte = v.routine.filter((r) => fattaOggi(r, oggi)).length;
@@ -219,8 +222,8 @@ export function Oggi() {
       key={`${bl.item.id}-${bl.da}`}
       titolo={bl.item.titolo} tipo={bl.item.tipo}
       ora={<>{orario(bl.da)}<small>{durata(bl.a - bl.da)}</small></>}
-      meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? 'prossimo passo' : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined, bl.fisso ? undefined : `margine ±${nomeTempo(Math.max(1, Math.round((bl.a - bl.da) * margine)))}`].filter(Boolean).join(' · ') || undefined}
-      right={bl.inRitardo ? <span className="piano-avviso">oltre la scadenza</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
+      meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? 'prossimo passo' : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined, bl.fisso || !bl.margineMin ? undefined : `${nomeTempo(bl.a - bl.da - bl.margineMin)} + ${nomeTempo(bl.margineMin)} di margine`].filter(Boolean).join(' · ') || undefined}
+      right={bl.inRitardo ? <span className="piano-avviso">scaduta</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
       level={barLevel(score(bl.item, oggi))}
       rank={bl.fisso ? undefined : classifica.get(bl.item.id)}
       urgenza={urgency(bl.item, oggi)}
@@ -240,7 +243,6 @@ export function Oggi() {
   const fasceOggi = fasceDi(oggi);
   const selOggi = fasciaDi(oggi, fasceOggi);
   const totaleOggi = piano && disp ? minutiDisponibili(disp, oggi, oggi, minutoCorrente * 60000) : 0;
-  const fuoriOggi = piano ? v.fare.filter((e) => { const d = dueDate(e.item); return d !== undefined && d <= oggi && !pianoOggi?.blocchi.some((x) => x.item.id === e.item.id); }) : [];
 
   const altroGiorno = (() => {
     const g = piano?.giorni.find((x) => x.data === giorno);
@@ -266,7 +268,7 @@ export function Oggi() {
             {resto.map((i) => (
               <Row key={i.id} titolo={i.titolo} tipo={i.tipo} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
                 level={barLevel(score(i, oggi))} check={i.tipo === 'esperienza' ? 'square' : 'circle'}
-                right={i.rigida || passato ? <span className="hard">{formatShortYear(dueDate(i)!, oggi)}</span> : undefined}
+                right={i.rigida || passato ? <span className={clsx('hard', i.rigida && 'rigida')}>{formatShortYear(dueDate(i)!, oggi)}</span> : undefined}
                 onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
             ))}
           </Sezione>
@@ -295,18 +297,6 @@ export function Oggi() {
             )}
             {raggruppate(pianoOggi.blocchi.filter((x) => inFascia(x, fasceOggi[selOggi])), bloccoRiga)}
           </Sezione>
-          {fuoriOggi.length > 0 && (
-            <Sezione titolo="Non entrano oggi" dettaglio={fuoriOggi.length}>
-              {fuoriOggi.map((e) => {
-                const dove = dovePianificata(e.item.id);
-                return (
-                  <Row key={e.item.id} titolo={e.item.titolo} tipo={e.item.tipo} light
-                    meta={dove ? `rimandata a ${nomeGiorno(dove.data)} alle ${orario(dove.da)}` : 'senza spazio nelle prossime due settimane'}
-                    right={destra(e)} onCheck={() => completaVoce(e.item)} selected={nav.openId === e.item.id} onOpen={() => nav.push({ k: 'item', id: e.item.id })} />
-                );
-              })}
-            </Sezione>
-          )}
           {piano.fuori.length > 0 && <div className="t2" style={{ padding: '10px 0' }}>{piano.fuori.length} {piano.fuori.length === 1 ? 'attività non entra' : 'attività non entrano'} nelle prossime due settimane: servono più fasce di tempo libero.</div>}
         </>
       ) : (
