@@ -3,7 +3,7 @@
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
 - **Versione documento:** 0.62.0
-- **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Fatti: widget «Oggi» (chiaro e scuro), stati della nota, tempo libero flessibile, build dell'APK in locale. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA
+- **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Fatti: widget «Oggi» (chiaro e scuro), stati della nota, tempo libero flessibile, IA con Gemini e Groq (chiavi, chat, autocompilazione), tempo impiegato misurato dall'app, esperienze «Per te», Inbox con note non assegnate, build dell'APK in locale. Tolta la Revisione. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
 - **Decisioni di dettaglio:** `docs/01-setup-decisioni.md` (registro locale delle decisioni, non pubblicato)
