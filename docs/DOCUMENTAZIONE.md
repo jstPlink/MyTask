@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.63.0
+- **Versione documento:** 0.64.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -13,7 +13,7 @@ Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle
 Regole fisse per chi sviluppa (anche Claude), da rispettare a ogni modifica:
 
 1. **Anteprima in locale:** sito e server in localhost, con il sito collegato al server vero (`MYTASK_SERVER`, vedi `web/vite.config.ts`), così l'utente vede le modifiche prima di pubblicarle.
-2. **Commit e push solo su richiesta dell'utente:** non si fanno mai da soli, nemmeno per aggiornare il telefono. A fine modifiche si dice che l'app sul telefono resta com'è finché non vengono chiesti. Quando l'utente li chiede si fa tutto di seguito: commit, push, attesa della build, download di `mytask.apk` dalla release e aggiornamento del telefono.
+2. **Commit e push solo su richiesta dell'utente:** non si fanno mai da soli, nemmeno per aggiornare il telefono. A fine modifiche si dice che l'app sul telefono resta com'è finché non vengono chiesti. Quando l'utente chiede commit e push si fanno e basta: **non si aspetta né si controlla la build su GitHub, lo verifica l'utente**. Si dice che la build è partita e si aspetta che sia l'utente a dire che l'app è pronta; solo allora (o se chiede di aggiornare il telefono) si scarica `mytask.apk` dalla release e si installa sul telefono.
 3. **Telefono:** si aggiorna con il debug wireless e `adb install -r`, senza disinstallare per non perdere i dati locali. Se l'utente chiede di aggiornare solo il telefono (senza commit) si costruisce l'APK in locale (sezione 7.3) e lo si installa allo stesso modo. Se serve davvero disinstallare (per esempio cambia la chiave di firma) si salvano prima i dati: si apre l'app con la rete attiva per sincronizzarli e a reinstallazione fatta si controlla che le voci siano tornate (altrimenti si reimportano da Altro › Account › Importa). Se il telefono non è raggiungibile (debug wireless spento) lo si dice e si riprova alla richiesta successiva.
 4. **Versione e documentazione:** si aumenta la versione a ogni commit (`package.json` principale) e si annota il registro in fondo a questo documento.
 5. **Privacy:** niente screenshot del telefono (può mostrare notifiche private); per verificare si usano il browser o i test.
@@ -113,7 +113,7 @@ Intestazione con i conteggi reali («N attività · N progetti · N esperienze»
 
 - **Tutte le attività:** tutte le attività aperte (comprese le scadute) in ordine di priorità, con i task dei progetti raggruppati sotto la testata del progetto; il numero d'ordine resta quello della classifica completa anche con la ricerca. Sotto, le esperienze. Le archiviate non compaiono.
 - **Progetti:** un gruppo per progetto con tutti i suoi passi (aperti per priorità, poi i completati barrati).
-- **Game design:** le idee di videogiochi che l'utente vuole realizzare, dalla più alla meno interessante (interesse 1-5 come le curiosità); sono note di tipo `gamedesign` («Game design» nella tendina Tipo), con interesse e note libere, senza date né priorità: non compaiono in Oggi né nel piano.
+- **Game design:** le idee di videogiochi che l'utente vuole realizzare, in **ordine di priorità** (6.15). Sono note di tipo `gamedesign` («Game design» nella tendina Tipo) con interesse, tempo stimato, difficoltà e note libere; senza date: non compaiono in Oggi né nel piano. La riga mostra tempo, difficoltà e il punteggio di priorità.
 - **Esperienze:** un selettore sceglie l'ordine (si ricorda in `mytask.esperienze.ordine`): **Data** (di base: «Con data» poi «Senza data»), **Luogo** (una sezione per luogo, «Senza luogo» in fondo), **Interesse** (un'unica lista dal più al meno interessante) e **Per te** (sezione 6.9).
 
 ### 3.3 Intrattenimento
@@ -122,7 +122,7 @@ Sei sotto-schede (Film, Serie, Anime, Giochi, Libri, Ricette), tutte della stess
 
 ### 3.4 Curiosità
 
-Scheda propria (ricerca solo sul telefono). Ogni riga mostra l'interesse; una curiosità «da fare» si legge «da approfondire». Le curiosità hanno il campo **tempo stimato** (facoltativo: senza tempo la pausa nel piano dura 15 minuti).
+Scheda propria (ricerca solo sul telefono). Ogni riga mostra l'interesse; una curiosità «da fare» si legge «da approfondire». Le curiosità hanno il campo **tempo stimato** (facoltativo: senza tempo la pausa curiosità nel piano dura 15 minuti).
 
 ### 3.5 Routine
 
@@ -136,7 +136,7 @@ Le abitudini non sono task: non scadono e non finiscono (sezione 6.7). Una sezio
 
 ### 3.7 Altro e impostazioni
 
-- **Tempo libero** (`TempoLibero`, `OrariGiorno`): per ogni giorno della settimana una o più fasce (es. lun-ven 18:00-21:00, di partenza sere feriali 18-21 e mattine del fine settimana 9-13), il parametro **«Pausa dopo ogni attività»** (di base 5 minuti, da 0 a 60) e l'interruttore **Fasce fisse / Orari flessibili** (sezione 6.4).
+- **Tempo libero** (`TempoLibero`, `OrariGiorno`): per ogni giorno della settimana una o più fasce (es. lun-ven 18:00-21:00, di partenza sere feriali 18-21 e mattine del fine settimana 9-13) e l'interruttore **Fasce fisse / Orari flessibili** (sezione 6.4).
 - **Intelligenza artificiale** (`IA`, `Chat`): sezione 6.12.
 - **Pesi della priorità** (`PesiPriorita`, etichetta «Sperimentale»): quattro cursori più la scadenza fissa per cambiare il peso delle componenti del punteggio (sezione 6.1).
 - **Aspetto:** sezione 2.3.
@@ -159,7 +159,7 @@ La scheda (`ItemDetail`) salva da sola dopo 500 ms e all'uscita; non salva senza
    - **Progetto**: in più la **checklist** («X su Y», con barra) con le righe e i passi già esistenti, tutti spuntabili e **riordinabili trascinando** (dalla maniglia subito, con pressione lunga di 380 ms sul dito, con clic e trascinamento col mouse); «Aggiungi un passo». L'ordine è anche la priorità e la dipendenza (sezione 6.6).
    - **Esperienza**: Data, Interesse, **Luogo** (campo `zona`, con sotto come chip i luoghi già usati, dal più usato; si restringono mentre si scrive) e «Apri in Google Maps» (cerca il nome).
    - **Curiosità**: Interesse e Tempo stimato (15 minuti di base, si può togliere).
-   - **Game design**: gruppo «Idea» con l'Interesse; la descrizione dell'idea sta nelle note.
+   - **Game design**: gruppo «Idea» con **Interesse** (1-5), **Tempo stimato** e **Difficoltà** (1 = facile, 5 = molto difficile) e, in sola lettura, la **Priorità** calcolata («72 su 100 · 2ª su 5»); la descrizione dell'idea sta nelle note.
    - **Film, serie, anime**: Interesse, Piattaforma (con chip delle già usate più Prime Video e Disney+), Genere/Tipologia, Mood ed Energia richiesta; serie e anime anche Consigliato da, Con chi e Durata in minuti (il film non li ha: la durata arriva dall'arricchimento).
    - **Gioco**: Interesse e Durata in ore (salvata in minuti: 12,5 ore).
    - **Libro**: Interesse e **Pagine** (cercate da sole su Open Library dal titolo, correggibili).
@@ -190,7 +190,8 @@ Un'unica tabella **Elemento** (`Item` in `shared/types.ts`) con un campo `tipo`.
 | `inizio`, `fine`, `oraInizio`, `oraFine` | date YYYY-MM-DD e orari HH:MM; la scadenza è `fine`, altrimenti `inizio`; se c'è un'ora la nota è un impegno con orario fisso nel piano |
 | `rigida` | scadenza fissa (non spostabile; in interfaccia «scadenza fissa») |
 | `ricorrenza`, `promemoria[]`, `insisti` | ricorrenza ogni N giorni/settimane/mesi/anni; promemoria a N giorni dalla scadenza; insistenza ogni N minuti |
-| `importanza` (1-5, anche decimali), `sforzoMin`, `durataRealeMin` | attività e progetti; tempo stimato in minuti; tempo reale misurato per affinare la stima |
+| `importanza` (1-5, anche decimali), `sforzoMin`, `durataRealeMin` | attività e progetti; tempo stimato in minuti (anche per curiosità e game design); tempo reale misurato per affinare la stima |
+| `difficolta` (1-5) | game design: 1 = facile, 5 = molto difficile |
 | `interesse` (1-5) | intrattenimento, esperienze, curiosità e game design |
 | `padreId`, `ordine`, `checklist[]` | un passo ha il progetto come padre e una posizione nel progetto (0 = il primo); checklist = righe da spuntare dentro un progetto |
 | `zona`, `linkMaps` | esperienze: il «Luogo» (`zona`) e, se presente, un link Google Maps da cui leggere le coordinate |
@@ -238,7 +239,7 @@ L'app distribuisce da sola le attività nei giorni, in base a priorità, tempo l
 
 - **Candidati:** le stesse note di Oggi (azioni aperte e prossimi passi dei progetti) in ordine di priorità, ognuna nella prima fascia libera con spazio sufficiente, partendo da oggi (e per oggi dall'ora attuale), entro **14 giorni**. Gli orari sono a multipli di 5 minuti.
 - **Durata** di un blocco = tempo stimato (30 minuti se non stimato) **più il margine d'errore atteso**, arrotondato a 5 minuti; il margine è la coda tratteggiata del segmento nella barra.
-- **Pausa tra le attività:** il tempo libero lasciato dopo ogni blocco (5 minuti di base, impostabile; non dopo gli impegni con orario fisso).
+- **Nessuna pausa fissa:** le attività si susseguono una dopo l'altra nella fascia libera (non c'è più il parametro «Pausa dopo ogni attività»); le uniche pause sono le pause curiosità qui sotto.
 - **Spezzare:** le attività oltre i 60 minuti si dividono in blocchi (minimo 30) su più fasce e giorni («parte 1 di 2»); quelle più brevi non si spezzano.
 - **Rimandare:** se non c'è spazio, le meno prioritarie passano ai giorni successivi; se finiscono dopo la scadenza il blocco è segnato «scaduta».
 - **Impegni con orario:** le note con data e ora di inizio restano dove sono e tolgono tempo libero.
@@ -248,7 +249,7 @@ L'app distribuisce da sola le attività nei giorni, in base a priorità, tempo l
 
 ### 6.4 Tempo libero
 
-Impostazioni › Tempo libero. Il tempo libero (fasce, pausa, modalità, orari) viaggia nella stessa sincronizzazione delle voci (campo `impostazioni` di `/api/sync`, tabella `settings` del server, chiave `tempoLibero`): ogni dispositivo ricorda quando l'ha modificato e vince la modifica più recente. Gli orari dei giorni passati si ricordano per 45 giorni (servono a misurare il tempo delle note iniziate giorni prima) e poi vengono tolti a ogni salvataggio. Finché non è impostato, Oggi mostra la lista semplice con un invito a impostarlo.
+Impostazioni › Tempo libero. Il tempo libero (fasce, modalità, orari) viaggia nella stessa sincronizzazione delle voci (campo `impostazioni` di `/api/sync`, tabella `settings` del server, chiave `tempoLibero`): ogni dispositivo ricorda quando l'ha modificato e vince la modifica più recente. Gli orari dei giorni passati si ricordano per 45 giorni (servono a misurare il tempo delle note iniziate giorni prima) e poi vengono tolti a ogni salvataggio. Finché non è impostato, Oggi mostra la lista semplice con un invito a impostarlo.
 
 - **Fasce fisse:** le stesse fasce ogni settimana.
 - **Orari flessibili:** le fasce della settimana non contano; il tempo libero di un giorno è solo quello inserito (`eccezioni[giorno]`), e un giorno senza orari non ha tempo libero (piano vuoto). Ogni sera, all'ora scelta (di base 21:00), arriva una notifica locale «Quando sei libero domani?» (programmata per 7 giorni, saltando i giorni già inseriti). Toccandola si apre `OrariGiorno` (fasce con preset Mattina/Pomeriggio/Sera, oppure «Nessun tempo libero»), poi «Prepara il calendario». In Oggi compare lo stesso invito (oggi, o domani dopo l'ora scelta) anche sul sito.
@@ -314,7 +315,17 @@ Facoltativa e **scelta dall'utente**: in Altro › Intelligenza artificiale si i
 - **App Android:** notifiche locali programmate nel telefono (`shared/pianifica.ts` calcola quelle dei prossimi 14 giorni: promemoria, insistenza fino a 12 ripetizioni, routine all'ora scelta, richiesta serale degli orari). Arrivano anche ad app chiusa e senza rete; si riprogrammano a ogni modifica dei dati (con 2 s di attesa) e al ritorno nell'app. Il permesso si chiede al primo avvio e, se negato, si riattiva dalle impostazioni di Android.
 - **Sito:** `Notification` del browser, finché la pagina è aperta (controllo ogni 30 s).
 
-### 6.14 Sincronizzazione e offline
+### 6.14 Priorità del Game design (`shared/gamedesign.ts`)
+
+Punteggio da 0 a 100 che mescola tre parametri, con pesi **interesse 50% › tempo stimato 30% › difficoltà 20%**: si fa prima ciò che interessa di più, è più breve ed è meno difficile.
+
+- **Interesse:** da 1 a 5 riportato su 0-100 (di base 3).
+- **Tempo stimato:** scala logaritmica da 1 ora (100) a 30 giorni (0); oltre i limiti vale come il limite.
+- **Difficoltà:** 1 (facile) = 100, 5 (molto difficile) = 0.
+- Un parametro non compilato vale 50 (neutro: né premia né penalizza). Idea perfetta = 100, peggiore = 0.
+- La lista (sotto-scheda Game design) è in ordine di punteggio, a parità vince l'idea più vecchia; archiviate e bozze in Inbox non compaiono. La scheda mostra «punteggio su 100 · posizione su totale».
+
+### 6.15 Sincronizzazione e offline
 
 - I dati vivono nel dispositivo (IndexedDB: voci, coda delle modifiche in attesa, `auth` e `since`). La UI legge l'archivio locale e funziona senza rete.
 - `POST /api/sync` con `since`, le modifiche in coda e le impostazioni; il server risponde con le voci cambiate, `seq` e le impostazioni. Parte 1,2 s dopo una modifica, al ritorno della rete o in primo piano e ogni 60 s. Un 401 cancella il token ma lascia i dati.
@@ -507,3 +518,4 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-18 | 0.62.0 | Tolta la Revisione (schermata, voce nel menu, scheda in Oggi, contatore, progetti «fermi» e il campo `daRivedere`): le note scadute o vecchie restano nelle liste e nel piano; sul sito la tendina «Sezione» di film, serie e simili si apre (le due tendine della scheda si chiudevano a vicenda); titolo della scheda col margine giusto nella finestra del sito; mockup del campo rapido per le nuove note sul sito |
 | 2026-10-18 | 0.62.1 | Pulizia del codice e documentazione riscritta sullo stato attuale: tolti l'endpoint IA del server (`/api/ai/capture`, `GEMINI_API_KEY`), la cattura interpretata in locale (`shared/capture.ts`; `chiaveTitolo` è in `shared/testo.ts`), codice, regole CSS e risorse Android inutilizzati; commenti dei file riscritti sul funzionamento attuale. «Riapri» in Completato azzera anche l'ora di completamento. Nessun altro cambio di comportamento |
 | 2026-10-18 | 0.63.0 | Tendina del tipo non più scorrevole (mostra tutte le voci); tolta la ricerca dalle singole schede sul sito (resta quella generale); pulsante Tempo libero in cima a Oggi sul telefono; sul sito il pulsante «Nuova nota» diventa un campo con contorno sempre visibile, più marcato mentre si scrive (Invio salva in Inbox, N porta il cursore); nuovo tipo e sotto-scheda «Game design» in Attività; interruttore «Attiva» per mettere una routine in Parcheggiate; ripristinate le tinte dei tipi (`--c1…--c5s`) tolte per errore dalla pulizia della 0.62.1 |
+| 2026-10-18 | 0.64.0 | Tolta la «Pausa dopo ogni attività» (parametro `pausaMin`, impostazione in Tempo libero e relativo spazio nel piano; restano le pause curiosità); Game design con tempo stimato e difficoltà e una priorità calcolata (interesse 50%, tempo 30%, difficoltà 20%), lista ordinata per priorità |

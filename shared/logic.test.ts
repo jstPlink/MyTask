@@ -7,6 +7,7 @@ import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
 import { vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
 import { suggerisciStasera } from './stasera.ts';
+import { listaGameDesign, punteggioGameDesign } from './gamedesign.ts';
 
 const NOW = Date.UTC(2026, 9, 15, 10, 0, 0);
 const OGGI = '2026-10-15';
@@ -181,4 +182,27 @@ test('battito del pallino: fermo senza scadenza, da 10 a 80 bpm secondo l urgenz
   assert.equal(battitoBpm(100), 80);
   assert.ok(battitoBpm(60) > battitoBpm(35) && battitoBpm(35) > battitoBpm(15));
   assert.equal(battitoBpm(130), 80);
+});
+
+test('game design: pesa più l\'interesse, poi il tempo, infine la difficoltà', () => {
+  const base = { interesse: 3, sforzoMin: 600, difficolta: 3 };
+  const p = (x: Partial<Item>) => punteggioGameDesign(mk({ tipo: 'gamedesign', ...base, ...x }));
+  const dInteresse = p({ interesse: 5 }) - p({ interesse: 1 });
+  const dTempo = p({ sforzoMin: 60 }) - p({ sforzoMin: 43200 });
+  const dDifficolta = p({ difficolta: 1 }) - p({ difficolta: 5 });
+  assert.ok(dInteresse > dTempo && dTempo > dDifficolta);
+  assert.equal(Math.round(dInteresse), 50);
+  assert.equal(Math.round(dTempo), 30);
+  assert.equal(Math.round(dDifficolta), 20);
+  assert.equal(Math.round(p({ interesse: 5, sforzoMin: 60, difficolta: 1 })), 100);
+  assert.equal(Math.round(p({ interesse: 1, sforzoMin: 43200, difficolta: 5 })), 0);
+  assert.equal(Math.round(punteggioGameDesign(mk({ tipo: 'gamedesign', interesse: 3 }))), 50); // senza tempo e difficoltà restano neutri
+});
+
+test('game design: la lista è in ordine di priorità e salta archiviate e bozze', () => {
+  const a = mk({ tipo: 'gamedesign', titolo: 'A', interesse: 5, sforzoMin: 60, difficolta: 1 });
+  const b = mk({ tipo: 'gamedesign', titolo: 'B', interesse: 2, sforzoMin: 43200, difficolta: 5 });
+  const c = mk({ tipo: 'gamedesign', titolo: 'C', interesse: 5, stato: 'parcheggiato' });
+  const d = mk({ tipo: 'gamedesign', titolo: 'D', interesse: 5, inbox: true });
+  assert.deepEqual(listaGameDesign([b, c, d, a]).map((e) => e.item.titolo), ['A', 'B']);
 });

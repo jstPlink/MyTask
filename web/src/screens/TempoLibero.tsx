@@ -1,5 +1,5 @@
 import type { Disponibilita, FasciaOraria } from '../../../shared/piano.ts';
-import { ORA_CHIEDI_PREDEFINITA, PAUSA_PREDEFINITA, minuti } from '../../../shared/piano.ts';
+import { ORA_CHIEDI_PREDEFINITA, minuti } from '../../../shared/piano.ts';
 import { addDays, formatLong, today } from '../../../shared/dates.ts';
 import { useDisponibilita } from '../lib/hooks.ts';
 import { copiaSuggerita, impostaDisponibilita, usaSuggerita } from '../lib/disponibilita.ts';
@@ -13,7 +13,6 @@ const durata = (min: number) => `${Math.floor(min / 60)} h${min % 60 ? ` ${min %
 /**
  * Altro › Tempo libero: da quando MyTask distribuisce le attività nei giorni. Due modi: fasce fisse per ogni giorno della settimana,
  * oppure orari flessibili (ogni sera l'app chiede gli orari del giorno dopo; qui si vedono e correggono quelli inseriti, aprendo OrariGiorno).
- * In entrambi c'è la pausa tra un'attività e la successiva.
  */
 export function TempoLibero() {
   const disp = useDisponibilita();
@@ -81,17 +80,6 @@ export function TempoLibero() {
           </div>
         </div>
         )}
-        <Sec a="Pausa tra le attività" />
-        <div className="gruppo">
-          <div className="field">
-            <span>Pausa dopo ogni attività</span>
-            <select value={d.pausaMin ?? PAUSA_PREDEFINITA} disabled={!disp} aria-label="Pausa tra le attività"
-              onChange={(e) => impostaDisponibilita({ ...d, pausaMin: Number(e.target.value) })}>
-              {[...new Set([0, 5, 10, 15, 20, 30, 45, 60, d.pausaMin ?? PAUSA_PREDEFINITA])].sort((a, b) => a - b).map((m) => <option key={m} value={m}>{m === 0 ? 'Nessuna' : `${m} min`}</option>)}
-            </select>
-          </div>
-          <div className="t2" style={{ padding: '2px 0 10px' }}>{disp ? `Di base ${PAUSA_PREDEFINITA} minuti: il piano lascia questo tempo tra un'attività e la successiva.` : 'Imposta prima le fasce di tempo libero.'}</div>
-        </div>
         {!flex && <Sec a="Fasce per giorno" />}
         {!flex && GIORNI.map((nome, g) => (
           <div key={nome} className="tl-giorno">

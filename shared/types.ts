@@ -77,7 +77,9 @@ export interface Item {
   sforzoMin?: number;
   /** Minuti che l'attività ha richiesto davvero, misurati dall'app dal passaggio a «in corso» al completamento; affina stime e margine d'errore. */
   durataRealeMin?: number;
-  interesse?: number; // 1-5, collezioni, esperienze e curiosità
+  interesse?: number; // 1-5, collezioni, esperienze, curiosità e game design
+  /** Difficoltà di un'idea di videogioco (1 = facile, 5 = molto difficile): entra nella sua priorità (`shared/gamedesign.ts`). */
+  difficolta?: number;
   /**
    * Area dell'attività (Casa, Burocrazia, Digitale, Salute, Lavoro...): campo non più usato dalle schermate,
    * resta nei dati già salvati (assegnato dall'importazione da Notion) e nella ricerca.

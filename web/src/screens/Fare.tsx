@@ -6,13 +6,14 @@
  *   riuniti sotto la sua testata; sotto, le esperienze.
  * - Progetti: un gruppo per progetto con tutti i suoi passi (aperti per priorità, poi i chiusi barrati).
  * - Esperienze: un'unica lista con quattro ordini (Data, Luogo, Interesse, Per te).
- * - Game design: le idee di videogiochi, per interesse.
+ * - Game design: le idee di videogiochi, per priorità (interesse, tempo stimato, difficoltà).
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
 import type { Item } from '../../../shared/types.ts';
 import { barLevel, dueDate, isOverdue, score, urgency, withInheritance } from '../../../shared/priority.ts';
-import { cercaVoci, collezione, figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto } from '../../../shared/views.ts';
+import { cercaVoci, figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto } from '../../../shared/views.ts';
+import { listaGameDesign } from '../../../shared/gamedesign.ts';
 import { margineAtteso, percentuale } from '../../../shared/stima.ts';
 import { ordinaPerTe } from '../../../shared/esperienze.ts';
 import { chiediPosizione, posizioneRecente, posizioneSalvata, type EsitoPosizione, type Posizione } from '../lib/posizione.ts';
@@ -61,17 +62,19 @@ export function Fare() {
 type Filtro = Set<string> | null;
 const NESSUN_RISULTATO = 'Nessun risultato: prova con altre parole.';
 
-/** Idee di videogiochi (tipo «Game design»), dalla più alla meno interessante; come le curiosità non hanno scadenza né priorità. */
+/** Idee di videogiochi (tipo «Game design») in ordine di priorità: interesse (peso maggiore), tempo stimato e difficoltà. Non hanno scadenza e non finiscono in Oggi. */
 function GameDesign({ filtro }: { filtro: Filtro }) {
   const nav = useNav();
   const items = useItems();
-  const tutte = useMemo(() => collezione(items, ['gamedesign']), [items]);
-  const lista = useMemo(() => (filtro ? tutte.filter((i) => filtro.has(i.id)) : tutte), [tutte, filtro]);
+  const tutte = useMemo(() => listaGameDesign(items), [items]);
+  const lista = useMemo(() => (filtro ? tutte.filter((e) => filtro.has(e.item.id)) : tutte), [tutte, filtro]);
   if (lista.length === 0) return <Empty>{filtro ? NESSUN_RISULTATO : 'Nessuna idea di gioco. Scrivi una nota con il pulsante + e scegli il tipo «Game design».'}</Empty>;
   return (
     <Sezione titolo="Idee di gioco" dettaglio={lista.length}>
-      {lista.map((i) => (
-        <Row key={i.id} titolo={i.titolo} tipo="gamedesign" meta={i.note?.split('\n')[0]} interesse={i.interesse ?? 3} check="square" centrato voce={i}
+      {lista.map(({ item: i, punteggio }) => (
+        <Row key={i.id} titolo={i.titolo} tipo="gamedesign"
+          meta={[i.sforzoMin ? nomeTempo(i.sforzoMin) : undefined, i.difficolta ? `difficoltà ${i.difficolta}/5` : undefined, `priorità ${Math.round(punteggio)}`].filter(Boolean).join(' · ')}
+          interesse={i.interesse ?? 3} check="square" centrato voce={i}
           selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
       ))}
     </Sezione>

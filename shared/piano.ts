@@ -14,8 +14,6 @@ export interface Disponibilita {
   settimana: FasciaOraria[][];
   /** Fasce di un giorno preciso (YYYY-MM-DD) al posto di quelle della settimana. */
   eccezioni?: Record<string, FasciaOraria[]>;
-  /** Minuti di pausa lasciati tra un'attività e la successiva (PAUSA_PREDEFINITA se non impostato). */
-  pausaMin?: number;
   /**
    * Modalità flessibile: le fasce della settimana non si usano. Il tempo libero di ogni giorno è quello inserito
    * la sera prima (in `eccezioni`); un giorno senza orari inseriti non ha tempo libero.
@@ -27,9 +25,6 @@ export interface Disponibilita {
 
 /** Ora di base a cui, in modalità flessibile, arriva la richiesta degli orari di domani. */
 export const ORA_CHIEDI_PREDEFINITA = '21:00';
-
-/** Pausa di base tra due attività, in minuti. */
-export const PAUSA_PREDEFINITA = 5;
 
 /** Tempo libero di partenza proposto la prima volta: sere dei giorni feriali 18-21, mattine del fine settimana 9-13. */
 export const DISPONIBILITA_SUGGERITA: Disponibilita = {
@@ -97,7 +92,7 @@ export const DURATA_PAUSA = 15;
 const MAX_PAUSE_GIORNO = 2;
 
 interface Pezzo extends Omit<Blocco, 'parte' | 'inRitardo' | 'pausa'> {
-  /** Fine del tempo tolto dalla fascia libera: il blocco più la pausa che lo segue. */
+  /** Fine del tempo tolto dalla fascia libera (coincide con la fine del blocco). */
   fino: number;
   /** Pausa curiosità riservata subito dopo questo pezzo. */
   riserva?: { item: Item; da: number; a: number };
@@ -170,7 +165,7 @@ const durataDi = (i: Item) => Math.max(PASSO, arrotonda(i.sforzoMin ?? DURATA_PR
  * Distribuisce nei giorni le azioni e i progetti (come in Oggi: del progetto, il prossimo passo).
  * - Gli impegni con orario (`oraInizio`) restano dove sono e tolgono tempo libero; le note «in corso» restano nel posto in cui sono iniziate.
  * - Le altre, dalla più prioritaria, occupano la prima fascia libera abbastanza lunga: durata = stima + margine d'errore
- *   (`margine`, in proporzione, arrotondato a 5 minuti), con la pausa tra un'attività e la successiva (`pausaMin`).
+ *   (`margine`, in proporzione, arrotondato a 5 minuti); le attività si susseguono senza pause.
  * - Sopra i `SOGLIA_SPEZZABILE` minuti l'attività si spezza su più fasce e giorni (blocchi di almeno `BLOCCO_MINIMO`).
  * - Dopo ogni secondo blocco «grande» (almeno `SOGLIA_GRANDE` minuti) del giorno si inserisce una pausa con una curiosità, se resta spazio.
  * - Oggi si parte dall'ora attuale. Se una nota finisce dopo la scadenza è `inRitardo`; se non entra nell'orizzonte va in `fuori`.
@@ -178,7 +173,6 @@ const durataDi = (i: Item) => Math.max(PASSO, arrotonda(i.sforzoMin ?? DURATA_PR
 export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now: number = Date.now(), giorniOrizzonte = ORIZZONTE_GIORNI, margine = 0): Piano {
   const nowD = new Date(now);
   const minutiOra = arrotonda(nowD.getHours() * 60 + nowD.getMinutes());
-  const pausa = Math.max(0, Math.round(disp.pausaMin ?? PAUSA_PREDEFINITA));
 
   const giorni: GiornoPiano[] = Array.from({ length: giorniOrizzonte }, (_, n) => addDays(oggi, n)).map((data) => ({ data, blocchi: [], liberi: 0, usati: 0 }));
   const gaps = new Map<string, Gap[]>();
@@ -258,7 +252,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
         if (spezzabile) {
           const presa = Math.min(resto, spazio);
           if (presa < BLOCCO_MINIMO && presa < resto) continue;
-          const fino = s + Math.min(spazio, presa + pausa);
+          const fino = s + presa;
           const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + presa, fino, margineMin: Math.round(presa * quotaMargine), punteggio: e.punteggio };
           pezzi.push(pezzo);
           l.splice(k, 1, ...(fino < f ? [[fino, f] as Gap] : []));
@@ -266,7 +260,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
           if (fino >= f) k--;
           resto -= presa;
         } else if (spazio >= totale) {
-          const fino = s + Math.min(spazio, totale + pausa);
+          const fino = s + totale;
           const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + totale, fino, margineMin: totale - base, punteggio: e.punteggio };
           pezzi.push(pezzo);
           l.splice(k, 1, ...(fino < f ? [[fino, f] as Gap] : []));

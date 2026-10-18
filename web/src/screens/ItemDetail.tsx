@@ -26,6 +26,7 @@ import { AllegatiNote } from '../ui/AllegatiNote.tsx';
 import { scriviQuando, scriviTrascorso } from '../../../shared/tempo.ts';
 import { useNav } from '../ui/nav.tsx';
 import { clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
+import { listaGameDesign, punteggioGameDesign } from '../../../shared/gamedesign.ts';
 import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
 
 // Nella tendina «Tipo» film, serie, anime, gioco e libro sono un solo gruppo «Intrattenimento»
@@ -100,6 +101,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   // Stima del tempo: da attività simili già fatte, con il margine d'errore atteso (solo per le attività).
   const suggerita = useMemo(() => (t === 'azione' && d.titolo.trim().length >= 3 ? stimaPer(d.titolo, tutte.filter((i) => i.id !== d.id)) : undefined), [tutte, t, d.titolo, d.id]);
   const margine = useMemo(() => (suggerita ? suggerita.margine : margineAtteso(tutte)), [suggerita, tutte]);
+  // Game design: punteggio di priorità dell'idea e posizione tra le altre idee aperte
+  const prioritaIdea = useMemo(() => {
+    if (t !== 'gamedesign') return '';
+    const altre = listaGameDesign(tutte.filter((i) => i.id !== d.id));
+    const mio = punteggioGameDesign(d);
+    return `${Math.round(mio)} su 100 · ${altre.filter((e) => e.punteggio > mio).length + 1}ª su ${altre.length + 1}`;
+  }, [tutte, d, t]);
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
   // Blocco della priorità in cima: chiuso di base, ricorda l'ultima scelta (solo su questo dispositivo).
@@ -306,10 +314,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
-        {/* Game design: un'idea di videogioco, con l'interesse (le note descrivono l'idea) */}
+        {/* Game design: un'idea di videogioco con interesse, tempo stimato e difficoltà; dalla loro media pesata (50/30/20) esce la priorità */}
         {t === 'gamedesign' && (
           <Gruppo titolo="Idea">
             <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
+            <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} />
+            <Field label="Difficoltà"><SliderImportanza label="Difficoltà" valore={d.difficolta} onChange={(v) => up({ difficolta: v })} /></Field>
+            <Field label="Priorità"><b>{prioritaIdea}</b></Field>
           </Gruppo>
         )}
 

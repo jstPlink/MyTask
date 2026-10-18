@@ -8,7 +8,7 @@ const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
 const OGGI = '2026-10-15';
 let n = 0;
 const mk = (p: Partial<Item>): Item => ({ id: `w${++n}`, tipo: 'azione', titolo: `Voce ${n}`, stato: 'da_fare', creato: NOW, aggiornato: NOW, ...p });
-const sera: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), pausaMin: 0 };
+const sera: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]) };
 
 test('widget: righe nell\'ordine del piano, con orario e posizione', () => {
   const a = mk({ titolo: 'Importante', importanza: 5, sforzoMin: 30, fine: OGGI });

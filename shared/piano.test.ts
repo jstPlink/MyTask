@@ -22,7 +22,7 @@ const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
 const OGGI = '2026-10-15';
 let n = 0;
 const mk = (p: Partial<Item>): Item => ({ id: `p${++n}`, tipo: 'azione', titolo: `Voce ${n}`, stato: 'da_fare', creato: NOW, aggiornato: NOW, ...p });
-const sera: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '20:00' }]), pausaMin: 0 };
+const sera: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '20:00' }]) };
 
 test('piano: ordine per priorità dentro la fascia, in sequenza', () => {
   const a = mk({ titolo: 'Poco importante', importanza: 1, sforzoMin: 30 });
@@ -150,7 +150,7 @@ test('piano: dopo un\'attività grande c\'è una pausa curiosità, poi si ripart
   const grande = mk({ titolo: 'Grande', importanza: 5, sforzoMin: 90 });
   const piccola = mk({ titolo: 'Piccola', importanza: 3, sforzoMin: 30 });
   const cur = mk({ tipo: 'curiosita', titolo: 'Come funziona il GPS', interesse: 5 });
-  const serata: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), pausaMin: 0 };
+  const serata: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]) };
   const b = pianifica([grande, piccola, cur], serata, OGGI, NOW).giorni[0].blocchi;
   assert.deepEqual(b.map((x) => x.item.titolo), ['Grande', 'Come funziona il GPS', 'Piccola']);
   assert.equal(b[1].pausa, true);
@@ -178,19 +178,6 @@ test('piano: ogni curiosità serve a una sola pausa e le pause sono al massimo d
   assert.equal(new Set(pause.map((x) => x.item.id)).size, pause.length);
   for (const g of p.giorni) assert.ok(g.blocchi.filter((x) => x.pausa).length <= 2);
   assert.ok(pause.length >= 1);
-});
-
-test('piano: tra un\'attività e la successiva c\'è la pausa (5 minuti di base, regolabile)', () => {
-  const a = mk({ titolo: 'Prima', importanza: 5, sforzoMin: 30 });
-  const b = mk({ titolo: 'Seconda', importanza: 3, sforzoMin: 30 });
-  const base: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '20:00' }]) };
-  const x = pianifica([a, b], base, OGGI, NOW).giorni[0].blocchi;
-  assert.equal(orario(x[0].a), '18:30');
-  assert.equal(orario(x[1].da), '18:35'); // 5 minuti di pausa
-  const y = pianifica([a, b], { ...base, pausaMin: 15 }, OGGI, NOW).giorni[0].blocchi;
-  assert.equal(orario(y[1].da), '18:45');
-  const z = pianifica([a, b], { ...base, pausaMin: 0 }, OGGI, NOW).giorni[0].blocchi;
-  assert.equal(orario(z[1].da), '18:30');
 });
 
 // ---- stima del tempo scritta a mano
@@ -302,7 +289,7 @@ test('linea del piano: i numeri restano dentro la barra e nell\'ordine, anche se
 
 test('piano: in modalità flessibile contano solo gli orari inseriti per il giorno', () => {
   const a = mk({ importanza: 5, sforzoMin: 30 });
-  const flex: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), flessibile: true, pausaMin: 0 };
+  const flex: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), flessibile: true };
   assert.equal(fasceDelGiorno(flex, OGGI).length, 0);
   assert.equal(pianifica([a], flex, OGGI, NOW).giorni[0].blocchi.length, 0);
   const conOrari: Disponibilita = { ...flex, eccezioni: { [OGGI]: [{ da: '14:00', a: '15:00' }] } };
@@ -339,7 +326,7 @@ test("notifiche: la richiesta serale degli orari c'è solo in modalità flessibi
 test('piano: una nota in corso resta dove era, anche se arrivano note più urgenti', () => {
   const a = mk({ titolo: 'Iniziata', importanza: 1, sforzoMin: 30, stato: 'in_corso', pianoData: OGGI, pianoDa: minuti('19:00') });
   const b = mk({ titolo: 'Urgente', importanza: 5, sforzoMin: 30 });
-  const g = pianifica([a, b], { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), pausaMin: 0 }, OGGI, NOW).giorni[0];
+  const g = pianifica([a, b], { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]) }, OGGI, NOW).giorni[0];
   const ba = g.blocchi.find((x) => x.item.id === a.id)!;
   const bb = g.blocchi.find((x) => x.item.id === b.id)!;
   assert.equal(orario(ba.da), '19:00');
@@ -394,7 +381,7 @@ test("piano: una nota in corso senza posto salvato parte dall'ora in cui è pass
   const inizio = new Date(2026, 9, 15, 9, 0).getTime();
   const a = mk({ importanza: 1, sforzoMin: 30, stato: 'in_corso', inCorsoTs: inizio });
   const adesso = new Date(2026, 9, 15, 10, 55).getTime();
-  const g = pianifica([a], { settimana: Array.from({ length: 7 }, () => [{ da: '08:00', a: '21:00' }]), pausaMin: 0 }, OGGI, adesso).giorni[0];
+  const g = pianifica([a], { settimana: Array.from({ length: 7 }, () => [{ da: '08:00', a: '21:00' }]) }, OGGI, adesso).giorni[0];
   assert.equal(orario(g.blocchi[0].da), '09:00');
 });
 
@@ -479,7 +466,7 @@ test('IA: il riepilogo per la chat è compatto e non include le note private', (
 });
 
 test("durata reale: conta solo il tempo libero segnato, non le pause", () => {
-  const disp: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '10:00', a: '10:30' }, { da: '18:00', a: '21:00' }]), pausaMin: 0 };
+  const disp: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '10:00', a: '10:30' }, { da: '18:00', a: '21:00' }]) };
   const inizio = new Date(2026, 9, 15, 10, 0).getTime();
   const fine = new Date(2026, 9, 15, 19, 0).getTime();
   assert.equal(minutiLiberiTra(disp, inizio, fine), 30 + 60, "30 minuti al mattino e 1 ora la sera, non 9 ore");

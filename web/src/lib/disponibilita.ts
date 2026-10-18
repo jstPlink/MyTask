@@ -23,7 +23,6 @@ export function valida(p: unknown): Disponibilita | null {
     eccezioni: d.eccezioni && typeof d.eccezioni === 'object' ? d.eccezioni : undefined,
     flessibile: d.flessibile === true ? true : undefined,
     oraChiedi: typeof d.oraChiedi === 'string' && /^\d{2}:\d{2}$/.test(d.oraChiedi) ? d.oraChiedi : undefined,
-    pausaMin: typeof d.pausaMin === 'number' && d.pausaMin >= 0 && d.pausaMin <= 120 ? Math.round(d.pausaMin) : undefined,
   };
 }
 
