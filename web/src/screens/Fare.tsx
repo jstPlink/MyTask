@@ -1,17 +1,18 @@
 /**
- * Attività (scheda «Fare»): tre sotto-schede scelte dal selettore in cima (sul sito largo le sostituisce
- * la barra laterale, che porta alla stessa sotto-scheda) e una ricerca che vale per tutte e tre.
+ * Attività (scheda «Fare»): quattro sotto-schede scelte dal selettore in cima (sul sito largo le sostituisce
+ * la barra laterale, che porta alla stessa sotto-scheda) e, sul telefono, una ricerca che vale per tutte (sul sito c'è la ricerca generale).
  *
  * - Tutte le attività: tutte le attività aperte in ordine di priorità, con i passi di uno stesso progetto
  *   riuniti sotto la sua testata; sotto, le esperienze.
  * - Progetti: un gruppo per progetto con tutti i suoi passi (aperti per priorità, poi i chiusi barrati).
  * - Esperienze: un'unica lista con quattro ordini (Data, Luogo, Interesse, Per te).
+ * - Game design: le idee di videogiochi, per interesse.
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
 import type { Item } from '../../../shared/types.ts';
 import { barLevel, dueDate, isOverdue, score, urgency, withInheritance } from '../../../shared/priority.ts';
-import { cercaVoci, figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto } from '../../../shared/views.ts';
+import { cercaVoci, collezione, figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto } from '../../../shared/views.ts';
 import { margineAtteso, percentuale } from '../../../shared/stima.ts';
 import { ordinaPerTe } from '../../../shared/esperienze.ts';
 import { chiediPosizione, posizioneRecente, posizioneSalvata, type EsitoPosizione, type Posizione } from '../lib/posizione.ts';
@@ -23,7 +24,7 @@ import { useNav, type SubFare } from '../ui/nav.tsx';
 import { clsx, mapsUrl, nomeTempo } from '../lib/util.ts';
 
 const SUB: { id: SubFare; nome: string }[] = [
-  { id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
+  { id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }, { id: 'gamedesign', nome: 'Game design' },
 ];
 
 /** Scheda Attività: intestazione con i conteggi, selettore delle sotto-schede, ricerca e la lista scelta. */
@@ -44,11 +45,12 @@ export function Fare() {
     <>
       <Top title="Attività" sub={`${nAttivita} attività · ${nProgetti} ${nProgetti === 1 ? 'progetto' : 'progetti'} · ${nEsperienze} ${nEsperienze === 1 ? 'esperienza' : 'esperienze'}`} right={<PulsanteAspetto />} />
       <div className="scroll">
-        <Seg nav uguali voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
-        <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle attività" />
+        <Seg nav compatto voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
+        {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle attività" />}
         {nav.fareSub === 'azioni' && <Azioni filtro={filtro} />}
         {nav.fareSub === 'progetti' && <Progetti filtro={filtro} />}
         {nav.fareSub === 'esperienze' && <Esperienze filtro={filtro} />}
+        {nav.fareSub === 'gamedesign' && <GameDesign filtro={filtro} />}
       </div>
       <Fab />
     </>
@@ -58,6 +60,23 @@ export function Fare() {
 /** Id ammessi dalla ricerca, o null se non si sta cercando. */
 type Filtro = Set<string> | null;
 const NESSUN_RISULTATO = 'Nessun risultato: prova con altre parole.';
+
+/** Idee di videogiochi (tipo «Game design»), dalla più alla meno interessante; come le curiosità non hanno scadenza né priorità. */
+function GameDesign({ filtro }: { filtro: Filtro }) {
+  const nav = useNav();
+  const items = useItems();
+  const tutte = useMemo(() => collezione(items, ['gamedesign']), [items]);
+  const lista = useMemo(() => (filtro ? tutte.filter((i) => filtro.has(i.id)) : tutte), [tutte, filtro]);
+  if (lista.length === 0) return <Empty>{filtro ? NESSUN_RISULTATO : 'Nessuna idea di gioco. Scrivi una nota con il pulsante + e scegli il tipo «Game design».'}</Empty>;
+  return (
+    <Sezione titolo="Idee di gioco" dettaglio={lista.length}>
+      {lista.map((i) => (
+        <Row key={i.id} titolo={i.titolo} tipo="gamedesign" meta={i.note?.split('\n')[0]} interesse={i.interesse ?? 3} check="square" centrato voce={i}
+          selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+      ))}
+    </Sezione>
+  );
+}
 
 /** Tutte le attività aperte in ordine di priorità; il numero nel pallino è la posizione nella classifica completa, anche con la ricerca attiva. */
 function Azioni({ filtro }: { filtro: Filtro }) {

@@ -4,6 +4,7 @@ import { collezione, curiosita, inbox, listaAzioni, listaEsperienze, listaProget
 import { useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { clsx } from '../lib/util.ts';
 import { VERSIONE } from '../version.ts';
+import { CampoNuovaNota } from './CampoNuovaNota.tsx';
 import { Icona, type NomeIcona } from './kit.tsx';
 import { useNav, type Screen, type SubFare, type SubScoprire, type Tab } from './nav.tsx';
 
@@ -17,14 +18,14 @@ function Link({ nome, on, sub, main, n, warn, icona, onClick }: { nome: string; 
   );
 }
 
-const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }];
+const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }, { id: 'gamedesign', nome: 'Game design' }];
 const SUB_SCOPRIRE: { id: SubScoprire; nome: string }[] = [
   { id: 'film', nome: 'Film' }, { id: 'serie', nome: 'Serie' }, { id: 'anime', nome: 'Anime' }, { id: 'gioco', nome: 'Giochi' },
   { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' },
 ];
 
 /**
- * Barra laterale per schermi larghi (≥900px): sostituisce le schede in basso e il menu «Altro». Contiene «Nuova nota» (tasto N),
+ * Barra laterale per schermi larghi (≥900px): sostituisce le schede in basso e il menu «Altro». Contiene il campo «Nuova nota» (tasto N),
  * la ricerca (tasto /), le cinque sezioni con i conteggi (le sotto-sezioni di Attività e Intrattenimento si aprono sotto la sezione attiva),
  * Inbox, Archiviate, Completato, Tempo libero, Aspetto, Account e in fondo la versione e lo stato offline.
  */
@@ -65,7 +66,7 @@ export function Sidebar() {
       <div className="sb-brand"><i aria-hidden="true" />MyTask</div>
 
       <div className="sb-top">
-        <button className="btn solid sb-nuova" onClick={() => nav.openCapture(true)}>+ Nuova nota <kbd aria-hidden="true">N</kbd></button>
+        <CampoNuovaNota />
         <div className="sb-cerca">
           <input id="ricerca" type="search" value={nav.query} onChange={(e) => nav.setQuery(e.target.value)} placeholder="Cerca…" aria-label="Cerca" />
           <kbd aria-hidden="true">/</kbd>

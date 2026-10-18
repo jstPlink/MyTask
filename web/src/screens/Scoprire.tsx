@@ -37,7 +37,7 @@ export function Scoprire() {
       <Top title="Intrattenimento" sub={`${lista.length} da fare`} right={<PulsanteAspetto />} />
       <div className="scroll">
         <Seg nav uguali voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setPiattaforma('Tutte'); }} />
-        <Cerca valore={q} onChange={setQ} placeholder="Cerca in intrattenimento" />
+        {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca in intrattenimento" />}
         {video && piattaforme.length > 0 && <Chips scroll voci={['Tutte', ...piattaforme]} attivo={piattaforma} onChange={setPiattaforma} />}
         {video && !filtro && (
           <Sezione titolo="Stasera">

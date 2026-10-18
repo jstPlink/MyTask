@@ -21,7 +21,7 @@ export function Curiosita() {
     <>
       <Top title="Curiosità" sub={`${lista.length} da approfondire`} right={<PulsanteAspetto />} />
       <div className="scroll">
-        <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle curiosità" />
+        {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle curiosità" />}
         {lista.length === 0 && filtro && <Empty>Nessun risultato: prova con altre parole.</Empty>}
         {lista.length === 0 && !filtro && <Empty>Niente da approfondire. Scrivi una curiosità con il pulsante +: comparirà come pausa tra le attività grandi.</Empty>}
         {lista.length > 0 && (

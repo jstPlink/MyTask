@@ -9,7 +9,7 @@
  * - Giorni: le frecce, lo swipe orizzontale e il mese (si apre toccando il nome del giorno) cambiano giorno.
  *   Un giorno futuro mostra il suo piano (per quelli coperti dalla pianificazione) e le voci che vi scadono;
  *   un giorno passato le voci rimaste aperte. Routine, Inbox e stato di sincronizzazione solo su oggi.
- * - Telefono: titolo con i pulsanti tondi (Aspetto, Inbox, Altro) e «+» per la cattura. Da 900 px (`nav.wide`)
+ * - Telefono: titolo con i pulsanti tondi (Aspetto, Tempo libero, Inbox, Altro) e «+» per la cattura. Da 900 px (`nav.wide`)
  *   la stessa colonna senza pulsanti né «+», che stanno nella barra laterale.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -434,6 +434,9 @@ export function Oggi() {
           <div className="header-circles">
             <button className="circ" onClick={() => nav.push({ k: 'aspetto' })} aria-label="Stile e aspetto">
               <Icona nome="aspetto" size={22} />
+            </button>
+            <button className="circ" onClick={() => nav.push({ k: 'tempolibero' })} aria-label="Tempo libero">
+              <Icona nome="tempolibero" size={22} />
             </button>
             <button className="circ" onClick={() => nav.push({ k: 'inbox' })} aria-label={`Inbox, ${v.inbox} da smistare`}>
               <Icona nome="inbox" size={22} />

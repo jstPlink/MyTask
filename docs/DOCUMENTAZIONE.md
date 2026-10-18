@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.62.1
+- **Versione documento:** 0.63.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -34,7 +34,7 @@ Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da v
 | Area | Contenuto |
 |---|---|
 | **Oggi** | Giornata a orari (piano), routine del giorno, scadenze, invito a impostare il tempo libero |
-| **Attività** | Tre sotto-schede: Tutte le attività (con i passi dei progetti e le esperienze), Progetti, Esperienze |
+| **Attività** | Quattro sotto-schede: Tutte le attività (con i passi dei progetti e le esperienze), Progetti, Esperienze, Game design (idee di videogiochi) |
 | **Intrattenimento** | Film, Serie, Anime, Giochi, Libri, Ricette, con «Cosa guardo stasera» |
 | **Curiosità** | Cose da approfondire |
 | **Routine** | Abitudini quotidiane o settimanali |
@@ -44,7 +44,7 @@ Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da v
 ### 2.1 Telefono (colonna singola)
 
 - **Cinque schede in basso** con icona (Oggi, Attività, Intrattenimento, Curiosità, Routine), con un'evidenziazione che copre icona e testo sulla scheda attiva, e il pulsante tondo **«+»** (62 px) per la cattura rapida.
-- In cima a ogni scheda principale tre pulsanti tondi: **Stile e aspetto** (tavolozza: tema e colore), **Inbox** (con il numero di note da smistare) e **Altro** (tre pallini).
+- In cima a ogni scheda principale tre pulsanti tondi: **Stile e aspetto** (tavolozza: tema e colore), **Inbox** (con il numero di note da smistare) e **Altro** (tre pallini). In **Oggi** c'è anche il pulsante **Tempo libero** (orologio), per impostare subito le fasce.
 - **Indietro (pila unica):** ogni spostamento è un livello di una pila: cambio di scheda o sotto-sezione, apertura di una schermata o di una voce, apertura di una finestra o di un menu a tendina (cattura rapida, scelta del mese, voto, Tipo, Sezione…). Il tasto indietro del telefono, quello del browser e il pulsante «Indietro» dell'app ripercorrono l'ordine inverso: prima si chiude la finestra aperta, poi si torna alla schermata precedente, poi alla scheda precedente. Sul sito la pila è agganciata alla cronologia del browser; nell'app Android è gestita dall'app stessa (la cronologia del WebView non era affidabile) e il tasto indietro del telefono arriva dal plugin `@capacitor/app`: a pila vuota esce dall'app (`web/src/App.tsx`, `useLayer` in `web/src/ui/nav.tsx`).
 - L'app Android resta sempre in verticale.
 
@@ -52,11 +52,12 @@ Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da v
 
 Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sotto i 900 px è identico al telefono.
 
-- **Barra laterale** al posto delle schede: in cima il nome dell'app, poi **+ Nuova nota** (scorciatoia N) e la **ricerca** (scorciatoia /), poi le cinque sezioni principali con i conteggi (Attività con il totale; i gruppi Attività e Intrattenimento mostrano le loro sotto-sezioni solo quando sono attivi), «Da sistemare» con Inbox e contatore, Archiviate, Completato, Tempo libero, Aspetto, Account, la versione e, solo se si è offline, lo stato di sincronizzazione. I selettori a schede delle sotto-sezioni spariscono perché li sostituisce la barra.
+- **Barra laterale** al posto delle schede: in cima il nome dell'app, poi il campo **«Scrivi una nota…»** (scorciatoia N, vedi sotto) e la **ricerca generale** (scorciatoia /), poi le cinque sezioni principali con i conteggi (Attività con il totale; i gruppi Attività e Intrattenimento mostrano le loro sotto-sezioni solo quando sono attivi), «Da sistemare» con Inbox e contatore, Archiviate, Completato, Tempo libero, Aspetto, Account, la versione e, solo se si è offline, lo stato di sincronizzazione. I selettori a schede delle sotto-sezioni spariscono perché li sostituisce la barra.
 - **Contenuto centrato:** la barra resta a sinistra e tutto il resto (titolo e corpo) sta in una colonna larga al massimo 760 px, centrata nello spazio a destra; la griglia della settimana in Routine usa una colonna fino a 1120 px.
 - **Dettaglio in finestra:** la voce si apre in una finestra in sovraimpressione al centro (fino al 96% dell'altezza), sopra la schermata corrente; si chiude con «Indietro», Esc o toccando lo sfondo. Anche la cattura rapida si apre al centro come finestra.
-- **Ricerca** (`web/src/screens/Ricerca.tsx`): per parole, senza maiuscole né accenti, nel titolo, nelle note, in «consigliato da» e «con chi», nelle zone e nelle checklist; le voci aperte vengono prima delle chiuse; si attiva da 2 lettere.
-- **Scorciatoie da tastiera:** N (nuova nota), / (ricerca), Esc (chiude cattura, ricerca o finestra). Non esistono J/K per scorrere né F per segnare fatto.
+- **Campo nuova nota** (`web/src/ui/CampoNuovaNota.tsx`): al posto del vecchio pulsante «+ Nuova nota». Ha un contorno grigio sempre visibile che, mentre si scrive, diventa verde più spesso con un alone morbido, e il tasto a destra passa da «N» a «↵». Invio salva il testo così com'è come nota non assegnata in Inbox, senza finestre, e mostra «Salvata in Inbox · Apri»; Esc svuota il campo; mentre si scrive, sotto il campo compaiono le note con le stesse parole. Il «+» del telefono apre invece la finestra di cattura (3.8).
+- **Ricerca** (`web/src/screens/Ricerca.tsx`): è la ricerca generale della barra laterale; sul sito le singole schede (Attività, Intrattenimento, Curiosità) non hanno una ricerca propria: per parole, senza maiuscole né accenti, nel titolo, nelle note, in «consigliato da» e «con chi», nelle zone e nelle checklist; le voci aperte vengono prima delle chiuse; si attiva da 2 lettere.
+- **Scorciatoie da tastiera:** N (porta il cursore nel campo «nuova nota»), / (ricerca), Esc (svuota il campo, chiude finestra o ricerca). Non esistono J/K per scorrere né F per segnare fatto.
 - **Oggi** è una sola colonna (titolo, barra del giorno, routine, piano); **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
 - **Sito pubblicato:** gira sull'immagine Docker sul NAS, quindi mostra le novità solo dopo commit, push e aggiornamento dell'immagine; l'app sul telefono si aggiorna con l'APK.
 
@@ -108,23 +109,24 @@ Un'unica pagina che mostra **un giorno alla volta**.
 
 ### 3.2 Attività
 
-Intestazione con i conteggi reali («N attività · N progetti · N esperienze») e **ricerca** comune alle tre sotto-schede (`cercaVoci`: tutte le parole devono comparire; filtra anche i passi dei progetti). Le tre sotto-schede hanno la stessa larghezza.
+Intestazione con i conteggi reali («N attività · N progetti · N esperienze») e, **solo sul telefono**, una ricerca comune alle sotto-schede (`cercaVoci`: tutte le parole devono comparire; filtra anche i passi dei progetti); sul sito c'è la ricerca generale. Le quattro sotto-schede hanno un carattere compatto per entrare in una riga.
 
 - **Tutte le attività:** tutte le attività aperte (comprese le scadute) in ordine di priorità, con i task dei progetti raggruppati sotto la testata del progetto; il numero d'ordine resta quello della classifica completa anche con la ricerca. Sotto, le esperienze. Le archiviate non compaiono.
 - **Progetti:** un gruppo per progetto con tutti i suoi passi (aperti per priorità, poi i completati barrati).
+- **Game design:** le idee di videogiochi che l'utente vuole realizzare, dalla più alla meno interessante (interesse 1-5 come le curiosità); sono note di tipo `gamedesign` («Game design» nella tendina Tipo), con interesse e note libere, senza date né priorità: non compaiono in Oggi né nel piano.
 - **Esperienze:** un selettore sceglie l'ordine (si ricorda in `mytask.esperienze.ordine`): **Data** (di base: «Con data» poi «Senza data»), **Luogo** (una sezione per luogo, «Senza luogo» in fondo), **Interesse** (un'unica lista dal più al meno interessante) e **Per te** (sezione 6.9).
 
 ### 3.3 Intrattenimento
 
-Sei sotto-schede (Film, Serie, Anime, Giochi, Libri, Ricette), tutte della stessa larghezza, con ricerca (titolo, note, campi di testo) e filtro per piattaforma. Le voci sono ordinate per interesse. Per film, serie e anime c'è **«Cosa guardo stasera»** (sezione 6.10).
+Sei sotto-schede (Film, Serie, Anime, Giochi, Libri, Ricette), tutte della stessa larghezza, con ricerca sul telefono (titolo, note, campi di testo) e filtro per piattaforma. Le voci sono ordinate per interesse. Per film, serie e anime c'è **«Cosa guardo stasera»** (sezione 6.10).
 
 ### 3.4 Curiosità
 
-Scheda propria con ricerca. Ogni riga mostra l'interesse; una curiosità «da fare» si legge «da approfondire». Le curiosità hanno il campo **tempo stimato** (facoltativo: senza tempo la pausa nel piano dura 15 minuti).
+Scheda propria (ricerca solo sul telefono). Ogni riga mostra l'interesse; una curiosità «da fare» si legge «da approfondire». Le curiosità hanno il campo **tempo stimato** (facoltativo: senza tempo la pausa nel piano dura 15 minuti).
 
 ### 3.5 Routine
 
-Le abitudini non sono task: non scadono e non finiscono (sezione 6.7). Una sezione per fascia della giornata (Mattina, Pomeriggio, Sera, Prima di dormire) e **Parcheggiate** per quelle messe da parte. Ogni riga ha i sette giorni della settimana; sul sito largo c'è la griglia della settimana in cui si spunta qualsiasi giorno.
+Le abitudini non sono task: non scadono e non finiscono (sezione 6.7). Una sezione per fascia della giornata (Mattina, Pomeriggio, Sera, Prima di dormire) e **Parcheggiate** per quelle messe da parte. Ogni riga ha i sette giorni della settimana; **una routine si disattiva** dalla sua scheda con l'interruttore **Attiva** (spenta passa in «Parcheggiate» e non compare in Oggi; da lì «Attiva» la riporta); sul sito largo c'è la griglia della settimana in cui si spunta qualsiasi giorno.
 
 ### 3.6 Inbox, Archiviate, Completato
 
@@ -143,7 +145,7 @@ Le abitudini non sono task: non scadono e non finiscono (sezione 6.7). Una sezio
 
 ### 3.8 Cattura rapida
 
-Il «+» (o N sul sito) apre «Cosa ti è venuto in mente?». Il testo **non viene interpretato** (nessun tipo, data o persona dedotti, nessuna IA): «Salva in Inbox» (o Invio) crea una nota **«Non assegnata»** (tipo `nota`, `inbox: true`). Mentre si scrive compaiono **tutte le note che contengono le stesse parole**, anche in forme diverse (stessa radice: «pagare» e «pagamento»), con tipo e stato, per capire subito se la nota esiste già; toccandone una si apre (`cercaSimili` in `shared/views.ts`). Sul telefono l'elenco sta sopra il box di scrittura (che resta in basso), sul sito sotto. C'è anche la dettatura, dove il browser la offre. Funziona offline. La cattura è la stessa nel widget (sezione 7.4).
+Il «+» del telefono apre «Cosa ti è venuto in mente?» (sul sito si scrive direttamente nel campo della barra laterale, 2.2). Il testo **non viene interpretato** (nessun tipo, data o persona dedotti, nessuna IA): «Salva in Inbox» (o Invio) crea una nota **«Non assegnata»** (tipo `nota`, `inbox: true`). Mentre si scrive compaiono **tutte le note che contengono le stesse parole**, anche in forme diverse (stessa radice: «pagare» e «pagamento»), con tipo e stato, per capire subito se la nota esiste già; toccandone una si apre (`cercaSimili` in `shared/views.ts`). Sul telefono l'elenco sta sopra il box di scrittura (che resta in basso), sul sito sotto. C'è anche la dettatura, dove il browser la offre. Funziona offline. La cattura è la stessa nel widget (sezione 7.4).
 
 ## 4. Scheda di una voce
 
@@ -151,17 +153,18 @@ La scheda (`ItemDetail`) salva da sola dopo 500 ms e all'uscita; non salva senza
 
 1. **Stato** (solo per voci già salvate, non routine né note non assegnate): selettore a quattro segmenti **Da fare, In corso, Fatta, Archiviata** (sezione 6.2).
 2. **Blocco della priorità** (collassabile, ricorda l'ultima scelta in `mytask.prio.aperta`; chiuso di base): la **posizione** in classifica («3ª da fare su 28», senza punteggio) con il livello (alta/media/bassa) e il contorno nel colore del livello; aperto, cinque barre con il peso di urgenza, importanza, poco sforzo, età e scadenza fissa, e una riga con scadenza, importanza a parole e tempo con margine.
-3. **Titolo**, **Tipo** e, per l'intrattenimento, **Sezione** (due tendine che si chiudono a vicenda con la pila). I tipi scelti sono Attività, Progetto, Esperienza, Routine, Intrattenimento (Film, Serie, Anime, Gioco, Libro), Ricetta, Curiosità. Una nota **non assegnata** ha solo titolo, note, link e immagini: scegliendo un tipo lascia l'Inbox.
+3. **Titolo**, **Tipo** e, per l'intrattenimento, **Sezione** (due tendine che si chiudono a vicenda con la pila). I tipi scelti sono Attività, Progetto, Esperienza, Routine, Intrattenimento (Film, Serie, Anime, Gioco, Libro), Ricetta, Curiosità, Game design. La tendina si espande per mostrare tutte le voci, senza scorrimento. Una nota **non assegnata** ha solo titolo, note, link e immagini: scegliendo un tipo lascia l'Inbox.
 4. **Campi per tipo:**
    - **Attività** e **Progetto**: un solo gruppo con Progetto (solo per le attività: tendina dei progetti aperti, «Nessuno» se non collegata), Data, **Scadenza fissa** (appena c'è una data), Importanza (slider continuo da 1 a 5 a cuneo grigio→rosso, anche 3,4), **Tempo stimato** (scritto a mano o scelto, vedi sotto) con margine e suggerimento «Usa», promemoria (7 giorni, 3 giorni, 1 giorno prima, il giorno stesso, alle 9:00) e «Ripeti».
    - **Progetto**: in più la **checklist** («X su Y», con barra) con le righe e i passi già esistenti, tutti spuntabili e **riordinabili trascinando** (dalla maniglia subito, con pressione lunga di 380 ms sul dito, con clic e trascinamento col mouse); «Aggiungi un passo». L'ordine è anche la priorità e la dipendenza (sezione 6.6).
    - **Esperienza**: Data, Interesse, **Luogo** (campo `zona`, con sotto come chip i luoghi già usati, dal più usato; si restringono mentre si scrive) e «Apri in Google Maps» (cerca il nome).
    - **Curiosità**: Interesse e Tempo stimato (15 minuti di base, si può togliere).
+   - **Game design**: gruppo «Idea» con l'Interesse; la descrizione dell'idea sta nelle note.
    - **Film, serie, anime**: Interesse, Piattaforma (con chip delle già usate più Prime Video e Disney+), Genere/Tipologia, Mood ed Energia richiesta; serie e anime anche Consigliato da, Con chi e Durata in minuti (il film non li ha: la durata arriva dall'arricchimento).
    - **Gioco**: Interesse e Durata in ore (salvata in minuti: 12,5 ore).
    - **Libro**: Interesse e **Pagine** (cercate da sole su Open Library dal titolo, correggibili).
    - **Ricetta**: Interesse e Genere a scelta multipla (Antipasto, Primo, Secondo, Contorno, Dolce, Piatto unico, Zuppa, Pane e lievitati, Bevanda), salvato come elenco separato da virgole.
-   - **Routine**: Momento della giornata, Frequenza (volte a settimana), Obiettivo minimo, ora del promemoria.
+   - **Routine**: interruttore **Attiva** (spento = «Parcheggiate»), Momento della giornata, Frequenza (volte a settimana), Obiettivo minimo, ora del promemoria.
 5. **Note** con i pulsanti «＋ Link» e «＋ Immagine»: i link si aprono dall'elenco e si tolgono con ✕; le immagini sono rimpicciolite (lato massimo 960 px, JPEG, fino a circa 70 KB ciascuna e 130 KB per voce, perché sul server una voce non può pesare più di 200 KB), salvate dentro la voce (`immagini`) e ingrandite con un tocco.
 6. **Cronologia** (voce salvata): Creata (es. «ven 16 ott · 14:32»), In corso dal, Completata e Tempo trascorso (es. 18 h 38 min).
 7. **Completata** (voto e commento, per l'intrattenimento) e il pulsante **Elimina** (cancellazione logica).
@@ -178,7 +181,7 @@ Un'unica tabella **Elemento** (`Item` in `shared/types.ts`) con un campo `tipo`.
 
 | Campo | Note |
 |---|---|
-| `tipo` | azione, progetto, esperienza, routine, film, serie, anime, gioco, libro, ricetta, curiosita; `nota` = non assegnata (Inbox); `persona` solo nei dati vecchi |
+| `tipo` | azione, progetto, esperienza, routine, film, serie, anime, gioco, libro, ricetta, curiosita, gamedesign (idea di videogioco); `nota` = non assegnata (Inbox); `persona` solo nei dati vecchi |
 | `stato` | `da_fare`, `in_corso`, `fatto`, `saltato` (conta come fatta), `parcheggiato` (= archiviata). **«Scaduto» non è uno stato**: si calcola da data e stato |
 | `creato`, `aggiornato` | millisecondi; `aggiornato` decide chi vince nella sincronizzazione |
 | `eliminato` | cancellazione logica: la voce resta, così la cancellazione arriva agli altri dispositivi |
@@ -188,7 +191,7 @@ Un'unica tabella **Elemento** (`Item` in `shared/types.ts`) con un campo `tipo`.
 | `rigida` | scadenza fissa (non spostabile; in interfaccia «scadenza fissa») |
 | `ricorrenza`, `promemoria[]`, `insisti` | ricorrenza ogni N giorni/settimane/mesi/anni; promemoria a N giorni dalla scadenza; insistenza ogni N minuti |
 | `importanza` (1-5, anche decimali), `sforzoMin`, `durataRealeMin` | attività e progetti; tempo stimato in minuti; tempo reale misurato per affinare la stima |
-| `interesse` (1-5) | intrattenimento, esperienze e curiosità |
+| `interesse` (1-5) | intrattenimento, esperienze, curiosità e game design |
 | `padreId`, `ordine`, `checklist[]` | un passo ha il progetto come padre e una posizione nel progetto (0 = il primo); checklist = righe da spuntare dentro un progetto |
 | `zona`, `linkMaps` | esperienze: il «Luogo» (`zona`) e, se presente, un link Google Maps da cui leggere le coordinate |
 | `piattaforma`, `consigliatoDa`, `conChi`, `durataMin`, `genere`, `mood`, `energia`, `pagine` | intrattenimento; `genere`, `mood`, `energia`, `durataMin`, `pagine` si compilano anche da soli (6.11) |
@@ -271,7 +274,7 @@ Impostazioni › Tempo libero. Il tempo libero (fasce, pausa, modalità, orari) 
 - Una routine ha una **fascia della giornata** e una frequenza flessibile (volte a settimana), più un obiettivo minimo piccolo («leggere 10 minuti») per abbassare l'attrito.
 - Compare in «Routine di oggi» solo nei giorni utili (giornaliera, oppure a quota settimanale finché la quota non è raggiunta), con una spunta singola; i giorni fatti stanno in `log`.
 - Nessuna colpa sui giorni saltati: si guardano i conteggi settimanali, non le serie perfette.
-- Una routine con interesse quasi nullo resta in **Parcheggiate** e non compare in Oggi finché non viene attivata.
+- Una routine si **disattiva** con l'interruttore «Attiva» della sua scheda: resta in **Parcheggiate** (stato archiviata) e non compare in Oggi finché non viene riattivata («Attiva» nella riga o l'interruttore).
 
 ### 6.8 Cosa compare in Oggi (`vistaOggi`)
 
@@ -503,3 +506,4 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-18 | 0.61.0 | IA scelta dall'utente: in Altro › Intelligenza artificiale si inseriscono le chiavi di Gemini e Groq (restano sul dispositivo), c'è una chat con Gemini, Groq o entrambe e l'autocompilazione della tipologia (mood ed energia per i video) delle opere di intrattenimento; chip delle piattaforme già inserite; curiosità possono restare senza tempo; alla chiusura non si chiede più il tempo impiegato: si misura da «in corso» a «fatta» contando solo il tempo libero segnato |
 | 2026-10-18 | 0.62.0 | Tolta la Revisione (schermata, voce nel menu, scheda in Oggi, contatore, progetti «fermi» e il campo `daRivedere`): le note scadute o vecchie restano nelle liste e nel piano; sul sito la tendina «Sezione» di film, serie e simili si apre (le due tendine della scheda si chiudevano a vicenda); titolo della scheda col margine giusto nella finestra del sito; mockup del campo rapido per le nuove note sul sito |
 | 2026-10-18 | 0.62.1 | Pulizia del codice e documentazione riscritta sullo stato attuale: tolti l'endpoint IA del server (`/api/ai/capture`, `GEMINI_API_KEY`), la cattura interpretata in locale (`shared/capture.ts`; `chiaveTitolo` è in `shared/testo.ts`), codice, regole CSS e risorse Android inutilizzati; commenti dei file riscritti sul funzionamento attuale. «Riapri» in Completato azzera anche l'ora di completamento. Nessun altro cambio di comportamento |
+| 2026-10-18 | 0.63.0 | Tendina del tipo non più scorrevole (mostra tutte le voci); tolta la ricerca dalle singole schede sul sito (resta quella generale); pulsante Tempo libero in cima a Oggi sul telefono; sul sito il pulsante «Nuova nota» diventa un campo con contorno sempre visibile, più marcato mentre si scrive (Invio salva in Inbox, N porta il cursore); nuovo tipo e sotto-scheda «Game design» in Attività; interruttore «Attiva» per mettere una routine in Parcheggiate; ripristinate le tinte dei tipi (`--c1…--c5s`) tolte per errore dalla pulizia della 0.62.1 |

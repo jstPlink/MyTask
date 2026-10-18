@@ -7,7 +7,7 @@ import type { Item } from '../../../shared/types.ts';
 
 /** Le cinque schede principali (sul sito largo sono le voci della barra laterale). */
 export type Tab = 'oggi' | 'fare' | 'scoprire' | 'curiosita' | 'routine';
-export type SubFare = 'azioni' | 'progetti' | 'esperienze';
+export type SubFare = 'azioni' | 'progetti' | 'esperienze' | 'gamedesign';
 export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'ricetta';
 
 /** Schermate che si aprono sopra una scheda. `item` senza `id` è una voce nuova (precompilata da `nuovo`). */

@@ -199,7 +199,7 @@ export function App() {
     return ascoltaRichiestaOrari(apri);
   }, [auth.token, push]);
 
-  // scorciatoie da tastiera (schermi larghi): N cattura, / cerca, Esc chiude
+  // scorciatoie da tastiera (schermi larghi): N nuova nota, / cerca, Esc chiude
   useEffect(() => {
     if (!wide || !auth.token) return;
     const onKey = (e: KeyboardEvent) => {
@@ -213,7 +213,7 @@ export function App() {
         return;
       }
       if (scrivendo || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); openCapture(true); }
+      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); (document.getElementById('nota-rapida') as HTMLInputElement | null)?.focus(); }
       else if (e.key === '/') { e.preventDefault(); document.getElementById('ricerca')?.focus(); }
     };
     window.addEventListener('keydown', onKey);

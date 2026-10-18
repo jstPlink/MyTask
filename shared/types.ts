@@ -5,7 +5,7 @@
 export type Tipo =
   | 'azione' | 'progetto' | 'esperienza' | 'routine'
   | 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'ricetta'
-  | 'curiosita' | 'persona'
+  | 'curiosita' | 'gamedesign' | 'persona'
   /** Nota non ancora smistata: il tipo lo sceglie l'utente quando la smista dall'Inbox. */
   | 'nota';
 
@@ -17,7 +17,7 @@ export const TIPI_VIDEO: Tipo[] = ['film', 'serie', 'anime'];
 export const NOMI_TIPO: Record<Tipo, string> = {
   azione: 'Attività', progetto: 'Progetto', esperienza: 'Esperienza', routine: 'Routine',
   film: 'Film', serie: 'Serie', anime: 'Anime', gioco: 'Gioco', libro: 'Libro', ricetta: 'Ricetta',
-  curiosita: 'Curiosità', persona: 'Persona', nota: 'Non assegnata',
+  curiosita: 'Curiosità', gamedesign: 'Game design', persona: 'Persona', nota: 'Non assegnata',
 };
 
 /**

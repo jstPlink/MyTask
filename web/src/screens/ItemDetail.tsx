@@ -33,7 +33,7 @@ import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../share
 // Un tipo fuori elenco (per esempio «nota», la bozza non assegnata dell'Inbox) viene aggiunto alle voci
 // finché la voce lo ha, così la tendina mostra sempre il valore reale.
 type GruppoTipo = Tipo | 'intrattenimento';
-const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita'];
+const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita', 'gamedesign'];
 const NOMI_GRUPPO: Record<string, string> = { ...NOMI_TIPO, intrattenimento: 'Intrattenimento' };
 const IS_INTRATT = (t: Tipo) => TIPI_INTRATTENIMENTO.includes(t);
 const gruppoDi = (t: Tipo): GruppoTipo => (IS_INTRATT(t) ? 'intrattenimento' : t);
@@ -43,7 +43,7 @@ const IS_AZIONE = (t: Tipo) => t === 'azione' || t === 'progetto'; // importanza
 const IS_DATATO = (t: Tipo) => t === 'azione' || t === 'progetto' || t === 'esperienza'; // data, scadenza fissa, promemoria
 const IS_VIDEO = (t: Tipo) => t === 'film' || t === 'serie' || t === 'anime'; // piattaforma, tipologia, mood, energia
 const IS_COLLEZIONE = (t: Tipo) => IS_VIDEO(t) || t === 'gioco' || t === 'libro' || t === 'ricetta'; // gruppo «Intrattenimento» o «Ricetta»
-const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'curiosita'; // slider dell'interesse
+const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'curiosita' || t === 'gamedesign'; // slider dell'interesse
 
 const PROMEMORIA_PRESET: { giorni: number; nome: string }[] = [
   { giorni: 7, nome: '7 giorni prima' }, { giorni: 3, nome: '3 giorni prima' }, { giorni: 1, nome: '1 giorno prima' }, { giorni: 0, nome: 'Il giorno stesso' },
@@ -306,6 +306,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
+        {/* Game design: un'idea di videogioco, con l'interesse (le note descrivono l'idea) */}
+        {t === 'gamedesign' && (
+          <Gruppo titolo="Idea">
+            <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
+          </Gruppo>
+        )}
+
         {/* Curiosità: interesse e tempo stimato (la durata delle pause curiosità del piano) */}
         {t === 'curiosita' && (
           <Gruppo titolo="Interesse">
@@ -383,6 +390,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {/* Routine: momento della giornata, frequenza settimanale, obiettivo minimo, ora del promemoria */}
         {t === 'routine' && (
           <Gruppo titolo="Routine">
+            <Field label="Attiva"><Toggle label="Routine attiva" on={d.stato !== 'parcheggiato'} onChange={(on) => up({ stato: on ? 'da_fare' : 'parcheggiato' })} /></Field>
             <Field label="Momento">
               <select value={d.fascia ?? 'sera'} onChange={(e) => up({ fascia: e.target.value as Fascia })}>
                 {(Object.keys(NOMI_FASCIA) as Fascia[]).map((f) => <option key={f} value={f}>{NOMI_FASCIA[f]}</option>)}
