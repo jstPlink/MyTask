@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { Tipo } from '../../../shared/types.ts';
-import { collezione, piattformeUsate } from '../../../shared/views.ts';
+import { cercaVoci, collezione, piattformeUsate } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
 import { completaVoce } from '../lib/actions.ts';
-import { Chips, Empty, Fab, Row, Seg, Top, Sezione } from '../ui/kit.tsx';
+import { Cerca, Chips, Empty, Fab, Row, Seg, Top, Sezione } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubScoprire } from '../ui/nav.tsx';
 
@@ -19,10 +19,12 @@ export function Scoprire() {
   const [piattaforma, setPiattaforma] = useState('Tutte');
   const video = sub === 'film' || sub === 'serie' || sub === 'anime';
   const tipi: Tipo[] = [sub];
+  const [q, setQ] = useState('');
+  const filtro = useMemo(() => (q.trim() ? new Set(cercaVoci(items, q, 5000).map((i) => i.id)) : null), [items, q]);
   const lista = useMemo(
-    () => collezione(items, tipi, video && piattaforma !== 'Tutte' ? piattaforma : undefined),
+    () => collezione(items, tipi, video && piattaforma !== 'Tutte' ? piattaforma : undefined).filter((i) => !filtro || filtro.has(i.id)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [items, sub, piattaforma],
+    [items, sub, piattaforma, filtro],
   );
   const piattaforme = useMemo(() => (video ? piattformeUsate(items, tipi) : []), [items, sub, video]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -30,16 +32,17 @@ export function Scoprire() {
     <>
       <Top title="Intrattenimento" sub={`${lista.length} da fare`} right={<PulsanteAspetto />} />
       <div className="scroll">
-        <Seg nav voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setPiattaforma('Tutte'); }} />
+        <Seg nav uguali voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setPiattaforma('Tutte'); }} />
+        <Cerca valore={q} onChange={setQ} placeholder="Cerca in intrattenimento" />
         {video && piattaforme.length > 0 && <Chips scroll voci={['Tutte', ...piattaforme]} attivo={piattaforma} onChange={setPiattaforma} />}
-        {video && (
+        {video && !filtro && (
           <Sezione titolo="Stasera">
             <button className="card strong tap" onClick={() => nav.push({ k: 'stasera' })}>
               <b>Cosa guardo stasera?</b><span>›</span>
             </button>
           </Sezione>
         )}
-        {lista.length === 0 && <Empty>Niente in lista.</Empty>}
+        {lista.length === 0 && <Empty>{filtro ? 'Nessun risultato: prova con altre parole.' : 'Niente in lista.'}</Empty>}
         {lista.length > 0 && (
           <Sezione titolo={`${SUB.find((x) => x.id === sub)?.nome ?? ''} da fare`} dettaglio={lista.length}>
             {lista.map((i) => {          const meta = [i.stato === 'in_corso' ? 'In corso' : undefined, i.piattaforma, i.consigliatoDa ? `consigliato da ${i.consigliatoDa}` : undefined, i.genere, i.note?.split('\n')[0]].filter(Boolean).join(' · ');

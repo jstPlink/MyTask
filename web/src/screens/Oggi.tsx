@@ -339,12 +339,6 @@ export function Oggi() {
     </>
   );
 
-  const revisione = v.revisione > 0 && (
-    <button className={clsx('card tap', nav.wide && 'strong')} style={nav.wide ? undefined : { marginTop: 18 }} onClick={() => nav.vai({ k: 'revisione' })}>
-      <span><b>Revisione</b>{nav.wide && <span className="t2" style={{ display: 'block' }}>{v.revisione} voci scadute o ferme da rivedere</span>}</span>
-      <span className="muted">{nav.wide ? 'Inizia ›' : `${v.revisione} da rivedere ›`}</span>
-    </button>
-  );
   const stato = sync.online && !sync.inAttesa ? null : (
     <div style={{ textAlign: 'center', marginTop: 18 }}>
       <span className={clsx('pill-sync', !sync.online && 'off')}>
@@ -382,7 +376,7 @@ export function Oggi() {
         <Top title="Oggi" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} cose da fare`} />
         <div className="scroll wide-dash" {...tocco}>
           <div className="dash">
-            <div>{navGiorno}{eOggi && revisione}<div key={giorno} className={clsx('giorno-cont', direzione)}>{eOggi && routine}{eOggi ? faroggi : altroGiorno}</div></div>
+            <div>{navGiorno}<div key={giorno} className={clsx('giorno-cont', direzione)}>{eOggi && routine}{eOggi ? faroggi : altroGiorno}</div></div>
           </div>
         </div>
         {mese}
@@ -415,7 +409,6 @@ export function Oggi() {
         <div key={giorno} className={clsx('giorno-cont', direzione)}>
           {eOggi && routine}
           {eOggi ? faroggi : altroGiorno}
-          {eOggi && revisione}
           {eOggi && stato}
         </div>
       </div>

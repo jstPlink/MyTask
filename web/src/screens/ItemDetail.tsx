@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { barLevel, componentiPunteggio, dueDate, score } from '../../../shared/priority.ts';
-import { avanzamento, figli, listaAzioni, nomiUsati } from '../../../shared/views.ts';
+import { avanzamento, figli, listaAzioni, luoghiUsati, nomiUsati } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
 import { STATI_NOTA, cambiaStato, completaVoce, nuovaVoce, ordinaPassi, riapriVoce, statoVisto } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
@@ -11,7 +11,7 @@ import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
 import { posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
-import { Back, DotsPick, Field, Gruppo, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
+import { Back, Field, Gruppo, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { AllegatiNote } from '../ui/AllegatiNote.tsx';
@@ -20,11 +20,11 @@ import { useNav } from '../ui/nav.tsx';
 import { clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
 import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
 
-type GruppoTipo = 'azione' | 'progetto' | 'esperienza' | 'routine' | 'intrattenimento' | 'ricetta' | 'curiosita' | 'persona';
+type GruppoTipo = 'azione' | 'progetto' | 'esperienza' | 'routine' | 'intrattenimento' | 'ricetta' | 'curiosita' | 'persona' | 'nota';
 const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita'];
 const NOMI_GRUPPO: Record<GruppoTipo, string> = {
   azione: NOMI_TIPO.azione, progetto: NOMI_TIPO.progetto, esperienza: NOMI_TIPO.esperienza, routine: NOMI_TIPO.routine,
-  intrattenimento: 'Intrattenimento', ricetta: NOMI_TIPO.ricetta, curiosita: NOMI_TIPO.curiosita, persona: NOMI_TIPO.persona,
+  intrattenimento: 'Intrattenimento', ricetta: NOMI_TIPO.ricetta, curiosita: NOMI_TIPO.curiosita, persona: NOMI_TIPO.persona, nota: NOMI_TIPO.nota,
 };
 const IS_INTRATT = (t: Tipo) => TIPI_INTRATTENIMENTO.includes(t);
 const gruppoDi = (t: Tipo): GruppoTipo => (IS_INTRATT(t) ? 'intrattenimento' : (t as GruppoTipo));
@@ -45,7 +45,7 @@ const TIPI_PIATTO = ['Antipasto', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Piat
 export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }) {
   const nav = useNav();
   const tutte = useItems();
-  const iniziale = useMemo<Item>(() => (id && getItem(id)) || nuovaVoce({ tipo: nuovo?.tipo ?? 'azione', titolo: '', ...(nuovo?.tipo === 'curiosita' ? { sforzoMin: 15 } : {}), ...nuovo }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const iniziale = useMemo<Item>(() => (id && getItem(id)) || nuovaVoce({ tipo: nuovo?.tipo ?? 'azione', titolo: '', ...nuovo }), []); // eslint-disable-line react-hooks/exhaustive-deps
   const [d, setD] = useState<Item>(iniziale);
   const ultimoSalvato = useRef<string>(id && getItem(id) ? JSON.stringify(iniziale) : '');
   const ref = useRef(d);
@@ -55,7 +55,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     if (!x.titolo.trim()) return;
     const s = JSON.stringify(x);
     if (s === ultimoSalvato.current) return;
-    saveItem({ ...x, inbox: undefined }); // una voce modificata nell'editor è considerata smistata
+    saveItem({ ...x, inbox: x.tipo === 'nota' ? true : undefined }); // una voce modificata nell'editor è smistata, ma resta in Inbox finché non ha un tipo
     ultimoSalvato.current = s;
   };
 
@@ -80,8 +80,6 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
       try { ultimoSalvato.current = JSON.stringify({ ...JSON.parse(ultimoSalvato.current), stato, completatoIl, completatoTs, inCorsoTs, voto, commento, durataRealeMin }); } catch { /* ignora */ }
     }
   }, [salvataOra?.stato, salvataOra?.completatoIl, salvataOra?.completatoTs, salvataOra?.inCorsoTs, salvataOra?.voto, salvataOra?.commento, salvataOra?.durataRealeMin]); // eslint-disable-line react-hooks/exhaustive-deps
-  // aprire una voce messa in Revisione vale come averla vista: esce dalla Revisione (si salva da sola)
-  useEffect(() => { if (id && iniziale.daRivedere) setD((x) => ({ ...x, daRivedere: undefined })); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const t = d.tipo;
   const oggi = today();
   const persone = useMemo(() => nomiUsati(tutte), [tutte]);
@@ -120,6 +118,11 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [d.titolo, d.tipo, d.pagine]);
 
+  // luoghi già inseriti nelle esperienze: si scelgono con un tocco (si restringono mentre si scrive, escluso quello già scelto)
+  const luoghiProposti = useMemo(() => {
+    const scritto = (d.zona ?? '').trim().toLowerCase();
+    return luoghiUsati(tutte).filter((z) => z.toLowerCase() !== scritto && z.toLowerCase().includes(scritto)).slice(0, 12);
+  }, [tutte, d.zona]);
   const generi = (d.genere ?? '').split(',').map((x) => x.trim()).filter(Boolean);
   const puntegg = IS_AZIONE(t) ? punteggioEffettivo(withTemp(d), tutte, oggi) : undefined;
   const due = dueDate(d);
@@ -139,7 +142,6 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     if (nt !== 'azione') p.padreId = undefined;
     if (HA_INTERESSE(nt) && d.interesse === undefined) p.interesse = 3;
     if (IS_AZIONE(nt) && d.importanza === undefined) p.importanza = 3;
-    if (nt === 'curiosita' && d.sforzoMin === undefined) p.sforzoMin = 15;
     if (nt === 'routine') { p.fascia = d.fascia ?? 'sera'; p.log = d.log ?? []; }
     up(p);
   };
@@ -183,7 +185,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         right={d.inbox ? <span className="badge">Da smistare</span> : undefined}
       />
       <div className="scroll">
-        {getItem(d.id) && t !== 'routine' && t !== 'persona' && (
+        {getItem(d.id) && t !== 'routine' && t !== 'persona' && t !== 'nota' && (
           <div className="stati-seg" role="tablist" aria-label="Stato della nota">
             {STATI_NOTA.map((s) => (
               <button key={s.id} role="tab" aria-selected={statoVisto(d.stato) === s.id}
@@ -206,12 +208,12 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <div className="prio-corpo" id="prio-dettagli" aria-hidden={!prioAperta} inert={!prioAperta}>
               <div className="prio-corpo-in">
             <div className="prio-parti">
-              {([['Urgenza', componenti.urgenza], ['Importanza', componenti.importanza], ['Poco sforzo', componenti.sforzo], ['Età', componenti.eta]] as const).map(([nome, v]) => (
+              {([['Urgenza', componenti.urgenza], ['Importanza', componenti.importanza], ['Poco sforzo', componenti.sforzo], ['Età', componenti.eta], ['Scad. fissa', componenti.fissa]] as const).map(([nome, v]) => (
                 <div key={nome} className="prio-riga"><span>{nome}</span><div className="prio-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, Math.max(0, v))}%` }} /></div></div>
               ))}
             </div>
             <div className="prio-dati">
-              <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
+              <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza fissa' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
               <span>Importanza {['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'][Math.round(d.importanza ?? 3)]}</span>
               {d.sforzoMin ? <span>{nomeSforzo(d.sforzoMin)} {percentuale(margine)}</span> : null}
             </div>
@@ -242,8 +244,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             )}
             <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: e.target.value ? d.rigida : undefined, oraInizio: e.target.value ? d.oraInizio : undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>
             {d.inizio && (
-              <Field label="Scadenza rigida">
-                <button type="button" role="checkbox" aria-checked={!!d.rigida} aria-label="Scadenza rigida" className={clsx('cb sq', d.rigida && 'done')} onClick={() => up({ rigida: d.rigida ? undefined : true })} />
+              <Field label="Scadenza fissa">
+                <button type="button" role="checkbox" aria-checked={!!d.rigida} aria-label="Scadenza fissa" className={clsx('cb sq', d.rigida && 'done')} onClick={() => up({ rigida: d.rigida ? undefined : true })} />
               </Field>
             )}
             {IS_AZIONE(t) && <Field label="Importanza"><SliderImportanza label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>}
@@ -264,6 +266,11 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               </div>
             )}
             {t === 'esperienza' && <Field label="Luogo"><input value={d.zona ?? ''} placeholder="es. Torino, Osteria da Gigi" onChange={(e) => up({ zona: e.target.value || undefined })} /></Field>}
+            {t === 'esperienza' && luoghiProposti.length > 0 && (
+              <div className="chips luoghi-scelta" role="group" aria-label="Luoghi già inseriti">
+                {luoghiProposti.map((z) => <button key={z} type="button" className="chip" onClick={() => up({ zona: z })}>{z}</button>)}
+              </div>
+            )}
             {t === 'esperienza' && d.titolo.trim() && (
               <a className="field link" href={mapsUrl(d.titolo, d.zona)} target="_blank" rel="noreferrer"><b style={{ fontWeight: 620 }}>Apri in Google Maps</b><span className="muted">›</span></a>
             )}
@@ -291,15 +298,20 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
 
         {t === 'curiosita' && (
           <Gruppo titolo="Interesse">
-            <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
-            <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m ?? 15 })} />
+            <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
+            <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} />
           </Gruppo>
         )}
 
         {IS_COLLEZIONE(t) && (
           <Gruppo titolo={IS_INTRATT(t) ? 'Intrattenimento' : NOMI_TIPO[t]}>
-            <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
+            <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
             {IS_VIDEO(t) && <Field label="Piattaforma"><input list="piattaforme" value={d.piattaforma ?? ''} placeholder="es. Netflix" onChange={(e) => up({ piattaforma: e.target.value || undefined })} /></Field>}
+            {IS_VIDEO(t) && piattaforme.length > 0 && (
+              <div className="chips luoghi-scelta" role="group" aria-label="Piattaforme già inserite">
+                {piattaforme.map((p) => <button key={p} type="button" className={clsx('chip', d.piattaforma === p && 'on')} aria-pressed={d.piattaforma === p} onClick={() => up({ piattaforma: d.piattaforma === p ? undefined : p })}>{p}</button>)}
+              </div>
+            )}
             <datalist id="piattaforme">{[...new Set([...piattaforme, ...PIATTAFORME_BASE])].map((p) => <option key={p} value={p} />)}</datalist>
             {t !== 'ricetta' && t !== 'film' && (
               <>

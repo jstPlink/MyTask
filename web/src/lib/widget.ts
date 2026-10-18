@@ -22,7 +22,7 @@ async function applicaAzioni() {
   try { azioni = (await Widget.coda()).azioni ?? []; } catch { return; }
   for (const a of azioni) {
     if (a.tipo === 'nota' && a.testo.trim()) {
-      saveItem({ ...nuovaVoce({ tipo: 'azione', titolo: a.testo.trim(), inbox: true }), creato: a.ts, aggiornato: a.ts });
+      saveItem({ ...nuovaVoce({ tipo: 'nota', titolo: a.testo.trim(), inbox: true }), creato: a.ts, aggiornato: a.ts });
     } else if (a.tipo === 'fatto') {
       const item = getItem(a.id);
       if (item && isOpen(item)) saveItem(completa(item, today(), a.ts));

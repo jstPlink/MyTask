@@ -284,7 +284,6 @@ export function converti(righe: RigaNotion[], now: number, oggi: string, regole:
     }
 
     // revisione manuale: era "Expired" senza una data
-    if (stati.includes('Expired') && !dataRiga) { item.daRivedere = true; }
 
     // routine
     if (v.tipo === 'routine') {
@@ -343,7 +342,7 @@ export function converti(righe: RigaNotion[], now: number, oggi: string, regole:
   const aperte = items.filter((i) => i.stato !== 'fatto' && i.stato !== 'saltato' && i.stato !== 'parcheggiato');
   report.inRevisione = aperte
     .filter((i) => i.tipo !== 'persona' && i.tipo !== 'routine')
-    .filter((i) => i.daRivedere || (((i.fine ?? i.inizio) ?? '9999') < oggi))
+    .filter((i) => ((i.fine ?? i.inizio) ?? '9999') < oggi)
     .map((i) => `${i.titolo} (${i.fine ?? i.inizio ?? 'senza data'})`);
 
   return { items, report };

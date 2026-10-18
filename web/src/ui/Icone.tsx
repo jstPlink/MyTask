@@ -18,11 +18,12 @@ const GLIFI: Record<Tipo, ReactNode> = {
   ricetta: <g {...tratto}><path d="M4 11h16a8 8 0 0 1-16 0z" /><path d="M9 4v3M13 4v3" /></g>,
   curiosita: <g {...tratto}><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z" /></g>,
   persona: <g {...tratto}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></g>,
+  nota: <g {...tratto}><rect x="4" y="4" width="16" height="16" rx="4" strokeDasharray="3 3" /></g>,
 };
 
 /** Tinta (da 1 a 5) per ogni tipo. */
 const TINTA_TIPO: Record<Tipo, number> = {
-  azione: 1, progetto: 3, esperienza: 4, routine: 5, film: 2, serie: 3, anime: 4, gioco: 1, libro: 2, ricetta: 5, curiosita: 3, persona: 4,
+  azione: 1, progetto: 3, esperienza: 4, routine: 5, film: 2, serie: 3, anime: 4, gioco: 1, libro: 2, ricetta: 5, curiosita: 3, persona: 4, nota: 1,
 };
 
 const badge = (n: number, size: number) => ({ width: size, height: size, borderRadius: Math.round(size * 0.32), background: `var(--c${n}s)`, color: `var(--c${n})` });

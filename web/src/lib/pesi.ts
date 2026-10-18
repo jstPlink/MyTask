@@ -14,7 +14,7 @@ function valido(p: unknown): p is PesiPunteggio {
 export function avviaPesi() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const p = JSON.parse(raw) as unknown; if (valido(p)) impostaPesi(p); }
+    if (raw) { const p = JSON.parse(raw) as unknown; if (valido(p)) impostaPesi({ ...p, fissa: Number.isFinite(p.fissa) ? p.fissa : 0 }); }
   } catch { /* ignora */ }
 }
 

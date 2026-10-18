@@ -36,7 +36,7 @@ export function Capture() {
   const salva = () => {
     const titolo = testo.trim();
     if (!titolo) return;
-    const item = nuovaVoce({ tipo: 'azione', titolo, inbox: true }); // bozza da rivedere in Inbox
+    const item = nuovaVoce({ tipo: 'nota', titolo, inbox: true }); // bozza da smistare in Inbox: il tipo lo sceglie l'utente
     saveItem(item);
     nav.openCapture(false);
     mostraToast('Bozza salvata in Inbox', { label: 'Apri', fn: () => nav.push({ k: 'item', id: item.id }) });

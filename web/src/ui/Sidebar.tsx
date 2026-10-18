@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Tipo } from '../../../shared/types.ts';
-import { collezione, curiosita, inbox, listaAzioni, listaEsperienze, listaProgetti, revisione, vistaOggi, daParte } from '../../../shared/views.ts';
+import { collezione, curiosita, inbox, listaAzioni, listaEsperienze, listaProgetti, vistaOggi, daParte } from '../../../shared/views.ts';
 import { useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { clsx } from '../lib/util.ts';
 import { VERSIONE } from '../version.ts';
@@ -41,7 +41,6 @@ export function Sidebar() {
       curiosita: curiosita(items).length,
       inbox: inbox(items).length,
       daparte: daParte(items).length,
-      revisione: revisione(items, oggi).length,
     } as Record<string, number>;
   }, [items, oggi]);
 
@@ -91,7 +90,6 @@ export function Sidebar() {
       <div className="sb-group">
         <div className="sb-sec">Da sistemare</div>
         <Link nome="Inbox" n={n.inbox} on={scr('inbox')} onClick={() => vai({ k: 'inbox' })} />
-        <Link nome="Revisione" n={n.revisione || undefined} warn on={scr('revisione')} onClick={() => vai({ k: 'revisione' })} />
       </div>
 
       <div className="sb-group">

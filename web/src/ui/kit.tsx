@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { clsx } from '../lib/util.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
 import { GlifoTipo } from './Icone.tsx';
@@ -99,7 +99,7 @@ export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, vo
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
       {ora && <div className="piano-ora">{ora}</div>}
       {rank !== undefined && <span className="rank" style={urgenza ? battito(urgenza) : undefined} aria-label={`Posizione ${rank}`}>{rank}</span>}
-      {interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${interesse}`)} role="img" aria-label={`Interesse ${interesse} su 5`}>{interesse}</span>}
+      {interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
       <div className="grow">
         <div className="line">
           <div className={clsx('t1', (light || (voce && statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso')) && 'light', (struck || (voce && statoVisto(voce.stato) === 'fatto')) && 'struck')}>{titolo}</div>
@@ -132,9 +132,20 @@ export function Chips({ voci, attivo, onChange, scroll }: { voci: string[]; atti
   );
 }
 
-export function Seg<T extends string>({ voci, attivo, onChange, nav }: { voci: { id: T; nome: string }[]; attivo: T; onChange: (v: T) => void; nav?: boolean }) {
+/** Barra di ricerca di una lista: filtra mentre si scrive; la croce svuota il campo. */
+export function Cerca({ valore, onChange, placeholder }: { valore: string; onChange: (v: string) => void; placeholder: string }) {
   return (
-    <div className={clsx('seg', nav && 'nav-seg')} role="tablist">
+    <div className="cerca" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M16.5 16.5L21 21" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+      <input type="search" value={valore} placeholder={placeholder} aria-label={placeholder} onChange={(e) => onChange(e.target.value)} />
+      {valore && <button type="button" className="cerca-x" aria-label="Svuota la ricerca" onClick={() => onChange('')}>×</button>}
+    </div>
+  );
+}
+
+export function Seg<T extends string>({ voci, attivo, onChange, nav, uguali }: { voci: { id: T; nome: string }[]; attivo: T; onChange: (v: T) => void; nav?: boolean; uguali?: boolean }) {
+  return (
+    <div className={clsx('seg', nav && 'nav-seg', uguali && 'uguali')} role="tablist">
       {voci.map((v) => <button key={v.id} role="tab" aria-selected={v.id === attivo} className={clsx(v.id === attivo && 'on')} onClick={() => onChange(v.id)}>{v.nome}</button>)}
     </div>
   );
@@ -240,7 +251,9 @@ export function Scelta<T extends string>({ label, valore, voci, onChange }: { la
   const [aperto, setAperto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   // il menu è un pannello della pila: "indietro" lo chiude senza lasciare la schermata
-  useLayer('scelta', aperto, () => setAperto(false));
+  // un identificativo per ogni tendina: due tendine nella stessa scheda (Tipo e Sezione) non devono chiudersi a vicenda
+  const idLayer = useId();
+  useLayer(`scelta${idLayer}`, aperto, () => setAperto(false));
   useEffect(() => {
     if (!aperto) return;
     const chiudi = (e: Event) => { if (!ref.current?.contains(e.target as Node)) setAperto(false); };

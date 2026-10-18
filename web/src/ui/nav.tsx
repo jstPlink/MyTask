@@ -7,9 +7,9 @@ export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'rice
 
 export type Screen =
   | { k: 'item'; id?: string; nuovo?: Partial<Item> }
-  | { k: 'altro' } | { k: 'inbox' } | { k: 'revisione' } | { k: 'archivio' } | { k: 'daparte' }
+  | { k: 'altro' } | { k: 'inbox' } | { k: 'archivio' } | { k: 'daparte' }
   | { k: 'aspetto' } | { k: 'tempolibero' } | { k: 'stasera' } | { k: 'account' }
-  | { k: 'orari'; giorno: string } | { k: 'pesi' };
+  | { k: 'orari'; giorno: string } | { k: 'pesi' } | { k: 'ia' } | { k: 'chat' };
 
 export interface Nav {
   tab: Tab;

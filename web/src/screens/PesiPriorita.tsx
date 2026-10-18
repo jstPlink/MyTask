@@ -6,10 +6,11 @@ import { useItems, useOggi } from '../lib/hooks.ts';
 import { Back, Row, Sec, Top } from '../ui/kit.tsx';
 
 const PARAMETRI: { id: keyof PesiPunteggio; nome: string; descr: string }[] = [
-  { id: 'urgenza', nome: 'Urgenza', descr: 'Quanto è vicina la scadenza (le scadenze rigide pesano di più)' },
+  { id: 'urgenza', nome: 'Urgenza', descr: 'Quanto è vicina la scadenza' },
   { id: 'importanza', nome: 'Importanza', descr: 'Il valore che dai tu all\u2019attività' },
   { id: 'sforzo', nome: 'Poco sforzo', descr: 'Le attività brevi salgono: più rapide, più in alto' },
   { id: 'eta', nome: 'Et\u00e0', descr: 'Più è vecchia la nota, più sale (fino a 10 settimane)' },
+  { id: 'fissa', nome: 'Scadenza fissa', descr: 'Solo per le date che non si possono spostare: pesa quanto l\u2019urgenza' },
 ];
 
 /** Opzione provvisoria e sperimentale: i pesi con cui urgenza, importanza, sforzo ed età formano la priorità. */
@@ -41,7 +42,7 @@ export function PesiPriorita() {
             <div className="t2">{p.descr}</div>
           </div>
         ))}
-        <div className="t2" style={{ padding: '4px 0 10px' }}>Di base: urgenza {Math.round(PESI_PREDEFINITI.urgenza * 100)}%, importanza {Math.round(PESI_PREDEFINITI.importanza * 100)}%, poco sforzo {Math.round(PESI_PREDEFINITI.sforzo * 100)}%, età {Math.round(PESI_PREDEFINITI.eta * 100)}%.</div>
+        <div className="t2" style={{ padding: '4px 0 10px' }}>Di base: urgenza {Math.round(PESI_PREDEFINITI.urgenza * 100)}%, importanza {Math.round(PESI_PREDEFINITI.importanza * 100)}%, poco sforzo {Math.round(PESI_PREDEFINITI.sforzo * 100)}%, età {Math.round(PESI_PREDEFINITI.eta * 100)}%, scadenza fissa {Math.round(PESI_PREDEFINITI.fissa * 100)}%.</div>
         <div className="btns">
           <button className="btn" disabled={sonoPredefiniti(eff)} onClick={ripristinaPesi}>Ripristina i pesi di base</button>
         </div>

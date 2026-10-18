@@ -7,7 +7,7 @@ const primoDelMese = (iso: string) => `${iso.slice(0, 7)}-01`;
 
 export interface SegnoGiorno { n: number; avviso: boolean }
 
-/** Mese con un pallino per i giorni che hanno attività (arancio se c'è una scadenza rigida o scaduta). Toccando un giorno lo si sceglie. */
+/** Mese con un pallino per i giorni che hanno attività (arancio se c'è una scadenza fissa o scaduta). Toccando un giorno lo si sceglie. */
 export function GrigliaMese({ giorno, oggi, segni, onScegli }: {
   giorno: string;
   oggi: string;

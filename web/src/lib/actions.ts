@@ -5,13 +5,13 @@ import { toggleOggi } from '../../../shared/routine.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { avanzamento, figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
-import { pianifica } from '../../../shared/piano.ts';
+import { durataRealeInCorso, pianifica } from '../../../shared/piano.ts';
 import { margineAtteso } from '../../../shared/stima.ts';
 import { getDisponibilita } from './disponibilita.ts';
+import { mostraCompletamento } from './completamento.ts';
 import { mostraToast } from './toast.ts';
-import { newId } from './util.ts';
+import { newId, nomeTempo } from './util.ts';
 import { chiediRecensione } from './recensione.ts';
-import { chiediDurata } from './durata.ts';
 import { mostraAvanzamento, type PassoProgetto } from './avanzamento.ts';
 
 export function nuovaVoce(p: Partial<Item> & { tipo: Tipo; titolo: string }): Item {
@@ -40,17 +40,19 @@ export function completaVoce(item: Item) {
   // passo di un progetto: si fotografa il progetto prima del segno di fatto, per l'animazione dell'avanzamento
   const progetto = padre?.tipo === 'progetto' && !item.ricorrenza ? padre : undefined;
   const fotoPrima = progetto ? fotografaProgetto(progetto, item.id) : undefined;
-  const dopo = completa(item, oggi, Date.now());
+  const ora = Date.now();
+  // il tempo impiegato non si chiede: si misura da quando la nota è passata «in corso», contando solo il tempo libero segnato
+  const durata = item.tipo === 'azione' && !item.ricorrenza ? durataRealeInCorso(item, ora, getDisponibilita()) : undefined;
+  const dopo = { ...completa(item, oggi, ora), ...(durata ? { durataRealeMin: durata } : {}) };
+  const margineDa = margineAtteso(getItems());
   saveItem(dopo);
+  // con il tempo misurato e una stima si apre il foglio con il confronto e il margine d'errore aggiornato
+  const confronto = durata && item.sforzoMin
+    ? () => mostraCompletamento({ titolo: item.titolo, stimaMin: item.sforzoMin!, realeMin: durata, margineDa: Math.round(margineDa * 100), margineA: Math.round(margineAtteso(getItems()) * 100) })
+    : undefined;
 
-  // attività: si chiede (facoltativo) quanto tempo c'è voluto, per affinare le stime; per i passi di un progetto
-  // la richiesta arriva alla fine dell'animazione dell'avanzamento
-  if (item.tipo === 'azione' && !item.ricorrenza) {
-    if (progetto && fotoPrima) mostraAvanzamento({ ...fotoPrima, dopo: avanzamento(progetto, getItems()), alTermine: () => chiediDurata(dopo) });
-    else chiediDurata(dopo);
-  } else if (progetto && fotoPrima) {
-    mostraAvanzamento({ ...fotoPrima, dopo: avanzamento(progetto, getItems()) });
-  }
+  if (progetto && fotoPrima) mostraAvanzamento({ ...fotoPrima, dopo: avanzamento(progetto, getItems()), alTermine: confronto });
+  else confronto?.();
 
   if (padre && isOpen(padre) && !figli(getItems(), padre.id).some(isOpen)) {
     mostraToast(`Ultimo passo di «${padre.titolo}»`, {
@@ -62,7 +64,7 @@ export function completaVoce(item: Item) {
   if (item.ricorrenza) {
     mostraToast(`Fatto · prossima ${formatShort(dopo.fine ?? dopo.inizio ?? oggi)}`, { label: 'Annulla', fn: () => saveItem(prima) });
   } else {
-    mostraToast('Fatto', { label: 'Annulla', fn: () => saveItem(prima) });
+    mostraToast(confronto ? 'Fatto' : durata ? `Fatto in ${nomeTempo(durata)}${item.sforzoMin ? ` (stimati ${nomeTempo(item.sforzoMin)})` : ''}` : 'Fatto', { label: 'Annulla', fn: () => saveItem(prima) });
   }
 }
 
@@ -162,19 +164,3 @@ export function segnaRoutineGiorno(item: Item, giorno: string) {
   saveItem(toggleOggi(item, giorno, Date.now()));
 }
 
-export function ripianifica(item: Item, iso: string) {
-  const conFine = item.fine !== undefined;
-  saveItem({
-    ...item,
-    inizio: conFine ? item.inizio : iso,
-    fine: conFine ? iso : item.fine,
-    daRivedere: false,
-    stato: item.stato === 'saltato' ? 'da_fare' : item.stato,
-  });
-  mostraToast(`Ripianificata al ${formatShort(iso)}`, { label: 'Annulla', fn: () => saveItem(item) });
-}
-
-export function saltaVoce(item: Item) {
-  saveItem({ ...item, stato: 'saltato', daRivedere: false });
-  mostraToast('Segnata come saltata', { label: 'Annulla', fn: () => saveItem(item) });
-}

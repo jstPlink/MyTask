@@ -39,11 +39,10 @@ export function ripristinaChecklistProgetto(i: Item, nuovoId: () => string): Ite
 export const èImportata = (i: Item) => /^n[0-9a-f]{12}$/.test(i.id);
 
 /**
- * Attività e progetti importati da Notion e mai toccati dall'importazione in poi (data di modifica uguale a quella di creazione)
- * vanno in Revisione. Il salvataggio cambia la data di modifica, quindi la regola scatta una sola volta per voce.
+ * Le note già in Inbox, mai toccate, che erano state create come «attività» senza che l'utente l'avesse scelto
+ * diventano «non assegnate»: il tipo lo sceglie l'utente quando le smista.
  */
-export function segnaImportataDaRivedere(i: Item): Item | undefined {
-  if (!èImportata(i) || (i.tipo !== 'azione' && i.tipo !== 'progetto')) return undefined;
-  if (!isOpen(i) || i.stato === 'parcheggiato' || i.inbox || i.daRivedere || i.aggiornato !== i.creato) return undefined;
-  return { ...i, daRivedere: true };
+export function inboxNonAssegnata(i: Item): Item | undefined {
+  if (!i.inbox || i.tipo !== 'azione' || i.aggiornato !== i.creato || i.eliminato) return undefined;
+  return { ...i, tipo: 'nota' };
 }

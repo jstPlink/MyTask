@@ -23,9 +23,6 @@ export function isOverdue(i: Item, today: string): boolean {
   return daysOverdue(i, today) > 0;
 }
 
-/** Oltre questa soglia di giorni una voce scaduta passa in Revisione. */
-export const SOGLIA_REVISIONE_GIORNI = 2;
-
 export function urgency(i: Item, today: string): number {
   const due = dueDate(i);
   if (!due) return 0;
@@ -36,7 +33,6 @@ export function urgency(i: Item, today: string): number {
   else if (days <= 7) u = 60;
   else if (days <= 30) u = 35;
   else u = 15;
-  if (i.rigida) u = Math.min(100, u * 1.3);
   return u;
 }
 
@@ -47,7 +43,7 @@ export function battitoBpm(urgenza: number): number {
   return Math.round(10 + x * 70);
 }
 
-export interface ComponentiPunteggio { urgenza: number; importanza: number; sforzo: number; eta: number }
+export interface ComponentiPunteggio { urgenza: number; importanza: number; sforzo: number; eta: number; fissa: number }
 
 /** Le quattro componenti del punteggio, ognuna da 0 a 100 prima di applicare il suo peso. */
 export function componentiPunteggio(i: Item, today: string, now: number = Date.now()): ComponentiPunteggio {
@@ -55,23 +51,29 @@ export function componentiPunteggio(i: Item, today: string, now: number = Date.n
   const sforzo = i.sforzoMin === undefined ? 30 : i.sforzoMin <= 15 ? 100 : i.sforzoMin <= 30 ? 60 : i.sforzoMin <= 60 ? 30 : 0;
   const settimane = Math.max(0, (now - i.creato) / (7 * 86400000));
   const eta = Math.min(10, settimane) / 10 * 100;
-  return { urgenza: urgency(i, today), importanza, sforzo, eta };
+  // scadenza fissa: parametro a parte, vale quanto l'urgenza ma solo per le date che non si possono spostare
+  const urgenza = urgency(i, today);
+  const fissa = i.rigida && dueDate(i) ? urgenza : 0;
+  return { urgenza, importanza, sforzo, eta, fissa };
 }
 
 /** Peso di ogni componente nel punteggio. */
 export type PesiPunteggio = ComponentiPunteggio;
 
-/** Pesi di base: 45% urgenza, 35% importanza, 10% poco sforzo, 10% età. */
-export const PESI_PREDEFINITI: PesiPunteggio = { urgenza: 0.45, importanza: 0.35, sforzo: 0.10, eta: 0.10 };
+/**
+ * Pesi di base: la scadenza fissa pesa il 20%, il resto si divide come prima (45% urgenza, 35% importanza, 10% poco sforzo,
+ * 10% età) e quindi 36/28/8/8. Le note senza scadenza fissa non risentono del 20%: il loro punteggio è come prima.
+ */
+export const PESI_PREDEFINITI: PesiPunteggio = { urgenza: 0.36, importanza: 0.28, sforzo: 0.08, eta: 0.08, fissa: 0.20 };
 
 let pesiAttivi: PesiPunteggio = { ...PESI_PREDEFINITI };
 
 /** Porta i pesi a somma 1 (così il punteggio resta tra 0 e 100); se sono tutti zero tornano quelli di base. */
 export function normalizzaPesi(p: PesiPunteggio): PesiPunteggio {
   const v = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
-  const somma = v(p.urgenza) + v(p.importanza) + v(p.sforzo) + v(p.eta);
+  const somma = v(p.urgenza) + v(p.importanza) + v(p.sforzo) + v(p.eta) + v(p.fissa);
   if (somma <= 0) return { ...PESI_PREDEFINITI };
-  return { urgenza: v(p.urgenza) / somma, importanza: v(p.importanza) / somma, sforzo: v(p.sforzo) / somma, eta: v(p.eta) / somma };
+  return { urgenza: v(p.urgenza) / somma, importanza: v(p.importanza) / somma, sforzo: v(p.sforzo) / somma, eta: v(p.eta) / somma, fissa: v(p.fissa) / somma };
 }
 
 export const getPesi = (): PesiPunteggio => pesiAttivi;
@@ -82,7 +84,11 @@ export function impostaPesi(p: PesiPunteggio | undefined) { pesiAttivi = p ? nor
 export function score(i: Item, today: string, now: number = Date.now()): number {
   const c = componentiPunteggio(i, today, now);
   const w = pesiAttivi;
-  const s = w.urgenza * c.urgenza + w.importanza * c.importanza + w.sforzo * c.sforzo + w.eta * c.eta;
+  // i quattro parametri di sempre, riportati a somma 1 tra loro: una nota senza scadenza fissa non perde mai punti
+  const resto = w.urgenza + w.importanza + w.sforzo + w.eta;
+  const base = resto > 0 ? (w.urgenza * c.urgenza + w.importanza * c.importanza + w.sforzo * c.sforzo + w.eta * c.eta) / resto : 0;
+  // la scadenza fissa è un parametro a parte: riempie una parte dello spazio che manca al 100 (più il peso, più sale)
+  const s = base + (100 - base) * w.fissa * (c.fissa / 100);
   return Math.round(Math.min(100, Math.max(0, s)));
 }
 

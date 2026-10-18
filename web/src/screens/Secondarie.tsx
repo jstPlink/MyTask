@@ -2,10 +2,10 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { NOMI_TIPO, type Item, type Tipo } from '../../../shared/types.ts';
 import { addDays, formatShortYear, monthKey, monthLabel, relativeDays, today } from '../../../shared/dates.ts';
 import { dueDate } from '../../../shared/priority.ts';
-import { daParte, archivio, dataChiusura, inbox, revisione } from '../../../shared/views.ts';
+import { daParte, archivio, dataChiusura, inbox } from '../../../shared/views.ts';
 import { COMPAGNIE, ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE, suggerisciStasera, type Compagnia } from '../../../shared/stasera.ts';
 import { useAspetto, useAuth, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
-import { completaVoce, nuovaVoce, ripianifica, saltaVoce } from '../lib/actions.ts';
+import { completaVoce, nuovaVoce } from '../lib/actions.ts';
 import { removeItem, saveBatch, saveItem, setAuth } from '../lib/store.ts';
 import { validaVoci } from '../../../shared/validate.ts';
 import { apiBase, scaricaEsportazione, logout } from '../lib/api.ts';
@@ -25,7 +25,6 @@ export function Altro() {
   const oggi = useOggi();
   const a = useAspetto();
   const nInbox = useMemo(() => inbox(items).length, [items]);
-  const nRev = useMemo(() => revisione(items, oggi).length, [items, oggi]);
   const nArch = useMemo(() => archivio(items).length, [items]);
   const nParte = useMemo(() => daParte(items).length, [items]);
   const voce = (nome: string, valore: string | number | undefined, k: Parameters<typeof nav.push>[0]) => (
@@ -37,11 +36,11 @@ export function Altro() {
       <Top title="Altro" />
       <div className="scroll">
         {voce('Inbox', nInbox ? `${nInbox} da smistare` : 'vuota', { k: 'inbox' })}
-        {voce('Revisione', nRev, { k: 'revisione' })}
         {voce('Archiviate', nParte || undefined, { k: 'daparte' })}
         {voce('Completato', nArch, { k: 'archivio' })}
         <Sec a="App" />
         {voce('Tempo libero', undefined, { k: 'tempolibero' })}
+        {voce('Intelligenza artificiale', 'Gemini e Groq', { k: 'ia' })}
         <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Pesi della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
         <div className="field"><span>Calendario</span><span className="muted">non collegato</span></div>
@@ -89,78 +88,6 @@ export function DaParte() {
         {lista.map((i) => (
           <Row key={i.id} titolo={i.titolo} check="none" onOpen={() => nav.push({ k: 'item', id: i.id })} meta={NOMI_TIPO[i.tipo]} />
         ))}
-      </div>
-    </>
-  );
-}
-
-// ------------------------------------------------------------------ Revisione
-
-export function Revisione() {
-  const nav = useNav();
-  const items = useItems();
-  const oggi = useOggi();
-  const lista = useMemo(() => revisione(items, oggi), [items, oggi]);
-  const totale = useRef(lista.length);
-  if (lista.length > totale.current) totale.current = lista.length;
-  const [pianifica, setPianifica] = useState(false);
-  const [data, setData] = useState('');
-  const v = lista[0];
-
-  useEffect(() => { setPianifica(false); setData(''); }, [v?.item.id]);
-  useLayer('pianifica', pianifica, () => setPianifica(false)); // "indietro" chiude il pannello della data
-
-  if (!v) {
-    return (
-      <>
-        <Back />
-        <Top title="Revisione" sub="Tutto in ordine" />
-        <div className="scroll"><Empty>Niente da rivedere. Le voci scadute da più di due giorni, i progetti fermi e le attività senza modifiche da molto tempo compaiono qui.</Empty></div>
-      </>
-    );
-  }
-  const i = v.item;
-  const fatte = totale.current - lista.length;
-  const quando = v.motivo === 'scaduta' ? `Scaduta ${relativeDays(dueDate(i)!, oggi)}`
-    : v.motivo === 'fermo' ? `Progetto fermo da ${v.giorni} giorni`
-    : v.motivo === 'vecchia' ? `Senza modifiche da ${v.giorni} giorni: priorità e parametri sono ancora giusti?`
-    : 'Da rivedere';
-  const stantia = v.motivo === 'fermo' || v.motivo === 'vecchia';
-  const opzioni: [string, string][] = [['Domani', addDays(oggi, 1)], ['Tra una settimana', addDays(oggi, 7)], ['Tra un mese', addDays(oggi, 30)]];
-
-  return (
-    <>
-      <Back />
-      <Top title="Revisione" sub={`${fatte + 1} su ${totale.current}`} />
-      <div className="scroll">
-        <div className="bar" style={{ marginTop: 12 }}><i style={{ width: `${(fatte / totale.current) * 100}%` }} /></div>
-        <div className="card strong" style={{ marginTop: 20 }}>
-          <div className="t2 warn">{quando}</div>
-          <div className="t1" style={{ fontSize: 20, margin: '4px 0 6px' }}>{i.titolo}</div>
-          <div className="t2">{[NOMI_TIPO[i.tipo], dueDate(i) && formatShortYear(dueDate(i)!, oggi), i.importanza ? `importanza ${i.importanza}` : undefined].filter(Boolean).join(' · ')}</div>
-          {i.note && <div className="t2" style={{ marginTop: 6 }}>{i.note.slice(0, 140)}</div>}
-          {!pianifica ? (
-            <div className="btns col">
-              {stantia
-                ? <button className="btn solid" onClick={() => saveItem({ ...i })}>{v.motivo === 'vecchia' ? 'Va ancora bene' : 'Va avanti, ci lavoro'}</button>
-                : <button className="btn solid" onClick={() => setPianifica(true)}>Ripianifica</button>}
-              {v.motivo === 'vecchia' && <button className="btn" onClick={() => nav.push({ k: 'item', id: i.id })}>Cambia priorità e parametri</button>}
-              {stantia
-                ? <button className="btn" onClick={() => saveItem({ ...i, stato: 'parcheggiato' })}>Parcheggia</button>
-                : <button className="btn" onClick={() => completaVoce(i)}>Segna fatto</button>}
-              <button className="btn" onClick={() => saltaVoce(i)}>Salta</button>
-              {v.motivo !== 'vecchia' && <button className="chip" style={{ alignSelf: 'center' }} onClick={() => nav.push({ k: 'item', id: i.id })}>Apri la voce</button>}
-            </div>
-          ) : (
-            <div className="btns col">
-              {opzioni.map(([nome, iso]) => <button key={nome} className="btn" onClick={() => ripianifica(i, iso)}>{nome}</button>)}
-              <div className="field"><span>Scegli</span><input type="date" min={oggi} value={data} onChange={(e) => setData(e.target.value)} /></div>
-              <button className="btn solid" disabled={!data} onClick={() => ripianifica(i, data)}>Conferma</button>
-              <button className="chip" style={{ alignSelf: 'center' }} onClick={() => setPianifica(false)}>Indietro</button>
-            </div>
-          )}
-        </div>
-        {lista.length > 1 && <div className="t2" style={{ textAlign: 'center', marginTop: 16 }}>Poi: {lista.slice(1, 4).map((x) => x.item.titolo).join(' · ')}{lista.length > 4 ? '…' : ''}</div>}
       </div>
     </>
   );

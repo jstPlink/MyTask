@@ -113,10 +113,14 @@ export function fasceDelGiorno(disp: Disponibilita, data: string): FasciaOraria[
   return disp.eccezioni?.[data] ?? disp.settimana[giornoSettimana(data)] ?? [];
 }
 
-/** Toglie le fasce inserite per giorni già passati (prima di `oggi`), così l'impostazione non cresce all'infinito. */
+/** Giorni passati per cui si ricordano gli orari inseriti (servono a calcolare il tempo davvero lavorato su una nota iniziata giorni fa). */
+export const GIORNI_ORARI_RICORDATI = 45;
+
+/** Toglie gli orari inseriti per giorni passati da molto tempo, così l'impostazione non cresce all'infinito. */
 export function senzaGiorniPassati(eccezioni: Record<string, FasciaOraria[]> | undefined, oggi: string): Record<string, FasciaOraria[]> | undefined {
   if (!eccezioni) return undefined;
-  const out = Object.fromEntries(Object.entries(eccezioni).filter(([g]) => g >= oggi));
+  const limite = addDays(oggi, -GIORNI_ORARI_RICORDATI);
+  const out = Object.fromEntries(Object.entries(eccezioni).filter(([g]) => g >= limite));
   return Object.keys(out).length ? out : undefined;
 }
 
@@ -301,4 +305,32 @@ export function minutiDisponibili(disp: Disponibilita, data: string, oggi: strin
 export function fasceLibere(disp: Disponibilita, data: string): [number, number][] {
   const fasce = fasceDelGiorno(disp, data);
   return fasce.map((f): [number, number] => [minuti(f.da), minuti(f.a)]).filter(([a, b]) => b > a);
+}
+
+const isoDi = (ts: number) => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const minutoDel = (ts: number) => { const d = new Date(ts); return d.getHours() * 60 + d.getMinutes(); };
+
+/** Minuti tra due istanti che cadono nei lassi di tempo segnati come liberi (le pause fuori dal tempo libero non contano). */
+export function minutiLiberiTra(disp: Disponibilita, daTs: number, aTs: number): number {
+  if (aTs <= daTs) return 0;
+  const ultimo = isoDi(aTs);
+  let totale = 0;
+  let giorno = isoDi(daTs);
+  for (let n = 0; n < 120 && giorno <= ultimo; n++, giorno = addDays(giorno, 1)) {
+    const inizio = giorno === isoDi(daTs) ? minutoDel(daTs) : 0;
+    const fine = giorno === ultimo ? minutoDel(aTs) : 1440;
+    for (const [s, e] of fasceLibere(disp, giorno)) totale += Math.max(0, Math.min(e, fine) - Math.max(s, inizio));
+  }
+  return totale;
+}
+
+/**
+ * Tempo reale di una nota completata: dall'istante in cui è passata «in corso» a quello in cui è stata completata, contando solo
+ * il tempo libero segnato (se hai staccato e ripreso la sera, la pausa non pesa). Senza «in corso» non c'è una misura (undefined).
+ * Senza tempo libero impostato conta il tempo trascorso, al massimo 8 ore.
+ */
+export function durataRealeInCorso(item: Item, now: number, disp: Disponibilita | null): number | undefined {
+  if (!item.inCorsoTs || now <= item.inCorsoTs) return undefined;
+  const minuti = disp ? minutiLiberiTra(disp, item.inCorsoTs, now) : Math.min(480, (now - item.inCorsoTs) / 60000);
+  return minuti >= 0.5 ? Math.max(1, Math.round(minuti)) : undefined;
 }

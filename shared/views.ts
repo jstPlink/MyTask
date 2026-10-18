@@ -3,7 +3,7 @@ import type { Item } from './types.ts';
 import { chiaveTitolo } from './capture.ts';
 import { addDays, diffDays } from './dates.ts';
 import {
-  SOGLIA_REVISIONE_GIORNI, daysOverdue, dueDate, isClosed, isOpen, score, withInheritance,
+  dueDate, isClosed, isOpen, score, withInheritance,
 } from './priority.ts';
 import { routineDueToday } from './routine.ts';
 
@@ -15,14 +15,10 @@ export interface Entry {
   punteggio: number;
 }
 
-export type MotivoRevisione = 'scaduta' | 'manuale' | 'fermo' | 'vecchia';
-export interface VoceRevisione { item: Item; motivo: MotivoRevisione; giorni: number }
-
-const GIORNI_PROGETTO_FERMO = 30;
-/** Un'attività senza scadenza che non viene toccata da tanto va rivista: forse la priorità o gli altri parametri non sono più giusti. */
-export const GIORNI_ATTIVITA_VECCHIA = 45;
-
 export const live = (items: Item[]) => items.filter((i) => !i.eliminato);
+
+/** Nella Inbox: catturata e non ancora smistata, oppure ancora senza tipo. */
+export const inInbox = (i: Item) => !!i.inbox || i.tipo === 'nota';
 
 export function figli(items: Item[], padreId: string): Item[] {
   return live(items)
@@ -47,28 +43,6 @@ const parcheggiata = (i: Item) => i.stato === 'parcheggiato';
 /** Voce che appartiene alle liste di azione (non a collezioni, routine, persone). */
 const TIPI_LISTA_AZIONE = new Set(['azione', 'progetto', 'esperienza']);
 
-/** Voci in Revisione: scadute da più di SOGLIA giorni, segnate a mano, progetti fermi. */
-export function revisione(items: Item[], today: string, now: number = Date.now()): VoceRevisione[] {
-  const out: VoceRevisione[] = [];
-  const tutte = live(items);
-  for (const i of tutte) {
-    if (!isOpen(i) || parcheggiata(i) || i.inbox || i.tipo === 'persona' || i.tipo === 'routine') continue;
-    const giorni = daysOverdue(i, today);
-    if (giorni > SOGLIA_REVISIONE_GIORNI) out.push({ item: i, motivo: 'scaduta', giorni });
-    else if (i.daRivedere) out.push({ item: i, motivo: 'manuale', giorni });
-    else if (i.tipo === 'azione' && !i.padreId && !dueDate(i)) {
-      const eta = Math.floor((now - i.aggiornato) / 86400000);
-      if (eta > GIORNI_ATTIVITA_VECCHIA) out.push({ item: i, motivo: 'vecchia', giorni: eta });
-    } else if (i.tipo === 'progetto') {
-      const ultimo = Math.max(i.aggiornato, ...figli(tutte, i.id).map((c) => c.aggiornato));
-      if (now - ultimo > GIORNI_PROGETTO_FERMO * 86400000 && prossimoPasso(i, tutte)) {
-        out.push({ item: i, motivo: 'fermo', giorni: Math.floor((now - ultimo) / 86400000) });
-      }
-    }
-  }
-  return out.sort((a, b) => (dueDate(a.item) ?? '9999').localeCompare(dueDate(b.item) ?? '9999'));
-}
-
 /**
  * Punteggio di una nota tenendo conto delle dipendenze: in un progetto ogni passo dipende dal precedente, quindi un passo
  * non può avere priorità più bassa di quelli che vengono dopo (se un passo successivo è urgente, anche i passi che lo precedono lo sono).
@@ -89,16 +63,15 @@ export function punteggioEffettivo(i: Item, items: Item[], today: string, now: n
 
 export function candidatiOggi(items: Item[], today: string, now: number): Entry[] {
   const tutte = live(items);
-  const inRevisione = new Set(revisione(tutte, today, now).map((v) => v.item.id));
   const cache = new Map<string, Item[]>();
   const out: Entry[] = [];
   for (const i of tutte) {
-    if (!isOpen(i) || parcheggiata(i) || i.inbox || inRevisione.has(i.id)) continue;
+    if (!isOpen(i) || parcheggiata(i) || i.inbox) continue;
     if (!TIPI_LISTA_AZIONE.has(i.tipo)) continue;
     if (i.padreId) continue; // i figli compaiono solo come prossimo passo del padre
     if (i.tipo === 'progetto') {
       const next = prossimoPasso(i, tutte);
-      if (next && !inRevisione.has(next.id)) {
+      if (next) {
         const eff = withInheritance(next, i);
         out.push({ item: eff, padre: i, punteggio: punteggioEffettivo(next, tutte, today, now, cache) });
       } else if (!next && figli(tutte, i.id).length === 0) {
@@ -133,7 +106,6 @@ export interface VistaOggi {
   fare: Entry[];
   prossimi: Entry[];
   inbox: number;
-  revisione: number;
 }
 
 const MAX_OGGI = 5;
@@ -165,14 +137,13 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
     routine: routineDueToday(items, today),
     fare,
     prossimi,
-    inbox: live(items).filter((i) => i.inbox).length,
-    revisione: revisione(items, today, now).length,
+    inbox: live(items).filter(inInbox).length,
   };
 }
 
 export function listaAzioni(items: Item[], today: string, now: number = Date.now()): Entry[] {
   const tutte = live(items);
-  // tutte le attività aperte, comprese quelle in Revisione (scadute o ferme da tempo)
+  // tutte le attività aperte, comprese quelle scadute
   const cache = new Map<string, Item[]>();
   const ordinePasso = new Map<string, number>();
   for (const p of tutte.filter((x) => x.tipo === 'progetto')) figli(tutte, p.id).forEach((c, n) => ordinePasso.set(c.id, n));
@@ -205,15 +176,14 @@ export function daParte(items: Item[]): Item[] {
     .sort((a, b) => b.aggiornato - a.aggiornato);
 }
 
-export interface VoceProgetto { progetto: Item; fatti: number; totale: number; prossimo?: Item; fermo: boolean }
+export interface VoceProgetto { progetto: Item; fatti: number; totale: number; prossimo?: Item }
 
 export function listaProgetti(items: Item[], today: string, now: number = Date.now()): VoceProgetto[] {
   const tutte = live(items);
-  const fermi = new Set(revisione(tutte, today, now).filter((v) => v.motivo === 'fermo').map((v) => v.item.id));
   return tutte
     .filter((i) => i.tipo === 'progetto' && isOpen(i) && !parcheggiata(i))
-    .map((p) => ({ progetto: p, ...avanzamento(p, tutte), prossimo: prossimoPasso(p, tutte), fermo: fermi.has(p.id) }))
-    .sort((a, b) => Number(a.fermo) - Number(b.fermo) || score(b.progetto, today, now) - score(a.progetto, today, now));
+    .map((p) => ({ progetto: p, ...avanzamento(p, tutte), prossimo: prossimoPasso(p, tutte) }))
+    .sort((a, b) => score(b.progetto, today, now) - score(a.progetto, today, now));
 }
 
 export interface VistaEsperienze { conData: Item[]; perZona: [string, Item[]][] }
@@ -251,7 +221,7 @@ export function curiosita(items: Item[]): Item[] {
 }
 
 export function inbox(items: Item[]): Item[] {
-  return live(items).filter((i) => i.inbox).sort((a, b) => b.creato - a.creato);
+  return live(items).filter(inInbox).sort((a, b) => b.creato - a.creato);
 }
 
 /** Data usata per ordinare l'archivio. */
@@ -270,6 +240,16 @@ export function nomiUsati(items: Item[]): string[] {
   const set = new Set<string>();
   for (const i of live(items)) for (const n of [i.consigliatoDa, i.conChi]) if (n?.trim()) set.add(n.trim());
   return [...set].sort((a, b) => a.localeCompare(b, 'it'));
+}
+
+/** Luoghi già inseriti nelle esperienze, dal più usato al meno usato (a parità in ordine alfabetico), per sceglierli senza riscriverli. */
+export function luoghiUsati(items: Item[]): string[] {
+  const conta = new Map<string, number>();
+  for (const i of live(items)) {
+    const z = i.zona?.trim();
+    if (z) conta.set(z, (conta.get(z) ?? 0) + 1);
+  }
+  return [...conta.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it')).map(([z]) => z);
 }
 
 /** Ricerca per parole nel titolo, nelle note e nei campi di testo. Tutte le parole devono comparire. */

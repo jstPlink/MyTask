@@ -3,8 +3,13 @@ import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
 import { DISPONIBILITA_SUGGERITA, fasceDelGiorno, minutiDisponibili, minuti, orario, pianifica, senzaGiorniPassati, type Disponibilita } from './piano.ts';
 import { richiesteOrari } from './pianifica.ts';
-import { classificaPriorita, listaAzioni, posizionePriorita, punteggioEffettivo } from './views.ts';
-import { impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
+import { durataRealeInCorso, minutiLiberiTra } from './piano.ts';
+import { campiDaRisposta, leggiRisposta, opereSenzaTipologia, promptTipologie, riepilogoPerChat } from './ia.ts';
+import { inboxNonAssegnata } from './migrazioni.ts';
+import { inbox as listaInbox } from './views.ts';
+import { coordinateDaLink, distanzaKm, ordinaPerTe } from './esperienze.ts';
+import { classificaPriorita, listaAzioni, luoghiUsati, posizionePriorita, punteggioEffettivo } from './views.ts';
+import { barLevel, componentiPunteggio, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
 
 // giovedì 15 ottobre 2026, ore 10:00
 const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
@@ -89,7 +94,7 @@ test('piano: senza fasce non pianifica nulla e usa i valori suggeriti', () => {
 });
 
 // ---- migrazioni di persone e checklist
-import { ripristinaChecklistProgetto, segnaImportataDaRivedere, spostaInNote } from './migrazioni.ts';
+import { ripristinaChecklistProgetto, spostaInNote } from './migrazioni.ts';
 
 test('migrazione: persone e checklist passano nelle note, ma non la checklist dei progetti', () => {
   const a = mk({ note: 'Idee', persone: ['Mario'], checklist: [{ id: 'x', testo: 'Torta', fatto: true }, { id: 'y', testo: 'Inviti', fatto: false }] });
@@ -170,16 +175,6 @@ test('piano: ogni curiosità serve a una sola pausa e le pause sono al massimo d
   assert.equal(new Set(pause.map((x) => x.item.id)).size, pause.length);
   for (const g of p.giorni) assert.ok(g.blocchi.filter((x) => x.pausa).length <= 2);
   assert.ok(pause.length >= 1);
-});
-
-test('migrazione: le attività importate da Notion e mai toccate vanno in Revisione, una volta sola', () => {
-  const imp = mk({ id: 'n0123456789ab', creato: 5, aggiornato: 5 });
-  const r = segnaImportataDaRivedere(imp)!;
-  assert.equal(r.daRivedere, true);
-  assert.equal(segnaImportataDaRivedere({ ...imp, aggiornato: 6 }), undefined); // già toccata
-  assert.equal(segnaImportataDaRivedere({ ...imp, id: 'a1b2c3d4e5f60718' }), undefined); // creata nell'app
-  assert.equal(segnaImportataDaRivedere({ ...imp, stato: 'fatto' }), undefined);
-  assert.equal(segnaImportataDaRivedere({ ...imp, tipo: 'film' }), undefined);
 });
 
 test('piano: tra un\'attività e la successiva c\'è la pausa (5 minuti di base, regolabile)', () => {
@@ -324,8 +319,8 @@ test('piano: in modalità flessibile contano solo gli orari inseriti per il gior
 
 test('piano: senzaGiorniPassati toglie i giorni vecchi', () => {
   const r = senzaGiorniPassati({ '2026-10-10': [], '2026-10-15': [{ da: '10:00', a: '11:00' }], '2026-10-16': [] }, OGGI);
-  assert.deepEqual(Object.keys(r ?? {}), ['2026-10-15', '2026-10-16']);
-  assert.equal(senzaGiorniPassati({ '2026-10-01': [] }, OGGI), undefined);
+  assert.deepEqual(Object.keys(r ?? {}), ['2026-10-10', '2026-10-15', '2026-10-16']);
+  assert.equal(senzaGiorniPassati({ '2026-07-01': [] }, OGGI), undefined);
 });
 
 test("notifiche: la richiesta serale degli orari c'è solo in modalità flessibile e salta i giorni già inseriti", () => {
@@ -373,12 +368,12 @@ test('priorità: i pesi sono configurabili e si normalizzano', () => {
   const importante = mk({ importanza: 5 });
   const base = score(urgente, OGGI, NOW) - score(importante, OGGI, NOW);
   try {
-    impostaPesi({ urgenza: 0, importanza: 1, sforzo: 0, eta: 0 });
+    impostaPesi({ urgenza: 0, importanza: 1, sforzo: 0, eta: 0, fissa: 0 });
     assert.ok(score(importante, OGGI, NOW) > score(urgente, OGGI, NOW), "con solo l'importanza vince la nota importante");
-    impostaPesi({ urgenza: 10, importanza: 0, sforzo: 0, eta: 0 });
+    impostaPesi({ urgenza: 10, importanza: 0, sforzo: 0, eta: 0, fissa: 0 });
     assert.equal(score(urgente, OGGI, NOW), 100);
-    assert.deepEqual(normalizzaPesi({ urgenza: 0, importanza: 0, sforzo: 0, eta: 0 }), PESI_PREDEFINITI);
-    assert.equal(Math.round(normalizzaPesi({ urgenza: 2, importanza: 2, sforzo: 0, eta: 0 }).urgenza * 100), 50);
+    assert.deepEqual(normalizzaPesi({ urgenza: 0, importanza: 0, sforzo: 0, eta: 0, fissa: 0 }), PESI_PREDEFINITI);
+    assert.equal(Math.round(normalizzaPesi({ urgenza: 2, importanza: 2, sforzo: 0, eta: 0, fissa: 0 }).urgenza * 100), 50);
   } finally {
     impostaPesi(undefined);
   }
@@ -404,4 +399,99 @@ test("piano: una nota in corso senza posto salvato parte dall'ora in cui è pass
   const adesso = new Date(2026, 9, 15, 10, 55).getTime();
   const g = pianifica([a], { settimana: Array.from({ length: 7 }, () => [{ da: '08:00', a: '21:00' }]), pausaMin: 0 }, OGGI, adesso).giorni[0];
   assert.equal(orario(g.blocchi[0].da), '09:00');
+});
+
+test('priorità: la scadenza fissa è un parametro a parte e fa salire la nota', () => {
+  const stessa = { importanza: 3, fine: '2026-10-16' };
+  const fissa = mk({ ...stessa, rigida: true });
+  const normale = mk({ ...stessa });
+  assert.equal(componentiPunteggio(fissa, OGGI, NOW).fissa, componentiPunteggio(fissa, OGGI, NOW).urgenza);
+  assert.equal(componentiPunteggio(normale, OGGI, NOW).fissa, 0);
+  assert.equal(componentiPunteggio(fissa, OGGI, NOW).urgenza, componentiPunteggio(normale, OGGI, NOW).urgenza, "l'urgenza non cambia: la fissa è separata");
+  assert.ok(score(fissa, OGGI, NOW) > score(normale, OGGI, NOW));
+  assert.equal(componentiPunteggio(mk({ rigida: true }), OGGI, NOW).fissa, 0, "senza data non c'è scadenza fissa");
+});
+
+test('priorità: senza scadenza fissa il punteggio resta quello di sempre (una nota urgente è alta)', () => {
+  const urgente = mk({ importanza: 3, fine: OGGI, sforzoMin: 30 });
+  assert.equal(score(urgente, OGGI, NOW), 69, '45% urgenza (100) + 35% importanza (50) + 10% sforzo (60)');
+  assert.ok(barLevel(score(urgente, OGGI, NOW)) === 3, 'resta nel livello alto (rosso)');
+  const fissa = mk({ importanza: 3, fine: OGGI, sforzoMin: 30, rigida: true });
+  assert.ok(score(fissa, OGGI, NOW) > 69 && score(fissa, OGGI, NOW) <= 100);
+});
+
+test('esperienze: i luoghi già inseriti si propongono dal più usato, senza doppioni', () => {
+  const items = [mk({ tipo: 'esperienza', zona: 'Torino' }), mk({ tipo: 'esperienza', zona: 'Lucca' }), mk({ tipo: 'esperienza', zona: 'Torino ' }), mk({ tipo: 'esperienza' }), mk({ tipo: 'esperienza', zona: 'Roma', eliminato: true })];
+  assert.deepEqual(luoghiUsati(items), ['Torino', 'Lucca']);
+});
+
+test('esperienze «Per te»: interesse, data più vicina e distanza', () => {
+  const torino = { lat: 45.07, lon: 7.68 };
+  const lucca = { lat: 43.84, lon: 10.5 };
+  const vicinoPoco = mk({ tipo: 'esperienza', titolo: 'Vicino', interesse: 2, zona: 'Torino' });
+  const lontanoMolto = mk({ tipo: 'esperienza', titolo: 'Lontano', interesse: 5, zona: 'Lucca' });
+  const urgenteVicino = mk({ tipo: 'esperienza', titolo: 'Urgente', interesse: 3, zona: 'Torino', inizio: '2026-10-16' });
+  const coord = (i: Item) => (i.zona === 'Torino' ? torino : lucca);
+  const r = ordinaPerTe([vicinoPoco, lontanoMolto, urgenteVicino], OGGI, torino, coord);
+  assert.equal(r[0].item.titolo, 'Urgente', 'data vicina e luogo vicino vincono');
+  assert.ok((r.find((x) => x.item.titolo === 'Lontano')!.km ?? 0) > 250);
+  assert.ok(distanzaKm(torino, torino) < 0.001);
+  // senza posizione la distanza non conta: vince l'interesse (a parità di data)
+  const senza = ordinaPerTe([vicinoPoco, lontanoMolto], OGGI, undefined, coord);
+  assert.equal(senza[0].item.titolo, 'Lontano');
+  assert.equal(senza[0].km, undefined);
+  assert.deepEqual(coordinateDaLink('https://www.google.com/maps/place/Duomo/@45.0703,7.6869,17z'), { lat: 45.0703, lon: 7.6869 });
+  assert.deepEqual(coordinateDaLink('https://maps.google.com/?q=43.84,10.5'), { lat: 43.84, lon: 10.5 });
+  assert.equal(coordinateDaLink('https://maps.google.com/?q=Duomo'), undefined);
+});
+
+test("inbox: le note senza tipo scelto sono «non assegnate» e restano in Inbox finché non si sceglie", () => {
+  const vecchia = mk({ inbox: true, tipo: 'azione', creato: NOW, aggiornato: NOW });
+  const modificata = mk({ inbox: true, tipo: 'azione', creato: NOW, aggiornato: NOW + 5 });
+  const gia = inboxNonAssegnata(vecchia)!;
+  assert.equal(gia.tipo, 'nota');
+  assert.equal(inboxNonAssegnata(modificata), undefined, "se l'ha già toccata, non si cambia");
+  assert.equal(inboxNonAssegnata(mk({ tipo: 'azione' })), undefined, "fuori dall'Inbox non si tocca");
+  const senzaFlag = mk({ tipo: 'nota' });
+  assert.deepEqual(listaInbox([gia, senzaFlag, mk({ tipo: 'azione' })]).map((i) => i.id).sort(), [gia.id, senzaFlag.id].sort());
+});
+
+test("IA: autocompila la tipologia delle opere senza toccare quello che c'è già", () => {
+  const film = mk({ tipo: 'film', titolo: 'Inception' });
+  const conGenere = mk({ tipo: 'film', titolo: 'Heat', genere: 'Azione' });
+  const attivita = mk({ tipo: 'azione', titolo: "Non è un'opera" });
+  const serie = mk({ tipo: 'serie', titolo: 'Dark', mood: 'Intenso' });
+  const libro = mk({ tipo: 'libro', titolo: 'Il nome della rosa' });
+  const da = opereSenzaTipologia([film, conGenere, attivita, serie, libro]);
+  assert.deepEqual(da.map((o) => o.titolo), ['Inception', 'Dark', 'Il nome della rosa']);
+  assert.match(promptTipologie(da), /0\. \[Film\] Inception/);
+  const risposta = leggiRisposta('Ecco:\n```json\n{"risultati":[{"n":0,"tipologie":["fantascienza","Thriller","Inventata"],"mood":"Emozionante","energia":"alta"},{"n":1,"tipologie":["Thriller"],"mood":"Rilassante","energia":"media"},{"n":2,"tipologie":["Drammatico"],"mood":"Intenso"}]}\n```');
+  assert.equal(risposta.length, 3);
+  assert.deepEqual(campiDaRisposta(film, risposta[0]), { genere: 'Fantascienza, Thriller', mood: 'Emozionante', energia: 'alta' });
+  assert.deepEqual(campiDaRisposta(serie, risposta[1]), { genere: 'Thriller', energia: 'media' }, "il mood c'è già e non si cambia");
+  assert.deepEqual(campiDaRisposta(libro, risposta[2]), { genere: 'Drammatico' }, 'per i libri solo la tipologia');
+  assert.deepEqual(leggiRisposta('non è json'), []);
+});
+
+test('IA: il riepilogo per la chat è compatto e non include le note private', () => {
+  const a = mk({ tipo: 'azione', titolo: 'Pagare la bolletta', fine: '2026-10-16', note: 'testo segreto lungo' });
+  const r = riepilogoPerChat([a, mk({ tipo: 'film', titolo: 'Dune' })], OGGI, NOW);
+  assert.match(r, /Pagare la bolletta/);
+  assert.match(r, /Dune/);
+  assert.ok(!r.includes('testo segreto'));
+});
+
+test("durata reale: conta solo il tempo libero segnato, non le pause", () => {
+  const disp: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '10:00', a: '10:30' }, { da: '18:00', a: '21:00' }]), pausaMin: 0 };
+  const inizio = new Date(2026, 9, 15, 10, 0).getTime();
+  const fine = new Date(2026, 9, 15, 19, 0).getTime();
+  assert.equal(minutiLiberiTra(disp, inizio, fine), 30 + 60, "30 minuti al mattino e 1 ora la sera, non 9 ore");
+  const nota = mk({ sforzoMin: 120, stato: 'in_corso', inCorsoTs: inizio });
+  assert.equal(durataRealeInCorso(nota, fine, disp), 90);
+  assert.equal(durataRealeInCorso(mk({ sforzoMin: 60 }), fine, disp), undefined, "senza «in corso» non c'è una misura");
+  // più giorni: la notte e le ore non libere non pesano
+  const dopodomani = new Date(2026, 9, 17, 18, 30).getTime();
+  assert.equal(minutiLiberiTra(disp, inizio, dopodomani), 30 + 180 + 30 + 180 + 30 + 30);
+  // senza tempo libero impostato: tempo trascorso, al massimo 8 ore
+  assert.equal(durataRealeInCorso(nota, fine, null), 480);
 });

@@ -21,12 +21,14 @@ import { Login } from './screens/Login.tsx';
 import { TempoLibero } from './screens/TempoLibero.tsx';
 import { OrariGiorno } from './screens/OrariGiorno.tsx';
 import { PesiPriorita } from './screens/PesiPriorita.tsx';
+import { IA } from './screens/IA.tsx';
+import { Chat } from './screens/Chat.tsx';
 import { ascoltaRichiestaOrari, prendiRichiestaOrari } from './lib/richiestaOrari.ts';
 import { RecensioneSheet } from './ui/Recensione.tsx';
 import { StatoMenu } from './ui/StatoMenu.tsx';
-import { DurataSheet } from './ui/DurataSheet.tsx';
+import { CompletamentoSheet } from './ui/CompletamentoSheet.tsx';
 import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
-import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Revisione, Stasera } from './screens/Secondarie.tsx';
+import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Stasera } from './screens/Secondarie.tsx';
 
 interface Posizione { tab: Tab; fareSub: SubFare; scoprireSub: SubScoprire }
 /** Una voce della cronologia: dove si è (scheda, pila di schermate) e quali finestre sono aperte. */
@@ -38,7 +40,6 @@ function Schermata({ s }: { s: Screen }) {
     case 'item': return <ItemDetail id={s.id} nuovo={s.nuovo} />;
     case 'altro': return <Altro />;
     case 'inbox': return <Inbox />;
-    case 'revisione': return <Revisione />;
     case 'archivio': return <Archivio />;
     case 'daparte': return <DaParte />;
     case 'aspetto': return <Aspetto />;
@@ -47,6 +48,8 @@ function Schermata({ s }: { s: Screen }) {
     case 'account': return <Account />;
     case 'orari': return <OrariGiorno giorno={s.giorno} />;
     case 'pesi': return <PesiPriorita />;
+    case 'ia': return <IA />;
+    case 'chat': return <Chat />;
   }
 }
 
@@ -219,7 +222,7 @@ export function App() {
           {capture && <Capture />}
           <RecensioneSheet />
           <StatoMenu />
-          <DurataSheet />
+          <CompletamentoSheet />
           <AvanzamentoProgetto />
           <ToastView />
         </div>
@@ -254,7 +257,7 @@ export function App() {
         {capture && <Capture />}
         <RecensioneSheet />
           <StatoMenu />
-          <DurataSheet />
+          <CompletamentoSheet />
           <AvanzamentoProgetto />
         <ToastView />
       </div>
