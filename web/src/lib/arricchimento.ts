@@ -4,17 +4,20 @@
 // i filtri di "Cosa guardo stasera" li usano. Vale per le voci nuove e per quelle già inserite.
 import type { Item, Tipo } from '../../../shared/types.ts';
 import { accorciaDescrizione, campiDaDati, daArricchire, descrizioneCompatibile, type DatiTrovati } from '../../../shared/arricchimento.ts';
-import { chiaveTitolo } from '../../../shared/capture.ts';
+import { chiaveTitolo } from '../../../shared/testo.ts';
 import { getItem, getItems, saveItem, subscribe } from './store.ts';
 import { cercaPagine } from './libri.ts';
 
 const WIKIDATA = 'https://www.wikidata.org/w/api.php?format=json&origin=*&';
 /** Pausa tra una voce e l'altra: i servizi gratuiti rispondono 429 se si va troppo veloci. */
 const PAUSA_MS = 1600;
+/** Attesa dopo una risposta 429 prima di riprovare (al terzo 429 di fila il ciclo si ferma fino al prossimo avvio). */
 const ATTESA_LIMITE_MS = 45_000;
 
+/** Il servizio ha risposto 429 (troppe richieste). */
 class LimiteRichieste extends Error {}
 
+/** GET che restituisce il JSON; distingue il limite di richieste dagli altri errori. */
 async function json<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (res.status === 429) throw new LimiteRichieste('429');
@@ -22,10 +25,12 @@ async function json<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** Risultato di `wbsearchentities` (ricerca per nome su Wikidata). */
 interface RisultatoRicerca { id: string; label?: string; description?: string }
 interface Affermazione { mainsnak?: { datavalue?: { value?: { id?: string; amount?: string; unit?: string } } } }
 type Claims = Record<string, Affermazione[] | undefined>;
 
+/** Valori delle affermazioni (claims) di una proprietà di Wikidata. */
 const valori = (c: Claims, p: string) => (c[p] ?? []).map((a) => a.mainsnak?.datavalue?.value).filter((v): v is NonNullable<typeof v> => !!v);
 
 /** Durata in minuti da una quantità di Wikidata (minuti, ore o secondi). */
@@ -38,8 +43,12 @@ function minutiDa(v: { amount?: string; unit?: string } | undefined): number | u
   return n; // minuti (Q7727)
 }
 
-/** Cerca la voce su Wikidata. `null` = non trovata; lancia un errore se la rete non risponde. */
-export async function cercaDati(titolo: string, tipo: Tipo): Promise<DatiTrovati | null> {
+/**
+ * Cerca la voce su Wikidata (prima in italiano, poi in inglese, scartando i risultati non compatibili col tipo):
+ * generi (P136), durata (P2047), pagine (P1104) e una breve descrizione da Wikipedia. Per i libri senza pagine
+ * prova Open Library. `null` = nessun dato trovato; lancia un errore se la rete non risponde.
+ */
+async function cercaDati(titolo: string, tipo: Tipo): Promise<DatiTrovati | null> {
   const t = titolo.trim();
   if (t.length < 2) return null;
   let trovato: RisultatoRicerca | undefined;
@@ -78,7 +87,9 @@ export async function cercaDati(titolo: string, tipo: Tipo): Promise<DatiTrovati
   return nulla ? null : dati;
 }
 
+/** True mentre un ciclo è in esecuzione (ne gira uno solo). */
 let inCorso = false;
+/** Ciclo in attesa di partire. */
 let timer: ReturnType<typeof setTimeout> | undefined;
 const pausa = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -116,12 +127,13 @@ async function elabora() {
   }
 }
 
+/** (Ri)programma un ciclo di arricchimento dopo `ritardo` ms, annullando quello già in attesa. */
 function pianifica(ritardo = 4000) {
   clearTimeout(timer);
   timer = setTimeout(() => { void elabora(); }, ritardo);
 }
 
-/** Avvia l'arricchimento: all'apertura, a ogni modifica dei dati (voci nuove o in arrivo dalla sincronizzazione) e al ritorno della rete. */
+/** Avvia l'arricchimento: all'apertura, a ogni modifica dei dati (voci nuove o in arrivo dalla sincronizzazione) e al ritorno della rete e ogni 30 minuti. */
 export function avviaArricchimento() {
   subscribe(() => pianifica());
   window.addEventListener('online', () => pianifica(2000));

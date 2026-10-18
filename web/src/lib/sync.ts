@@ -1,10 +1,14 @@
+// Sincronizzazione con il server: a ogni passata si inviano le voci in coda (store.ts) e le impostazioni (tempo libero),
+// e si riceve ciò che è cambiato dopo `since`. Parte dopo ogni modifica (con attesa di 1,2 s), al ritorno della rete,
+// quando l'app torna visibile e ogni minuto. Senza rete o senza accesso non fa nulla: i dati restano in coda.
 import type { SyncResponse } from '../../../shared/types.ts';
 import { applyRemote, getAuth, getSince, markSent, pendingCount, setAuth, setOnLocalChange, setSince, takeDirty } from './store.ts';
 import { apiBase } from './api.ts';
 import { applicaDaServer, impostazioniDaInviare, subscribeDisponibilita } from './disponibilita.ts';
 import { debounce } from './util.ts';
 
-export interface StatoSync { online: boolean; inCorso: boolean; errore?: string; ultima?: number; inAttesa: number }
+/** Stato mostrato nell'interfaccia (rete, sincronizzazione in corso, ultimo errore, voci in attesa). */
+interface StatoSync { online: boolean; inCorso: boolean; errore?: string; ultima?: number; inAttesa: number }
 
 let stato: StatoSync = { online: navigator.onLine, inCorso: false, inAttesa: 0 };
 const listeners = new Set<() => void>();
@@ -13,7 +17,9 @@ const set = (p: Partial<StatoSync>) => { stato = { ...stato, ...p }; listeners.f
 export const getStatoSync = () => stato;
 export const subscribeSync = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 
+/** True mentre una richiesta è in corso. */
 let inVolo = false;
+/** Una sincronizzazione chiesta durante un'altra: ripartirà appena questa finisce. */
 let richiestaPendente = false;
 /** True mentre si applica il tempo libero arrivato dal server: non deve far partire un nuovo invio. */
 let applicando = false;
@@ -54,8 +60,10 @@ export async function sync(): Promise<void> {
   }
 }
 
+/** Sincronizza dopo 1,2 s dall'ultima richiesta, per raggruppare modifiche ravvicinate. */
 const sincronizzaPoi = debounce(() => { void sync(); }, 1200);
 
+/** Collega la sincronizzazione agli eventi (modifiche locali, rete, visibilità, timer) e ne esegue una subito. */
 export function avviaSync() {
   setOnLocalChange(() => { set({ inAttesa: pendingCount() }); sincronizzaPoi(); });
   subscribeDisponibilita(() => { if (!applicando) sincronizzaPoi(); });

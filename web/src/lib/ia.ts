@@ -1,12 +1,15 @@
 // Gemini e Groq con la chiave dell'utente, chiamati direttamente dal telefono (o dal sito): la chiave resta su questo
-// dispositivo e va solo al servizio scelto. Nessun passaggio dal server di MyTask.
+// dispositivo (localStorage, mai sincronizzata) e va solo al servizio scelto. Nessun passaggio dal server di MyTask.
 import { MODELLI_PREDEFINITI, NOMI_PROVIDER, type Provider } from '../../../shared/ia.ts';
 
 const KEY = 'mytask.ia';
 const listeners = new Set<() => void>();
 
-export interface ConfigProvider { chiave: string; modello: string }
-export type ConfigIA = Partial<Record<Provider, ConfigProvider>>;
+/** Chiave e modello scelti per un servizio. */
+interface ConfigProvider { chiave: string; modello: string }
+/** Configurazione di tutti i servizi, per nome del provider. */
+type ConfigIA = Partial<Record<Provider, ConfigProvider>>;
+/** Un messaggio della conversazione: `ruolo` dice chi lo ha scritto. */
 export interface Messaggio { ruolo: 'utente' | 'ia'; testo: string }
 
 function leggi(): ConfigIA {
@@ -17,6 +20,7 @@ let corrente: ConfigIA = leggi();
 export const getConfigIA = () => corrente;
 export const subscribeIA = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 
+/** Salva (o, senza chiave, toglie) la configurazione di un servizio; senza modello usa quello predefinito. */
 export function salvaProvider(p: Provider, cfg: ConfigProvider | undefined) {
   const nuovo = { ...corrente };
   if (cfg && cfg.chiave.trim()) nuovo[p] = { chiave: cfg.chiave.trim(), modello: cfg.modello.trim() || MODELLI_PREDEFINITI[p] };
@@ -26,10 +30,13 @@ export function salvaProvider(p: Provider, cfg: ConfigProvider | undefined) {
   listeners.forEach((l) => l());
 }
 
+/** I servizi che hanno una chiave inserita. */
 export const providerCollegati = (): Provider[] => (['gemini', 'groq'] as Provider[]).filter((p) => !!corrente[p]?.chiave);
 
+/** `sistema`: istruzioni di sistema; `json`: risposta in JSON con temperatura bassa (0,1 invece di 0,6); `segnale`: per annullare. */
 interface Opzioni { sistema?: string; json?: boolean; segnale?: AbortSignal }
 
+/** Messaggio d'errore leggibile per i casi più comuni (chiave, modello, limite di richieste). */
 function errore(p: Provider, stato: number, dettaglio: string): Error {
   const nome = NOMI_PROVIDER[p];
   if (stato === 400 && /api key|API_KEY/i.test(dettaglio)) return new Error(`${nome}: chiave non valida.`);

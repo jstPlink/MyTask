@@ -15,10 +15,10 @@ export function distanzaKm(a: Coordinate, b: Coordinate): number {
   return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-/** Interesse da 0 a 1 (la scala va da 1 a 5, di base 3). */
+/** Interesse da 0 a 1 (la scala va da 1 a 5, di base 3 se manca). */
 export const valoreInteresse = (i: Item): number => Math.min(1, Math.max(0, ((i.interesse ?? 3) - 1) / 4));
 
-/** Vicinanza della data da 0 a 1: oggi = 1, poi scende; senza data un valore neutro; già passata, bassa. */
+/** Vicinanza della data da 0 a 1: oggi 1, entro 3 giorni 0,9, entro 7 giorni 0,75, entro 30 giorni 0,5, oltre 0,25; senza data un valore neutro (0,3); già passata 0,1. */
 export function valoreData(i: Item, oggi: string): number {
   const d = dueDate(i);
   if (!d) return 0.3;
@@ -31,9 +31,10 @@ export function valoreData(i: Item, oggi: string): number {
   return 0.25;
 }
 
-/** Vicinanza da 0 a 1: 1 sul posto, circa metà a 20 km, poco oltre i 100 km. */
+/** Vicinanza da 0 a 1: 1 sul posto, circa metà a 20 km, quasi zero oltre i 100 km (decadimento esponenziale con scala 30 km). */
 export const valoreDistanza = (km: number): number => Math.exp(-km / 30);
 
+/** Un'esperienza con il suo punteggio «Per te» (0-100) e, se nota, la distanza in km. */
 export interface EsperienzaPerTe { item: Item; punteggio: number; km?: number }
 
 /**
@@ -64,5 +65,5 @@ export function coordinateDaLink(link: string | undefined): Coordinate | undefin
   return Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat, lon } : undefined;
 }
 
-/** Testo con cui cercare il luogo di un'esperienza: il luogo scritto, altrimenti il titolo. */
+/** Testo con cui cercare il luogo di un'esperienza: il luogo scritto (campo `zona`), altrimenti il titolo. */
 export const testoLuogo = (i: Item): string => (i.zona?.trim() || i.titolo.trim()).toLowerCase();

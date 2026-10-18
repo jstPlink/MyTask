@@ -2,7 +2,7 @@
 // da qui si ricavano tipologia, mood ed energia che usano i filtri di "Cosa guardo stasera".
 // Questo file contiene solo le regole (pure, con test); le richieste di rete stanno in web/src/lib/arricchimento.ts.
 import type { Item, Tipo } from './types.ts';
-import { chiaveTitolo } from './capture.ts';
+import { chiaveTitolo } from './testo.ts';
 import { TIPOLOGIE } from './stasera.ts';
 
 /** Tipi di voce che si arricchiscono. */
@@ -12,6 +12,7 @@ const VIDEO: Tipo[] = ['film', 'serie', 'anime'];
 /** Ogni quanti giorni si riprova per una voce che non è stata trovata. */
 export const GIORNI_RIPROVA = 30;
 
+/** Per ogni tipologia dell'app, le parole (italiane e inglesi) che nei generi trovati online la indicano. */
 const RE_TIPOLOGIE: [string, RegExp][] = [
   ['Comico', /comic|commedia|comedy|umoris|satir|parodi/],
   ['Drammatico', /dramm|drama/],
@@ -24,6 +25,7 @@ const RE_TIPOLOGIE: [string, RegExp][] = [
   ['Documentario', /documentar/],
 ];
 
+// Mood ed energia si deducono dai generi: il primo mood che combacia vince, nell'ordine in cui sono provati in `moodDa`.
 const RE_INTENSO = /horror|orrore|thriller|crime|noir|splatter|slasher|guerra|\bwar\b|giallo/;
 const RE_SPENSIERATO = /comic|commedia|comedy|umoris|parodi|famil|bambin|\bkids\b/;
 const RE_RIFLESSIVO = /documentar|biograf|storic|dramm|drama|psicolog/;
@@ -40,6 +42,7 @@ export function tipologieDa(labels: string[]): string[] {
   return TIPOLOGIE.filter((nome) => RE_TIPOLOGIE.some(([n, re]) => n === nome && re.test(t)));
 }
 
+/** Stato d'animo che richiede (Intenso, Spensierato, Riflessivo, Emozionante, Rilassante), se i generi lo suggeriscono. */
 export function moodDa(labels: string[]): string | undefined {
   const t = norm(labels);
   if (RE_INTENSO.test(t)) return 'Intenso';
@@ -50,7 +53,7 @@ export function moodDa(labels: string[]): string | undefined {
   return undefined;
 }
 
-/** Impegno mentale richiesto per seguire la storia. */
+/** Impegno mentale richiesto per seguire la storia: alta per thriller, fantascienza, drammi…, bassa per commedie e animazione, altrimenti media. */
 export function energiaDa(labels: string[]): 'bassa' | 'media' | 'alta' | undefined {
   const t = norm(labels);
   if (!t) return undefined;
@@ -59,6 +62,7 @@ export function energiaDa(labels: string[]): 'bassa' | 'media' | 'alta' | undefi
   return 'media';
 }
 
+/** Come si presenta, nella descrizione breve di un risultato, un elemento di ciascun tipo. */
 const RE_DESCRIZIONE: Partial<Record<Tipo, RegExp>> = {
   film: /\bfilm\b|lungometraggio|cortometraggio/,
   serie: /serie televisiva|serie tv|television series|web series|miniserie|sitcom|telenovela/,
@@ -76,6 +80,7 @@ export function descrizioneCompatibile(tipo: Tipo, descrizione: string | undefin
   return re.test(d);
 }
 
+/** Quello che si è trovato su internet per una voce (la ricerca di rete sta in web/src/lib/arricchimento.ts). */
 export interface DatiTrovati {
   /** Generi presi da internet (etichette, nella lingua trovata). */
   generi: string[];
@@ -102,7 +107,10 @@ export function accorciaDescrizione(testo: string | undefined, max = 320): strin
 
 const maiuscola = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Campi da aggiungere alla voce. Non sovrascrive mai quello che l'utente ha già scritto. */
+/**
+ * Campi da aggiungere alla voce. Non sovrascrive mai quello che l'utente ha già scritto.
+ * Film, serie e anime: tipologia, mood, energia e (film) durata, se tra 20 e 400 minuti. Giochi e libri: i generi trovati (al massimo due) e le pagine dei libri.
+ */
 export function campiDaDati(item: Item, dati: DatiTrovati): Partial<Item> {
   const out: Partial<Item> = {};
   const video = VIDEO.includes(item.tipo);
@@ -121,7 +129,7 @@ export function campiDaDati(item: Item, dati: DatiTrovati): Partial<Item> {
   return out;
 }
 
-/** Vero se alla voce mancano ancora dati che si possono cercare. */
+/** Vero se alla voce mancano ancora dati che si possono cercare (la descrizione nelle note, il genere e, per i video, mood, energia e durata del film; per i libri le pagine). */
 export function mancaQualcosa(i: Item): boolean {
   if (!TIPI_ARRICCHIBILI.includes(i.tipo)) return false;
   if (!i.note && i.descrittoIl === undefined) return true;

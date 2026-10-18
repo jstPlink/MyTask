@@ -7,6 +7,7 @@ import { dueDate, isOpen } from './priority.ts';
 import { fattaOggi, weekCount } from './routine.ts';
 import { ORA_CHIEDI_PREDEFINITA, type Disponibilita } from './piano.ts';
 
+/** Una notifica locale da programmare nel telefono. */
 export interface Notifica {
   /** Intero positivo stabile per la stessa notifica (serve ad Android per sostituirla). */
   id: number;
@@ -16,14 +17,17 @@ export interface Notifica {
   quando: number;
 }
 
+/** Quante ripetizioni di un promemoria insistente si programmano in anticipo (si ripianifica a ogni modifica e a ogni ritorno nell'app). */
 const MAX_RIPETIZIONI_INSISTENZA = 12;
 
+/** Numero intero positivo ricavato dal testo (hash FNV-1a): la stessa notifica ha sempre lo stesso id, così Android la sostituisce invece di duplicarla. */
 function idStabile(chiave: string): number {
   let h = 2166136261;
   for (let i = 0; i < chiave.length; i++) { h ^= chiave.charCodeAt(i); h = Math.imul(h, 16777619); }
   return (h >>> 1) || 1;
 }
 
+/** Istante (millisecondi) di un giorno YYYY-MM-DD a una certa ora HH:MM locale. */
 function alle(giorno: string, hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number);
   const d = parseISO(giorno);
@@ -31,6 +35,13 @@ function alle(giorno: string, hhmm: string): number {
   return d.getTime();
 }
 
+/**
+ * Notifiche da programmare per i prossimi `giorni` (al massimo `max`, le più vicine):
+ * - promemoria scelti sulla voce (N giorni prima della scadenza, all'ora indicata);
+ * - insistenza: se la voce scade oggi o è scaduta, si ripete ogni N minuti (almeno 15) per le ore successive;
+ * - routine con ora del promemoria: ogni giorno, salvo oggi se già fatta e i giorni dopo che la quota settimanale è già raggiunta.
+ * Non considera voci chiuse, eliminate o archiviate.
+ */
 export function pianificaNotifiche(items: Item[], ora: Date, giorni = 14, max = 100): Notifica[] {
   const ora_ms = ora.getTime();
   const oggi = oggiDi(ora);
@@ -75,6 +86,7 @@ export function pianificaNotifiche(items: Item[], ora: Date, giorni = 14, max = 
 }
 
 
+/** Notifica serale che chiede gli orari liberi del giorno dopo. */
 export interface RichiestaOrari extends Notifica {
   /** Giorno di cui si chiedono gli orari (il giorno dopo quello in cui arriva la notifica). */
   giorno: string;

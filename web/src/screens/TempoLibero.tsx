@@ -6,9 +6,15 @@ import { copiaSuggerita, impostaDisponibilita, usaSuggerita } from '../lib/dispo
 import { useNav } from '../ui/nav.tsx';
 import { Back, Sec, Seg, Top } from '../ui/kit.tsx';
 
+// da lunedì, come l'ordine di `Disponibilita.settimana`
 const GIORNI = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 const durata = (min: number) => `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}`;
 
+/**
+ * Altro › Tempo libero: da quando MyTask distribuisce le attività nei giorni. Due modi: fasce fisse per ogni giorno della settimana,
+ * oppure orari flessibili (ogni sera l'app chiede gli orari del giorno dopo; qui si vedono e correggono quelli inseriti, aprendo OrariGiorno).
+ * In entrambi c'è la pausa tra un'attività e la successiva.
+ */
 export function TempoLibero() {
   const disp = useDisponibilita();
   const nav = useNav();

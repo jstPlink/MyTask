@@ -16,6 +16,7 @@ public class HapticaPlugin extends Plugin {
 
     private Vibrator vibrator;
 
+    /** Dalla versione S di Android il vibratore si ottiene dal VibratorManager, prima dal servizio diretto. */
     @Override
     public void load() {
         Context context = getContext();
@@ -32,6 +33,7 @@ public class HapticaPlugin extends Plugin {
         return (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
+    /** Una vibrazione singola: `durata` in millisecondi, `ampiezza` da 1 a 255 (valori di default come un tocco leggero). */
     @PluginMethod
     public void tocco(PluginCall call) {
         int durata = call.getInt("durata", 40);

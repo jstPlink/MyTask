@@ -1,3 +1,5 @@
+// Applicazione Fastify di MyTask: API (accesso, sincronizzazione, esportazione, stato di salute) e, se compilata, la web app.
+// Il server non interpreta le voci: le conserva come documenti JSON e risolve i conflitti per voce con `aggiornato`.
 import fs from 'node:fs';
 import path from 'node:path';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
@@ -7,7 +9,6 @@ import { today } from '../../shared/dates.ts';
 import type { Config } from './config.ts';
 import { Store } from './db.ts';
 import { RateLimiter, hashPassword, hashToken, newToken, verifyPassword } from './auth.ts';
-import { IaNonDisponibile, interpretaConGemini } from './ai.ts';
 
 let versioneLetta: string | undefined;
 /** Versione del server: quella del package.json principale. */
@@ -22,10 +23,13 @@ function versioneServer(): string {
   return versioneLetta;
 }
 
+/** Durata di una sessione (token di accesso): 180 giorni. */
 const SESSIONE_MS = 180 * 24 * 3600 * 1000;
+/** Dimensione massima di una voce (JSON): le immagini allegate sono già ridotte dall'app. */
 const MAX_ITEM_BYTES = 200_000;
 
-export interface AppDeps { config: Config; store: Store; fetchFn?: typeof fetch; now?: () => number }
+/** Dipendenze dell'app; `now` si può sostituire nei test. */
+export interface AppDeps { config: Config; store: Store; now?: () => number }
 
 /** Impostazioni: poche chiavi semplici, ognuna con una data di modifica e un valore di dimensione ragionevole. */
 function impostazioniValide(x: unknown): x is ImpostazioniSync {
@@ -38,6 +42,7 @@ function impostazioniValide(x: unknown): x is ImpostazioniSync {
   });
 }
 
+/** Controllo minimo di una voce ricevuta: i campi indispensabili e la dimensione. */
 function itemValido(x: unknown): x is Item {
   if (!x || typeof x !== 'object') return false;
   const i = x as Record<string, unknown>;
@@ -48,8 +53,14 @@ function itemValido(x: unknown): x is Item {
     && JSON.stringify(x).length <= MAX_ITEM_BYTES;
 }
 
-export async function buildApp({ config, store, fetchFn, now = Date.now }: AppDeps): Promise<FastifyInstance> {
+/**
+ * Crea il server. Rotte: `GET /api/health` (versione), `POST /api/auth/login` e `/logout`, `GET /api/me`,
+ * `POST /api/sync` (invia le modifiche, riceve quelle dopo `since`), `GET /api/export`. Tutte tranne health e login richiedono
+ * il token `Bearer`. Al primo avvio crea l'unico utente da `MYTASK_EMAIL` e `MYTASK_PASSWORD`.
+ */
+export async function buildApp({ config, store, now = Date.now }: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({ logger: false, trustProxy: config.trustProxy, bodyLimit: 20 * 1024 * 1024 });
+  // limite ai tentativi di accesso sbagliati (per IP ed email)
   const limiter = new RateLimiter();
 
   // l'app Android carica la pagina da https://localhost: serve il CORS per parlare con il server
@@ -70,6 +81,7 @@ export async function buildApp({ config, store, fetchFn, now = Date.now }: AppDe
     store.createUser(config.email, hashPassword(config.password));
   }
 
+  // intestazioni di sicurezza su ogni risposta
   app.addHook('onSend', async (_req, reply) => {
     reply.header('x-content-type-options', 'nosniff');
     reply.header('referrer-policy', 'no-referrer');
@@ -131,21 +143,7 @@ export async function buildApp({ config, store, fetchFn, now = Date.now }: AppDe
     return { esportato: new Date(now()).toISOString(), voci: store.allItems(), impostazioni: store.allSettings() };
   });
 
-  app.post('/api/ai/capture', async (req, reply) => {
-    if (!autentica(req)) return reply.code(401).send({ error: 'non_autenticato' });
-    const body = req.body as { text?: unknown } | null;
-    const text = typeof body?.text === 'string' ? body.text.trim() : '';
-    if (!text) return reply.code(400).send({ error: 'testo_mancante' });
-    try {
-      const proposta = await interpretaConGemini(text, today(new Date(now())), { apiKey: config.geminiKey, model: config.geminiModel }, fetchFn);
-      return { proposta };
-    } catch (e) {
-      if (e instanceof IaNonDisponibile) return reply.code(503).send({ error: 'ia_non_disponibile' });
-      return reply.code(502).send({ error: 'ia_errore' });
-    }
-  });
-
-  // interfaccia web (se compilata)
+  // interfaccia web (se compilata): file statici e, per ogni altro indirizzo, index.html (l'app gestisce i percorsi)
   const indexFile = path.join(config.webDir, 'index.html');
   if (fs.existsSync(indexFile)) {
     await app.register(fastifyStatic, { root: config.webDir, wildcard: false, index: false });

@@ -13,7 +13,11 @@ const PARAMETRI: { id: keyof PesiPunteggio; nome: string; descr: string }[] = [
   { id: 'fissa', nome: 'Scadenza fissa', descr: 'Solo per le date che non si possono spostare: pesa quanto l\u2019urgenza' },
 ];
 
-/** Opzione provvisoria e sperimentale: i pesi con cui urgenza, importanza, sforzo ed età formano la priorità. */
+/**
+ * Altro › Pesi della priorità (etichettata «Sperimentale»): cursori per il peso di urgenza, importanza, poco sforzo, età e scadenza fissa
+ * nel punteggio delle attività. I pesi sono riportati a somma 100%, valgono solo su questo dispositivo e cambiano subito liste, piano e widget;
+ * sotto, l'anteprima delle prime sei attività con il nuovo ordine.
+ */
 export function PesiPriorita() {
   const pesi = useSyncExternalStore(subscribePesi, getPesiUtente);
   const items = useItems();

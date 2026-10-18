@@ -10,6 +10,7 @@ const IGNORA = '.cb, .chip, input, textarea, select, a';
 
 type Gesto = { id: string; pid: number; x: number; y: number; grab: number; attivo: boolean; timer?: number; tocco: boolean; ultimaY: number };
 
+/** Il primo antenato che scorre davvero: serve per lo scorrimento automatico ai bordi durante il trascinamento. */
 function scrollGenitore(el: HTMLElement | null): HTMLElement | null {
   for (let e = el?.parentElement ?? null; e; e = e.parentElement) {
     const o = getComputedStyle(e).overflowY;
@@ -18,6 +19,14 @@ function scrollGenitore(el: HTMLElement | null): HTMLElement | null {
   return null;
 }
 
+/**
+ * Riordino per trascinamento di una lista di righe con `id`.
+ * - `cont`: ref da mettere sul contenitore delle righe.
+ * - `presa(id)`: attributi da spargere su ogni riga (`data-rid` e il gestore del tocco).
+ * - `preso`: id della riga in movimento (per darle uno stile), `null` se nessuna.
+ * - `ordinati(lista)`: la lista nell'ordine provvisorio durante il gesto, altrimenti com'è.
+ * `onFine` riceve i nuovi id solo se l'ordine è davvero cambiato.
+ */
 export function useRiordino(ids: string[], onFine: (nuovi: string[]) => void) {
   const [ordine, setOrdine] = useState<string[] | null>(null);
   const [preso, setPreso] = useState<string | null>(null);

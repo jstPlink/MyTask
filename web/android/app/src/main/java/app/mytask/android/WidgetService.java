@@ -12,7 +12,11 @@ import android.widget.RemoteViewsService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** Fornisce le righe della lista di oggi al widget. */
+/**
+ * Servizio che fornisce al ListView del widget le righe della lista di oggi (lette da WidgetDati). Ogni riga ha: pallino
+ * con la posizione in classifica colorato per priorità, titolo con l'orario sotto, checkbox quadrato. Le righe fatte
+ * (spuntate dal widget, non ancora applicate dall'app) sono sbarrate e senza battito.
+ */
 public class WidgetService extends RemoteViewsService {
 
     @Override
@@ -20,6 +24,7 @@ public class WidgetService extends RemoteViewsService {
         return new Fabbrica(getApplicationContext(), intent.getBooleanExtra("scuro", false));
     }
 
+    /** Costruisce le righe una alla volta; `s` = aspetto scuro (layout riga_scuro, drawable «_s», colori del tema scuro). */
     static class Fabbrica implements RemoteViewsFactory {
         private final Context c;
         private final boolean s;
@@ -39,6 +44,7 @@ public class WidgetService extends RemoteViewsService {
         @Override public long getItemId(int i) { return i; }
         @Override public boolean hasStableIds() { return false; }
 
+        /** Colore #RRGGBB per il tema del widget (stessi colori dell'app web). */
         private int colore(String chiaro, String scuro) {
             return Color.parseColor(s ? scuro : chiaro);
         }
@@ -57,6 +63,7 @@ public class WidgetService extends RemoteViewsService {
             v.setTextViewText(R.id.sub, ora);
             v.setTextColor(R.id.sub, fatto ? colore("#919199", "#72737D") : colore("#2F7D5B", "#6FCF9B"));
 
+            // pallino della posizione: fermo (TextView «rank») oppure pulsante (ViewFlipper «rank_flip»)
             int rank = o.optInt("r", 0);
             if (rank > 0) {
                 int livello = Math.max(1, Math.min(3, o.optInt("l", 1)));
@@ -72,7 +79,10 @@ public class WidgetService extends RemoteViewsService {
                 int bpm = fatto ? 0 : o.optInt("b", 0);
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
                 if (bpm > 0) {
-                    // pulsazione come nell'app: due colpi (lub-dub) di 450 ms, poi pausa fino al battito successivo
+                    // Battito come nell'app, con un ViewFlipper che cambia quadro ogni 150 ms (flipInterval nel layout).
+                    // Quadri: 0 = primo colpo (lub), 1 = pieno, 2 = secondo colpo (dub), poi altri quadri pieni per la pausa
+                    // fino al battito successivo. Il ciclo dura il periodo (60000 / bpm ms, tra 450 e 2550) arrotondato a 150 ms.
+                    // Un widget non può animare con codice proprio: la sequenza è fatta di viste statiche alternate dal sistema.
                     v.setViewVisibility(R.id.rank, View.GONE);
                     v.setViewVisibility(R.id.rank_flip, View.VISIBLE);
                     v.removeAllViews(R.id.rank_flip);
@@ -104,6 +114,7 @@ public class WidgetService extends RemoteViewsService {
 
             v.setImageViewResource(R.id.cb, fatto ? (s ? R.drawable.cb_fatto_s : R.drawable.cb_fatto_c) : (s ? R.drawable.cb_vuoto_s : R.drawable.cb_vuoto_c));
 
+            // intenti che completano il modello impostato da WidgetBase: checkbox = spunta, resto della riga = apre l'app
             Intent spunta = new Intent().putExtra("azione", "fatto").putExtra("id", id);
             Intent apri = new Intent().putExtra("azione", "apri");
             v.setOnClickFillInIntent(R.id.cb, spunta);

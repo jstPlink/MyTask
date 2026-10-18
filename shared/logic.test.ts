@@ -6,7 +6,6 @@ import { score, daysOverdue, barLevel, battitoBpm } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
 import { vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
-import { parseCapture } from './capture.ts';
 import { suggerisciStasera } from './stasera.ts';
 
 const NOW = Date.UTC(2026, 9, 15, 10, 0, 0);
@@ -100,27 +99,6 @@ test('Oggi: prossimi 7 giorni e voci parcheggiate', () => {
   assert.ok(!v.fare.some((e) => e.item.id === park.id));
 });
 
-test('cattura: film consigliato su una piattaforma', () => {
-  const p = parseCapture("Titolo di prova, me l'ha consigliato Mario, su Netflix");
-  assert.equal(p.titolo, 'Titolo di prova');
-  assert.equal(p.tipo, 'film');
-  assert.equal(p.piattaforma, 'Netflix');
-  assert.equal(p.consigliatoDa, 'Mario');
-  assert.equal(p.sicura, true);
-});
-
-test('cattura: azione con data e tipo incerto in Inbox', () => {
-  const oggi = new Date(2026, 9, 15);
-  const a = parseCapture('chiamare il dentista domani', oggi);
-  assert.equal(a.tipo, 'azione');
-  assert.equal(a.inizio, '2026-10-16');
-  const x = parseCapture('Neal.fun', oggi);
-  assert.equal(x.sicura, false);
-  assert.equal(x.tipo, 'curiosita');
-  assert.equal(parseCapture('Museo anatomia da visitare').tipo, 'esperienza');
-  assert.equal(parseCapture('Cowboy Bebop anime').tipo, 'anime');
-});
-
 test('stasera: preferisce interesse alto e rispetta la durata', () => {
   const breve = mk({ tipo: 'film', titolo: 'Film breve', interesse: 4, durataMin: 77 });
   const lungo = mk({ tipo: 'film', titolo: 'Film lungo', interesse: 4, durataMin: 180 });
@@ -132,7 +110,7 @@ test('stasera: preferisce interesse alto e rispetta la durata', () => {
 });
 
 test('titoli: maiuscole, accenti e apostrofi non contano', async () => {
-  const { chiaveTitolo } = await import('./capture.ts');
+  const { chiaveTitolo } = await import('./testo.ts');
   assert.equal(chiaveTitolo("L’Èrba  del Vicino!"), "l'erba del vicino");
   assert.equal(chiaveTitolo('Sensi  e sensibilità'), chiaveTitolo('sensi e sensibilita'));
   assert.notEqual(chiaveTitolo('Serie s1'), chiaveTitolo('Serie s2'));

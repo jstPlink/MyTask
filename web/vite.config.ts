@@ -3,7 +3,9 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
 
-// la versione dell'app è quella del package.json principale
+// Configurazione di build e di sviluppo: React, PWA (manifest e service worker con aggiornamento automatico)
+// e proxy delle chiamate /api verso il server.
+// La versione dell'app è quella del package.json principale; arriva al codice come `__APP_VERSION__` (vedi src/version.ts).
 const versione = (JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string }).version;
 
 export default defineConfig({
@@ -27,6 +29,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // ogni indirizzo di pagina offline serve index.html (app a pagina singola); le chiamate al server restano fuori dalla cache
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
       },
@@ -34,7 +37,7 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
-    fs: { allow: ['..'] },
+    fs: { allow: ['..'] }, // il codice in ../shared è condiviso col server
     // MYTASK_SERVER: indirizzo del server vero (es. https://mytask.tuodominio.it) per provare il sito in locale con i propri dati
     proxy: { '/api': { target: process.env.MYTASK_SERVER || 'http://localhost:8787', changeOrigin: true, secure: true } },
   },

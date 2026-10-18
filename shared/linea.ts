@@ -1,4 +1,4 @@
-// Posizione dei numeri d'ordine sotto la barra a segmenti del piano: funzione pura, con test.
+// Posizione dei numeri d'ordine sotto la barra a segmenti del piano di Oggi (solo schermate web): funzione pura, con test.
 
 export interface NumeriSistemati {
   /** Centri (px) dei numeri, dentro [0, larghezza]. */
@@ -7,6 +7,7 @@ export interface NumeriSistemati {
   diametro: number;
 }
 
+/** Sotto questo diametro (px) i cerchi non si rimpiccioliscono più: se non bastano si sovrappongono. */
 const DIAMETRO_MINIMO = 12;
 
 /**

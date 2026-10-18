@@ -1,71 +1,71 @@
 # MyTask: documentazione
 
-Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
+Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.62.0
-- **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Fatti: widget «Oggi» (chiaro e scuro), stati della nota, tempo libero flessibile, IA con Gemini e Groq (chiavi, chat, autocompilazione), tempo impiegato misurato dall'app, esperienze «Per te», Inbox con note non assegnate, build dell'APK in locale. Tolta la Revisione. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA
+- **Versione documento:** 0.62.1
+- **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
-- **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
-- **Decisioni di dettaglio:** `docs/01-setup-decisioni.md` (registro locale delle decisioni, non pubblicato)
+- **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
+- **Decisioni di dettaglio:** `docs/01-setup-decisioni.md` (registro locale, non pubblicato)
 
 ## Come si lavora sul progetto (regole dell'utente)
 
 Regole fisse per chi sviluppa (anche Claude), da rispettare a ogni modifica:
 
 1. **Anteprima in locale:** sito e server in localhost, con il sito collegato al server vero (`MYTASK_SERVER`, vedi `web/vite.config.ts`), così l'utente vede le modifiche prima di pubblicarle.
-2. **Telefono sempre aggiornato, senza chiedere il permesso:** l'app Android sul telefono si aggiorna ogni volta che è possibile (debug wireless, `adb install -r`, senza disinstallare per non perdere i dati locali), senza chiedere conferma. Se serve davvero disinstallare e reinstallare (per esempio perché cambia la chiave di firma), si può fare senza chiedere, ma prima si salvano i dati locali: si apre l'app con la rete attiva per farli sincronizzare con il server e, se si può, si copiano in un file per reinserirli dopo; a reinstallazione fatta si riaccede e si controlla che le voci siano tornate (altrimenti si reimportano da quel file con Altro > Account > Importa). L'APK si costruisce solo su GitHub Actions, quindi l'aggiornamento è possibile quando esiste una build pubblicata, cioè dopo che l'utente ha chiesto commit e push; se il telefono non è raggiungibile (debug wireless spento) si dice e si riprova alla richiesta successiva.
-3. **Commit e push solo su richiesta dell'utente:** non si fanno mai da soli, nemmeno per aggiornare il telefono; si aspetta sempre che l'utente li chieda. Quando li chiede si fa tutto di seguito: commit, push, attesa della build e aggiornamento del telefono.
-4. **Versione e documentazione:** si aumenta la versione a ogni commit e si annota il registro in fondo a questo documento.
-5. **Privacy:** niente screenshot del telefono (può mostrare notifiche private); per verificare si usa il browser o i test.
+2. **Commit e push solo su richiesta dell'utente:** non si fanno mai da soli, nemmeno per aggiornare il telefono. A fine modifiche si dice che l'app sul telefono resta com'è finché non vengono chiesti. Quando l'utente li chiede si fa tutto di seguito: commit, push, attesa della build, download di `mytask.apk` dalla release e aggiornamento del telefono.
+3. **Telefono:** si aggiorna con il debug wireless e `adb install -r`, senza disinstallare per non perdere i dati locali. Se l'utente chiede di aggiornare solo il telefono (senza commit) si costruisce l'APK in locale (sezione 7.3) e lo si installa allo stesso modo. Se serve davvero disinstallare (per esempio cambia la chiave di firma) si salvano prima i dati: si apre l'app con la rete attiva per sincronizzarli e a reinstallazione fatta si controlla che le voci siano tornate (altrimenti si reimportano da Altro › Account › Importa). Se il telefono non è raggiungibile (debug wireless spento) lo si dice e si riprova alla richiesta successiva.
+4. **Versione e documentazione:** si aumenta la versione a ogni commit (`package.json` principale) e si annota il registro in fondo a questo documento.
+5. **Privacy:** niente screenshot del telefono (può mostrare notifiche private); per verificare si usano il browser o i test.
+6. **Test:** `npm run typecheck` e `npm test`.
 
-## 1. Scopo
+## 1. Scopo e principi
 
 Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da vedere, leggere, giocare, mangiare e visitare, con priorità calcolate. Sostituisce l'uso di Notion per questo scopo. Funziona sul web (PWA) e sul telefono Android (APK), anche offline, e gira in Docker sul NAS dell'utente.
 
-### Principi
-
 1. **Mirata**: poche azioni chiare, niente interfaccia da strumento generico.
-2. **Veloce**: aprire l'app e vedere subito "Oggi"; salvare un'idea in pochi secondi.
+2. **Veloce**: si apre su «Oggi»; un'idea si salva in pochi secondi.
 3. **Local-first**: funziona senza rete, sincronizza appena possibile.
 4. **I dati sono dell'utente**: database sul NAS, nessun upload di documenti (solo collegamenti a Seafile).
-5. **L'IA aiuta, non è obbligatoria**: ogni funzione deve poter essere fatta a mano.
+5. **L'IA aiuta, non è obbligatoria**: ogni funzione si può fare a mano; le chiavi IA le mette l'utente e restano sul dispositivo.
 
-## 2. Aree dell'app
+## 2. Aree dell'app e navigazione
 
-Dato che si progetta tutto insieme, ecco la mappa completa.
+| Area | Contenuto |
+|---|---|
+| **Oggi** | Giornata a orari (piano), routine del giorno, scadenze, invito a impostare il tempo libero |
+| **Attività** | Tre sotto-schede: Tutte le attività (con i passi dei progetti e le esperienze), Progetti, Esperienze |
+| **Intrattenimento** | Film, Serie, Anime, Giochi, Libri, Ricette, con «Cosa guardo stasera» |
+| **Curiosità** | Cose da approfondire |
+| **Routine** | Abitudini quotidiane o settimanali |
+| **Inbox** | Note catturate al volo, ancora da smistare |
+| **Altro** | Archiviate, Completato, Tempo libero, Intelligenza artificiale, Pesi della priorità, Aspetto, Account |
 
-| Area | Contenuto | Origine in Notion |
-|---|---|---|
-| **Oggi** | Cose da fare oggi, scadenze imminenti, routine, voci scadute | Nuovo |
-| **Attività** | Burocrazia, casa, digitale, salute, lavoro, ecc. | Type "Admin" |
-| **Progetti** | Obiettivi con sotto-attività e avanzamento | Voci con figli |
-| **Esperienze** | Cose da fare fuori casa, eventi, uscite, luoghi | Type "Attività" |
-| **Routine** | Abitudini quotidiane o settimanali | Voci come dieta o attività fisica |
-| **Collezioni** | Film, Serie, Anime, Giochi, Libri, Ricette | Type Video, Gioco, Libri, Cibo |
-| **Curiosità** | Cose da approfondire | Type "Info" |
-| **Inbox** | Idee catturate al volo, ancora da smistare | Nuovo |
-| **Completato** (ex Archivio) | Tutto ciò che è completato, consultabile come diario | Status "Done" |
+### 2.1 Telefono (colonna singola)
 
-### 2.1 Navigazione (telefono)
+- **Cinque schede in basso** con icona (Oggi, Attività, Intrattenimento, Curiosità, Routine), con un'evidenziazione che copre icona e testo sulla scheda attiva, e il pulsante tondo **«+»** (62 px) per la cattura rapida.
+- In cima a ogni scheda principale tre pulsanti tondi: **Stile e aspetto** (tavolozza: tema e colore), **Inbox** (con il numero di note da smistare) e **Altro** (tre pallini).
+- **Indietro (pila unica):** ogni spostamento è un livello di una pila: cambio di scheda o sotto-sezione, apertura di una schermata o di una voce, apertura di una finestra o di un menu a tendina (cattura rapida, scelta del mese, voto, Tipo, Sezione…). Il tasto indietro del telefono, quello del browser e il pulsante «Indietro» dell'app ripercorrono l'ordine inverso: prima si chiude la finestra aperta, poi si torna alla schermata precedente, poi alla scheda precedente. Sul sito la pila è agganciata alla cronologia del browser; nell'app Android è gestita dall'app stessa (la cronologia del WebView non era affidabile) e il tasto indietro del telefono arriva dal plugin `@capacitor/app`: a pila vuota esce dall'app (`web/src/App.tsx`, `useLayer` in `web/src/ui/nav.tsx`).
+- L'app Android resta sempre in verticale.
 
-- **Cinque schede in basso** con icona (Oggi, Attività, Intrattenimento, Curiosità, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
-- **Attività** (prima "Fare") contiene tre sezioni: Attività, Progetti ed Esperienze.
-- **Intrattenimento** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette). Le **Curiosità** hanno una scheda propria.
-- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Archiviate, Completato, Tempo libero, Aspetto, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
-- **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza fissa.
+### 2.2 Sito per schermi larghi (da 900 px)
 
-### 2.2 Estetica (stile e palette approvati dall'utente)
+Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sotto i 900 px è identico al telefono.
 
-Layout identico ai mockup minimalisti, con questi cambi:
+- **Barra laterale** al posto delle schede: in cima il nome dell'app, poi **+ Nuova nota** (scorciatoia N) e la **ricerca** (scorciatoia /), poi le cinque sezioni principali con i conteggi (Attività con il totale; i gruppi Attività e Intrattenimento mostrano le loro sotto-sezioni solo quando sono attivi), «Da sistemare» con Inbox e contatore, Archiviate, Completato, Tempo libero, Aspetto, Account, la versione e, solo se si è offline, lo stato di sincronizzazione. I selettori a schede delle sotto-sezioni spariscono perché li sostituisce la barra.
+- **Contenuto centrato:** la barra resta a sinistra e tutto il resto (titolo e corpo) sta in una colonna larga al massimo 760 px, centrata nello spazio a destra; la griglia della settimana in Routine usa una colonna fino a 1120 px.
+- **Dettaglio in finestra:** la voce si apre in una finestra in sovraimpressione al centro (fino al 96% dell'altezza), sopra la schermata corrente; si chiude con «Indietro», Esc o toccando lo sfondo. Anche la cattura rapida si apre al centro come finestra.
+- **Ricerca** (`web/src/screens/Ricerca.tsx`): per parole, senza maiuscole né accenti, nel titolo, nelle note, in «consigliato da» e «con chi», nelle zone e nelle checklist; le voci aperte vengono prima delle chiuse; si attiva da 2 lettere.
+- **Scorciatoie da tastiera:** N (nuova nota), / (ricerca), Esc (chiude cattura, ricerca o finestra). Non esistono J/K per scorrere né F per segnare fatto.
+- **Oggi** è una sola colonna (titolo, barra del giorno, routine, piano); **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
+- **Sito pubblicato:** gira sull'immagine Docker sul NAS, quindi mostra le novità solo dopo commit, push e aggiornamento dell'immagine; l'app sul telefono si aggiorna con l'APK.
 
-- **Un solo colore d'accento**, scelto dall'utente tra **Verde** (predefinito), **Petrolio** e **Indaco**. Usato solo per: azione principale, priorità alta, scheda attiva, avanzamento, spunte.
-- **Aspetto modificabile dalle impostazioni** (Altro > Aspetto): tema Sistema / Chiaro / Scuro e colore d'accento. Si applica subito, viene salvato sul dispositivo e funziona offline.
-- **Un colore d'avviso** (arancio), riservato a scadenze fisse e voci scadute.
-- **Tutto il resto neutro**, con sfondo caldo e superfici bianche (chiaro) o grigio scuro (scuro).
-- **Contrasto:** i colori di base (testo, testo secondario, testo tenue, linee, rilievi e superficie) hanno un contrasto verso lo sfondo più alto di almeno il 5% (rapporto WCAG) rispetto alla versione precedente, con la stessa tinta neutra. Nel tema chiaro lo sfondo è un po' più scuro, così le schede bianche risaltano di più.
-- **Tema chiaro e tema scuro** con la stessa gerarchia; il tema segue il sistema, con possibilità di forzarlo.
-- **Angoli più morbidi**; l'ombra compare solo sull'elemento più importante della schermata.
-- **Priorità**: la barra a sinistra usa tre intensità dell'accento (alta piena, media 42%, bassa quasi invisibile).
+### 2.3 Estetica
+
+- **Un solo colore d'accento**, scelto dall'utente tra **Verde** (predefinito), **Petrolio** e **Indaco**: usato per azione principale, scheda attiva, avanzamento, spunte, interesse. Un **colore d'avviso** (arancio) è riservato a scadenze fisse e voci scadute. Tutto il resto è neutro: sfondo caldo e superfici bianche (chiaro) o grigio scuro (scuro).
+- **Altro › Aspetto:** tema Sistema / Chiaro / Scuro e colore, con anteprima; si applica subito, si salva sul dispositivo e funziona offline (`web/src/lib/theme.ts`, attributi `data-theme` e `data-accent`; nell'app regola anche le icone della barra di stato).
+- Angoli morbidi; l'ombra compare solo sull'elemento più importante. I colori di base hanno un buon contrasto verso lo sfondo (rapporto WCAG).
+- **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio.
 
 | Token | Chiaro | Scuro |
 |---|---|---|
@@ -81,352 +81,339 @@ Layout identico ai mockup minimalisti, con questi cambi:
 | Accento Indaco | #4F46E5 | #9A9EFF |
 | Avviso | #D1430B | #FF9466 |
 
-### 2.3 Layout web per schermi larghi (implementato)
+### 2.4 Componenti comuni delle liste
 
-Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
+- **Riga** (`Row` in `web/src/ui/kit.tsx`): da sinistra a destra l'orario (solo nel piano di Oggi), il **pallino numerato della priorità**, il titolo con sotto la riga grigia che comincia con l'icona del tipo di nota, la scadenza e, all'estrema destra, la **casella di stato**. Il numero nel pallino è la posizione per punteggio (1 = la prima da fare); il pallino ha il contorno nel colore del livello (arancio-rosso alta, ambra media, grigio bassa) e **batte** a ritmo di cuore, più veloce quanto più la scadenza è vicina: da 10 bpm (urgenza 15, scadenza oltre 30 giorni) a 80 bpm (urgenza 100: oggi, scaduta o fissa), fermo senza scadenza; il colpo dura sempre 0,45 s e con «Riduci animazioni» il pallino resta fermo (`battitoBpm` in `shared/priority.ts`, `web/src/lib/battito.ts`).
+- **Casella di stato:** quadrato stondato neutro, uguale per tutte le note (anche passi di progetto e checklist). Con la nota (`voce`) ha quattro stati: un tocco avanza (da fare → in corso → fatta; fatta e archiviata tornano a da fare); la pressione lunga (450 ms) o il tasto destro aprono il foglio con tutti gli stati. «In corso» è mezza casella gialla, «archiviata» è tratteggiata. Le righe di routine e quelle senza nota restano a due stati. Una scadenza fissa mostra un lucchetto invece del pallino rotondo di scadenza.
+- **Interesse** (1-5): nelle liste di Intrattenimento, Curiosità ed Esperienze è un pallino verde col numero, più pieno quanto più è alto; nella scheda è una barra verde (stessa forma dell'importanza).
+- **Sezione** (`Sezione`): fascia con titolo grande in grassetto, chiusa sopra e sotto da una linea sottile, con il conteggio a destra e le righe libere sotto, senza contenitori. Usata in Oggi, Attività, Intrattenimento, Curiosità e Routine.
+- **Gruppo di progetto** (`GruppoProgetto`): testata a cartella con nome (tocco = apre il progetto), avanzamento «fatti / totale» e barra; sotto i passi, con le stesse indentazioni delle righe normali.
+- **Margine d'errore:** accanto al tempo di un'attività compare il margine atteso (es. «30 min ±30%»).
+- **Feedback aptico** (`web/src/lib/haptic.ts`): ogni tocco a un pulsante dà una vibrazione leggera, il segno di fatto una più marcata. Nell'app Android usa il plugin nativo `Haptica` (ampiezza 77 e 126, ridotta del 30% rispetto ai valori standard di Capacitor), nel browser del telefono `navigator.vibrate` (6 ms, 10 per il segno di fatto), sul computer nulla.
+- **Animazioni** (solo CSS): dissolvenza dal basso delle schermate, righe in sequenza, scatto del segno di fatto, fogli che salgono, menu con leggero zoom, barre che si riempiono, pulsanti che si schiacciano. Con «Riduci animazioni» attivo nel sistema sono disattivate.
 
-- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox con contatore; Completato; Tempo libero, Aspetto, Account; versione e, solo se si è offline, lo stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
-- **Dettaglio in finestra (0.29.0):** da 900 px la voce si apre in una finestra in sovraimpressione al centro, sopra la schermata corrente (non più a tutta pagina né in un pannello a destra); si chiude con "Indietro", Esc o toccando lo sfondo.
-- **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca, pulsante Stile e aspetto e "+ Nuova voce" (il tipo segue la sezione in cui si è).
-- **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, in "consigliato da" e "con chi", nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
-- **Oggi** è un cruscotto a due colonne (cose da fare; routine e inbox). **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
-- **Scorciatoie da tastiera:** N (cattura rapida), / (ricerca), Esc (chiude la conferma, la ricerca o il pannello). Spostarsi nell'elenco con J e K e segnare fatto con F non sono ancora implementati.
-- La cattura rapida si apre al centro, come finestra, invece che dal basso.
+## 3. Schermate
 
-### 2.3.1 Tag area e calendario (implementato)
+### 3.1 Oggi
 
-- **Stile delle righe (P1):** ogni riga con priorità ha il checkbox bordato nel colore del livello (arancio-rosso = alta, ambra = media, grigio = bassa) e, a destra, un pallino con contorno colorato e sfondo tenue che contiene il numero d'ordine (1 = la prima da fare), senza raggruppamenti né sfondi sulle righe. Il numero è la posizione per punteggio nell'elenco delle attività, tra i blocchi del giorno nel piano di Oggi (gli impegni con orario fisso non lo hanno) e nella lista semplice di Oggi. Le liste di Intrattenimento ed Esperienze hanno il checkbox colorato ma non il numero.
-- **Tag e area:** tolti dall'interfaccia (nessuna pillola sulle righe, nessun filtro per area; il campo `area` resta solo nei dati).
-- **Riga V2 (0.50.0):** in tutte le liste la riga ha, da sinistra a destra, l'orario (solo nel piano di Oggi), il pallino numerato della priorità, il titolo con sotto la riga grigia che comincia con una piccola icona del tipo di nota (attività, progetto, esperienza, film, ricetta, curiosità…), la scadenza e, all'estrema destra, il checkbox. Il checkbox è lo stesso per tutte le note: un quadrato stondato neutro (così non si confonde con il pallino rotondo della priorità), pieno e con la spunta quando è fatto; vale anche per i passi dei progetti e le checklist. Il colore della priorità sta solo sul pallino. Mockup `21-riga-schermo-grande-ui-piccola.html` (variante V2, pensata per schermi larghi come quello del Nothing Phone).
-- **Sezioni nello stesso stile in tutte le schede (0.49.0, stile M3):** Oggi (Routine di oggi, Piano di oggi, Non entrano oggi), Attività (Tutte le attività, Esperienze; nei sotto-schede Progetti e Esperienze le loro sezioni), Intrattenimento (Stasera, l'elenco della sotto-scheda), Curiosità (Da approfondire) e Routine (una sezione per fascia della giornata, Parcheggiate) usano lo stesso componente `Sezione`: una fascia con titolo grande in grassetto, chiusa sopra e sotto da una linea sottile, con il conteggio in verde a destra, e le righe libere sotto, senza contenitori. Sul telefono la fascia va da bordo a bordo; sul web occupa la colonna centrale. Le cartelle dei progetti restano riquadri (mockup `19-stili-tra-B1-e-B2.html`, variante M3). Nello schermo di Oggi si scorre con lo swipe tra i giorni (a sinistra il giorno dopo, a destra quello prima) e la navigazione tra i giorni è un riquadro unico con le frecce ai lati.
-- **Giorno e mese in Oggi:** Oggi è un'unica pagina e mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro). Non c'è più il selettore Giorno/Mese: toccando il nome del giorno (con la freccetta) si apre una finestra con il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza fissa o scaduta); toccando un giorno la finestra si chiude e si vede quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
-- **Stato di sincronizzazione:** in Oggi (telefono) compare solo se si è offline o ci sono modifiche in attesa; nella barra laterale del sito resta sempre visibile.
-- **Indietro (pila unica):** ogni spostamento è una voce della cronologia del browser: cambio scheda o sotto-sezione, apertura di una schermata o di una voce, apertura di una finestra o di un pannello (cattura rapida, scelta del mese, voto, "quanto ci hai messo", menu a tendina come Tipo e Sezione). Il tasto indietro del telefono, quello del browser e il pulsante "Indietro" dell'app ripercorrono esattamente l'ordine inverso: prima si chiude la finestra aperta, poi si torna alla schermata precedente, poi alla scheda precedente. Aprire qualcosa da una finestra la chiude senza lasciare voci in sospeso (`web/src/App.tsx`, `useLayer` in `web/src/ui/nav.tsx`). **App Android (0.43.0):** la pila è gestita dall'app stessa senza usare la cronologia del WebView (che sul telefono non risultava affidabile) e il tasto indietro del telefono arriva dal plugin `@capacitor/app`: chiude il pannello in cima, poi risale la pila, e a pila vuota esce dall'app.
+Un'unica pagina che mostra **un giorno alla volta**.
 
-### 2.3.2 Piano della giornata (implementato)
+- **Barra del giorno:** frecce per passare al giorno prima/dopo (anche con lo swipe orizzontale; «Torna a oggi» riporta indietro). Toccando il nome del giorno si apre il **mese** (foglio sul telefono, finestra sul sito) con un pallino per i giorni con attività (arancio se c'è una scadenza fissa o scaduta); toccando un giorno lo si guarda. Il giorno scelto resta finché l'app è aperta.
+- **Su oggi** compaiono: l'invito «Quando sei libero…» se il tempo libero è flessibile, le **Routine di oggi** (chip da spuntare), il **Piano di oggi** e lo stato di sincronizzazione (sul telefono solo se si è offline o ci sono modifiche in attesa).
+- **Altro giorno:** il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno non già nel piano e, per i giorni passati, quelle rimaste aperte («Rimaste aperte»). Routine e Inbox compaiono solo su oggi.
+- **Piano con linea a fasce** (`LineaPiano`): in alto la barra sottile delle 24 ore con le fasce libere **cliccabili** (tempo libero, attività colorate dalla priorità, impegni fissi con bordo, ora attuale; le fasce già passate sono disattivate); sotto gli orari della fascia scelta (di base quella in corso o la prossima) e la sua barra a segmenti colorati dalla priorità, dove la coda tratteggiata di ogni segmento è il margine d'errore; sotto la barra un pallino numerato (come quelli delle righe) per attività, centrato sotto il suo segmento. I pallini restano sempre dentro la barra: se sono tanti si rimpiccioliscono (da 24 a 12 px), a ammassi estremi si sovrappongono e dei fili li collegano al segmento (`shared/linea.ts`, con test). L'elenco sotto mostra solo i blocchi della fascia scelta, con i passi dello stesso progetto riuniti sotto la testata; il numero è la posizione nella classifica globale.
+- **Senza tempo libero** impostato compare «Da fare oggi» (`vistaOggi`) con l'invito a impostarlo.
+- Il piano si ricalcola a ogni modifica e ogni minuto (`useMinuto` si aggiorna anche al ritorno in primo piano, perché i timer in background su Android si fermano).
+- **Telefono:** in cima Aspetto, Inbox (con contatore), Altro e «+». **Sito largo:** niente pulsanti tondi.
 
-L'app distribuisce da sola le attività nei giorni, in base alle priorità, al tempo libero e alla durata (`shared/piano.ts`, con test).
+### 3.2 Attività
 
-- **Tempo libero:** in Altro > Tempo libero si impostano, per ogni giorno della settimana, una o più fasce orarie (es. lun-ven 18:00-21:00). Si salva sul dispositivo. Finché non è impostato, Oggi mostra la lista semplice con un invito a impostarlo. In alternativa c'è la modalità **Orari flessibili** (interruttore nella stessa schermata): le fasce della settimana non contano e ogni sera una notifica chiede gli orari liberi del giorno dopo (vedi «Tempo libero flessibile» in fondo).
-- **Algoritmo:** si prendono le azioni aperte e i prossimi passi dei progetti (stessi candidati di Oggi), ordinati per punteggio di priorità. Ognuna va nella prima fascia libera con spazio sufficiente, partendo da oggi (e per oggi dall'ora attuale), entro 14 giorni. Durata = sforzo stimato, 30 minuti se non è stimato.
-- **Pausa tra le attività (0.40.0):** in Altro > Tempo libero c'è il parametro "Pausa dopo ogni attività" (di base **5 minuti**, da 0 a 60): il piano lascia questo tempo libero tra un'attività e la successiva (non dopo gli impegni con orario fisso). Si salva con il tempo libero e viaggia con la sincronizzazione (`pausaMin` in `shared/piano.ts`, con test).
-- **Rimandare:** se non c'è spazio, le meno prioritarie passano ai giorni successivi. In Oggi compaiono in "Non entrano oggi" quelle che scadono oggi o sono scadute, con il giorno e l'ora a cui sono state spostate. Se finiscono dopo la scadenza il blocco è segnato "oltre la scadenza".
-- **Spezzare:** le attività oltre i 60 minuti si dividono in blocchi (minimo 30 minuti) su più fasce e giorni ("parte 1 di 2"); quelle più brevi non si spezzano.
-- **Pause curiosità:** dopo un blocco grande (60 minuti o più), ogni due blocchi grandi dello stesso giorno, il piano inserisce una pausa di 15 minuti con una curiosità da approfondire, per spezzare il ritmo; al massimo due al giorno, una curiosità diversa per ogni pausa (prima le più interessanti, a parità le più vecchie), e solo se nella fascia resta spazio per altro lavoro. Nel piano compaiono come "Pausa curiosità" e si spuntano come approfondite.
-- **Impegni con orario:** le voci con data e ora di inizio restano dove sono e tolgono tempo libero.
-- **Oggi:** "Piano di oggi" è una giornata scandita da blocchi con ora di inizio e durata, con una barra del tempo usato sul tempo libero; sotto, un riepilogo dei prossimi giorni. Il piano si ricalcola a ogni modifica e ogni minuto, quindi segue l'ora che passa.
-- **Sincronizzazione del tempo libero:** il tempo libero viaggia nella stessa sincronizzazione delle voci (campo `impostazioni` di `/api/sync`, tabella `settings` del server, chiave `tempoLibero`). Ogni dispositivo ricorda quando l'ha modificato e vince la modifica più recente, così telefono e sito vedono gli stessi orari. Serve l'app e il server alla 0.21.0 o successiva; un valore impostato con una versione precedente sale al primo collegamento.
-- **Non ancora:** eccezioni per un singolo giorno (il modello le prevede), piano nel calendario.
+Intestazione con i conteggi reali («N attività · N progetti · N esperienze») e **ricerca** comune alle tre sotto-schede (`cercaVoci`: tutte le parole devono comparire; filtra anche i passi dei progetti). Le tre sotto-schede hanno la stessa larghezza.
 
-- **Barra in alto e barra laterale (0.26.0):** cattura rapida e ricerca hanno la stessa larghezza; tolti l'icona Aspetto (resta nella barra laterale) e il pulsante "+ Nuova voce" (la cattura resta nella barra e con N); le cinque sezioni principali della barra laterale (Oggi, Attività, Intrattenimento, Curiosità, Routine) hanno la stessa dimensione delle altre voci.
+- **Tutte le attività:** tutte le attività aperte (comprese le scadute) in ordine di priorità, con i task dei progetti raggruppati sotto la testata del progetto; il numero d'ordine resta quello della classifica completa anche con la ricerca. Sotto, le esperienze. Le archiviate non compaiono.
+- **Progetti:** un gruppo per progetto con tutti i suoi passi (aperti per priorità, poi i completati barrati).
+- **Esperienze:** un selettore sceglie l'ordine (si ricorda in `mytask.esperienze.ordine`): **Data** (di base: «Con data» poi «Senza data»), **Luogo** (una sezione per luogo, «Senza luogo» in fondo), **Interesse** (un'unica lista dal più al meno interessante) e **Per te** (sezione 6.9).
 
-- **Barra in alto e barra laterale (0.26.0):** cattura rapida e ricerca hanno la stessa larghezza; tolti l'icona Aspetto (resta nella barra laterale) e il pulsante "+ Nuova voce" (la cattura resta nella barra e con N); le cinque sezioni principali della barra laterale hanno la stessa dimensione delle altre voci.
+### 3.3 Intrattenimento
 
-- **Barra laterale (0.27.0):** l'indicatore di sincronizzazione compare solo quando il sito è offline. La schermata **Notifiche** è stata tolta (telefono e web): le notifiche continuano a funzionare, il permesso viene chiesto al primo avvio dell'app Android e, se negato, si riattiva dalle impostazioni di Android.
+Sei sotto-schede (Film, Serie, Anime, Giochi, Libri, Ricette), tutte della stessa larghezza, con ricerca (titolo, note, campi di testo) e filtro per piattaforma. Le voci sono ordinate per interesse. Per film, serie e anime c'è **«Cosa guardo stasera»** (sezione 6.10).
 
-- **Importanza e curiosità (0.32.0):** l'importanza di attività e progetti si sceglie con uno **slider** da 1 a 5 al posto dei pallini; dalla 0.40.0 è **continuo** (anche 3,4; il punteggio lo usa così com'è), a **cuneo** che si allarga verso destra con un gradiente dal grigio al rosso delle priorità, senza etichette né − e + (mockup `21-slider-importanza.html` e `22-slider-cuneo-gradiente.html`, variante A1); le curiosità hanno il campo **Tempo stimato** (di base 15 minuti, anche se create dalla cattura) e la pausa curiosità nel piano dura quanto il loro tempo.
-- **Vista web (0.32.0):** tolta la barra in alto: in cima alla barra laterale ci sono il pulsante **+ Nuova nota** (apre "Cosa ti è venuto in mente?", scorciatoia N) e subito sotto la **ricerca** (scorciatoia /); la finestra della voce è più alta (fino al 96% dello schermo); in Oggi non c'è più la scheda Inbox e la Routine sta tra la barra del giorno e il piano.
+### 3.4 Curiosità
 
-- **Battito del pallino (0.41.0):** il numero d'ordine nelle righe di Attività e Oggi si contrae a ritmo di battito cardiaco (lub-dub, variante C4 del mockup `26-pallino-battito-durata-fissa.html`). Frequenza da 10 bpm (urgenza 15, scadenza oltre 30 giorni) a 80 bpm (urgenza 100: oggi, scaduta o rigida), crescente con l'urgenza; fermo senza scadenza. Il colpo dura sempre 0,45 secondi (si accorcia solo se la pausa non basta): a frequenze basse cambia la pausa, non la velocità del colpo. Si contrae del 12% e il secondo colpo è il 65% del primo. Con "Riduci animazioni" il pallino resta fermo (`battitoBpm` in `shared/priority.ts`, con test; `web/src/lib/battito.ts`). Non si applica ai pallini sotto la barra della fascia.
+Scheda propria con ricerca. Ogni riga mostra l'interesse; una curiosità «da fare» si legge «da approfondire». Le curiosità hanno il campo **tempo stimato** (facoltativo: senza tempo la pausa nel piano dura 15 minuti).
 
-### 2.4 Telefono: icone e pulsanti circolari (implementato)
+### 3.5 Routine
 
-- **Icone** per le sezioni principali (Oggi: sole; Fare: spunta in un quadrato; Intrattenimento: bussola; Routine: frecce che si ripetono), nella barra in basso con un'evidenziazione tonda sulla scheda attiva, e nella barra laterale del sito.
-- **Inbox e Altro** in "Oggi" sono ora due pulsanti tondi da 46 px, più facili da toccare: Inbox con un contatore (se ci sono idee da smistare) e Altro con tre pallini.
+Le abitudini non sono task: non scadono e non finiscono (sezione 6.7). Una sezione per fascia della giornata (Mattina, Pomeriggio, Sera, Prima di dormire) e **Parcheggiate** per quelle messe da parte. Ogni riga ha i sette giorni della settimana; sul sito largo c'è la griglia della settimana in cui si spunta qualsiasi giorno.
 
-### 2.4.1 Scheda di una voce, tipi e stato (implementato)
+### 3.6 Inbox, Archiviate, Completato
 
-- **Tipo accorpato:** nella scelta del tipo ci sono Attività, Progetto, Esperienza, Routine, Intrattenimento, Ricetta e Curiosità. Scegliendo Intrattenimento compare sotto una seconda scelta "Sezione" (Film, Serie, Anime, Gioco, Libro). Sotto il cofano i tipi restano quelli di prima.
-- **Stato della nota (0.55.0):** ogni voce nuova è "da fare". Sotto il titolo della scheda c'è il selettore a quattro stati (Da fare, In corso, Fatta, Archiviata); in fondo resta solo "Elimina". Anche le righe delle liste hanno la casella a quattro stati (vedi «Stati di una nota» in fondo). Il blocco della priorità in cima è collassabile e ricorda l'ultima scelta; il campo «Ora» non è più nell'editor (0.55.4). Le voci archiviate stanno in **Altro > Archiviate** (non compaiono più nelle liste) e si ripristinano aprendole ("Ripristina"). Non va confusa con l'**Archivio**, che raccoglie le voci completate.
-- **Gruppo Intrattenimento:** per film, serie, anime, giochi e libri un solo gruppo unisce interesse, piattaforma, consigliato da, con chi, durata e genere (per le ricette il gruppo si chiama Ricetta).
-- **Voto e commento:** segnando come fatto un film, un libro, un gioco o simili (dal segno di spunta o dal pulsante) si apre "Com'è andata?" con il voto da 1 a 10 e un commento facoltativo; confermando la voce risulta fatta quel giorno. Non esiste più la sezione "Dopo averlo fatto". Voto e commento si vedono nel gruppo "Completata".
-- **Link e documenti:** per ora tolti dalla scheda (il campo resta nei dati).
-- **Pannello unico per Attività e Progetto:** un solo gruppo con, in ordine, Progetto (solo per le attività: tendina con i progetti aperti, "Nessuno" se non è collegata), Data, Importanza e Tempo stimato (da 5 minuti a 1 giorno: 5, 15, 30 min, 1, 2, 4, 6, 8, 12 ore, 1 giorno). Se c'è una data compaiono sotto Scadenza fissa e Promemoria (il campo Ora è stato tolto nella 0.55.4). Tolti Area, Ricorrenza e la sezione dei sotto-task (le voci già esistenti con quei dati continuano a funzionare); il campo Progetto è il vecchio "Progetto padre" (`padreId`) tornato in prima posizione.
-- **Attività raggruppate per progetto:** in Attività e in Oggi (piano del giorno e lista semplice) i task di uno stesso progetto stanno insieme sotto una testata con icona, nome (toccandola si apre il progetto), avanzamento "fatti / totale" e barra; le attività senza progetto restano righe singole. Il gruppo sta dove si trova il suo task più prioritario e il numero d'ordine resta quello globale. In Attività compaiono tutti i task aperti del progetto, in Oggi solo il prossimo passo (`raggruppaPerProgetto` in `shared/views.ts`).
-- **Elenco Esperienze:** un solo elenco, "Con data" e "Da fare quando capita", senza raggruppamenti per luogo.
-- **Contenuto centrato sul web (0.48.0):** da 900 px la barra laterale resta a sinistra e tutto il resto (titolo con i pulsanti tondi e corpo della pagina) sta in una colonna larga al massimo 760 px, centrata nello spazio a destra della barra, con lo stesso vuoto ai due lati. La griglia della settimana in Routine usa una colonna fino a 1120 px. Il riquadro che scorre resta largo quanto tutto lo spazio, così la rotellina funziona anche ai lati; sotto gli 800 px circa la colonna riempie lo spazio con 22 px di margine. Il telefono non cambia (mockup `16-web-contenuto-centrato.html`).
-- **Numeri sotto la barra del piano (0.47.2):** i numeri d'ordine sotto la barra a segmenti restano sempre dentro la barra, nell'ordine dei segmenti: se sono tanti i cerchi si rimpiccioliscono (da 24 fino a 12 px) e, ad ammassi estremi, si sovrappongono un poco; dei sottili fili li collegano al loro segmento quando sono stati spostati. Prima, con tanti numeri vicini (20 attività nella stessa fascia), andavano fuori dalla pagina. La larghezza si rimisura a ogni disegno, così cambiando giorno o fascia i numeri si aggiornano bene (`shared/linea.ts`, con test).
-- **Righe allineate nei progetti (0.47.0):** i progetti nell'elenco delle attività restano nella loro cartella (riquadro con bordo, intestazione tinta con il conto "0 / 3" e la barra). Cambiano solo le indentazioni: la cornice sporge di 4 px per lato (restano 14 px dal bordo dello schermo, così non è appiccicata) e le righe dei passi hanno il padding giusto, così checkbox e pallino numerato cadono solo 4 px più verso il centro rispetto alle righe normali.
-- **Cronologia nella voce (0.47.0):** in fondo alla pagina di una voce salvata c'è la scheda **Cronologia** (variante A del mockup `12-ora-creazione-completamento.html`): Creata (giorno e ora, per esempio "ven 16 ott · 14:32"), Completata (per le voci fatte) e Tempo trascorso (18 h 38 min). La pagina segue la voce anche quando viene completata dal pulsante, dalla finestra del voto o da quella del tempo (`scriviQuando` e `scriviTrascorso` in `shared/tempo.ts`, con test).
-- **Ordine dei passi di un progetto (0.46.0):** nella scheda del progetto i passi (voci figlie e righe di checklist) si spostano trascinandoli (0.50.0, `web/src/ui/riordina.tsx`: dal bordo sinistro subito, con la pressione lunga sul telefono, con clic e trascinamento col mouse; prima c'erano le frecce ▲ ▼). L'ordine è anche la priorità e la dipendenza: il primo passo aperto è il prossimo da fare (`prossimoPasso`), quello che compare in Oggi. L'ordine si salva nel campo `ordine` dei passi (`figli()` ordina per `ordine`, poi per data e creazione; i passi nuovi vanno in fondo) e viaggia con la sincronizzazione (`ordinaPassi` in `web/src/lib/actions.ts`).
-- **Inbox e Archiviate (0.46.0):** le voci sono righe come quelle del resto dell'app (titolo e riga grigia), senza più la scheda con il bordo; si smistano aprendole.
-- **Ora di completamento (0.46.0):** completando una voce si salva anche l'ora (`completatoTs`, in millisecondi, oltre a `completatoIl`); riaprendola si toglie. L'ora di creazione c'era già (`creato`). Come mostrarle nella pagina della voce è in un mockup locale da scegliere (`12-ora-creazione-completamento.html`): non è ancora visibile nell'app.
-- **Avanzamento del progetto (0.45.0):** completando un passo di un progetto (una voce figlia) si apre per circa 4 secondi il pannello del progetto: sul telefono come foglio dal basso, sul web come finestra al centro con lo sfondo scurito. Il passo si spunta con un piccolo rimbalzo e il testo si sbarra, la barra passa da "N su M" a "N+1 su M" con il numero che cambia, poi il pannello si richiude da solo (o con un tocco, o con "indietro"). Per le attività la richiesta "Quanto ci hai messo?" arriva dopo, a fine animazione. Con "Riduci animazioni" attivo non si vede (`web/src/ui/AvanzamentoProgetto.tsx`, `web/src/lib/avanzamento.ts`).
-- **Link e immagini nelle note (0.45.0):** sotto le note di ogni voce ci sono i pulsanti "＋ Link" e "＋ Immagine". I link si aprono dal loro elenco e si tolgono con ✕. Le immagini vengono rimpicciolite (lato massimo 960 px, JPEG) fino a stare in circa 70 KB e salvate dentro la voce (campo `immagini`); in totale al massimo circa 130 KB di immagini per voce, perché sul server una voce non può pesare più di 200 KB. Toccando una miniatura si ingrandisce (`web/src/ui/AllegatiNote.tsx`, `web/src/lib/immagini.ts`).
-- **Sotto-scheda "Tutte le attività" (0.45.0):** la prima sotto-scheda di Attività, prima "Attività", si chiama "Tutte le attività".
-- **Pulsanti in cima alle schede (0.45.0):** sul telefono, oltre a Stile e aspetto, in tutte le schede principali ci sono anche Inbox (con il numero di idee da smistare) e Altro, non solo in Oggi. Sullo schermo largo restano nella barra laterale.
-- **Login nell'app Android (0.44.0):** l'indirizzo del server ha un menu con `https://` già scelto (si può passare a `http://`) e un campo dove si scrive solo il resto (per esempio `mytask.tuodominio.it`); incollando un indirizzo completo lo schema passa da solo nel menu (`shared/indirizzo.ts` con test).
-- **Tempo stimato (0.43.0):** si scrive a mano ("45m", "6h", "4g" o "4d", "5g 6h", "1h30", "1:30", "1,5h"; un numero da solo vale minuti; il campo lo riscrive in forma normale, es. "1g 2h 15m") oppure si sceglie con il pulsante **Scegli**: un pannello con giorni, ore e minuti (i minuti a passi di 15) e i pulsanti più e meno. Un giorno vale 24 ore. Vale per attività, progetti e curiosità (`shared/tempo.ts` con test, `web/src/ui/CampoTempo.tsx`).
-- **Pannello Esperienza:** Data, Interesse e il pulsante "Apri in Google Maps", che cerca il nome dell'esperienza. Tolti Zona e il link a Google Maps.
-- **Ricetta:** solo Interesse e Genere, a scelta multipla tra Antipasto, Primo, Secondo, Contorno, Dolce, Piatto unico, Zuppa, Pane e lievitati, Bevanda (salvata come elenco separato da virgole in `genere`). Tolti Consigliato da e Con chi.
-- **Progetto con checklist:** solo i progetti hanno la checklist (gruppo "Checklist · X su Y", con barra di avanzamento): contiene le righe della checklist e i passi già esistenti (voci figlie), tutti spuntabili; si aggiungono righe di checklist con "Aggiungi un passo". Le checklist dei progetti già finite nelle note tornano nel campo da sole (`shared/migrazioni.ts`).
-- **Persone e checklist (altri tipi):** non si modificano più. All'avvio e a ogni sincronizzazione le voci che li hanno li vedono spostati nelle note (`web/src/lib/migrazioni.ts`), e i campi vengono svuotati.
-- **Cosa guardo stasera:** i filtri sono Con chi (Da solo, Con il partner, Con amici), Piattaforma (quelle già usate più Prime Video e Disney+), Mood (Spensierato, Rilassante, Emozionante, Intenso, Riflessivo), Energia che hai stasera (Bassa, Media, Alta) e Tipologia (Comico, Drammatico, Azione, Thriller, Horror, Fantascienza, Fantasy, Animazione, Documentario). Non c'è più "Quanto tempo hai?". I filtri spostano il punteggio senza escludere: le voci senza il dato restano neutre. Per film, serie e anime la scheda ha le scelte Tipologia (campo `genere`), Mood (`mood`) ed Energia richiesta (`energia`) (`shared/stasera.ts`).
-- **Intrattenimento per tipo:** il film ha Interesse, Piattaforma e Genere (niente Consigliato da, Con chi e Durata); serie e anime mantengono Consigliato da, Con chi e Durata in minuti; il gioco ha Durata in ore (salvata in minuti, per esempio 12,5 ore); il libro ha le **Pagine**, cercate online da sole su Open Library a partire dal titolo (al servizio esterno va solo il titolo; si possono correggere) (`web/src/lib/libri.ts`).
-- **Tre pulsanti in fila:** in fondo alla scheda "Elimina", "Archivia" e "Completato" stanno uno accanto all'altro.
-- **Barra in basso:** la scheda attiva ha lo sfondo che copre icona e testo.
-- **Rotazione:** l'app Android resta sempre in verticale (`screenOrientation` nel manifest).
+- **Inbox:** note da smistare, la più recente prima. Si smistano aprendole e scegliendo il tipo. Righe normali (titolo e riga grigia).
+- **Archiviate** (Altro): note con stato «archiviata»; non compaiono nelle liste e si ripristinano aprendole.
+- **Completato** (Altro): note fatte o saltate (non routine né passi), con filtro per tipo, sezioni per mese e voto a destra; la spunta riapre la nota.
 
-### 2.4.2 Cattura, stime del tempo e scadenza fissa (implementato)
+### 3.7 Altro e impostazioni
 
-- **Pulsante "+":** in ogni scheda (e "+ Nuova nota" sullo schermo largo) apre sempre "Cosa ti è venuto in mente?". Il salvataggio crea una **bozza in Inbox** (anche se il tipo è chiaro), da rivedere e smistare aprendola.
-- **Scadenza fissa:** appena si imposta una data compare il checkbox "Scadenza fissa", subito sotto la Data.
-- **Attività:** la lista mostra tutte le attività aperte, con i task dei progetti raggruppati sotto il progetto.
-- **Completato:** la voce "Archivio" di Altro si chiama ora "Completato".
-- **Stima con margine d'errore** (`shared/stima.ts`, con test): ogni attività ha un margine d'errore atteso. Parte da ±30% (vale come 3 misurazioni) e si affina con l'uso: al segno di fatto di un'attività l'app chiede, in una finestra facoltativa, "Quanto ci hai messo?" (campo `durataRealeMin`); l'errore medio |reale − stimato| / stimato delle attività completate sposta il margine verso l'alto o il basso (tra 5% e 100%). Per una nuova nota l'app cerca attività simili già fatte (somiglianza tra le parole del titolo, fino a 5), usa la mediana dei loro tempi reali come stima e mostra margine e intervallo atteso; nella cattura rapida la stima viene inserita da sola, nella scheda compare un suggerimento con "Usa". Il margine si vede in Attività e in Oggi accanto al tempo (es. "30 min ±30%"). Il piano della giornata non lo usa ancora per allargare i blocchi.
+- **Tempo libero** (`TempoLibero`, `OrariGiorno`): per ogni giorno della settimana una o più fasce (es. lun-ven 18:00-21:00, di partenza sere feriali 18-21 e mattine del fine settimana 9-13), il parametro **«Pausa dopo ogni attività»** (di base 5 minuti, da 0 a 60) e l'interruttore **Fasce fisse / Orari flessibili** (sezione 6.4).
+- **Intelligenza artificiale** (`IA`, `Chat`): sezione 6.12.
+- **Pesi della priorità** (`PesiPriorita`, etichetta «Sperimentale»): quattro cursori più la scadenza fissa per cambiare il peso delle componenti del punteggio (sezione 6.1).
+- **Aspetto:** sezione 2.3.
+- **Account:** email, stato di sincronizzazione, ultima sincronizzazione, voci locali, versione dell'app e del server (con avviso se diverse), «Sincronizza ora», esporta tutto in JSON, importa da JSON (file preparato con lo script Notion o esportazione precedente), esci.
+- La versione compare anche nella schermata di accesso e in Altro.
 
-- **Gruppi di progetto (0.24.0):** i task sotto la testata sono rientrati e allineati (stessa indentazione per aperti e chiusi); l'icona del progetto è una cartella senza colore dentro un tondino con contorno. Il checkbox dei task non cambia più colore con la priorità (resta solo il numero d'ordine colorato). La scheda **Progetti** usa lo stesso aspetto: un gruppo per progetto con tutti i suoi task (aperti per priorità, poi i completati barrati).
-- **Curiosità:** ogni riga mostra l'interesse con cinque pallini. Le barre di scorrimento delle pagine sono nascoste.
+### 3.8 Cattura rapida
 
-- **Attività (0.25.0):** l'intestazione elenca i conteggi reali ("N attività · N progetti · N esperienze") e la scheda Attività mostra tutto: i task (raggruppati per progetto) e, sotto, le esperienze (comprese quelle in Revisione).
-- **Blocco di priorità nella scheda (0.30.0, variante C1):** riquadro col contorno del colore della priorità; il numero grande è la **posizione** in classifica (1 = la più prioritaria, "3ª da fare su 28"), niente punteggio; a destra la targhetta "Priorità alta/media/bassa"; sotto quattro barre con quanto pesano urgenza, importanza, poco sforzo ed età, e una riga con scadenza, importanza a parole e tempo con margine d'errore.
-- **Barra del piano per attività:** la barra del tempo libero in Oggi è divisa in un segmento per blocco, colorato dalla priorità (le pause sono più chiare); ogni riga del piano mostra il margine d'errore (es. "margine ±9 min"). Dalla 0.31.0 il piano usa la **linea a fasce** (mockup `17-piano-c2-orari.html`, variante 4): in alto la barra sottile delle 24 ore con le fasce libere **cliccabili** (tempo libero, attività colorate dalla priorità, impegni fissi con bordo, ora attuale; le fasce già passate sono disattivate); sotto gli orari di inizio e fine della fascia scelta e la sua barra sottile a segmenti colorati dalla priorità; sotto la barra, senza linee di collegamento, un pallino numerato (24 px, come i pallini delle righe, mockup `20-numeri-sotto-barra.html` stile B1) per attività, centrato sotto il suo segmento e spostato di lato quando due pallini si toccherebbero. L'elenco sotto mostra solo le attività di quella fascia, con il margine d'errore di ciascuna; di default è scelta la fascia in corso o la prossima. Tolto il riepilogo "ore usate su totale". Se una fascia è molto lunga e le attività vicine, i segmenti stretti possono sovrapporsi. Mockup locali: `10`-`17` in `docs/mockups/`.
+Il «+» (o N sul sito) apre «Cosa ti è venuto in mente?». Il testo **non viene interpretato** (nessun tipo, data o persona dedotti, nessuna IA): «Salva in Inbox» (o Invio) crea una nota **«Non assegnata»** (tipo `nota`, `inbox: true`). Mentre si scrive compaiono **tutte le note che contengono le stesse parole**, anche in forme diverse (stessa radice: «pagare» e «pagamento»), con tipo e stato, per capire subito se la nota esiste già; toccandone una si apre (`cercaSimili` in `shared/views.ts`). Sul telefono l'elenco sta sopra il box di scrittura (che resta in basso), sul sito sotto. C'è anche la dettatura, dove il browser la offre. Funziona offline. La cattura è la stessa nel widget (sezione 7.4).
 
-- **Interesse a pallini grandi (0.34.0):** nelle righe di intrattenimento e di curiosità l'interesse (1-5) è mostrato a destra con cinque pallini da 11 px (dalla 0.35.0; erano 22 px) pieni nel colore d'accento o vuoti con il contorno, senza numero, con checkbox e pallini centrati in verticale sulla riga; non compare più nella riga delle informazioni. Mockup locali: `18-interesse-righe.html`, `19-interesse-pallini.html`.
+## 4. Scheda di una voce
 
-- **Oggi sul web (0.36.0):** una sola colonna: titolo, barra del giorno, routine e piano. Nella barra laterale c'è più spazio tra il logo e "+ Nuova nota" e tra la ricerca e le sezioni. Mockup locali dei numeri sotto la barra (senza linee guida): `20-numeri-sotto-barra.html`.
+La scheda (`ItemDetail`) salva da sola dopo 500 ms e all'uscita; non salva senza titolo. Dall'alto:
 
-- **Barra laterale e Oggi web (0.38.0):** il logo, il blocco "+ Nuova nota" con la ricerca e le sezioni sono separati da divisori, come i gruppi più in basso; tra la barra del giorno e la routine c'è lo stesso spazio (16 px). Il pulsante "+" sul telefono è più grande (62 px).
+1. **Stato** (solo per voci già salvate, non routine né note non assegnate): selettore a quattro segmenti **Da fare, In corso, Fatta, Archiviata** (sezione 6.2).
+2. **Blocco della priorità** (collassabile, ricorda l'ultima scelta in `mytask.prio.aperta`; chiuso di base): la **posizione** in classifica («3ª da fare su 28», senza punteggio) con il livello (alta/media/bassa) e il contorno nel colore del livello; aperto, cinque barre con il peso di urgenza, importanza, poco sforzo, età e scadenza fissa, e una riga con scadenza, importanza a parole e tempo con margine.
+3. **Titolo**, **Tipo** e, per l'intrattenimento, **Sezione** (due tendine che si chiudono a vicenda con la pila). I tipi scelti sono Attività, Progetto, Esperienza, Routine, Intrattenimento (Film, Serie, Anime, Gioco, Libro), Ricetta, Curiosità. Una nota **non assegnata** ha solo titolo, note, link e immagini: scegliendo un tipo lascia l'Inbox.
+4. **Campi per tipo:**
+   - **Attività** e **Progetto**: un solo gruppo con Progetto (solo per le attività: tendina dei progetti aperti, «Nessuno» se non collegata), Data, **Scadenza fissa** (appena c'è una data), Importanza (slider continuo da 1 a 5 a cuneo grigio→rosso, anche 3,4), **Tempo stimato** (scritto a mano o scelto, vedi sotto) con margine e suggerimento «Usa», promemoria (7 giorni, 3 giorni, 1 giorno prima, il giorno stesso, alle 9:00) e «Ripeti».
+   - **Progetto**: in più la **checklist** («X su Y», con barra) con le righe e i passi già esistenti, tutti spuntabili e **riordinabili trascinando** (dalla maniglia subito, con pressione lunga di 380 ms sul dito, con clic e trascinamento col mouse); «Aggiungi un passo». L'ordine è anche la priorità e la dipendenza (sezione 6.6).
+   - **Esperienza**: Data, Interesse, **Luogo** (campo `zona`, con sotto come chip i luoghi già usati, dal più usato; si restringono mentre si scrive) e «Apri in Google Maps» (cerca il nome).
+   - **Curiosità**: Interesse e Tempo stimato (15 minuti di base, si può togliere).
+   - **Film, serie, anime**: Interesse, Piattaforma (con chip delle già usate più Prime Video e Disney+), Genere/Tipologia, Mood ed Energia richiesta; serie e anime anche Consigliato da, Con chi e Durata in minuti (il film non li ha: la durata arriva dall'arricchimento).
+   - **Gioco**: Interesse e Durata in ore (salvata in minuti: 12,5 ore).
+   - **Libro**: Interesse e **Pagine** (cercate da sole su Open Library dal titolo, correggibili).
+   - **Ricetta**: Interesse e Genere a scelta multipla (Antipasto, Primo, Secondo, Contorno, Dolce, Piatto unico, Zuppa, Pane e lievitati, Bevanda), salvato come elenco separato da virgole.
+   - **Routine**: Momento della giornata, Frequenza (volte a settimana), Obiettivo minimo, ora del promemoria.
+5. **Note** con i pulsanti «＋ Link» e «＋ Immagine»: i link si aprono dall'elenco e si tolgono con ✕; le immagini sono rimpicciolite (lato massimo 960 px, JPEG, fino a circa 70 KB ciascuna e 130 KB per voce, perché sul server una voce non può pesare più di 200 KB), salvate dentro la voce (`immagini`) e ingrandite con un tocco.
+6. **Cronologia** (voce salvata): Creata (es. «ven 16 ott · 14:32»), In corso dal, Completata e Tempo trascorso (es. 18 h 38 min).
+7. **Completata** (voto e commento, per l'intrattenimento) e il pulsante **Elimina** (cancellazione logica).
 
-### 2.4.3 Arricchimento da internet e cosa guardo stasera (implementato, 0.33.0)
+**Tempo stimato** (`shared/tempo.ts`, `CampoTempo`): si scrive a mano («45m», «6h», «4g» o «4d», «5g 6h», «1h30», «1:30», «1,5h»; un numero da solo vale minuti; il campo lo riscrive in forma normale, es. «1g 2h 15m») o si sceglie con **Scegli** (giorni, ore e minuti a passi di 15, con più e meno). Un giorno vale 24 ore.
 
-- **Cosa fa:** quando una voce di tipo film, serie, anime, gioco o libro ha dati mancanti, l'app li cerca su internet da sola, in background: **genere** (per film, serie e anime la tipologia dell'app: Comico, Drammatico, Azione, Thriller, Horror, Fantascienza, Fantasy, Animazione, Documentario), **mood** (Spensierato, Rilassante, Emozionante, Intenso, Riflessivo), **energia / impegno mentale** (bassa, media, alta), **durata** dei film e **pagine** dei libri. Per giochi e libri il genere è il testo trovato. I dati si salvano nella voce (e si sincronizzano), quindi i filtri di "Cosa guardo stasera" funzionano davvero.
-- **Fonti:** Wikidata (gratuita e senza chiave; al servizio va solo il titolo) e, per le pagine dei libri, Open Library. Mood ed energia si ricavano dai generi con regole fisse (`shared/arricchimento.ts`, con test). Non si sovrascrive mai ciò che l'utente ha già scritto.
-- **Voci già inserite:** vengono arricchite automaticamente al primo avvio con rete, una alla volta (circa una ogni 2 secondi, per non superare i limiti del servizio); nelle sessioni successive si completano quelle rimaste. `arricchitoIl` ricorda quando è stata fatta la ricerca: una voce non trovata si riprova dopo 30 giorni. Se il titolo non corrisponde a nulla (o a un omonimo sbagliato) il campo si corregge a mano dalla scheda.
-- **Persone e Luoghi:** le sezioni sono state eliminate dall'app e dal sito. "Consigliato da" e "Con chi" restano campi di testo.
+**Voto e commento:** segnando come fatto un film, un libro, un gioco o simili si apre «Com'è andata?» con il voto da 1 a 10 e un commento facoltativo; la voce risulta fatta quel giorno.
 
-### 2.5 Feedback aptico e animazioni (implementato)
+**Avanzamento del progetto:** completando un passo si apre per circa 4 secondi il pannello del progetto (foglio sul telefono, finestra al centro sul sito): il passo si spunta con un rimbalzo, la barra passa da «N su M» a «N+1 su M», poi il pannello si richiude da solo (o con un tocco o «indietro»). Con «Riduci animazioni» non si vede.
 
-- **Intensità aptica:** nell'app Android il tocco usa un plugin nostro (`HapticaPlugin`) con ampiezza ridotta del 30% rispetto ai valori standard di Capacitor (leggero 77 invece di 110, marcato 126 invece di 180); nel browser del telefono la vibrazione dura 6 ms (10 per il segno di fatto).
-- **Feedback aptico:** ogni tocco a un pulsante attivo (pulsanti, schede, interruttori, scelte nei menu) dà una vibrazione leggera; il segno di fatto una più marcata. Nell'app Android usa il motore aptico (`@capacitor/haptics`), nel browser del telefono la vibrazione breve del browser, sul computer nulla (`web/src/lib/haptic.ts`, un solo ascoltatore in cattura per tutta l'app).
-- **Animazioni** (solo CSS, in fondo a `web/src/styles.css`): le schermate e le schede entrano con una breve dissolvenza dal basso; le righe appaiono in sequenza; i tag compaiono con un piccolo ingrandimento; il segno di fatto e il giorno scelto nel mese "scattano"; foglio di cattura e avvisi salgono dal basso; i menu a tendina si aprono con un leggero zoom; le barre di avanzamento e del tempo usato si riempiono con una transizione; i pulsanti si schiacciano leggermente quando premuti.
-- Con "Riduci animazioni" attivo nel sistema, le animazioni sono disattivate.
+## 5. Modello dati
 
-## 3. Modello dati
-
-Un'unica tabella **Elemento** (`shared/types.ts`) con un campo `tipo`. Sul server ogni voce è un documento JSON con un numero di sequenza per la sincronizzazione; sul dispositivo sta in IndexedDB. I campi sono opzionali tranne quelli indicati.
-
-### Elemento
+Un'unica tabella **Elemento** (`Item` in `shared/types.ts`) con un campo `tipo`. Sul server ogni voce è un documento JSON con un numero di sequenza per la sincronizzazione; sul dispositivo sta in IndexedDB. I campi sono opzionali tranne `id`, `tipo`, `titolo`, `stato`, `creato`, `aggiornato`.
 
 | Campo | Note |
 |---|---|
-| `id`, `titolo` (obbligatori) | |
-| `tipo` (obbligatorio) | azione, progetto, esperienza, routine, film, serie, anime, gioco, libro, ricetta, curiosita, persona |
-| `stato` | da_fare, in_corso, fatto, saltato, parcheggiato. **"Scaduto" non è uno stato**: si calcola da data e stato. Per le curiosità "da_fare" si legge "da approfondire" |
+| `tipo` | azione, progetto, esperienza, routine, film, serie, anime, gioco, libro, ricetta, curiosita; `nota` = non assegnata (Inbox); `persona` solo nei dati vecchi |
+| `stato` | `da_fare`, `in_corso`, `fatto`, `saltato` (conta come fatta), `parcheggiato` (= archiviata). **«Scaduto» non è uno stato**: si calcola da data e stato |
 | `creato`, `aggiornato` | millisecondi; `aggiornato` decide chi vince nella sincronizzazione |
 | `eliminato` | cancellazione logica: la voce resta, così la cancellazione arriva agli altri dispositivi |
-| `inbox` | catturata ma non ancora smistata; si toglie da sola alla prima modifica nell'editor |
-| `note`, `link[]` | link ammessi anche a file su Seafile |
-| `inizio`, `fine`, `oraInizio`, `oraFine` | date YYYY-MM-DD e orari HH:MM facoltativi |
-| `rigida` | `true` se la scadenza non è spostabile |
-| `ricorrenza` | ogni N giorni/settimane/mesi/anni |
-| `promemoria[]`, `insisti` | promemoria a N giorni dalla scadenza; insistenza ogni N minuti |
-| `importanza` (1-5), `sforzoMin`, `area` | azioni e progetti |
-| `interesse` (1-5) | collezioni, esperienze e curiosità |
-| `padreId`, `checklist[]` | sotto-task (un solo livello) e liste semplici dentro una voce |
-| `persone[]`, `daContattare` | non più usati (le sezioni Persone e Luoghi sono state tolte); restano nei dati vecchi, ignorati |
-| `zona`, `luogo`, `linkMaps` | non più usati dalle schermate (restano nei dati vecchi) |
-| `piattaforma`, `consigliatoDa`, `conChi`, `durataMin`, `genere`, `mood`, `energia`, `pagine`, `arricchitoIl` | collezioni (gli ultimi cinque si compilano da soli, vedi 2.4.3) |
-| `voto`, `completatoIl` | collezioni e archivio |
-| `inCorsoTs` | quando la nota è passata a «in corso» (millisecondi); vuoto se torna «da fare» |
+| `inbox` | catturata ma non ancora smistata; si toglie scegliendo un tipo |
+| `note`, `link[]`, `immagini[]` | link ammessi anche a file su Seafile; immagini come testo `data:` ridotte |
+| `inizio`, `fine`, `oraInizio`, `oraFine` | date YYYY-MM-DD e orari HH:MM; la scadenza è `fine`, altrimenti `inizio`; se c'è un'ora la nota è un impegno con orario fisso nel piano |
+| `rigida` | scadenza fissa (non spostabile; in interfaccia «scadenza fissa») |
+| `ricorrenza`, `promemoria[]`, `insisti` | ricorrenza ogni N giorni/settimane/mesi/anni; promemoria a N giorni dalla scadenza; insistenza ogni N minuti |
+| `importanza` (1-5, anche decimali), `sforzoMin`, `durataRealeMin` | attività e progetti; tempo stimato in minuti; tempo reale misurato per affinare la stima |
+| `interesse` (1-5) | intrattenimento, esperienze e curiosità |
+| `padreId`, `ordine`, `checklist[]` | un passo ha il progetto come padre e una posizione nel progetto (0 = il primo); checklist = righe da spuntare dentro un progetto |
+| `zona`, `linkMaps` | esperienze: il «Luogo» (`zona`) e, se presente, un link Google Maps da cui leggere le coordinate |
+| `piattaforma`, `consigliatoDa`, `conChi`, `durataMin`, `genere`, `mood`, `energia`, `pagine` | intrattenimento; `genere`, `mood`, `energia`, `durataMin`, `pagine` si compilano anche da soli (6.11) |
+| `arricchitoIl`, `descrittoIl` | quando si è cercato su internet genere/mood/durata e la descrizione |
+| `voto`, `commento`, `completatoIl`, `completatoTs` | completamento (giorno e millisecondi) |
+| `inCorsoTs`, `pianoData`, `pianoDa` | quando la nota è passata «in corso»; il posto fissato nel piano in quel momento (giorno e minuto d'inizio) |
 | `fascia`, `volteSettimana`, `obiettivo`, `oraPromemoria`, `log[]` | routine: momento della giornata, quota settimanale, obiettivo minimo, ora del promemoria, giorni in cui è stata fatta |
+| `persone[]`, `area`, `luogo`, `daContattare` | non più usati dalle schermate: restano nei dati già salvati (`persone` e checklist non dei progetti sono spostate nelle note all'avvio) |
 
-### Conversione dal vecchio Priority (per l'import)
+**Conversione dal vecchio Priority di Notion (per l'import):** Very high → 5, High → 4, Medium → 3, Low → 2, Very low → 1 (importanza per le attività, interesse per l'intrattenimento); vuoto → 3 per l'intrattenimento.
 
-| Notion | Attività → importanza | Collezioni → interesse |
-|---|---|---|
-| Very high | 5 | 5 |
-| High | 4 | 4 |
-| Medium | 3 | 3 |
-| Low | 2 | 2 |
-| Very low | 1 | 1 |
-| vuoto | da stimare con l'IA | 3 |
+## 6. Regole principali
 
-## 4. Regole principali
+### 6.1 Priorità (`shared/priority.ts`)
 
-### 4.1 Priorità delle azioni (implementata, pesi da tarare con l'uso)
+Punteggio da 0 a 100 per ordinare Oggi, le liste, il piano e il widget. Cinque componenti, ognuna da 0 a 100 prima del suo peso:
 
-Punteggio da 0 a 100 usato per ordinare "Oggi" e le liste:
+- **Urgenza:** scaduta o oggi 100; entro 3 giorni 80; entro 7 giorni 60; entro 30 giorni 35; oltre 15; senza data 0.
+- **Importanza:** da 1 a 5 (di base 3) riportata su 0-100.
+- **Poco sforzo:** premia le attività brevi (fino a 15 min 100, fino a 30 min 60, fino a 60 min 30, oltre 0; senza stima 30).
+- **Età:** cresce con le settimane dalla creazione, fino a 10 settimane (100), perché le voci non «marciscano».
+- **Scadenza fissa:** vale come l'urgenza, ma solo per le note con una data non spostabile (0 per le altre); riempie una parte dello spazio che manca al 100, quindi non toglie punti alle altre.
 
-- **Urgenza** (peso 45%): scaduta/oggi = 100; entro 3 giorni = 80; entro 7 = 60; entro 30 = 35; oltre = 15; senza data = 0.
-- **Importanza** (peso 35%): da 1 a 5, normalizzata.
-- **Sforzo basso** (peso 10%): le attività sotto i 15 minuti salgono (le "vittorie rapide").
-- **Età** (peso 10%): cresce di poco ogni settimana per evitare che le voci marciscano.
-- **Scadenza fissa** (parametro a parte dalla 0.58.0, peso 20%): vale quanto l'urgenza, ma solo per le note con una data che non si può spostare (0 per le altre). Non toglie punti alle altre note: il punteggio di base si calcola con i quattro parametri sopra (come prima) e la scadenza fissa riempie una parte dello spazio che manca al 100 (con peso 20% e valore 100, il 20% di quello che manca). Una nota senza scadenza fissa ha quindi lo stesso punteggio di prima.
+Pesi di base: i quattro storici 45/35/10/10 danno il punteggio di partenza e la scadenza fissa pesa il 20% dello spazio che manca; i pesi mostrati nell'app sono 36 / 28 / 8 / 8 / 20 (urgenza, importanza, poco sforzo, età, scadenza fissa). In **Altro › Pesi della priorità** si cambiano con i cursori (0-100, portati a somma 100%); se sono tutti a zero valgono quelli di base; «Ripristina» toglie la personalizzazione. I pesi stanno solo sul dispositivo (`localStorage`, chiave `mytask.pesi`), non si sincronizzano, e a ogni cambio si rifanno liste, piano e widget. L'anteprima mostra le prime sei attività.
 
-Le collezioni non hanno punteggio di urgenza: si ordinano per **interesse**, filtrate da contesto (piattaforma, durata, con chi). Nelle liste la barra a sinistra ha tre livelli: punteggio da 60 in su = alta, da 35 = media, altrimenti bassa.
+**Livelli:** nelle liste la priorità si legge dal pallino: punteggio da 60 in su = alta, da 35 = media, altrimenti bassa.
 
-### 4.2 Stato "scaduto"
+**Posizione in classifica** (`classificaPriorita`, `posizionePriorita` in `shared/views.ts`): punteggio, a parità la nota più vecchia, poi l'id. È la stessa in Oggi, nelle liste e nella scheda della nota, quindi coincidono.
 
-Calcolato: data finale passata e stato diverso da fatto/saltato. Le voci scadute restano nelle liste e nel piano, con la data in arancio (dalla 0.62.0 non c'è più la Revisione).
+L'intrattenimento non ha punteggio di urgenza: si ordina per **interesse**.
 
-### 4.3 Promemoria
+### 6.2 Stati di una nota
 
-- Possono essere singoli o ripetuti (giornalieri, settimanali, ogni N giorni, a orari fissi).
-- **Insistenza:** su alcune voci scelte dall'utente il promemoria si ripete (a intervalli configurabili) finché la voce non viene spuntata o rimandata.
-- I promemoria si scelgono nella scheda di ogni voce (7 giorni, 3 giorni, 1 giorno prima, il giorno stesso, alle 9:00); non vengono impostati in automatico.
-- Nell'app Android sono notifiche programmate nel telefono (sezione 5.2), che arrivano anche ad app chiusa e senza rete. Nel browser compaiono finché l'app è aperta.
+Quattro stati visibili: **Da fare** (`da_fare`), **In corso** (`in_corso`), **Fatta** (`fatto`, anche `saltato`), **Archiviata** (`parcheggiato`). Logica in `cambiaStato` e `avanzaStato` (`web/src/lib/actions.ts`):
 
-### 4.4 Routine (confermata)
+- «Fatta» passa sempre da `completaVoce` (voto, durata misurata, ricorrenze, avanzamento dei progetti, messaggio con «Annulla»); riaprire una nota fatta usa `riapri` (toglie giorno e ora di completamento).
+- Quando una nota passa «in corso» si salva `inCorsoTs` e il suo posto nel piano (6.3); torna vuoto se la nota torna «da fare».
+- **Archiviare un progetto archivia anche i suoi passi aperti**; ripristinarlo (da fare o in corso) riporta «da fare» i passi archiviati. Il messaggio ha «Annulla» che rimette tutto com'era.
+- **Scaduto** non è uno stato: le voci scadute restano nelle liste e nel piano con la data in arancio (non esiste una schermata di revisione).
 
-Le abitudini non sono task: non scadono e non finiscono.
+### 6.3 Piano della giornata (`shared/piano.ts`)
 
-- Una routine ha una **fascia della giornata** ("mattina", "dopo cena", "prima di dormire") e una frequenza flessibile (es. 3 volte a settimana).
-- Compare nella sezione "Routine di oggi" solo nei giorni utili, con una spunta singola.
-- Obiettivo minimo piccolo (es. "leggere 10 minuti") per abbassare l'attrito.
+L'app distribuisce da sola le attività nei giorni, in base a priorità, tempo libero e durata.
+
+- **Candidati:** le stesse note di Oggi (azioni aperte e prossimi passi dei progetti) in ordine di priorità, ognuna nella prima fascia libera con spazio sufficiente, partendo da oggi (e per oggi dall'ora attuale), entro **14 giorni**. Gli orari sono a multipli di 5 minuti.
+- **Durata** di un blocco = tempo stimato (30 minuti se non stimato) **più il margine d'errore atteso**, arrotondato a 5 minuti; il margine è la coda tratteggiata del segmento nella barra.
+- **Pausa tra le attività:** il tempo libero lasciato dopo ogni blocco (5 minuti di base, impostabile; non dopo gli impegni con orario fisso).
+- **Spezzare:** le attività oltre i 60 minuti si dividono in blocchi (minimo 30) su più fasce e giorni («parte 1 di 2»); quelle più brevi non si spezzano.
+- **Rimandare:** se non c'è spazio, le meno prioritarie passano ai giorni successivi; se finiscono dopo la scadenza il blocco è segnato «scaduta».
+- **Impegni con orario:** le note con data e ora di inizio restano dove sono e tolgono tempo libero.
+- **Note «in corso»:** restano dove erano (`pianoData`, `pianoDa`, con stima più margine) e il piano dispone le altre attorno; se non hanno un posto salvato (erano già «in corso» prima) partono dall'ora in cui sono passate «in corso». Tornando «da fare», fatte o archiviate il posto si libera.
+- **Pause curiosità:** dopo un blocco da 60 minuti o più, ogni due blocchi grandi dello stesso giorno, il piano inserisce una pausa con una curiosità da approfondire (dura quanto il suo tempo stimato, 15 minuti se manca), al massimo due al giorno, una diversa per pausa (prima le più interessanti, a parità le più vecchie) e solo se nella fascia resta spazio per altro lavoro. Nel piano compaiono come «Pausa curiosità» e si spuntano come approfondite.
+- **Non ancora:** eccezioni per un singolo giorno nelle fasce fisse (il modello le prevede), piano nel calendario.
+
+### 6.4 Tempo libero
+
+Impostazioni › Tempo libero. Il tempo libero (fasce, pausa, modalità, orari) viaggia nella stessa sincronizzazione delle voci (campo `impostazioni` di `/api/sync`, tabella `settings` del server, chiave `tempoLibero`): ogni dispositivo ricorda quando l'ha modificato e vince la modifica più recente. Gli orari dei giorni passati si ricordano per 45 giorni (servono a misurare il tempo delle note iniziate giorni prima) e poi vengono tolti a ogni salvataggio. Finché non è impostato, Oggi mostra la lista semplice con un invito a impostarlo.
+
+- **Fasce fisse:** le stesse fasce ogni settimana.
+- **Orari flessibili:** le fasce della settimana non contano; il tempo libero di un giorno è solo quello inserito (`eccezioni[giorno]`), e un giorno senza orari non ha tempo libero (piano vuoto). Ogni sera, all'ora scelta (di base 21:00), arriva una notifica locale «Quando sei libero domani?» (programmata per 7 giorni, saltando i giorni già inseriti). Toccandola si apre `OrariGiorno` (fasce con preset Mattina/Pomeriggio/Sera, oppure «Nessun tempo libero»), poi «Prepara il calendario». In Oggi compare lo stesso invito (oggi, o domani dopo l'ora scelta) anche sul sito.
+
+### 6.5 Stima e tempo impiegato
+
+- **Margine d'errore** (`shared/stima.ts`): ogni attività ha un margine atteso. Parte da ±30% (vale come 3 misurazioni) e si affina con l'uso: l'errore medio |reale − stimato| / stimato delle attività completate lo sposta tra ±5% e ±100%.
+- **Stima per titoli simili:** per una nuova nota l'app cerca attività simili già fatte (somiglianza tra le parole del titolo, fino a 5), usa la mediana dei loro tempi reali e mostra margine e intervallo atteso; nella scheda compare un suggerimento con «Usa».
+- **Tempo misurato dall'app:** non si chiede «Quanto ci hai messo?». Se la nota era «in corso», il tempo reale (`durataRealeMin`) è il tempo da quel momento al completamento **contando solo i lassi di tempo segnati come liberi** (`minutiLiberiTra`, `durataRealeInCorso`): se si inizia, si stacca e si riprende la sera, le ore di pausa non pesano. Senza tempo libero impostato conta il tempo trascorso, al massimo 8 ore. Senza «in corso» non c'è misura. Il messaggio dopo il completamento dice, ad esempio, «Fatto in 1 h 30 (stimati 2 ore)».
+
+### 6.6 Progetti e passi
+
+1. **Un solo livello:** un passo non può avere figli.
+2. **Il progetto non compare in Oggi: compare il suo prossimo passo**, il primo passo aperto in ordine (`prossimoPasso`), con importanza e scadenza ereditate dal progetto (`withInheritance`). Un progetto senza passi compare come voce a sé.
+3. **Avanzamento calcolato** («3 su 8») dai passi completati; mai inserito a mano.
+4. **Ordine = priorità e dipendenza:** i passi si riordinano trascinando e l'ordine è salvato in `ordine`; un passo non ha priorità più bassa dei successivi (`punteggioEffettivo` dà a ogni passo aperto il punteggio più alto tra il suo e quello dei successivi), e questo vale per liste, piano e widget.
+5. **Checklist o passo?** Una riga con solo un nome da spuntare è una **checklist** interna; con data, note o priorità proprie è un **passo** (voce figlia). Solo i progetti (e i giochi, come obiettivi) hanno la checklist.
+6. Completando l'ultimo passo non si chiude il progetto da solo; nessun avviso per i progetti fermi.
+7. **Nelle collezioni** i figli sono obiettivi, non task: non finiscono in Oggi.
+
+### 6.7 Routine (`shared/routine.ts`)
+
+- Una routine ha una **fascia della giornata** e una frequenza flessibile (volte a settimana), più un obiettivo minimo piccolo («leggere 10 minuti») per abbassare l'attrito.
+- Compare in «Routine di oggi» solo nei giorni utili (giornaliera, oppure a quota settimanale finché la quota non è raggiunta), con una spunta singola; i giorni fatti stanno in `log`.
 - Nessuna colpa sui giorni saltati: si guardano i conteggi settimanali, non le serie perfette.
-- Una routine con interesse quasi nullo (chitarra) resta in **Parcheggiato** e non compare in Oggi finché non viene attivata.
+- Una routine con interesse quasi nullo resta in **Parcheggiate** e non compare in Oggi finché non viene attivata.
 
-### 4.5 Cattura rapida (cambiata nella 0.38.0)
+### 6.8 Cosa compare in Oggi (`vistaOggi`)
 
-Una riga di testo (o dettatura) crea una **bozza in Inbox**: **il testo non viene interpretato** (nessun tipo, data o persona dedotti, nessuna IA). Mentre si scrive compaiono **tutte le note che contengono le stesse parole**, anche in forme diverse (stessa radice, per esempio "pagare" e "pagamento"), con tipo e stato, così si capisce subito se la nota esiste già; toccandone una si apre. Sul telefono l'elenco sta **sopra** il box di scrittura (che resta in basso, così i campi non si spostano); sul web sta sotto. "Salva in Inbox" (o Invio) salva il testo così com'è; il tipo si sceglie poi aprendo la bozza dall'Inbox (`cercaSimili` in `shared/views.ts`, con test). Offline funziona allo stesso modo; le voci si sincronizzano al ritorno della rete.
-
-### 4.6 Sincronizzazione e offline
-
-- I dati vivono anche nel dispositivo; le modifiche si accumulano e vengono inviate al server appena c'è rete.
-- Utente unico: conflitti risolti con l'ultima modifica **per voce** (vince la versione con data di modifica più recente).
-- Le modifiche fatte offline restano in coda e partono da sole al ritorno della rete (provato in locale).
-- Il database sul NAS è il riferimento. Il server ne salva una copia al giorno nel volume Docker (le ultime 14); il backup vero e proprio lo gestisce l'utente con gli strumenti del NAS. Dall'app si scarica anche tutto in JSON (Altro > Account) e si può reimportare da file.
-
-### 4.7 Progetti e voci con figli (confermata)
-
-Nei dati di Notion c'erano 9 voci con figli (da 2 a 25). Il problema è che un padre con molti figli riempie tutte le liste. Regole adottate:
-
-1. **Un solo livello.** Un sotto-task non può avere figli.
-2. **Il padre non compare in Oggi, compare il suo prossimo passo.** In Oggi si vede il primo sotto-task non completato (o il più urgente), con il nome del progetto accanto. Un progetto con 25 figli occupa una riga sola.
-3. **Avanzamento calcolato** (es. 3 su 8) dai figli completati. Mai inserito a mano.
-4. **Lo stato del padre segue i figli.** Almeno un figlio avviato = in corso. Quando tutti i figli sono completati, l'app propone di chiudere il progetto (conferma con un tocco).
-5. **Scadenza e importanza ereditate.** Un figlio senza data o importanza usa quelle del padre. L'urgenza del progetto è quella del suo figlio più urgente.
-6. **Checklist o sotto-task?** Se un elemento ha solo un nome da spuntare (es. "Controllare le foto del 2019, 2020…"), è una **checklist** interna, che non compare nelle liste né in Oggi. Se ha data, note o priorità proprie, è un **sotto-task**. Con un tocco si promuove una riga di checklist a sotto-task.
-7. **Progetti fermi.** Nessun avviso (la Revisione e la sezione dei progetti fermi sono state tolte nella 0.62.0).
-8. **Nelle collezioni i figli sono obiettivi, non task.** Un videogioco da finire è una voce con una checklist di obiettivi (battere il boss, esplorare la mappa…) e non finisce in Oggi.
-9. **Chiusi e archiviati:** i figli completati si comprimono in un solo elenco leggibile, per non rovinare la lettura dell'archivio.
-
-Come vengono importati i padri (le regole esatte stanno in `server/scripts/regole.esempio.ts`, quelle personali in un file locale non pubblicato):
-
-| Padre | Diventa |
-|---|---|
-| Progetto concluso con molti figli | Progetto archiviato, con i figli raggruppati in checklist |
-| Videogioco con obiettivi | Gioco con checklist di obiettivi |
-| Progetto aperto con passi da fare | Progetto con sotto-task (e date se presenti) |
-| Abitudine con passi di impostazione | Routine, con i passi come checklist iniziale |
-
-### 4.8 Cosa compare in Oggi (implementato)
-
-1. **Routine** del giorno: giornaliere, oppure a quota settimanale finché la quota non è raggiunta.
-2. **Da fare oggi**: tutte le voci con scadenza oggi o scaduta da non più di 2 giorni, più le voci senza data con il punteggio più alto, fino a un massimo di 5 (se le scadenze sono di più, compaiono tutte). A parità di punteggio vengono prima quelle già in corso.
-3. Di un progetto compare **solo il prossimo passo**, con le eredità di importanza e scadenza.
+1. **Routine** del giorno.
+2. **Da fare:** tutte le note con scadenza oggi o già scaduta (senza limite di giorni, anche se più di 5), più le note senza data con il punteggio più alto fino a un massimo di 5 in tutto; a parità vengono prima quelle «in corso».
+3. Di un progetto compare solo il prossimo passo.
 4. Le **esperienze senza data** non compaiono mai in Oggi: sono una lista di desideri.
-5. I giorni successivi si guardano scegliendo il giorno dalla finestra del mese (il piano copre 14 giorni).
-6. Le voci scadute restano nelle liste e nel piano; non c'è più una Revisione separata (tolta nella 0.62.0).
-7. Le voci parcheggiate non compaiono in Oggi.
+5. Le archiviate e le note in Inbox non compaiono.
+6. Con il tempo libero impostato la lista diventa il **piano** (6.3).
 
-### 4.9 Tipi e regole di smistamento nell'importazione
+### 6.9 Esperienze «Per te» (`shared/esperienze.ts`)
 
-Il tipo di Notion non basta a decidere il tipo in MyTask, quindi l'importazione usa regole esplicite: elenchi di titoli che sono serie o anime, titoli da trasformare in progetti o routine, zone, persone nominate nelle note, aree delle azioni (casa, burocrazia, digitale…). Sono dati personali, quindi stanno in `regole.locale.ts` (ignorato da git); nel repository c'è solo `regole.esempio.ts`.
+Una lista ordinata da un punteggio che unisce **interesse** (40%), **data più vicina** (35%: oggi 100%, poi 90, 75, 50, 25; senza data un valore neutro; già passata, bassa) e **distanza** dalla tua posizione (25%: 100% sul posto, circa metà a 20 km). Se posizione o luogo non sono noti la distanza non conta e interesse e data pesano metà ciascuno. Nelle righe compare «a N km».
 
-## 5. Architettura
+- **Posizione:** si chiede al telefono (permessi `ACCESS_COARSE_LOCATION` e `ACCESS_FINE_LOCATION`); resta sul dispositivo e non viene inviata; vale 10 minuti, si aggiorna con «Aggiorna posizione». Senza permesso l'ordine usa solo interesse e data.
+- **Luoghi:** le coordinate vengono dal link Google Maps della nota se le contiene, altrimenti si cerca il nome del luogo (o il titolo) su OpenStreetMap (Nominatim, una richiesta al secondo, solo il nome va su internet). Il risultato, anche «non trovato» (riprovato dopo 7 giorni), si ricorda nel telefono (`mytask.luoghi`).
 
-Le scelte marcate "confermato" sono decise dall'utente; le altre sono proposte tecniche mie, modificabili.
+### 6.10 Cosa guardo stasera (`shared/stasera.ts`)
+
+Per film, serie e anime, **senza IA**: punteggi euristici. I filtri sono Con chi (Da solo, Con il partner, Con amici), Piattaforma (quelle già usate più Prime Video e Disney+), Mood (Spensierato, Rilassante, Emozionante, Intenso, Riflessivo), Energia che hai stasera (Bassa, Media, Alta) e Tipologia (Comico, Drammatico, Azione, Thriller, Horror, Fantascienza, Fantasy, Animazione, Documentario). I filtri spostano il punteggio senza escludere: le voci senza il dato restano neutre. Compaiono una proposta principale con «Lo guardo» (mette la voce «in corso») e «Un altro», più due alternative.
+
+### 6.11 Arricchimento da internet (`shared/arricchimento.ts`, `web/src/lib/arricchimento.ts`)
+
+Quando una voce di film, serie, anime, gioco o libro ha dati mancanti, l'app li cerca in background: **genere** (per film, serie e anime la tipologia dell'app; per giochi e libri il testo trovato), **mood** ed **energia** (ricavati dai generi con regole fisse), **durata** dei film, **pagine** dei libri e una breve **descrizione** (prime frasi di Wikipedia, messa nelle note se sono vuote). Fonti: Wikidata e Wikipedia (gratuite e senza chiave; va solo il titolo) e Open Library per le pagine. Non si sovrascrive mai ciò che l'utente ha scritto. Parte all'apertura, a ogni modifica, al ritorno della rete e ogni 30 minuti, una voce alla volta con una pausa (circa 1,6 s) e gestione del limite di richieste; `arricchitoIl` ricorda la ricerca (una voce non trovata si riprova dopo 30 giorni). Se il titolo corrisponde a un omonimo sbagliato i campi si correggono a mano.
+
+### 6.12 Intelligenza artificiale (`web/src/lib/ia.ts`, `shared/ia.ts`)
+
+Facoltativa e **scelta dall'utente**: in Altro › Intelligenza artificiale si inserisce la chiave di Gemini (Google AI Studio) e/o di Groq (console.groq.com) e, se serve, il modello (di base `gemini-2.0-flash` e `llama-3.3-70b-versatile`). «Salva e controlla» prova la chiave. Le chiavi stanno solo nel dispositivo (`localStorage`, `mytask.ia`, mai sincronizzate) e le chiamate partono dal dispositivo verso il servizio scelto, **senza passare dal server di MyTask** (che non ha funzioni IA).
+
+- **Chat:** con Gemini, Groq o entrambe (due risposte). Il pulsante «Condividi un riepilogo delle mie note» è spento di base: se acceso, alla richiesta si aggiunge un riepilogo compatto (conteggi, attività più prioritarie, esperienze, film e serie da vedere, senza note e testi lunghi). La conversazione non viene salvata.
+- **Autocompila le opere:** passa in rassegna film, serie, anime, giochi e libri senza tipologia, a gruppi di 15 titoli con una pausa tra le richieste (con «Ferma»), e compila la tipologia (solo valori noti all'app) e, per film, serie e anime, mood ed energia. Non cambia mai quello che c'è già; al servizio vanno solo titolo, tipo e piattaforma.
+- Le note sensibili (banca, salute, contratti) non partono mai da sole: l'autocompilazione invia solo titolo, tipo e piattaforma delle opere, la chat solo ciò che l'utente scrive più il riepilogo, se acceso.
+
+### 6.13 Promemoria e notifiche
+
+- Si scelgono nella scheda di ogni voce (7 giorni, 3 giorni, 1 giorno prima, il giorno stesso, alle 9:00); non sono mai impostati in automatico. Possono essere ripetuti; l'**insistenza** ripete il promemoria ogni N minuti finché la voce non viene spuntata o rimandata.
+- **App Android:** notifiche locali programmate nel telefono (`shared/pianifica.ts` calcola quelle dei prossimi 14 giorni: promemoria, insistenza fino a 12 ripetizioni, routine all'ora scelta, richiesta serale degli orari). Arrivano anche ad app chiusa e senza rete; si riprogrammano a ogni modifica dei dati (con 2 s di attesa) e al ritorno nell'app. Il permesso si chiede al primo avvio e, se negato, si riattiva dalle impostazioni di Android.
+- **Sito:** `Notification` del browser, finché la pagina è aperta (controllo ogni 30 s).
+
+### 6.14 Sincronizzazione e offline
+
+- I dati vivono nel dispositivo (IndexedDB: voci, coda delle modifiche in attesa, `auth` e `since`). La UI legge l'archivio locale e funziona senza rete.
+- `POST /api/sync` con `since`, le modifiche in coda e le impostazioni; il server risponde con le voci cambiate, `seq` e le impostazioni. Parte 1,2 s dopo una modifica, al ritorno della rete o in primo piano e ogni 60 s. Un 401 cancella il token ma lascia i dati.
+- Utente unico: conflitti risolti **per voce** con la modifica più recente (`aggiornato`); una voce remota non sovrascrive una modifica locale più recente. Le cancellazioni sono logiche.
+- Il database sul NAS è il riferimento. Il server ne salva una copia al giorno nel volume Docker (le ultime 14); il backup vero lo gestisce l'utente con gli strumenti del NAS. Dall'app si scarica tutto in JSON (Altro › Account) e si può reimportare.
+- All'avvio e a ogni sincronizzazione (`web/src/lib/migrazioni.ts`, `shared/migrazioni.ts`): `persone` e le checklist non dei progetti passano nelle note, la checklist di un progetto finita nelle note torna nel campo, le note in Inbox create come attività e mai toccate diventano «non assegnate».
+
+## 7. Architettura
 
 | Parte | Scelta |
 |---|---|
-| Hosting | Un container Docker su un NAS (confermato). L'immagine viene costruita da GitHub Actions e pubblicata su `ghcr.io/jstplink/mytask`; il NAS la scarica, senza costruire nulla in locale |
+| Hosting | Un container Docker su un NAS. L'immagine è costruita da GitHub Actions e pubblicata su `ghcr.io/jstplink/mytask`; il NAS la scarica, senza costruire nulla in locale |
 | Backend | Node.js 24 con Fastify e SQLite integrato (`node:sqlite`, nessuna dipendenza nativa); TypeScript eseguito direttamente, senza passaggio di compilazione |
 | Frontend | React + Vite, web app installabile (PWA) con archivio locale in IndexedDB e service worker |
-| App Android | PWA + APK tramite Capacitor, con notifiche locali (confermato). Widget «Oggi» chiaro e scuro dalla 0.52.0 |
-| Accesso | Email e password. HTTPS e accesso da fuori casa tramite **Cloudflare Tunnel**, come già per Seafile, con un sottodominio dedicato che punta al container sul NAS (confermato) |
-| IA | Gemini per iniziare (scelta dell'utente), dietro un modulo con interfaccia comune per poter cambiare provider senza riscrivere nulla |
-| Documenti | Solo collegamenti a Seafile, incollati a mano (confermato) |
-| Calendario | Dati già pronti (inizio, fine, orario) e modulo di sincronizzazione con Google Calendar predisposto, ma non attivo. L'attivazione richiederà il consenso OAuth di Google e un indirizzo HTTPS raggiungibile |
+| App Android | Capacitor (PWA impacchettata in APK) con notifiche locali e widget «Oggi» |
+| Accesso | Email e password; HTTPS e accesso da fuori casa tramite **Cloudflare Tunnel** con un sottodominio dedicato |
+| IA | Nessuna sul server: Gemini e Groq con chiavi dell'utente, chiamati dal dispositivo (6.12) |
+| Documenti | Solo collegamenti a Seafile, incollati a mano |
+| Calendario | Dati pronti (inizio, fine, orario); modulo Google Calendar **non scritto** (richiederà consenso OAuth e un indirizzo HTTPS raggiungibile) |
 
-### 5.1 Note su sicurezza e risorse
+### 7.1 Server (`server/src`)
 
-- Con il tunnel Cloudflare l'app è raggiungibile da Internet. Il login (email e password con hash scrypt, sessioni a token, limite ai tentativi sbagliati) è obbligatorio. Si consiglia (da decidere) **Cloudflare Access** davanti all'app, ma l'app Android non riuscirebbe più a collegarsi senza le credenziali di servizio di Cloudflare.
-- Il NAS ha un processore di fascia bassa e poca RAM: un modello IA locale non è pratico. L'IA passa dal servizio esterno (Gemini).
-- Il database è un solo file SQLite nel volume Docker; copia giornaliera interna (ultime 14) e backup esterno a cura dell'utente.
-- Essendo l'app raggiungibile con HTTPS, la sincronizzazione con Google Calendar è tecnicamente fattibile quando vorrai attivarla.
+- `config.ts` legge le variabili d'ambiente (`MYTASK_EMAIL`, `MYTASK_PASSWORD`, `MYTASK_PORT`, cartella dati, origini CORS…). `index.ts` apre il database, fa una copia subito e poi ogni 24 ore (`mytask-AAAA-MM-GG.db`, ultime 14) e mette in ascolto l'app. `db.ts`: SQLite con documenti JSON e numero di sequenza, tabelle utenti, sessioni e `settings`. `auth.ts`: password con scrypt, token di sessione salvati come hash SHA-256, limite di 8 tentativi sbagliati ogni 15 minuti.
+- `app.ts` espone: `GET /api/health` (con la versione), `POST /api/auth/login` (verifica sempre un hash per non rivelare con i tempi se l'email esiste), `POST /api/auth/logout`, `GET /api/me`, `POST /api/sync`, `GET /api/export` (voci e impostazioni in JSON) e serve l'interfaccia web compilata (con ripiego su `index.html`, senza uscire dalla cartella). Sessioni di 180 giorni; una voce può pesare al massimo 200 KB; le impostazioni sono al massimo 10 chiavi da 20 KB. Il primo avvio crea l'unico utente dalle variabili d'ambiente. Intestazioni di sicurezza su ogni risposta.
+- **CORS:** ammesse le origini dell'app (`https://localhost`, `http://localhost`, `capacitor://localhost`) e quelle in `CORS_ORIGINS`.
+- **Sicurezza:** con il tunnel Cloudflare l'app è raggiungibile da Internet, quindi il login è obbligatorio. **Cloudflare Access** davanti all'app è una decisione aperta: l'app Android non riuscirebbe più a collegarsi senza le credenziali di servizio di Cloudflare. Il NAS ha un processore di fascia bassa: nessun modello IA locale.
 
-### 5.2 App Android
+### 7.2 Web (`web/src`)
 
-- **Capacitor**: la web app è impacchettata in un'app Android (`web/android`); l'interfaccia è la stessa. Al primo accesso chiede l'indirizzo del server.
-- **Notifiche locali**: `shared/pianifica.ts` calcola, per i prossimi 14 giorni, le notifiche da programmare nel sistema operativo (promemoria delle scadenze, insistenza ogni N minuti, routine all'ora scelta). Il telefono le consegna anche ad app chiusa; si riprogrammano a ogni modifica dei dati e quando si torna nell'app. Nel browser restano i promemoria ad app aperta.
-- **Costruzione**: l'APK si costruisce nel workflow di GitHub (Releases, `mytask.apk`) oppure in locale, senza commit né push (dal 2026-10-18 il PC ha Java 21 in `C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot` e l'SDK in `%LOCALAPPDATA%\Android\Sdk`). Build locale: `JAVA_HOME` al JDK 21, `ANDROID_HOME` all'SDK, `MYTASK_VERSION_NAME=x.y.z` e `MYTASK_VERSION_CODE=x*10000+y*100+z`, poi `npm run build`, `npx cap sync android` (in `web`) e `./gradlew --no-daemon assembleRelease` (in `web/android`, circa 2 minuti); l'APK è in `web/android/app/build/outputs/apk/release/app-release.apk`, firmato con la chiave pubblica del repository come quello di GitHub. `cap sync` modifica `web/android/app/capacitor.build.gradle` e `web/android/capacitor.settings.gradle`: dopo la build vanno ripristinati con `git checkout`. Il nome del telefono per `adb` cambia (controllare `adb devices`).
-- **Firma**: chiave pubblica nel repository per poter aggiornare l'app sopra la versione precedente; chiave privata facoltativa tramite segreti del repository.
-- **CORS**: il server ammette le origini dell'app (`https://localhost`, `capacitor://localhost`) e quelle in `CORS_ORIGINS`.
-- Se davanti al dominio c'è Cloudflare Access, l'app non riuscirebbe a collegarsi senza le credenziali di servizio di Cloudflare.
+- `lib/`: `store` (IndexedDB con copia in memoria, `saveItem` con `aggiornato` sempre crescente, cancellazione logica), `sync`, `api` (indirizzo del server in `localStorage`: vuoto sul sito, assoluto nell'APK), `actions` (creare, completare, cambiare stato, ordinare i passi), `disponibilita` (tempo libero sincronizzato), `arricchimento`, `libri`, `luoghi`, `posizione`, `ia`, `native` (notifiche locali Android), `reminders` (notifiche del sito), `widget` (ponte verso il widget), `richiestaOrari`, `theme`, `pesi`, `haptic`, `battito`, `immagini`, `migrazioni`, store a eventi (`toast`, `avanzamento`, `completamento`, `recensione`, `statoMenu`) con gli hook `use…` in `hooks`, `util`, `media`.
+- `ui/`: componenti condivisi (`kit` con Row, Sezione, Gruppo, Seg, Field, Scelta…; `nav` con pila e livelli; `Sidebar`; `riordina`; fogli animati; `CampoTempo`; `AllegatiNote`; icone).
+- `screens/`: le schermate dei capitoli 3 e 4. `App.tsx` tiene la pila di «istantanee» (scheda, schermate, finestre) e sceglie il layout stretto (TabBar) o largo (Sidebar, voce in finestra) a 900 px.
+- **Versione** (`web/src/version.ts`): arriva dal `package.json` principale.
 
-### 5.3 Versione e aggiornamenti
+### 7.3 App Android e build
+
+- **Capacitor**: la web app è impacchettata in `web/android`; al primo accesso chiede l'indirizzo del server (menu `https://`/`http://` e solo il resto da scrivere, per esempio `mytask.tuodominio.it`; incollando un indirizzo completo lo schema passa da solo: `shared/indirizzo.ts`).
+- **Codice nativo** (`web/android/app/src/main/java/app/mytask/android`): `MainActivity` (estende `BridgeActivity` e registra i plugin `Haptica` e `Widget`), `HapticaPlugin`, `WidgetPlugin`, i widget (7.4). Il manifest dichiara `INTERNET` e la posizione (`ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION`, per l'ordine «Per te»); notifiche e vibrazione arrivano dai plugin Capacitor.
+- **Costruzione:** l'APK si costruisce nel workflow di GitHub (Releases, `mytask.apk`) oppure in locale, senza commit né push. Build locale (il PC ha Java 21 in `C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot` e l'SDK in `%LOCALAPPDATA%\Android\Sdk`): `JAVA_HOME` al JDK 21, `ANDROID_HOME` all'SDK, `MYTASK_VERSION_NAME=x.y.z` e `MYTASK_VERSION_CODE=x*10000+y*100+z`, poi `npm run build`, `npx cap sync android` (in `web`) e `./gradlew --no-daemon assembleRelease` (in `web/android`, circa 2 minuti). L'APK è in `web/android/app/build/outputs/apk/release/app-release.apk`, firmato con la chiave pubblica del repository come quello di GitHub. `cap sync` modifica `web/android/app/capacitor.build.gradle` e `web/android/capacitor.settings.gradle`: dopo la build vanno ripristinati con `git checkout`. Il nome del telefono per `adb` cambia (controllare `adb devices`).
+- **Firma:** chiave pubblica nel repository per poter aggiornare l'app sopra la versione precedente; chiave privata facoltativa tramite segreti del repository.
+- **Da sapere:** se il telefono chiude comunque l'app in background serve togliere il risparmio batteria per MyTask (Impostazioni › App › MyTask › Batteria › Senza restrizioni); il tocco dal widget (`AzioneActivity`, `taskAffinity=""`) non toglie l'app dai recenti.
+
+### 7.4 Widget «Oggi» (Android)
+
+- Due widget, **«MyTask · chiaro»** e **«MyTask · scuro»** (4×3, ridimensionabili, sfondo semi-trasparente, nessun aggiornamento periodico), che estendono `WidgetBase` e scelgono solo il layout.
+- Mostrano la **lista di oggi** nell'ordine del piano (`righeWidget` in `shared/widget.ts`, con test): pallino con la posizione in classifica, colorato per priorità, che **batte** come nell'app (un `ViewFlipper` a quadri: periodo 60000/bpm tra 450 e 2550 ms; le righe fatte non battono), titolo con l'orario sotto, checkbox quadrato. In basso a destra il pulsante **+** (56 dp) apre `NotaRapidaActivity`.
+- **Nota veloce:** barra sopra la tastiera nello stile dell'app (chiara o scura come il widget) che, mentre si scrive, mostra le note con parole simili (stessa logica di `cercaSimili`, su un archivio compatto); l'invio mette la nota in coda come «non assegnata» in Inbox senza aprire l'app.
+- **Dati:** il widget non usa la rete e non legge i dati dell'app. L'app (`web/src/lib/widget.ts`) invia la lista e l'archivio compatto (plugin `Widget`: `aggiorna`) a ogni modifica, ogni 5 minuti e al ritorno in primo piano; il widget li tiene in `WidgetDati` (SharedPreferences con tre chiavi JSON: righe, archivio, coda). Note e spunte vanno in una **coda locale** che l'app svuota (`coda`, atomica) e applica (nuova voce con `inbox`, `completa`) alla prima apertura; fino ad allora la riga spuntata appare sbarrata e la nota non è ancora nell'Inbox. Toccare una riga apre l'app; toccare il checkbox la segna come fatta (di nuovo per annullare, finché l'app non è stata aperta).
+
+### 7.5 Versione e aggiornamenti
 
 La versione sta in un solo posto, il `package.json` principale, e da lì arriva ovunque: l'app (sito e telefono: schermata di accesso, Altro, Account), il server (`/api/health`, mostrata in Account con un avviso se differisce da quella dell'app), l'APK (`versionName`; il `versionCode` è maggiore×10000 + minore×100 + patch) e l'etichetta dell'immagine Docker. La versione si aumenta a ogni commit. A ogni push GitHub Actions esegue il controllo dei tipi e i test, pubblica l'immagine `ghcr.io/jstplink/mytask` e l'APK nelle Releases. Il NAS si aggiorna con `docker compose pull && docker compose up -d`; il telefono con il nuovo `mytask.apk`.
 
-## 6. Importazione da Notion
+### 7.6 Codice condiviso (`shared/`)
 
-Una sola volta, dal CSV esportato, con lo script `server/scripts/import-notion.ts`:
+Funzioni pure in TypeScript, provate con i test (`npm test`), usate da server, sito e widget: `types` (modello), `dates`, `priority`, `recurrence` (completare una voce ricorrente la sposta all'occorrenza dopo oggi e registra il giorno nel `log`), `routine`, `views` (le liste: Oggi, Attività, Progetti, Esperienze, collezioni, Inbox, Archivio, ricerche), `piano`, `pianifica`, `stima`, `stasera`, `esperienze`, `arricchimento`, `ia`, `widget`, `migrazioni`, `tempo`, `indirizzo`, `validate` (controllo dei file importati), `linea`, `testo` (normalizzazione per le ricerche).
 
-1. Lettura del CSV (430 righe).
-2. Unione dei duplicati (10 nomi).
-3. Smistamento dei tipi con regole esplicite (sezione 4.9): Video → Film/Serie/Anime; voci "Info" che sono film o giochi → tipo giusto; "Attività" → Attività, Progetti, Routine o Esperienze; "Admin" tecnici → Attività; parole come progetto o routine da elenchi.
-4. Estrazione dalle note: piattaforma, consigliato da, con chi, genere, link ripuliti dai parametri di tracciamento.
-5. Conversione di priorità (importanza o interesse), stati e date; orari che diventano scadenza fissa; ricostruzione dei padri e dei figli (sotto-task o checklist).
-6. Le 26 voci con data passata e non fatte restano nelle liste come scadute.
-7. Report finale (non pubblicato) con tutto ciò che è stato modificato.
+## 8. Importazione da Notion
 
-Risultato: 383 voci più 14 persone. Il file si prepara sul computer (`--json`), dove stanno le regole personali, e si carica nell'app da *Altro > Account > Importa le voci da un file (JSON)*; in alternativa dentro il container con `--from-json`. Nessun identificativo né link a Notion viene conservato.
+Una sola volta, dal CSV esportato, con lo script `server/scripts/import-notion.ts`: lettura del CSV (430 righe), unione dei duplicati (10 nomi), smistamento dei tipi con regole esplicite, estrazione da note (piattaforma, consigliato da, con chi, genere, link ripuliti), conversione di priorità, stati e date (orari che diventano scadenza fissa), ricostruzione di padri e figli, report finale (non pubblicato; riporta anche le voci già scadute dopo l'importazione).
 
-## 7. Funzioni IA
+Il tipo di Notion non basta a decidere il tipo in MyTask, quindi le regole sono esplicite: elenchi di titoli che sono serie o anime, titoli da trasformare in progetti o routine, zone, persone, aree delle azioni. Sono dati personali: stanno in `regole.locale.ts` (ignorato da git); nel repository c'è solo `regole.esempio.ts`.
 
-| Funzione | Stato |
+| Padre in Notion | Diventa |
 |---|---|
-| Compilazione automatica dalla riga di cattura | Fatta (Gemini, con ripiego locale). Serve `GEMINI_API_KEY` sul server; provata solo con una risposta simulata |
-| Pulizia e riorganizzazione all'importazione | Fatta una volta, con regole esplicite scritte per i dati dell'utente |
-| "Cosa guardo stasera?" | Fatta senza IA: ragionamento locale su interesse, durata, piattaforma e compagnia |
-| Stima dello sforzo | Da fare |
-| Spezzare un'idea in passi | Da fare |
-| Revisione settimanale | Da fare |
+| Progetto concluso con molti figli | Progetto archiviato, con i figli raggruppati in checklist |
+| Videogioco con obiettivi | Gioco con checklist di obiettivi |
+| Progetto aperto con passi da fare | Progetto con passi (e date se presenti) |
+| Abitudine con passi di impostazione | Routine, con i passi come checklist iniziale |
 
-Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi esterni oppure l'utente sceglie se includerle. Oggi al servizio esterno va solo il testo della riga di cattura scritta dall'utente.
+Risultato: 383 voci più 14 persone. Il file si prepara sul computer (`--json`), dove stanno le regole personali, e si carica nell'app da *Altro › Account › Importa le voci da un file (JSON)*; in alternativa dentro il container con `--from-json`. Nessun identificativo né link a Notion viene conservato.
 
-## 8. Roadmap
-
-| Fase | Obiettivo | Stato |
-|---|---|---|
-| 0 | Chiudere le domande di setup | Completata (2026-10-15) |
-| 1 | Mockup minimalisti (gerarchia delle informazioni) | Completata, layout approvato |
-| 2 | Mockup estetici | Completata, stile e palette approvati |
-| 3 | Scrittura dell'app: base, Oggi, Inbox, import | Fatta e provata in locale |
-| 4 | Collezioni, Routine (la Revisione è stata tolta nella 0.62.0) | Fatta insieme alla fase 3 (progettazione unica) |
-| 5 | APK con notifiche e widget | Fatta: APK costruito da GitHub Actions o in locale, notifiche locali programmate nel telefono, widget «Oggi» (0.52.0) |
-| 6 | IA | Cattura rapida con Gemini fatta (serve la chiave); le altre funzioni IA da fare |
-| 7 | Layout web per schermi larghi, icone e pulsanti tondi sul telefono, ricerca | Fatta (0.10.0) |
-
-### 8.1 Stato dell'implementazione
+## 9. Stato e cose da fare
 
 | Parte | Stato |
 |---|---|
 | Server: login, sessioni, limite ai tentativi, CORS per l'app, sincronizzazione, esportazione JSON, versione, copia giornaliera | Fatto, con test; in funzione sul NAS |
-| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Completato, Cosa guardo stasera, ricerca, editor completo, Aspetto, Account | Fatta, provata nel browser su dati reali importati |
-| Layout per schermi larghi (barra laterale, pannello di dettaglio, cruscotto, griglia della routine, scorciatoie N, /, Esc) | Fatto e provato nel browser a 1440, 1100 e 375 px |
+| App web: tutte le schermate dei capitoli 3 e 4 | Fatta, provata nel browser su dati reali |
+| Layout per schermi larghi | Fatto e provato a 1440, 1100 e 375 px |
 | Uso offline: modifiche in coda e sincronizzazione al ritorno della rete | Provato in locale |
-| Importazione da Notion con report e caricamento da file nell'app | Fatta; il caricamento nell'app è provato in locale |
-| Cattura rapida: interpretazione locale, IA (Gemini) con ripiego, voce, rilevamento dei duplicati | Fatta. L'IA è provata solo con una risposta simulata |
-| Docker | Immagine costruita e verificata da GitHub Actions, pubblica; l'app gira sul NAS dietro Cloudflare Tunnel |
-| App Android (Capacitor) | Costruita da GitHub Actions, installata sul telefono con debug wireless, parte senza errori |
+| Importazione da Notion | Fatta |
+| Docker | Immagine costruita e verificata da GitHub Actions; l'app gira sul NAS dietro Cloudflare Tunnel |
+| App Android (Capacitor) | Costruita da GitHub Actions o in locale, installata sul telefono con debug wireless |
+| Widget «Oggi» | Fatti (chiaro e scuro, con nota veloce) |
+| IA con Gemini e Groq (chiavi, chat, autocompilazione) | Fatta; dipende dalle chiavi dell'utente |
 | Notifiche locali programmate nel telefono | Scritte e provate con i test del pianificatore; **da verificare sul telefono** |
-| Service worker (apertura dell'app senza rete) | Generato dalla build, **non verificato** in un browser reale |
-| Collegamento Google Calendar | Solo i dati sono pronti (date e orari). Il modulo di sincronizzazione non è scritto |
-| Widget | Fatti (0.52.0): «Oggi» chiaro e scuro con nota veloce |
+| Service worker (apertura senza rete) | Generato dalla build, **non verificato** in un browser reale |
+| Google Calendar | Solo i dati sono pronti; il modulo non è scritto |
 
-### 8.2 Ancora da fare
+**Ancora da fare / aperto:**
 
 - Verificare sul telefono le notifiche (scadenze, insistenza, routine) e il service worker.
 - Scorciatoie J e K per scorrere l'elenco e F per segnare fatto (layout largo).
-- Funzioni IA: stima dello sforzo, spezzare un'idea in passi, revisione settimanale.
+- Altre funzioni IA: stima dello sforzo, spezzare un'idea in passi, revisione settimanale.
 - Collegamento a Google Calendar.
 - Decidere se mettere Cloudflare Access davanti al sito (richiede di gestire l'accesso dell'app Android).
-- Chiave di firma privata per l'APK, se si vuole (oggi si usa una chiave pubblica inclusa nel repository).
+- Chiave di firma privata per l'APK, se si vuole.
+- Eccezioni per un singolo giorno nelle fasce fisse del tempo libero.
 
-## 9. Registro aggiornamenti
+## 10. Registro aggiornamenti
+
+Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (per esempio la Revisione, la cattura interpretata dall'IA del server, tag e area, i selettori Giorno/Mese). **Fa fede il testo dei capitoli precedenti.**
 
 | Data | Versione | Modifica |
 |---|---|---|
@@ -515,71 +502,4 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-18 | 0.60.0 | Note dell'Inbox senza tipo: la cattura (app e widget) crea una nota «Non assegnata» (nuovo tipo `nota`) invece di una attività; il tipo lo sceglie l'utente quando la smista. Resta in Inbox finché non ne ha uno; le note già in Inbox mai toccate diventano «non assegnate» (`inboxNonAssegnata`) |
 | 2026-10-18 | 0.61.0 | IA scelta dall'utente: in Altro › Intelligenza artificiale si inseriscono le chiavi di Gemini e Groq (restano sul dispositivo), c'è una chat con Gemini, Groq o entrambe e l'autocompilazione della tipologia (mood ed energia per i video) delle opere di intrattenimento; chip delle piattaforme già inserite; curiosità possono restare senza tempo; alla chiusura non si chiede più il tempo impiegato: si misura da «in corso» a «fatta» contando solo il tempo libero segnato |
 | 2026-10-18 | 0.62.0 | Tolta la Revisione (schermata, voce nel menu, scheda in Oggi, contatore, progetti «fermi» e il campo `daRivedere`): le note scadute o vecchie restano nelle liste e nel piano; sul sito la tendina «Sezione» di film, serie e simili si apre (le due tendine della scheda si chiudevano a vicenda); titolo della scheda col margine giusto nella finestra del sito; mockup del campo rapido per le nuove note sul sito |
-
-
-## Widget della schermata Home (0.52.0, aggiornato fino alla 0.54.0)
-
-- Due widget, «MyTask · chiaro» e «MyTask · scuro» (4×3, ridimensionabili, sfondo semi-trasparente). Si aggiungono dal selettore dei widget del telefono.
-- Cosa mostrano: pulsante + in basso a destra (apre `NotaRapidaActivity`, la nota va in Inbox) e la lista di oggi nell'ordine del piano (`righeWidget` in `shared/widget.ts`, con test): posizione in classifica colorata per priorità (il pallino batte come nell'app), titolo con l'orario sotto, checkbox quadrato. La nota veloce è una barra sopra la tastiera, nello stile dell'app (chiara o scura come il widget), che mentre si scrive mostra le note con parole simili.
-- Dati: l'app Capacitor invia la lista (e un archivio compatto delle note, per le note simili) al widget (plugin `Widget`: `aggiorna`) a ogni modifica, ogni 5 minuti e al ritorno in primo piano. Il widget non legge i dati dell'app e non usa la rete: note e spunte vanno in una coda locale (`WidgetDati`) che l'app svuota (`coda`) e applica (nuova voce con `inbox`, `completa`) alla prima apertura; fino ad allora la riga spuntata appare sbarrata nel widget e la nota non è ancora nell'Inbox.
-- Toccare una riga apre l'app; toccare il checkbox la segna come fatta (di nuovo per annullare, finché l'app non è stata aperta).
-
-## Tempo libero flessibile (0.53.0)
-
-- Impostazioni › Tempo libero: «Fasce fisse» (come prima, stesse fasce ogni settimana) oppure «Orari flessibili». La scelta, l'ora della richiesta e gli orari inseriti viaggiano con la sincronizzazione del tempo libero (`tempoLibero`); gli orari dei giorni passati vengono tolti a ogni salvataggio.
-- Modalità flessibile: le fasce della settimana non contano; il tempo libero di un giorno è solo quello inserito (`eccezioni[giorno]`). Un giorno senza orari non ha tempo libero, quindi il piano resta vuoto.
-- Ogni sera, all'ora scelta (di base 21:00), arriva una notifica locale «Quando sei libero domani?» (programmata per 7 giorni, saltando i giorni già inseriti). Toccandola si apre `OrariGiorno` (fasce con preset Mattina/Pomeriggio/Sera, oppure «Nessun tempo libero»), poi «Prepara il calendario». In Oggi compare lo stesso invito (oggi, o domani dopo l'ora scelta) anche sul sito.
-- Widget: la riga ha l'orario sotto il titolo; il pallino di priorità batte (due colpi di 450 ms e pausa, come l'animazione dell'app) con quadri alternati di un ViewFlipper, al massimo 2,5 s tra un battito e l'altro.
-
-## Stati di una nota (0.55.0)
-
-- Quattro stati visibili: Da fare (`da_fare`), In corso (`in_corso`), Fatta (`fatto`, anche `saltato`), Archiviata (`parcheggiato`). Logica in `cambiaStato` e `avanzaStato` (`web/src/lib/actions.ts`): «Fatta» passa sempre da `completaVoce` (voto, durata, ricorrenze, avanzamento dei progetti); riaprire una nota fatta usa `riapri`; archiviare si può annullare dal messaggio.
-- Riga: `Row` con `voce={nota}` mostra la casella a quattro stati (`CasellaStato`): tocco = stato successivo (da fare → in corso → fatta; fatta e archiviata tornano da fare), pressione lunga (450 ms) o tasto destro = foglio `StatoMenu` con tutti gli stati. Le righe di routine e quelle senza `voce` restano a due stati.
-- Nota: selettore a segmenti sotto il titolo (`.stati-seg`); i pulsanti Archivia, Ripristina, Riapri e Completato non ci sono più, resta Elimina.
-- Quando una nota passa a «in corso» si salva `inCorsoTs`; torna vuoto se la nota torna «da fare». Nella Cronologia compare «In corso dal».
-
-## Priorità dei passi, note «in corso», progetti archiviati (0.56.0)
-
-- **Dipendenze tra i passi:** un passo dipende dal precedente, quindi non può avere priorità più bassa dei passi che vengono dopo di lui. `punteggioEffettivo` (`shared/views.ts`) dà a ogni passo aperto il punteggio più alto tra il suo e quello dei successivi; lo usano le liste (`listaAzioni`, `candidatiOggi`), il piano (`Blocco.punteggio`) e il widget. Riordinando i passi cambiano di conseguenza posizioni e colori anche in Attività e in Oggi.
-- **Note «in corso»:** quando una nota passa «in corso» si salvano il giorno e l'ora in cui era nel piano (`pianoData`, `pianoDa`); il piano la lascia lì (con stima più margine) e dispone le altre attorno. Se la nota non ha un posto salvato (era già «in corso» da prima), il piano la fa partire dall'ora in cui è passata «in corso» (`inCorsoTs`). Se la nota torna «da fare» o è fatta/archiviata, il posto si libera.
-- **Posizione di priorità:** il numero che si legge in Oggi e quello della scheda della nota vengono dalla stessa classifica (`classificaPriorita` in `shared/views.ts`: punteggio, a parità la nota più vecchia, poi l'id), quindi coincidono.
-- **Progetti:** archiviare un progetto archivia anche i suoi passi aperti; ripristinarlo (da fare o in corso) riporta «da fare» i passi archiviati. Il messaggio ha «Annulla» che rimette tutto com'era.
-- **Esperienze:** campo «Luogo» nell'editor, sezione «Senza data» (prima «Da fare quando capita»), interesse con barra verde (stessa forma dell'importanza). Nelle liste resta il numero in un pallino verde.
-- **Intrattenimento:** oltre a genere, mood, impegno, durata e pagine (Wikidata), l'arricchimento cerca una breve descrizione (prime frasi di Wikipedia) e la mette nelle note se sono vuote (`accorciaDescrizione`, `descrittoIl`); le voci già presenti vengono descritte una volta, in background, a ritmo lento.
-- **Android, app tra i recenti:** `AzioneActivity` (tocco dal widget) ha ora `taskAffinity=""`, così non trascina l'app in un'attività esclusa dai recenti. Se il telefono chiude comunque l'app in background, serve togliere il risparmio batteria per MyTask (Impostazioni › App › MyTask › Batteria › Senza restrizioni).
-
-## Pesi della priorità, opzione provvisoria (0.57.0)
-
-- Altro › «Pesi della priorità» (voce gialla con etichetta «provvisorio»): schermata `PesiPriorita` con un cursore da 0 a 100 per Urgenza, Importanza, Poco sforzo ed Età. I pesi si portano a somma 100% (`normalizzaPesi`), quindi il punteggio resta tra 0 e 100; se sono tutti a zero valgono quelli di base (36/28/8/8/20).
-- I pesi stanno in `shared/priority.ts` (`getPesi`, `impostaPesi`) e `score` li usa; il valore scelto si salva solo sul dispositivo (`localStorage`, chiave `mytask.pesi`, `web/src/lib/pesi.ts`) e non si sincronizza. A ogni cambio si rifanno le liste (`rinfrescaListe`), quindi Attività, Oggi, piano e widget si aggiornano subito.
-- «Ripristina i pesi di base» toglie la personalizzazione. L'anteprima mostra le prime sei attività con il loro punteggio.
-
-- **Esperienze (0.58.0):** nella sotto-scheda Esperienze un selettore sceglie l'ordine: Data (di base: «Con data» e «Senza data»), Luogo (una sezione per luogo, «Senza luogo» in fondo) o Interesse (un'unica lista dal più al meno interessante). La scelta si ricorda (`mytask.esperienze.ordine`). L'interesse si imposta con la barra verde in tutte le voci che lo hanno (esperienze, curiosità, intrattenimento) e nelle righe si legge arrotondato.
-
-## Esperienze «Per te» (0.59.0)
-
-- Quarto ordine nel selettore delle esperienze (Data, Luogo, Interesse, **Per te**): una sola lista, ordinata da un punteggio che unisce **interesse** (40%), **data più vicina** (35%: oggi 100%, poi 90, 75, 50, 25; senza data un valore neutro; già passata, bassa) e **distanza** dalla tua posizione (25%: 100% sul posto, circa metà a 20 km). Se la posizione o il luogo non sono noti la distanza non conta e interesse e data pesano metà ciascuno. Nelle righe compare «a N km».
-- **Posizione:** si chiede al telefono (nell'app compare il permesso di posizione, `ACCESS_COARSE_LOCATION` e `ACCESS_FINE_LOCATION` nel manifest); resta sul dispositivo e non viene inviata. La si aggiorna ogni 10 minuti circa o con «Aggiorna posizione». Senza permesso l'ordine usa solo interesse e data.
-- **Luoghi:** le coordinate vengono dal link di Google Maps della nota se le contiene, altrimenti si cerca il nome del luogo (o il titolo, se manca) su OpenStreetMap (Nominatim, una richiesta al secondo, solo il nome va su internet). Il risultato, anche «non trovato» (riprovato dopo 7 giorni), si ricorda nel telefono (`mytask.luoghi`).
-
-- **Inbox senza tipo (0.60.0):** cattura rapida e widget salvano la nota col tipo `nota` («Non assegnata», icona quadrata tratteggiata) e `inbox: true`: nessun tipo viene dedotto. Aprendola si sceglie il tipo dalla tendina «Tipo»; appena se ne sceglie uno la nota lascia l'Inbox. Una nota non assegnata ha solo titolo, note, link e immagini (niente stati, priorità o date) e resta in Inbox anche se la si modifica senza scegliere il tipo. All'avvio le note già in Inbox, create come attività e mai modificate, passano a «non assegnata».
-
-## IA con Gemini e Groq (0.61.0)
-
-- **Chiavi:** Altro › Intelligenza artificiale: per ognuno dei due servizi si inserisce la chiave API (Google AI Studio per Gemini, console.groq.com per Groq) e, se serve, il modello (di base `gemini-2.0-flash` e `llama-3.3-70b-versatile`). «Salva e controlla» prova la chiave con una richiesta minima. Le chiavi stanno solo nel dispositivo (`localStorage`, `mytask.ia`) e le chiamate partono dal telefono verso il servizio scelto, senza passare dal server di MyTask (`web/src/lib/ia.ts`).
-- **Chat:** si sceglie Gemini, Groq oppure Entrambe (due risposte, una per servizio). Il pulsante «Condividi un riepilogo delle mie note» è spento di base: se lo si accende, alla richiesta si aggiunge un riepilogo compatto (conteggi, attività più prioritarie, esperienze, film e serie da vedere, senza note e testi lunghi: `riepilogoPerChat`). La conversazione non viene salvata.
-- **Autocompila le opere:** passa in rassegna film, serie, anime, giochi e libri senza tipologia, a gruppi di 15 titoli con una pausa tra le richieste, e compila la tipologia (`genere`, solo valori noti all'app) e, per film, serie e anime, mood ed energia. Non cambia mai quello che c'è già e al servizio vanno solo titolo, tipo e piattaforma (`promptTipologie`, `campiDaRisposta` in `shared/ia.ts`, con test).
-- **Piattaforme:** nell'editor di film, serie e anime, sotto il campo Piattaforma, ci sono come chip le piattaforme già inserite nell'app (un tocco la sceglie, un altro la toglie).
-- **Curiosità:** il tempo stimato si può togliere; senza tempo la pausa nel piano dura 15 minuti.
-
-## Tempo impiegato misurato dall'app (0.61.0)
-
-- Non si chiede più «Quanto ci hai messo?» quando si completa una nota. Se la nota era stata segnata «in corso», il tempo reale è il tempo da quel momento al completamento **contando solo i lassi di tempo segnati come liberi** (`minutiLiberiTra`, `durataRealeInCorso` in `shared/piano.ts`): se si inizia, si stacca dopo mezz'ora e si riprende la sera, le ore di pausa non pesano e il margine non risulta sballato. Senza tempo libero impostato conta il tempo trascorso, al massimo 8 ore. Senza «in corso» non c'è una misura.
-- Gli orari inseriti per i giorni passati si ricordano per 45 giorni (`GIORNI_ORARI_RICORDATI`), per poter calcolare anche le note iniziate giorni prima.
-- Il messaggio dopo il completamento dice, ad esempio, «Fatto in 1 h 30 (stimati 2 ore)». L'animazione con la stima che si aggiorna è solo un mockup (`docs/mockups/30-completamento-stima.html`).
-
-## Revisione tolta (0.62.0)
-
-- Non esistono più la schermata Revisione, la voce nel menu e nella barra laterale, la scheda in Oggi e il contatore «da rivedere». Le note scadute da molto, le attività vecchie e i progetti fermi non vengono più messi da parte: compaiono normalmente nelle liste e nel piano (le scadute con la data in arancio). Anche la sezione «Fermi da oltre 30 giorni» dei progetti non c'è più. Il campo `daRivedere` e la regola dell'importazione da Notion che lo impostava sono stati tolti dal codice (i dati già salvati non sono toccati).
-- Le descrizioni più vecchie di questo documento che parlano di Revisione (sezioni 2 e 4) non sono più valide.
-- Sito e app: il sito gira sull'immagine pubblicata sul NAS, quindi mostra le novità solo dopo un commit, il push e l'aggiornamento dell'immagine sul NAS; l'app sul telefono si aggiorna con l'APK.
+| 2026-10-18 | 0.62.1 | Pulizia del codice e documentazione riscritta sullo stato attuale: tolti l'endpoint IA del server (`/api/ai/capture`, `GEMINI_API_KEY`), la cattura interpretata in locale (`shared/capture.ts`; `chiaveTitolo` è in `shared/testo.ts`), codice, regole CSS e risorse Android inutilizzati; commenti dei file riscritti sul funzionamento attuale. «Riapri» in Completato azzera anche l'ora di completamento. Nessun altro cambio di comportamento |

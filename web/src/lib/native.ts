@@ -1,3 +1,5 @@
+// Funzioni che esistono solo nell'app Android (Capacitor): notifiche locali pianificate dal sistema operativo,
+// anche ad app chiusa. Nel browser si usano invece i promemoria di reminders.ts.
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import type { Item } from '../../../shared/types.ts';
@@ -10,9 +12,10 @@ import { richiediOrari } from './richiestaOrari.ts';
 /** True dentro l'app Android (Capacitor), false nel browser. */
 export const isNative = (): boolean => Capacitor.isNativePlatform();
 
-export type PermessoNotifiche = 'granted' | 'denied' | 'default' | 'non_supportate';
+type PermessoNotifiche = 'granted' | 'denied' | 'default' | 'non_supportate';
 
-export async function permessoNotificheNative(): Promise<PermessoNotifiche> {
+/** Stato del permesso di mostrare notifiche. */
+async function permessoNotificheNative(): Promise<PermessoNotifiche> {
   try {
     const p = await LocalNotifications.checkPermissions();
     return p.display === 'granted' ? 'granted' : p.display === 'denied' ? 'denied' : 'default';
@@ -21,7 +24,8 @@ export async function permessoNotificheNative(): Promise<PermessoNotifiche> {
   }
 }
 
-export async function chiediPermessoNotificheNative(): Promise<PermessoNotifiche> {
+/** Chiede il permesso (su Android 13+ compare la richiesta a video); se concesso, pianifica subito le notifiche. */
+async function chiediPermessoNotificheNative(): Promise<PermessoNotifiche> {
   try {
     const p = await LocalNotifications.requestPermissions();
     const stato: PermessoNotifiche = p.display === 'granted' ? 'granted' : p.display === 'denied' ? 'denied' : 'default';
@@ -32,8 +36,11 @@ export async function chiediPermessoNotificheNative(): Promise<PermessoNotifiche
   }
 }
 
-/** Riprogramma tutte le notifiche del sistema in base ai dati correnti. */
-export async function aggiornaNotificheNative(items: Item[]): Promise<void> {
+/**
+ * Riprogramma tutte le notifiche del sistema in base ai dati correnti: cancella quelle in attesa e ne pianifica di nuove
+ * (promemoria delle voci e, in modalità flessibile, la richiesta serale degli orari liberi). I calcoli sono in shared/pianifica.ts.
+ */
+async function aggiornaNotificheNative(items: Item[]): Promise<void> {
   if ((await permessoNotificheNative()) !== 'granted') return;
   try {
     const { notifications } = await LocalNotifications.getPending();
@@ -67,7 +74,10 @@ export async function aggiornaNotificheNative(items: Item[]): Promise<void> {
   }
 }
 
-/** Avvia l'aggiornamento automatico delle notifiche: all'avvio, a ogni modifica dei dati, al ritorno nell'app. */
+/**
+ * Avvia l'aggiornamento automatico delle notifiche: all'avvio, a ogni modifica dei dati o del tempo libero (con attesa
+ * di 2 secondi per raggruppare le modifiche) e al ritorno nell'app. Toccando la notifica serale si apre «Quando sei libero?».
+ */
 export function avviaNotificheNative() {
   const aggiorna = debounce(() => { void aggiornaNotificheNative(getItems()); }, 2000);
   subscribe(aggiorna);
@@ -77,7 +87,7 @@ export function avviaNotificheNative() {
     if (extra?.azione === 'orari' && extra.giorno) richiediOrari(extra.giorno);
   });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') aggiorna(); });
-  // la prima volta chiede il permesso (Android 13 e successivi lo richiede a voce)
+  // la prima volta chiede il permesso (una sola volta: poi resta la scelta dell'utente)
   void (async () => {
     let chiesto = false;
     try { chiesto = localStorage.getItem('mytask.notifiche.chiesto') === '1'; } catch { /* ignora */ }

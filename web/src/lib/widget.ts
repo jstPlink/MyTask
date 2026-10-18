@@ -1,3 +1,6 @@
+// Widget «Oggi» della schermata Home di Android. L'app scrive la lista di oggi e l'archivio per la ricerca nel plugin
+// nativo `Widget`; il widget accoda le azioni fatte dall'utente (note veloci per l'Inbox e voci spuntate) e l'app le
+// applica appena si apre o torna in primo piano. Nel browser non fa nulla.
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { today } from '../../../shared/dates.ts';
@@ -10,9 +13,7 @@ import { nuovaVoce } from './actions.ts';
 import { getItem, getItems, saveItem, subscribe } from './store.ts';
 import { debounce } from './util.ts';
 
-// Widget della schermata Home (Android): l'app scrive la lista di oggi, il widget accoda le azioni fatte
-// (note per l'Inbox e voci spuntate) e l'app le applica appena si apre.
-
+/** Azione accodata dal widget mentre l'app era chiusa. `ts` è il momento in cui è stata fatta. */
 type AzioneWidget = { tipo: 'nota'; testo: string; ts: number } | { tipo: 'fatto'; id: string; ts: number };
 const Widget = registerPlugin<{ aggiorna(o: { righe: string; archivio?: string }): Promise<void>; coda(): Promise<{ azioni: AzioneWidget[] }> }>('Widget');
 
@@ -30,6 +31,7 @@ async function applicaAzioni() {
   }
 }
 
+/** Manda al widget le righe di oggi e l'archivio (per la ricerca nel widget). */
 async function spingiLista() {
   try {
     const righe = righeWidget(getItems(), getDisponibilita(), today(), Date.now(), margineAtteso(getItems()));
@@ -39,6 +41,7 @@ async function spingiLista() {
   }
 }
 
+/** Avvia lo scambio con il widget (solo app Android): aggiorna dopo ogni modifica (1,5 s), ogni 5 minuti e al ritorno nell'app. */
 export function avviaWidget() {
   if (!Capacitor.isNativePlatform()) return;
   const spingi = debounce(() => { void spingiLista(); }, 1500);

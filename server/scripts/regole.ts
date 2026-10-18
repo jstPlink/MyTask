@@ -9,9 +9,12 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { Fascia, Item, Tipo } from '../../shared/types.ts';
 
+/** Impostazioni di una routine importata. */
 export interface ImpostazioniRoutine { fascia: Fascia; volteSettimana?: number; obiettivo: string; stato: Item['stato'] }
+/** Dati strutturati che certe note di Notion nascondevano nel testo (es. "netflix" → piattaforma). */
 export interface NotaSpeciale { consigliatoDa?: string; conChi?: string; piattaforma?: string; genere?: string; note?: string }
 
+/** Le tabelle di smistamento usate da `converti`. */
 export interface Regole {
   /** Titoli che sono serie TV (i "Video" non elencati diventano film). */
   serie: string[];

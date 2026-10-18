@@ -1,16 +1,24 @@
+/**
+ * Scheda di una voce (editor): mostra e modifica una nota esistente oppure ne crea una nuova (`nuovo`).
+ * Sul telefono occupa tutta la schermata; da 900 px il guscio dell'app la apre come finestra sopra la
+ * schermata corrente (il contenuto è lo stesso).
+ *
+ * Il salvataggio è automatico (mezzo secondo dopo l'ultima modifica e all'uscita). Dall'alto in basso:
+ * selettore dello stato, blocco della priorità, titolo e tipo, poi i gruppi di campi del tipo scelto
+ * (vedi sotto), note e allegati, cronologia, riepilogo di ciò che è stato completato, Elimina.
+ */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
-import { barLevel, componentiPunteggio, dueDate, score } from '../../../shared/priority.ts';
-import { avanzamento, figli, listaAzioni, luoghiUsati, nomiUsati } from '../../../shared/views.ts';
+import { barLevel, componentiPunteggio, dueDate } from '../../../shared/priority.ts';
+import { avanzamento, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { STATI_NOTA, cambiaStato, completaVoce, nuovaVoce, ordinaPassi, riapriVoce, statoVisto } from '../lib/actions.ts';
+import { STATI_NOTA, cambiaStato, nuovaVoce, ordinaPassi, statoVisto } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
-import { posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
 import { Back, Field, Gruppo, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
@@ -20,28 +28,30 @@ import { useNav } from '../ui/nav.tsx';
 import { clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
 import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
 
-type GruppoTipo = 'azione' | 'progetto' | 'esperienza' | 'routine' | 'intrattenimento' | 'ricetta' | 'curiosita' | 'persona' | 'nota';
+// Nella tendina «Tipo» film, serie, anime, gioco e libro sono un solo gruppo «Intrattenimento»
+// (la tendina «Sezione» sotto sceglie quale); gli altri tipi corrispondono a un gruppo ciascuno.
+// Un tipo fuori elenco (per esempio «nota», la bozza non assegnata dell'Inbox) viene aggiunto alle voci
+// finché la voce lo ha, così la tendina mostra sempre il valore reale.
+type GruppoTipo = Tipo | 'intrattenimento';
 const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita'];
-const NOMI_GRUPPO: Record<GruppoTipo, string> = {
-  azione: NOMI_TIPO.azione, progetto: NOMI_TIPO.progetto, esperienza: NOMI_TIPO.esperienza, routine: NOMI_TIPO.routine,
-  intrattenimento: 'Intrattenimento', ricetta: NOMI_TIPO.ricetta, curiosita: NOMI_TIPO.curiosita, persona: NOMI_TIPO.persona, nota: NOMI_TIPO.nota,
-};
+const NOMI_GRUPPO: Record<string, string> = { ...NOMI_TIPO, intrattenimento: 'Intrattenimento' };
 const IS_INTRATT = (t: Tipo) => TIPI_INTRATTENIMENTO.includes(t);
-const gruppoDi = (t: Tipo): GruppoTipo => (IS_INTRATT(t) ? 'intrattenimento' : (t as GruppoTipo));
-const IS_AZIONE = (t: Tipo) => t === 'azione' || t === 'progetto';
-const IS_DATATO = (t: Tipo) => t === 'azione' || t === 'progetto' || t === 'esperienza';
-const IS_VIDEO = (t: Tipo) => t === 'film' || t === 'serie' || t === 'anime';
-const IS_COLLEZIONE = (t: Tipo) => IS_VIDEO(t) || t === 'gioco' || t === 'libro' || t === 'ricetta';
-const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'curiosita';
+const gruppoDi = (t: Tipo): GruppoTipo => (IS_INTRATT(t) ? 'intrattenimento' : t);
+
+// Famiglie di tipi: decidono quali gruppi di campi compaiono nell'editor.
+const IS_AZIONE = (t: Tipo) => t === 'azione' || t === 'progetto'; // importanza, tempo stimato, priorità calcolata
+const IS_DATATO = (t: Tipo) => t === 'azione' || t === 'progetto' || t === 'esperienza'; // data, scadenza fissa, promemoria
+const IS_VIDEO = (t: Tipo) => t === 'film' || t === 'serie' || t === 'anime'; // piattaforma, tipologia, mood, energia
+const IS_COLLEZIONE = (t: Tipo) => IS_VIDEO(t) || t === 'gioco' || t === 'libro' || t === 'ricetta'; // gruppo «Intrattenimento» o «Ricetta»
+const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'curiosita'; // slider dell'interesse
 
 const PROMEMORIA_PRESET: { giorni: number; nome: string }[] = [
   { giorni: 7, nome: '7 giorni prima' }, { giorni: 3, nome: '3 giorni prima' }, { giorni: 1, nome: '1 giorno prima' }, { giorni: 0, nome: 'Il giorno stesso' },
 ];
 
-const nomeSforzo = nomeTempo;
-
 const TIPI_PIATTO = ['Antipasto', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Piatto unico', 'Zuppa', 'Pane e lievitati', 'Bevanda'];
 
+/** Editor di una voce. `id` apre una voce esistente; `nuovo` precompila una voce da creare (tipo, titolo…). */
 export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }) {
   const nav = useNav();
   const tutte = useItems();
@@ -59,7 +69,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     ultimoSalvato.current = s;
   };
 
-  // salvataggio automatico poco dopo ogni modifica, e all'uscita dalla schermata
+  // Salvataggio automatico: mezzo secondo dopo l'ultima modifica e all'uscita dalla schermata.
+  // Una voce senza titolo non viene salvata.
   useEffect(() => {
     const t = setTimeout(() => salva(d), 500);
     return () => clearTimeout(t);
@@ -68,7 +79,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
 
   const up = (p: Partial<Item>) => setD((x) => ({ ...x, ...p }));
 
-  // la voce può essere completata fuori da questa scheda (pulsante, finestra del voto o del tempo): la scheda ne segue lo stato
+  // La voce può cambiare stato fuori da questa scheda (casella della riga, finestra del voto): la scheda ne segue
+  // stato e dati di completamento senza perdere ciò che si sta scrivendo.
   const salvataOra = tutte.find((i) => i.id === d.id);
   useEffect(() => {
     if (!salvataOra) return;
@@ -85,23 +97,25 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const persone = useMemo(() => nomiUsati(tutte), [tutte]);
   const piattaforme = useMemo(() => [...new Set(tutte.map((i) => i.piattaforma).filter((x): x is string => !!x))], [tutte]);
   const progetti = useMemo(() => tutte.filter((i) => !i.eliminato && i.tipo === 'progetto' && i.id !== d.id && (i.id === d.padreId || (i.stato !== 'fatto' && i.stato !== 'saltato' && i.stato !== 'parcheggiato'))), [tutte, d.id, d.padreId]);
-  // stima del tempo: da attività simili già fatte, con il margine d'errore atteso
+  // Stima del tempo: da attività simili già fatte, con il margine d'errore atteso (solo per le attività).
   const suggerita = useMemo(() => (t === 'azione' && d.titolo.trim().length >= 3 ? stimaPer(d.titolo, tutte.filter((i) => i.id !== d.id)) : undefined), [tutte, t, d.titolo, d.id]);
   const margine = useMemo(() => (suggerita ? suggerita.margine : margineAtteso(tutte)), [suggerita, tutte]);
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
-  // blocco priorità: chiuso di base, si ricorda l'ultima scelta
+  // Blocco della priorità in cima: chiuso di base, ricorda l'ultima scelta (solo su questo dispositivo).
   const [prioAperta, setPrioAperta] = useState(() => { try { return localStorage.getItem('mytask.prio.aperta') === '1'; } catch { return false; } });
   const alternaPrio = () => setPrioAperta((v) => { try { localStorage.setItem('mytask.prio.aperta', v ? '0' : '1'); } catch { /* ignora */ } return !v; });
   const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
   const ordChecklist = useRiordino(checklist.map((c) => c.id), (idsNuovi) => setCheck(idsNuovi.map((i) => checklist.find((c) => c.id === i)!)));
   const ordPassi = useRiordino(passi.map((c) => c.id), (idsNuovi) => ordinaPassi(d.id, idsNuovi));
   const avanz = t === 'progetto' ? avanzamento(d, tutte) : undefined;
+  // La durata di un gioco si scrive in ore (anche con la virgola) ma si salva in minuti: serve il testo grezzo.
   const [oreTesto, setOreTesto] = useState(() => (d.durataMin ? String(+(d.durataMin / 60).toFixed(1)).replace('.', ',') : ''));
   const [ricercaPagine, setRicercaPagine] = useState<'' | 'cerco' | 'trovate' | 'nonTrovate'>('');
   const ultimoTitoloCercato = useRef('');
 
-  // libro: le pagine si cercano da sole online, quando il titolo è scritto e le pagine non ci sono
+  // Libro: le pagine si cercano da sole su Open Library (in rete va solo il titolo) quando il titolo è
+  // scritto e le pagine mancano; il risultato non sovrascrive ciò che si è scritto nel frattempo.
   useEffect(() => {
     if (d.tipo !== 'libro' || d.pagine !== undefined) return;
     const titolo = d.titolo.trim();
@@ -118,25 +132,28 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [d.titolo, d.tipo, d.pagine]);
 
-  // luoghi già inseriti nelle esperienze: si scelgono con un tocco (si restringono mentre si scrive, escluso quello già scelto)
+  // Luoghi già inseriti nelle esperienze: si scelgono con un tocco (si restringono mentre si scrive, escluso quello già scelto).
   const luoghiProposti = useMemo(() => {
     const scritto = (d.zona ?? '').trim().toLowerCase();
     return luoghiUsati(tutte).filter((z) => z.toLowerCase() !== scritto && z.toLowerCase().includes(scritto)).slice(0, 12);
   }, [tutte, d.zona]);
   const generi = (d.genere ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+  // Priorità: solo attività e progetti hanno un punteggio; un'attività di un progetto eredita importanza e scadenza dal progetto.
   const puntegg = IS_AZIONE(t) ? punteggioEffettivo(withTemp(d), tutte, oggi) : undefined;
   const due = dueDate(d);
   const componenti = componentiPunteggio(withTemp(d), oggi);
-  // posizione in classifica tra le attività aperte (1 = la più prioritaria)
+  // Posizione in classifica tra le attività aperte (1 = la più prioritaria), la stessa dei numeri in Oggi e in Attività.
   const posizione = useMemo(() => {
     if (puntegg === undefined) return { pos: 1, tot: 1 };
     return posizionePriorita(tutte, withTemp(d), oggi);
   }, [tutte, oggi, d, puntegg]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /** La voce con importanza e scadenza prese dal progetto, se non le ha proprie. */
   function withTemp(x: Item): Item {
     return x.padreId ? { ...x, importanza: x.importanza ?? getItem(x.padreId)?.importanza, fine: x.fine ?? (x.inizio ? undefined : getItem(x.padreId)?.fine) } : x;
   }
 
+  // Cambiando tipo la voce esce dall'Inbox e riceve i valori di base dei campi del nuovo tipo.
   const cambiaTipo = (nt: Tipo) => {
     const p: Partial<Item> = { tipo: nt, inbox: undefined };
     if (nt !== 'azione') p.padreId = undefined;
@@ -146,6 +163,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     up(p);
   };
 
+  // I promemoria preimpostati scattano alle 9:00 del giorno indicato.
   const togglePromemoria = (giorni: number, on: boolean) => {
     const lista = (d.promemoria ?? []).filter((p) => p.giorniPrima !== giorni);
     if (on) lista.push({ giorniPrima: giorni, ora: '09:00' } satisfies Promemoria);
@@ -153,20 +171,10 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   };
 
 
-  /** Salva subito lo stato indicato e torna indietro (per "Metti da parte" e "Rimetti in gioco"). */
-  const esci = (nuovo: Item, testo: string) => {
-    const statoPrima = d.stato;
-    salva(nuovo);
-    ref.current = nuovo;
-    setD(nuovo);
-    nav.pop();
-    mostraToast(testo, { label: 'Annulla', fn: () => saveItem({ ...nuovo, stato: statoPrima }) });
-  };
-
   const elimina = () => {
     if (!window.confirm(`Eliminare «${d.titolo || 'questa voce'}»?`)) return;
     ultimoSalvato.current = JSON.stringify(d);
-    ref.current = { ...ref.current, titolo: '' }; // evita il salvataggio all'uscita
+    ref.current = { ...ref.current, titolo: '' }; // senza titolo l'uscita non risalva la voce
     if (getItem(d.id)) {
       const prima = getItem(d.id)!;
       removeItem(d.id);
@@ -174,7 +182,6 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     }
     nav.pop();
   };
-
 
   return (
     <>
@@ -185,7 +192,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         right={d.inbox ? <span className="badge">Da smistare</span> : undefined}
       />
       <div className="scroll">
-        {getItem(d.id) && t !== 'routine' && t !== 'persona' && t !== 'nota' && (
+        {/* Stato: solo per voci già salvate, escluse routine (si spuntano per giorno) e bozze non assegnate */}
+        {getItem(d.id) && t !== 'routine' && t !== 'nota' && (
           <div className="stati-seg" role="tablist" aria-label="Stato della nota">
             {STATI_NOTA.map((s) => (
               <button key={s.id} role="tab" aria-selected={statoVisto(d.stato) === s.id}
@@ -194,6 +202,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             ))}
           </div>
         )}
+        {/* Blocco della priorità: posizione in classifica, livello e, se aperto, il peso di ciascun parametro */}
         {puntegg !== undefined && d.stato !== 'fatto' && (
           <div className={clsx('prio', `p${barLevel(puntegg)}`, prioAperta && 'aperta')} aria-label={`Priorità ${['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}, ${posizione.pos}ª da fare su ${posizione.tot}`}>
             <button type="button" className="prio-testa" aria-expanded={prioAperta} aria-controls="prio-dettagli" onClick={alternaPrio}>
@@ -215,7 +224,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <div className="prio-dati">
               <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza fissa' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
               <span>Importanza {['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'][Math.round(d.importanza ?? 3)]}</span>
-              {d.sforzoMin ? <span>{nomeSforzo(d.sforzoMin)} {percentuale(margine)}</span> : null}
+              {d.sforzoMin ? <span>{nomeTempo(d.sforzoMin)} {percentuale(margine)}</span> : null}
             </div>
               </div>
             </div>
@@ -233,6 +242,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           )}
         </Gruppo>
 
+        {/* Attività, progetto, esperienza: progetto di appartenenza, data e scadenza fissa, importanza o interesse, tempo stimato, luogo, promemoria */}
         {IS_DATATO(t) && (
           <Gruppo titolo={NOMI_TIPO[t]}>
             {t === 'azione' && (
@@ -296,6 +306,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
+        {/* Curiosità: interesse e tempo stimato (la durata delle pause curiosità del piano) */}
         {t === 'curiosita' && (
           <Gruppo titolo="Interesse">
             <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
@@ -303,6 +314,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
+        {/* Intrattenimento e ricette: interesse e, secondo il tipo, piattaforma, consigliato da, con chi, durata,
+            pagine, genere o tipologia, mood ed energia (genere, mood ed energia li compila anche l'arricchimento) */}
         {IS_COLLEZIONE(t) && (
           <Gruppo titolo={IS_INTRATT(t) ? 'Intrattenimento' : NOMI_TIPO[t]}>
             <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
@@ -367,6 +380,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
+        {/* Routine: momento della giornata, frequenza settimanale, obiettivo minimo, ora del promemoria */}
         {t === 'routine' && (
           <Gruppo titolo="Routine">
             <Field label="Momento">
@@ -384,6 +398,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
+        {/* Progetto: checklist e passi (voci figlie) riordinabili; l'ordine è la priorità, il primo passo aperto è il prossimo da fare */}
         {t === 'progetto' && (
           <Gruppo titolo={`Checklist${avanz && avanz.totale ? ` · ${avanz.fatti} su ${avanz.totale}` : ''}`}>
             {avanz && avanz.totale > 0 && <div className="bar"><i style={{ width: `${(avanz.fatti / avanz.totale) * 100}%` }} /></div>}
@@ -417,6 +432,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           <AllegatiNote link={d.link} immagini={d.immagini} onChange={(p) => up(p)} />
         </Gruppo>
 
+        {/* Cronologia: creata, in corso dal, completata e tempo trascorso */}
         {getItem(d.id) && (
           <Gruppo titolo="Cronologia">
             <div className="field"><span>Creata</span><b style={{ fontWeight: 650 }}>{scriviQuando(d.creato)}</b></div>
@@ -432,6 +448,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
+        {/* Riepilogo di una nota fatta: giorno, tempo impiegato rispetto alla stima, voto e commento */}
         {d.stato === 'fatto' && (
           <Gruppo titolo="Completata">
             <div className="field"><span>Fatta il</span><span>{d.completatoIl ? formatShortYear(d.completatoIl, oggi) : '—'}</span></div>
@@ -451,6 +468,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   );
 }
 
+/** Campo con pulsante «Aggiungi» per inserire una riga di checklist. */
 function AggiungiRiga({ placeholder, onAdd }: { placeholder: string; onAdd: (v: string) => void }) {
   const [v, setV] = useState('');
   const invia = () => { const x = v.trim(); if (x) { onAdd(x); setV(''); } };

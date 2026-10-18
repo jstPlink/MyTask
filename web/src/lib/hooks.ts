@@ -1,3 +1,4 @@
+// Hook React che leggono gli store della cartella lib (useSyncExternalStore) e tengono aggiornati data e minuto correnti.
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -16,7 +17,6 @@ export const useToast = () => useSyncExternalStore(subscribeToast, getToast);
 export const useAspetto = () => useSyncExternalStore(subscribeAspetto, getAspetto);
 export const useDisponibilita = () => useSyncExternalStore(subscribeDisponibilita, getDisponibilita);
 
-/** La data di oggi (YYYY-MM-DD), aggiornata anche se l'app resta aperta oltre la mezzanotte. */
 /**
  * Chiama `fn` ogni `ms` e ogni volta che l'app torna in primo piano. Sul telefono i timer si fermano quando l'app è in
  * secondo piano: senza questo, al ritorno l'orario resterebbe vecchio fino al tocco successivo del timer.
@@ -39,6 +39,7 @@ function usaAggiornamento(fn: () => void, ms: number) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
+/** La data di oggi (YYYY-MM-DD), aggiornata anche se l'app resta aperta oltre la mezzanotte. */
 export function useOggi(): string {
   const [d, setD] = useState(() => today());
   usaAggiornamento(() => setD((x) => { const n = today(); return n === x ? x : n; }), 30_000);

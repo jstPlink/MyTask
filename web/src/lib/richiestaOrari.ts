@@ -4,6 +4,7 @@
 let pendente: string | undefined;
 const ascoltatori = new Set<() => void>();
 
+/** Registra la richiesta per quel giorno e avvisa chi ascolta. */
 export function richiediOrari(giorno: string) {
   pendente = giorno;
   ascoltatori.forEach((l) => l());
@@ -16,4 +17,5 @@ export function prendiRichiestaOrari(): string | undefined {
   return g;
 }
 
+/** Si registra per essere avvisati di una nuova richiesta. */
 export const ascoltaRichiestaOrari = (fn: () => void) => { ascoltatori.add(fn); return () => { ascoltatori.delete(fn); }; };

@@ -8,9 +8,15 @@ import android.content.Intent;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
-/** Widget "Oggi": campo per una nota veloce in Inbox e lista delle cose da fare. Due aspetti: chiaro e scuro. */
+/**
+ * Widget «Oggi» della schermata Home, 4x3 e ridimensionabile: la lista delle cose da fare di oggi nell'ordine del
+ * piano e, in basso a destra, il pulsante + che apre la nota veloce (NotaRapidaActivity). Le sottoclassi
+ * MyTaskWidgetChiaro e MyTaskWidgetScuro scelgono solo l'aspetto (layout widget_chiaro o widget_scuro).
+ * Le righe arrivano da WidgetService; i tocchi sulle righe passano da AzioneActivity.
+ */
 public abstract class WidgetBase extends AppWidgetProvider {
 
+    /** true per l'aspetto scuro. */
     abstract boolean scuro();
 
     @Override
@@ -21,9 +27,10 @@ public abstract class WidgetBase extends AppWidgetProvider {
 
     private RemoteViews costruisci(Context c, int id) {
         boolean s = scuro();
-        int k = s ? 1 : 0;
+        int k = s ? 1 : 0; // codice di richiesta distinto per chiaro e scuro: i PendingIntent dei due widget non si sovrascrivono
         RemoteViews v = new RemoteViews(c.getPackageName(), s ? R.layout.widget_scuro : R.layout.widget_chiaro);
 
+        // lista: l'indirizzo dell'intento è reso unico per widget, altrimenti Android riuserebbe la stessa fabbrica di righe
         Intent servizio = new Intent(c, WidgetService.class);
         servizio.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id);
         servizio.putExtra("scuro", s);
@@ -31,10 +38,12 @@ public abstract class WidgetBase extends AppWidgetProvider {
         v.setRemoteAdapter(R.id.lista, servizio);
         v.setEmptyView(R.id.lista, R.id.vuoto);
 
+        // pulsante +: nota veloce, con i colori del widget
         Intent nota = new Intent(c, NotaRapidaActivity.class).putExtra("scuro", s);
         v.setOnClickPendingIntent(R.id.nota, PendingIntent.getActivity(c, k, nota, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
 
-        // tocco su una riga: la spunta o apre l'app (decide l'intento della singola riga)
+        // tocco su una riga: il modello (mutabile) viene completato da ogni riga con "fatto" + id (checkbox) oppure "apri"
+        // (resto della riga); tocco sul messaggio «Tutto fatto per oggi»: apre l'app
         Intent azione = new Intent(c, AzioneActivity.class);
         v.setPendingIntentTemplate(R.id.lista, PendingIntent.getActivity(c, 10 + k, azione, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE));
         Intent apri = new Intent(c, AzioneActivity.class).putExtra("azione", "apri");

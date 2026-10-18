@@ -4,7 +4,6 @@ import type { Item } from '../../shared/types.ts';
 import { loadConfig } from './config.ts';
 import { Store } from './db.ts';
 import { buildApp } from './app.ts';
-import { validaProposta } from './ai.ts';
 
 const item = (id: string, aggiornato: number, extra: Partial<Item> = {}): Item => ({
   id, tipo: 'azione', titolo: `Voce ${id}`, stato: 'da_fare', creato: 1, aggiornato, ...extra,
@@ -81,44 +80,6 @@ test('sync: rifiuta voci malformate', async () => {
     payload: { since: 0, changes: [{ id: 'x' }] },
   });
   assert.equal(r.statusCode, 400);
-  await app.close();
-});
-
-test('IA: senza chiave risponde 503 e il client usa il ripiego locale', async () => {
-  const { app, login } = await setup();
-  const token = (await login()).json().token as string;
-  const r = await app.inject({ method: 'POST', url: '/api/ai/capture', headers: { authorization: `Bearer ${token}` }, payload: { text: 'Un film' } });
-  assert.equal(r.statusCode, 503);
-  await app.close();
-});
-
-test('IA: la risposta di Gemini viene validata', async () => {
-  const p = validaProposta({ tipo: 'inventato', titolo: '  Dune ', sicura: true, inizio: 'domani', piattaforma: '' });
-  assert.equal(p.tipo, 'curiosita');
-  assert.equal(p.titolo, 'Dune');
-  assert.equal(p.inizio, undefined);
-  assert.equal(p.sicura, false);
-  const q = validaProposta({ tipo: 'film', titolo: 'Dune', sicura: true, inizio: '2026-11-01', piattaforma: 'Netflix' });
-  assert.equal(q.tipo, 'film');
-  assert.equal(q.inizio, '2026-11-01');
-  assert.equal(q.sicura, true);
-});
-
-test('IA: con una chiave chiama Gemini e restituisce la proposta', async () => {
-  const store = new Store(':memory:');
-  const config = loadConfig({ email: 'tu@example.com', password: 'una-password-lunga', geminiKey: 'chiave-finta', webDir: '/nonexistent' });
-  let chiamata: { url: string; key: string | null } | undefined;
-  const finto = (async (url: string, init: RequestInit) => {
-    chiamata = { url, key: new Headers(init.headers).get('x-goog-api-key') };
-    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ tipo: 'film', titolo: 'Un film', piattaforma: 'Netflix', consigliatoDa: 'Mario', sicura: true }) }] } }] }));
-  }) as unknown as typeof fetch;
-  const app = await buildApp({ config, store, fetchFn: finto });
-  const token = (await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'tu@example.com', password: 'una-password-lunga' } })).json().token as string;
-  const r = await app.inject({ method: 'POST', url: '/api/ai/capture', headers: { authorization: `Bearer ${token}` }, payload: { text: 'Un film su Netflix da Mario' } });
-  assert.equal(r.statusCode, 200);
-  assert.equal(r.json().proposta.consigliatoDa, 'Mario');
-  assert.equal(chiamata?.key, 'chiave-finta');
-  assert.match(chiamata?.url ?? '', /generativelanguage\.googleapis\.com/);
   await app.close();
 });
 

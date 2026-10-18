@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Riga della lista di oggi nel widget: pallino della posizione (fermo in "rank", oppure "rank_flip" che alterna i quadri
+     di rank_frame ogni 150 ms per il battito), titolo con orario sotto, checkbox. Colori di testo di base; il resto lo imposta WidgetService. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/riga"
     android:layout_width="match_parent"

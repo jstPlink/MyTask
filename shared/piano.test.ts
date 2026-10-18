@@ -1,15 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { DISPONIBILITA_SUGGERITA, fasceDelGiorno, minutiDisponibili, minuti, orario, pianifica, senzaGiorniPassati, type Disponibilita } from './piano.ts';
+import { DISPONIBILITA_SUGGERITA, DURATA_PAUSA, durataRealeInCorso, fasceDelGiorno, minutiDisponibili, minutiLiberiTra, minuti, orario, pianifica, senzaGiorniPassati, type Disponibilita } from './piano.ts';
 import { richiesteOrari } from './pianifica.ts';
-import { durataRealeInCorso, minutiLiberiTra } from './piano.ts';
 import { campiDaRisposta, leggiRisposta, opereSenzaTipologia, promptTipologie, riepilogoPerChat } from './ia.ts';
 import { inboxNonAssegnata } from './migrazioni.ts';
 import { inbox as listaInbox } from './views.ts';
 import { coordinateDaLink, distanzaKm, ordinaPerTe } from './esperienze.ts';
 import { classificaPriorita, listaAzioni, luoghiUsati, posizionePriorita, punteggioEffettivo } from './views.ts';
 import { barLevel, componentiPunteggio, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
+import { ripristinaChecklistProgetto, spostaInNote } from './migrazioni.ts';
+import { suggerisciStasera } from './stasera.ts';
+import { leggiDurata, scomponi, scriviDurata, scriviQuando, scriviTrascorso } from './tempo.ts';
+import { componiIndirizzo, indirizzoValido, separaIndirizzo } from './indirizzo.ts';
+import { figli, prossimoPasso } from './views.ts';
+import { completa, riapri } from './recurrence.ts';
+import { sistemaNumeri } from './linea.ts';
 
 // giovedì 15 ottobre 2026, ore 10:00
 const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
@@ -94,7 +100,6 @@ test('piano: senza fasce non pianifica nulla e usa i valori suggeriti', () => {
 });
 
 // ---- migrazioni di persone e checklist
-import { ripristinaChecklistProgetto, spostaInNote } from './migrazioni.ts';
 
 test('migrazione: persone e checklist passano nelle note, ma non la checklist dei progetti', () => {
   const a = mk({ note: 'Idee', persone: ['Mario'], checklist: [{ id: 'x', testo: 'Torta', fatto: true }, { id: 'y', testo: 'Inviti', fatto: false }] });
@@ -119,8 +124,7 @@ test('migrazione: la checklist di un progetto già finita nelle note torna nel c
   assert.equal(ripristinaChecklistProgetto(mk({ note: 'Checklist:\n- [ ] a' }), () => 'q'), undefined);
 });
 
-// ---- Cosa guardo stasera: nuovi filtri
-import { suggerisciStasera } from './stasera.ts';
+// ---- Cosa guardo stasera
 
 test('stasera: tipologia, mood ed energia spostano i suggerimenti', () => {
   const comico = mk({ tipo: 'film', titolo: 'Commedia', genere: 'Comico, Sentimentale', mood: 'Spensierato', energia: 'bassa', interesse: 3 });
@@ -142,8 +146,7 @@ test('stasera: la compagnia riconosce partner e amici e non filtra per durata', 
   assert.equal(suggerisciStasera([altro, coppia], {}).length, 2);
 });
 
-test('piano: dopo un\'attività grande c\'è una pausa curiosità, poi si riparte', async () => {
-  const { DURATA_PAUSA } = await import('./piano.ts');
+test('piano: dopo un\'attività grande c\'è una pausa curiosità, poi si riparte', () => {
   const grande = mk({ titolo: 'Grande', importanza: 5, sforzoMin: 90 });
   const piccola = mk({ titolo: 'Piccola', importanza: 3, sforzoMin: 30 });
   const cur = mk({ tipo: 'curiosita', titolo: 'Come funziona il GPS', interesse: 5 });
@@ -191,7 +194,6 @@ test('piano: tra un\'attività e la successiva c\'è la pausa (5 minuti di base,
 });
 
 // ---- stima del tempo scritta a mano
-import { leggiDurata, scomponi, scriviDurata } from './tempo.ts';
 
 test('tempo: legge minuti, ore e giorni scritti a mano', () => {
   const m = (t: string) => { const r = leggiDurata(t); return r.ok ? r.minuti : 'errore'; };
@@ -226,7 +228,6 @@ test('tempo: scrive e scompone le durate', () => {
 });
 
 // ---- indirizzo del server al login
-import { componiIndirizzo, indirizzoValido, separaIndirizzo } from './indirizzo.ts';
 
 test('indirizzo: separa lo schema e ricompone', () => {
   assert.deepEqual(separaIndirizzo('https://mytask.fplinio.it/'), { schema: 'https', resto: 'mytask.fplinio.it' });
@@ -240,8 +241,6 @@ test('indirizzo: separa lo schema e ricompone', () => {
 });
 
 // ---- ordine dei passi di un progetto e ora di completamento
-import { figli, prossimoPasso } from './views.ts';
-import { completa, riapri } from './recurrence.ts';
 
 test('progetto: l\'ordine scelto decide il prossimo passo', () => {
   const prog = mk({ tipo: 'progetto', titolo: 'Progetto' });
@@ -266,7 +265,6 @@ test('completamento: si salva anche l\'ora e riaprendo si toglie', () => {
 });
 
 // ---- formato di data/ora e tempo trascorso
-import { scriviQuando, scriviTrascorso } from './tempo.ts';
 
 test('cronologia: data e ora e tempo trascorso', () => {
   const t = new Date(2026, 9, 16, 14, 32).getTime(); // venerdì 16 ottobre 2026, 14:32
@@ -280,7 +278,6 @@ test('cronologia: data e ora e tempo trascorso', () => {
 });
 
 // ---- numeri sotto la barra del piano
-import { sistemaNumeri } from './linea.ts';
 
 test('linea del piano: i numeri restano dentro la barra e nell\'ordine, anche se sono tanti', () => {
   const L = 325;

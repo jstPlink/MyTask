@@ -1,12 +1,12 @@
-// Migrazioni dei dati: funzioni pure (stesso input, stesso output), usate all'avvio dell'app.
+// Migrazioni dei dati già salvati: funzioni pure (stesso input, stesso output) che l'app applica a ogni voce all'avvio
+// (web/src/lib/migrazioni.ts). Ognuna restituisce la voce corretta, oppure undefined se non c'è nulla da cambiare.
 import type { Item, VoceChecklist } from './types.ts';
-import { isOpen } from './priority.ts';
 
 const BLOCCO_CHECKLIST = /(?:^|\n\n)Checklist:\n((?:- \[[ xX]\] .*(?:\n|$))+)/;
 
 /**
- * Persone e checklist non si modificano più dall'app, tranne la checklist dei progetti:
- * negli altri tipi, se la voce li ha, passano nelle note e i campi si svuotano.
+ * L'app non gestisce più il campo `persone` né le checklist, tranne quella dei progetti: se una voce li ha ancora,
+ * passano nelle note ("Persone: …", blocco "Checklist:") e i campi si svuotano, così non si perde nulla.
  */
 export function spostaInNote(i: Item): Item | undefined {
   const persone = (i.persone?.length ?? 0) > 0;
@@ -20,8 +20,8 @@ export function spostaInNote(i: Item): Item | undefined {
 }
 
 /**
- * I progetti tornano ad avere la checklist: se una checklist era già finita nelle note
- * (blocco "Checklist:" con righe "- [ ] testo"), la rimette nel campo e toglie il blocco dalle note.
+ * La checklist dei progetti è un campo vero: se per errore era finita nelle note (blocco "Checklist:" con righe
+ * "- [ ] testo", per effetto di `spostaInNote`), la rimette nel campo e toglie il blocco dalle note.
  */
 export function ripristinaChecklistProgetto(i: Item, nuovoId: () => string): Item | undefined {
   if (i.tipo !== 'progetto' || i.eliminato || (i.checklist?.length ?? 0) > 0 || !i.note) return undefined;
@@ -35,12 +35,9 @@ export function ripristinaChecklistProgetto(i: Item, nuovoId: () => string): Ite
   return { ...i, checklist: voci, note: note || undefined };
 }
 
-/** Le voci create dall'importazione di Notion hanno un identificativo di 13 caratteri ("n" + 12 cifre esadecimali). */
-export const èImportata = (i: Item) => /^n[0-9a-f]{12}$/.test(i.id);
-
 /**
- * Le note già in Inbox, mai toccate, che erano state create come «attività» senza che l'utente l'avesse scelto
- * diventano «non assegnate»: il tipo lo sceglie l'utente quando le smista.
+ * Le note in Inbox mai modificate (`aggiornato` uguale a `creato`) e create come «attività» senza che l'utente
+ * l'abbia scelto diventano «non assegnate»: il tipo lo sceglie l'utente quando le smista.
  */
 export function inboxNonAssegnata(i: Item): Item | undefined {
   if (!i.inbox || i.tipo !== 'azione' || i.aggiornato !== i.creato || i.eliminato) return undefined;

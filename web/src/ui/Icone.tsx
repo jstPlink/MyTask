@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import type { Stato, Tipo } from '../../../shared/types.ts';
+import type { Tipo } from '../../../shared/types.ts';
 
-// Icone e colori di tipi e stati, usati nelle scelte a tendina. Colori dalla tavolozza c1..c5 dei tag.
+// Icone dei tipi di nota: il badge colorato (scheda, tendina del tipo, foglio di recensione) e il glifo semplice
+// della riga grigia sotto il titolo. I colori vengono dalla tavolozza c1..c5 del tema.
 
 const tratto = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
@@ -28,27 +29,12 @@ const TINTA_TIPO: Record<Tipo, number> = {
 
 const badge = (n: number, size: number) => ({ width: size, height: size, borderRadius: Math.round(size * 0.32), background: `var(--c${n}s)`, color: `var(--c${n})` });
 
+/** Icona del tipo in un quadrato arrotondato tinto (`size` in px). */
+/** Icona del tipo in un quadrato arrotondato tinto; `size` è il lato in px. */
 export function BadgeTipo({ tipo, size = 24 }: { tipo: Tipo; size?: number }) {
   return (
     <span className="badge-icona" style={badge(TINTA_TIPO[tipo] ?? 1, size)} aria-hidden="true">
       <svg width={size * 0.66} height={size * 0.66} viewBox="0 0 24 24" focusable="false">{GLIFI[tipo]}</svg>
-    </span>
-  );
-}
-
-const STATI_VISTA: Record<Stato, { tinta: string; glifo: ReactNode }> = {
-  da_fare: { tinta: 'var(--mid)', glifo: <circle cx="12" cy="12" r="8" {...tratto} /> },
-  in_corso: { tinta: 'var(--c5)', glifo: <g {...tratto}><circle cx="12" cy="12" r="8" /><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" /></g> },
-  fatto: { tinta: 'var(--c1)', glifo: <g {...tratto}><circle cx="12" cy="12" r="8" /><path d="M8.5 12.2l2.5 2.5 4.5-5" /></g> },
-  saltato: { tinta: 'var(--soft)', glifo: <g {...tratto}><circle cx="12" cy="12" r="8" /><path d="M8 12h8" /></g> },
-  parcheggiato: { tinta: 'var(--c2)', glifo: <g {...tratto}><circle cx="12" cy="12" r="8" /><path d="M10 9v6M14 9v6" /></g> },
-};
-
-export function BadgeStato({ stato, size = 24 }: { stato: Stato; size?: number }) {
-  const v = STATI_VISTA[stato];
-  return (
-    <span className="badge-icona" style={{ width: size, height: size, color: v.tinta }} aria-hidden="true">
-      <svg width={size * 0.9} height={size * 0.9} viewBox="0 0 24 24" focusable="false">{v.glifo}</svg>
     </span>
   );
 }

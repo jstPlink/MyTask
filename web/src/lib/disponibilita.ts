@@ -1,12 +1,14 @@
-// Tempo libero per giorno della settimana. Salvato sul dispositivo e sincronizzato con il server,
-// così il telefono e il sito vedono gli stessi orari (vince la modifica più recente).
+// Tempo libero per giorno della settimana (con eccezioni per date e modalità flessibile). Salvato sul dispositivo
+// (localStorage) e sincronizzato con il server come «impostazione» (vedi sync.ts), così il telefono e il sito
+// vedono gli stessi orari: vince la modifica più recente (confronto sul timestamp `aggiornato`).
 import { DISPONIBILITA_SUGGERITA, senzaGiorniPassati, type Disponibilita, type FasciaOraria } from '../../../shared/piano.ts';
 import type { ImpostazioniSync } from '../../../shared/types.ts';
 
+/** Chiavi di localStorage: il valore e il momento dell'ultima modifica. */
 const KEY = 'mytask.disponibilita';
 const KEY_AGG = 'mytask.disponibilita.aggiornato';
 /** Nome con cui il tempo libero viaggia tra i dispositivi nella sincronizzazione. */
-export const CHIAVE_SYNC = 'tempoLibero';
+const CHIAVE_SYNC = 'tempoLibero';
 const listeners = new Set<() => void>();
 
 const fasciaValida = (f: unknown): f is FasciaOraria =>
@@ -46,7 +48,7 @@ function salva(d: Disponibilita, aggiornato: number) {
  * Quando è stato modificato l'ultima volta. Un valore impostato da una versione dell'app che non
  * teneva la data riceve la data di adesso, così al primo collegamento sale sul server.
  */
-export function getAggiornato(): number {
+function getAggiornato(): number {
   if (!corrente) return 0;
   try {
     const n = Number(localStorage.getItem(KEY_AGG));
@@ -57,9 +59,11 @@ export function getAggiornato(): number {
   } catch { return 0; }
 }
 
+/** Il tempo libero corrente, o null se non è ancora stato impostato. */
 export const getDisponibilita = () => corrente;
 export const subscribeDisponibilita = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 
+/** Sostituisce il tempo libero, lo salva con la data di adesso e avvisa gli ascoltatori (che avviano la sincronizzazione). */
 export function impostaDisponibilita(d: Disponibilita) {
   corrente = d;
   salva(d, Date.now());
@@ -72,6 +76,7 @@ export function impostaOrariGiorno(giorno: string, fasce: FasciaOraria[], oggi: 
   impostaDisponibilita({ ...base, eccezioni: { ...(senzaGiorniPassati(base.eccezioni, oggi) ?? {}), [giorno]: fasce } });
 }
 
+/** Copia modificabile degli orari suggeriti. */
 export const copiaSuggerita = (): Disponibilita => JSON.parse(JSON.stringify(DISPONIBILITA_SUGGERITA)) as Disponibilita;
 export const usaSuggerita = () => impostaDisponibilita(copiaSuggerita());
 

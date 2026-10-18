@@ -4,14 +4,17 @@ import { ripristinaChecklistProgetto, inboxNonAssegnata, spostaInNote } from '..
 import { getItems, saveMany } from './store.ts';
 import { newId } from './util.ts';
 
+/** Evita rientri: il salvataggio notifica gli ascoltatori, che richiamerebbero la migrazione. */
 let inCorso = false;
 
 /**
- * Persone e checklist non si modificano più dall'app (tranne la checklist dei progetti): le voci che li hanno
- * li vedono spostati nelle note; i progetti con una checklist già finita nelle note ritrovano la checklist nel campo.
+ * Sistema i dati già presenti sul dispositivo (anche quelli in arrivo dal server). Le regole sono in shared/migrazioni.ts:
+ * persone e checklist (esclusa quella dei progetti) passano nelle note; la checklist di un progetto finita nelle note
+ * torna nel suo campo; le note in Inbox mai toccate create come «attività» diventano «non assegnate».
+ * Restituisce quante voci ha cambiato.
  */
 export function sistemaPersoneEChecklist(items: Item[] = getItems()): number {
-  if (inCorso) return 0; // il salvataggio notifica gli ascoltatori: niente rientri
+  if (inCorso) return 0;
   const aggiornate: Item[] = [];
   for (const i of items) {
     const x = spostaInNote(i) ?? ripristinaChecklistProgetto(i, newId) ?? inboxNonAssegnata(i);

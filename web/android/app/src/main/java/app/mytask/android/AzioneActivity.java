@@ -4,7 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-/** Senza schermata: gestisce il tocco su una riga del widget (spunta, oppure apre l'app) e si chiude subito. */
+/**
+ * Senza schermata (tema NoDisplay): riceve il tocco su una riga del widget e si chiude subito.
+ * Extra `azione` = "fatto" (con `id` della voce): spunta la riga nella coda locale (WidgetDati.fatto), senza aprire l'app.
+ * Qualsiasi altro valore, e il tocco sul messaggio «Tutto fatto per oggi»: apre l'app.
+ */
 public class AzioneActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {

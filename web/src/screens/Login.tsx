@@ -6,6 +6,10 @@ import { sync } from '../lib/sync.ts';
 import { VERSIONE } from '../version.ts';
 import { componiIndirizzo, indirizzoValido, separaIndirizzo, type Schema } from '../../../shared/indirizzo.ts';
 
+/**
+ * Accesso con email e password. Nell'app Android compare anche l'indirizzo del server (protocollo + indirizzo, https di base);
+ * nel sito il server è quello da cui è stato caricato.
+ */
 export function Login() {
   const [email, setEmail] = useState(getAuth().email ?? '');
   const [password, setPassword] = useState('');

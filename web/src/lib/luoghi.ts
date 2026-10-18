@@ -3,11 +3,13 @@
 import { coordinateDaLink, testoLuogo, type Coordinate } from '../../../shared/esperienze.ts';
 import type { Item } from '../../../shared/types.ts';
 
+/** Cache nel localStorage: testo del luogo -> coordinate (o «non trovato») con il momento della ricerca. */
 const KEY = 'mytask.luoghi';
 const PAUSA_MS = 1200; // Nominatim chiede al massimo una richiesta al secondo
 /** Un luogo non trovato si riprova dopo qualche giorno. */
 const RIPROVA_MS = 7 * 86400000;
 
+/** Una voce della cache. */
 type Voce = (Coordinate & { ts: number }) | { nontrovato: true; ts: number };
 type Cache = Record<string, Voce>;
 
@@ -26,6 +28,7 @@ export function coordinateNote(i: Item, cache: Cache = leggi()): Coordinate | un
   return v && 'lat' in v ? { lat: v.lat, lon: v.lon } : undefined;
 }
 
+/** Legge la cache dei luoghi. */
 export const leggiCacheLuoghi = leggi;
 
 /** Luoghi da cercare: senza coordinate né nel link né in cache (o non trovati da più di una settimana). */

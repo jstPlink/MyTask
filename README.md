@@ -5,12 +5,13 @@ leggero da far girare in Docker sul NAS. La documentazione completa è in [docs/
 
 ## Cosa fa
 
-- **Oggi:** le cose da fare, ordinate per priorità calcolata, con le routine e le voci da rivedere.
-- **Fare:** azioni, progetti (con sotto-task) ed esperienze. **Scoprire:** film, serie, anime, giochi, libri, ricette e curiosità, con "Cosa guardo stasera?".
-- **Routine:** abitudini con quota settimanale e griglia della settimana.
-- **Cattura rapida:** una riga di testo (o la voce) diventa una voce, con IA facoltativa; ricerca in tutte le voci.
-- **Notifiche:** promemoria delle scadenze, insistenza e routine; nell'app Android arrivano anche ad app chiusa.
-- Sul computer: barra laterale, pannello di dettaglio e scorciatoie da tastiera (N cattura rapida, / ricerca, Esc chiude).
+- **Oggi:** la giornata a orari: l'app distribuisce da sola le attività nel tempo libero, in base a priorità calcolata, durata e scadenze; routine del giorno e frecce per cambiare giorno.
+- **Attività:** attività, progetti (con passi ordinabili) ed esperienze, queste anche ordinate «per te» (interesse, data, distanza). **Intrattenimento:** film, serie, anime, giochi, libri e ricette, con «Cosa guardo stasera». **Curiosità** e **Routine** (abitudini con quota settimanale).
+- **Cattura rapida:** una riga di testo (o la voce) diventa una nota non assegnata in Inbox, da smistare; mostra le note già esistenti con le stesse parole. Ricerca in tutte le voci.
+- **Stati e tempo:** ogni nota è da fare, in corso, fatta o archiviata; il tempo impiegato si misura da «in corso» a «fatta» e affina le stime.
+- **Notifiche e widget:** promemoria delle scadenze, insistenza e routine, anche ad app Android chiusa; widget «Oggi» (chiaro e scuro) con nota veloce.
+- **IA facoltativa:** chat e autocompilazione delle opere con Gemini o Groq, con le chiavi dell'utente (restano sul dispositivo).
+- Sul computer: barra laterale, dettaglio in finestra e scorciatoie da tastiera (N nuova nota, / ricerca, Esc chiude).
 
 ## Provarla sul computer
 
@@ -105,8 +106,8 @@ Sviluppo: `cd web && npm run build && npx cap sync android`, poi `web/android` s
 
 ## Come è fatta
 
-- `shared/`: logica comune (priorità, ricorrenze, routine, cattura rapida), scritta in TypeScript e provata con i test.
-- `server/`: Fastify + SQLite (`node:sqlite`, nessuna dipendenza nativa), login, sincronizzazione, IA (Gemini).
-- `web/`: React + Vite, archivio locale in IndexedDB, service worker per l'uso offline; layout a colonna singola (telefono) e a tre aree (schermi larghi). `web/android` è l'app Android (Capacitor).
+- `shared/`: logica comune (priorità, piano della giornata, stime, ricorrenze, routine, liste), scritta in TypeScript e provata con i test.
+- `server/`: Fastify + SQLite (`node:sqlite`, nessuna dipendenza nativa), login, sincronizzazione.
+- `web/`: React + Vite, archivio locale in IndexedDB, service worker per l'uso offline; layout a colonna singola (telefono) e con barra laterale (schermi larghi). `web/android` è l'app Android (Capacitor).
 - `.github/workflows/`: controllo dei tipi e test a ogni push, immagine Docker e APK.
 - `docs/`: documentazione, decisioni di setup, mockup e report dell'importazione.

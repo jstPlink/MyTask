@@ -1,11 +1,12 @@
-// Promemoria locali. Nel browser funzionano finché l'app è aperta (API Notification);
-// l'APK li affiderà al sistema operativo (fase 5 della roadmap).
+// Promemoria locali del sito (API Notification): funzionano finché la pagina è aperta, con un controllo ogni 30 secondi.
+// Nell'app Android non si usano: lì le notifiche le pianifica il sistema operativo (native.ts).
 import type { Item } from '../../../shared/types.ts';
 import { addDays, diffDays, today } from '../../../shared/dates.ts';
 import { dueDate, isOpen } from '../../../shared/priority.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { getItems } from './store.ts';
 
+/** Promemoria già mostrati (chiave -> momento), per non ripeterli; le voci più vecchie di 3 giorni si scartano. */
 const KEY = 'mytask.notificati';
 
 function letti(): Record<string, number> {
@@ -22,10 +23,14 @@ function scrivi(m: Record<string, number>) {
 const oggiMinuti = (d: Date) => d.getHours() * 60 + d.getMinutes();
 const aMinuti = (hhmm: string) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
 
-export interface Promemoria { chiave: string; titolo: string; corpo: string }
+/** Un promemoria da mostrare; `chiave` lo identifica per non ripeterlo. */
+interface Promemoria { chiave: string; titolo: string; corpo: string }
 
-/** Calcola i promemoria da mostrare adesso. Funzione pura (testabile). */
-export function promemoriaDovuti(items: Item[], now: Date, notificati: Record<string, number>): Promemoria[] {
+/**
+ * Calcola i promemoria da mostrare adesso: routine con ora (se non fatta oggi), promemoria «N giorni prima» delle voci
+ * con scadenza e, per le voci con «insisti», un richiamo ripetuto finché non sono spuntate. Funzione pura.
+ */
+function promemoriaDovuti(items: Item[], now: Date, notificati: Record<string, number>): Promemoria[] {
   const giorno = today(now);
   const min = oggiMinuti(now);
   const out: Promemoria[] = [];
@@ -57,15 +62,12 @@ export function promemoriaDovuti(items: Item[], now: Date, notificati: Record<st
   return out;
 }
 
-export function permessoNotifiche(): NotificationPermission | 'non_supportate' {
+/** Permesso di notifica del browser. */
+function permessoNotifiche(): NotificationPermission | 'non_supportate' {
   return typeof Notification === 'undefined' ? 'non_supportate' : Notification.permission;
 }
 
-export async function chiediPermessoNotifiche(): Promise<NotificationPermission | 'non_supportate'> {
-  if (typeof Notification === 'undefined') return 'non_supportate';
-  return Notification.requestPermission();
-}
-
+/** Mostra la notifica tramite il service worker (funziona anche su telefono), altrimenti direttamente. */
 async function mostra(p: Promemoria) {
   try {
     const reg = await navigator.serviceWorker?.getRegistration();
@@ -74,6 +76,7 @@ async function mostra(p: Promemoria) {
   } catch { /* ignora */ }
 }
 
+/** Avvia il controllo periodico dei promemoria (solo se il permesso è già stato concesso). */
 export function avviaPromemoria() {
   const controlla = () => {
     if (permessoNotifiche() !== 'granted') return;

@@ -1,11 +1,12 @@
 // Immagini allegate alle note: ridotte e salvate dentro la voce (come testo), perché ogni voce sul server può pesare al massimo 200 KB.
 
 /** Peso massimo di una immagine ridotta (caratteri del testo codificato) e di tutte le immagini di una voce. */
-export const MAX_IMMAGINE = 70_000;
+const MAX_IMMAGINE = 70_000;
 export const MAX_IMMAGINI_VOCE = 130_000;
+/** Lato massimo in pixel dopo la riduzione. */
 const LATO_MASSIMO = 960;
 
-/** Legge il file, lo rimpicciolisce e lo comprime finché sta nel limite; undefined se non è un'immagine leggibile. */
+/** Legge il file, lo rimpicciolisce e lo comprime (JPEG, qualità da 0,7 a 0,35, lato -20% a ogni tentativo, 6 tentativi) finché sta nel limite; undefined se non è un'immagine leggibile. */
 export async function riduciImmagine(file: File): Promise<string | undefined> {
   if (!file.type.startsWith('image/')) return undefined;
   let bitmap: ImageBitmap;
@@ -29,4 +30,5 @@ export async function riduciImmagine(file: File): Promise<string | undefined> {
   return undefined;
 }
 
+/** Peso totale delle immagini di una voce (caratteri). */
 export const pesoImmagini = (immagini: string[] | undefined): number => (immagini ?? []).reduce((n, i) => n + i.length, 0);

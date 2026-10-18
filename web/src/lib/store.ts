@@ -1,5 +1,7 @@
-// Archivio locale (IndexedDB) con copia in memoria. È la fonte di verità per l'interfaccia:
+// Archivio locale (IndexedDB, libreria `idb`) con copia in memoria. È la fonte di verità per l'interfaccia:
 // l'app funziona senza rete e invia le modifiche al server appena possibile (vedi sync.ts).
+// Contiene tre archivi: `items` (le voci), `dirty` (gli id delle voci modificate e non ancora inviate: la coda
+// di invio) e `meta` (sessione `auth` e `since`, l'ultimo numero di sequenza ricevuto dal server).
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Item } from '../../../shared/types.ts';
 
@@ -12,15 +14,21 @@ interface Schema extends DBSchema {
 export interface Auth { token?: string; email?: string }
 
 let db: IDBPDatabase<Schema> | undefined;
+/** Copia in memoria di tutte le voci (comprese quelle eliminate, che servono alla sincronizzazione). */
 const map = new Map<string, Item>();
+/** Id delle voci da inviare al server. */
 const dirty = new Set<string>();
+/** Elenco delle voci, ricreato a ogni modifica: la nuova identità fa aggiornare React. */
 let snapshot: Item[] = [];
 let auth: Auth = {};
+/** Numero di sequenza dell'ultimo cambiamento ricevuto: alla prossima sincronizzazione il server manda solo il seguito. */
 let since = 0;
 const listeners = new Set<() => void>();
 const authListeners = new Set<() => void>();
+/** Chiamata a ogni modifica locale (la imposta sync.ts per avviare l'invio). */
 let onLocalChange: (() => void) | undefined;
 
+/** Rifà l'elenco `snapshot` e avvisa gli ascoltatori. */
 function rebuild() {
   snapshot = Array.from(map.values());
   listeners.forEach((l) => l());
@@ -29,6 +37,7 @@ function rebuild() {
 /** Rifà le liste con gli stessi dati (per esempio dopo aver cambiato i pesi della priorità). */
 export const rinfrescaListe = () => rebuild();
 
+/** Apre IndexedDB e carica voci, coda di invio, sessione e `since` in memoria. Da chiamare prima di mostrare l'interfaccia. */
 export async function initStore(): Promise<void> {
   db = await openDB<Schema>('mytask', 1, {
     upgrade(d) {
@@ -44,13 +53,16 @@ export async function initStore(): Promise<void> {
   rebuild();
 }
 
+/** Tutte le voci (anche quelle eliminate logicamente). */
 export const getItems = () => snapshot;
 export const getItem = (id: string) => map.get(id);
 export const subscribe = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 export const subscribeAuth = (fn: () => void) => { authListeners.add(fn); return () => { authListeners.delete(fn); }; };
 export const setOnLocalChange = (fn: () => void) => { onLocalChange = fn; };
 
+/** Sessione corrente: senza `token` serve l'accesso. */
 export const getAuth = () => auth;
+/** Salva la sessione (o, senza token, la cancella ma lascia i dati). */
 export async function setAuth(a: Auth) {
   auth = a;
   await db?.put('meta', a, 'auth');
@@ -60,9 +72,13 @@ export async function setAuth(a: Auth) {
 export const getSince = () => since;
 export async function setSince(n: number) { since = n; await db?.put('meta', n, 'since'); }
 
+/** Quante voci attendono di essere inviate. */
 export const pendingCount = () => dirty.size;
 
-/** Salva una voce nuova o modificata. Aggiorna il timestamp e la mette in coda per il server. */
+/**
+ * Salva una voce nuova o modificata. Aggiorna il timestamp `aggiornato` (sempre crescente per quella voce: il server
+ * lo usa per decidere quale versione vince) e la mette in coda per il server.
+ */
 export function saveItem(item: Item): Item {
   const prev = map.get(item.id);
   const saved: Item = { ...item, aggiornato: Math.max(Date.now(), (prev?.aggiornato ?? 0) + 1) };
@@ -75,6 +91,7 @@ export function saveItem(item: Item): Item {
   return saved;
 }
 
+/** Salva più voci, una alla volta (ognuna notifica l'interfaccia). */
 export function saveMany(items: Item[]) { items.forEach(saveItem); }
 
 /** Salva molte voci in un colpo solo (importazione): un solo aggiornamento dell'interfaccia. */
@@ -126,11 +143,5 @@ export async function applyRemote(remote: Item[]) {
     await tx?.store.put(r);
   }
   await tx?.done;
-  rebuild();
-}
-
-export async function clearAll() {
-  map.clear(); dirty.clear(); since = 0;
-  await db?.clear('items'); await db?.clear('dirty'); await db?.delete('meta', 'since');
   rebuild();
 }

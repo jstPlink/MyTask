@@ -1,7 +1,8 @@
 // Uso:
 //   node server/scripts/import-notion.ts <file_all.csv> [--dry-run] [--force] [--report percorso.md] [--json items.json]
 //   node server/scripts/import-notion.ts --from-json items.json [--force]
-// Importa l'export di Notion nel database di MyTask (cartella DATA_DIR, per default ./data).
+// Importa l'export di Notion nel database di MyTask (cartella DATA_DIR, per default ./data). Si usa una volta sola, a mano;
+// senza --force non sovrascrive un database che ha già delle voci.
 // Le regole di smistamento sono in regole.locale.ts (personali, non su git) oppure regole.esempio.ts.
 // Con --json si scrive il risultato in un file; con --from-json lo si carica poi nel database
 // (utile per prepararlo sul proprio computer e caricarlo nel container, dove le regole personali non ci sono).

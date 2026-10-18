@@ -1,11 +1,14 @@
-// Date come stringhe locali YYYY-MM-DD, senza fusi orari: sono giorni di calendario.
+// Date come stringhe locali YYYY-MM-DD, senza fusi orari: sono giorni di calendario (scadenze, ricorrenze, piano).
+// Usato sia dal server (nome del file di esportazione) sia dal sito e dall'app.
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
+/** Data locale del dispositivo in formato YYYY-MM-DD. */
 export function toISO(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+/** Il giorno di oggi (o di `now`) come YYYY-MM-DD. */
 export function today(now: Date = new Date()): string {
   return toISO(now);
 }
@@ -21,6 +24,7 @@ export function addDays(iso: string, n: number): string {
   return toISO(d);
 }
 
+/** Somma mesi mantenendo il giorno; se il mese di arrivo è più corto si ferma all'ultimo giorno (31 gen + 1 mese = 28 feb). */
 export function addMonths(iso: string, n: number): string {
   const d = parseISO(iso);
   const day = d.getDate();
@@ -45,6 +49,7 @@ export function startOfWeek(iso: string): string {
   return addDays(iso, -dow);
 }
 
+/** I sette giorni (lunedì-domenica) della settimana che contiene la data. */
 export function weekDays(iso: string): string[] {
   const s = startOfWeek(iso);
   return Array.from({ length: 7 }, (_, i) => addDays(s, i));
@@ -74,11 +79,13 @@ export function formatLong(iso: string): string {
   return `${g[0].toUpperCase()}${g.slice(1)} ${d.getDate()} ${MESI[d.getMonth()]}`;
 }
 
+/** "Ottobre 2026" */
 export function monthLabel(iso: string): string {
   const d = parseISO(iso);
   return `${MESI[d.getMonth()][0].toUpperCase()}${MESI[d.getMonth()].slice(1)} ${d.getFullYear()}`;
 }
 
+/** "2026-10": per raggruppare i giorni per mese. */
 export function monthKey(iso: string): string {
   return iso.slice(0, 7);
 }

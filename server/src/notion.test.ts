@@ -69,8 +69,8 @@ test('conversione: tipi, duplicati, note, persone', () => {
   assert.equal(cf?.note, 'altro testo');
   assert.equal(cf?.area, 'Burocrazia');
 
-  // le voci "Expired" senza data vanno in revisione; quelle con data passata lo sono per calcolo
-  assert.ok(report.inRevisione.some((x) => x.startsWith('Chiamare il fornitore')));
+  // le voci aperte con la data già passata finiscono nel report delle scadute
+  assert.ok(report.scadute.some((x) => x.startsWith('Chiamare il fornitore')));
 });
 
 test('conversione: gerarchia come sotto-task o checklist', () => {

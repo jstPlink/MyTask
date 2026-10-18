@@ -1,7 +1,10 @@
-// Animazione "avanzamento del progetto": si mostra quando si completa un passo di un progetto.
+// Stato del pannello animato «avanzamento del progetto», mostrato quando si completa un passo di un progetto.
+// Piccolo store con ascoltatori (letto con useSyncExternalStore); il disegno è in ui/AvanzamentoProgetto.tsx.
 import type { Item } from '../../../shared/types.ts';
 
+/** Un passo del progetto (voce di checklist o voce figlia) così come lo mostra l'animazione. */
 export interface PassoProgetto { id: string; testo: string; fatto: boolean; target?: boolean }
+/** Dati dell'animazione: il progetto, i suoi passi e il conteggio prima e dopo il completamento. */
 export interface Avanzamento {
   padre: Item;
   /** Tutti i passi del progetto com'erano prima del segno di fatto (il passo appena completato ha `target`). */
@@ -21,6 +24,7 @@ const listeners = new Set<() => void>();
 export const getAvanzamento = () => corrente;
 export const subscribeAvanzamento = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 
+/** Apre il pannello con questi dati. */
 export function mostraAvanzamento(a: Avanzamento) {
   corrente = a;
   listeners.forEach((l) => l());

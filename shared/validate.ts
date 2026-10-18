@@ -1,4 +1,4 @@
-// Controllo delle voci lette da un file (importazione, ripristino di una copia).
+// Controllo delle voci lette da un file (importazione, ripristino di una copia): protegge il database da dati malformati.
 import type { Item, Stato, Tipo } from './types.ts';
 import { NOMI_TIPO } from './types.ts';
 

@@ -1,5 +1,6 @@
-// Pianificazione automatica: distribuisce le attività nei giorni in base a priorità,
-// tempo libero e durata. Funzione pura: stesso input, stesso output.
+// Pianificazione automatica (schermata Oggi, widget, calendario): distribuisce le attività nei giorni in base a priorità,
+// tempo libero e durata, e misura il tempo davvero lavorato su una nota. Funzioni pure: stesso input, stesso output.
+// Tutti gli orari sono in minuti dalla mezzanotte e a multipli di 5 minuti; il tempo libero viene dalle fasce impostate dall'utente.
 import type { Item } from './types.ts';
 import { addDays, today as giornoDi } from './dates.ts';
 import { dueDate } from './priority.ts';
@@ -30,6 +31,7 @@ export const ORA_CHIEDI_PREDEFINITA = '21:00';
 /** Pausa di base tra due attività, in minuti. */
 export const PAUSA_PREDEFINITA = 5;
 
+/** Tempo libero di partenza proposto la prima volta: sere dei giorni feriali 18-21, mattine del fine settimana 9-13. */
 export const DISPONIBILITA_SUGGERITA: Disponibilita = {
   settimana: [
     [{ da: '18:00', a: '21:00' }], [{ da: '18:00', a: '21:00' }], [{ da: '18:00', a: '21:00' }],
@@ -38,6 +40,7 @@ export const DISPONIBILITA_SUGGERITA: Disponibilita = {
   ],
 };
 
+/** Un blocco del piano: un'attività (o un suo pezzo) in un giorno, tra due orari. */
 export interface Blocco {
   item: Item;
   /** Progetto di cui l'item è il prossimo passo. */
@@ -69,21 +72,28 @@ export interface GiornoPiano {
   usati: number;
 }
 
+/** Il piano: i giorni dell'orizzonte con i loro blocchi. */
 export interface Piano {
   giorni: GiornoPiano[];
   /** Attività che non entrano nell'orizzonte di pianificazione. */
   fuori: Entry[];
 }
 
+/** Quanti giorni (da oggi) copre il piano. */
 export const ORIZZONTE_GIORNI = 14;
+/** Minuti assegnati a un'attività senza stima. */
 const DURATA_PREDEFINITA = 30;
 /** Oltre questa durata un'attività si può spezzare su più blocchi e giorni. */
 const SOGLIA_SPEZZABILE = 60;
+/** Un pezzo di un'attività spezzata non scende sotto questa durata (salvo l'ultimo); una pausa curiosità richiede almeno altrettanto spazio per il lavoro dopo. */
 const BLOCCO_MINIMO = 30;
+/** Tutte le durate e gli orari del piano sono a multipli di questi minuti. */
 const PASSO = 5;
 /** Un blocco di almeno questa durata è "grande": dopo ogni secondo blocco grande del giorno si prova a inserire una pausa curiosità. */
 export const SOGLIA_GRANDE = 60;
+/** Durata di una pausa curiosità se la curiosità non ha un tempo stimato. */
 export const DURATA_PAUSA = 15;
+/** Al massimo due pause curiosità al giorno. */
 const MAX_PAUSE_GIORNO = 2;
 
 interface Pezzo extends Omit<Blocco, 'parte' | 'inRitardo' | 'pausa'> {
@@ -93,10 +103,12 @@ interface Pezzo extends Omit<Blocco, 'parte' | 'inRitardo' | 'pausa'> {
   riserva?: { item: Item; da: number; a: number };
 }
 
+/** "18:30" → 1110. */
 export const minuti = (hhmm: string): number => {
   const [h, m] = hhmm.split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
 };
+/** 1110 → "18:30". */
 export const orario = (min: number): string => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
 
 const arrotonda = (n: number) => Math.ceil(n / PASSO) * PASSO;
@@ -151,8 +163,18 @@ function postoInCorso(i: Item, giorni: string[]): { data: string; da: number } |
   return posto && giorni.includes(posto.data) ? posto : undefined;
 }
 
+/** Durata di un'attività in minuti (stima arrotondata a 5, 30 se manca). */
 const durataDi = (i: Item) => Math.max(PASSO, arrotonda(i.sforzoMin ?? DURATA_PREDEFINITA));
 
+/**
+ * Distribuisce nei giorni le azioni e i progetti (come in Oggi: del progetto, il prossimo passo).
+ * - Gli impegni con orario (`oraInizio`) restano dove sono e tolgono tempo libero; le note «in corso» restano nel posto in cui sono iniziate.
+ * - Le altre, dalla più prioritaria, occupano la prima fascia libera abbastanza lunga: durata = stima + margine d'errore
+ *   (`margine`, in proporzione, arrotondato a 5 minuti), con la pausa tra un'attività e la successiva (`pausaMin`).
+ * - Sopra i `SOGLIA_SPEZZABILE` minuti l'attività si spezza su più fasce e giorni (blocchi di almeno `BLOCCO_MINIMO`).
+ * - Dopo ogni secondo blocco «grande» (almeno `SOGLIA_GRANDE` minuti) del giorno si inserisce una pausa con una curiosità, se resta spazio.
+ * - Oggi si parte dall'ora attuale. Se una nota finisce dopo la scadenza è `inRitardo`; se non entra nell'orizzonte va in `fuori`.
+ */
 export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now: number = Date.now(), giorniOrizzonte = ORIZZONTE_GIORNI, margine = 0): Piano {
   const nowD = new Date(now);
   const minutiOra = arrotonda(nowD.getHours() * 60 + nowD.getMinutes());
@@ -192,7 +214,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
     }
   }
 
-  // curiosità per le pause: prima le più interessanti, a parità le più vecchie; ognuna una volta sola
+  // curiosità per le pause: prima le più interessanti, a parità quelle aggiornate da più tempo; ognuna una volta sola
   const pool = curiosita(items)
     .filter((c) => c.stato !== 'parcheggiato')
     .sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.aggiornato - b.aggiornato);
@@ -301,16 +323,17 @@ export function minutiDisponibili(disp: Disponibilita, data: string, oggi: strin
   }, 0);
 }
 
-/** Fasce di tempo libero di un giorno, in minuti dalla mezzanotte (senza togliere l'ora già passata). */
+/** Fasce di tempo libero di un giorno, in minuti dalla mezzanotte (senza togliere l'ora già passata, né gli impegni). */
 export function fasceLibere(disp: Disponibilita, data: string): [number, number][] {
   const fasce = fasceDelGiorno(disp, data);
   return fasce.map((f): [number, number] => [minuti(f.da), minuti(f.a)]).filter(([a, b]) => b > a);
 }
 
-const isoDi = (ts: number) => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+/** Giorno locale (YYYY-MM-DD) e minuto del giorno di un istante in millisecondi. */
+const isoDi = (ts: number) => giornoDi(new Date(ts));
 const minutoDel = (ts: number) => { const d = new Date(ts); return d.getHours() * 60 + d.getMinutes(); };
 
-/** Minuti tra due istanti che cadono nei lassi di tempo segnati come liberi (le pause fuori dal tempo libero non contano). */
+/** Minuti tra due istanti che cadono nei lassi di tempo segnati come liberi (le pause fuori dal tempo libero non contano). Guarda al massimo 120 giorni. */
 export function minutiLiberiTra(disp: Disponibilita, daTs: number, aTs: number): number {
   if (aTs <= daTs) return 0;
   const ultimo = isoDi(aTs);
@@ -325,9 +348,9 @@ export function minutiLiberiTra(disp: Disponibilita, daTs: number, aTs: number):
 }
 
 /**
- * Tempo reale di una nota completata: dall'istante in cui è passata «in corso» a quello in cui è stata completata, contando solo
- * il tempo libero segnato (se hai staccato e ripreso la sera, la pausa non pesa). Senza «in corso» non c'è una misura (undefined).
- * Senza tempo libero impostato conta il tempo trascorso, al massimo 8 ore.
+ * Tempo reale di una nota completata (minuti): dall'istante in cui è passata «in corso» a quello in cui è stata completata, contando solo
+ * il tempo libero segnato (se hai staccato e ripreso la sera, la pausa non pesa). Senza «in corso» non c'è una misura (undefined),
+ * come per misure sotto mezzo minuto. Senza tempo libero impostato conta il tempo trascorso, al massimo 8 ore (480 minuti).
  */
 export function durataRealeInCorso(item: Item, now: number, disp: Disponibilita | null): number | undefined {
   if (!item.inCorsoTs || now <= item.inCorsoTs) return undefined;

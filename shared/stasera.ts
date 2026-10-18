@@ -1,4 +1,5 @@
-// "Cosa guardo stasera?": ragionamento locale su compagnia, piattaforma, mood, energia, tipologia e interesse.
+// "Cosa guardo stasera?" (schermata Scoprire): ragionamento locale, senza IA, che dà punti a film, serie e anime ancora da vedere
+// secondo interesse, durata, piattaforma, compagnia, mood, energia e tipologia. I punteggi sono pesi empirici, non una formula esatta.
 import type { Item } from './types.ts';
 import { TIPI_VIDEO } from './types.ts';
 
@@ -14,6 +15,7 @@ export const TIPOLOGIE = ['Comico', 'Drammatico', 'Azione', 'Thriller', 'Horror'
 /** Piattaforme sempre proposte, oltre a quelle già usate nelle voci. */
 export const PIATTAFORME_BASE = ['Prime Video', 'Disney+'];
 
+/** Filtri scelti dall'utente per la serata; ogni campo vuoto significa «indifferente». */
 export interface FiltriStasera {
   durata?: Durata; // vuoto = nessun filtro sul tempo
   compagnia?: Compagnia; // vuoto = indifferente
@@ -23,8 +25,10 @@ export interface FiltriStasera {
   tipologia?: string; // vuoto = qualsiasi
 }
 
+/** Un titolo proposto, con le ragioni leggibili e il punteggio usato per ordinare. */
 export interface Suggerimento { item: Item; motivo: string; punti: number }
 
+/** Punti per quanto la durata combacia: film breve ≤ 90 min, medio 80-130, lungo > 120; «serie» propone serie e anime. -100 esclude la voce. */
 function fitDurata(i: Item, d: Durata | undefined): number {
   if (!d) return 0;
   if (d === 'serie') return i.tipo === 'serie' || i.tipo === 'anime' ? 30 : -100;
@@ -50,8 +54,15 @@ function corrispondeTipologia(i: Item, t: string): boolean | undefined {
   return re ? re.test(g) : g.includes(norm(t));
 }
 
+/** Livello numerico dell'energia, per confrontare quella richiesta con quella disponibile. */
 const LIVELLO: Record<Energia, number> = { bassa: 0, media: 1, alta: 2 };
 
+/**
+ * I `max` titoli più adatti. Base: interesse × 20 (3 = 60 punti, valore di base se manca). Poi si sommano: durata (±), piattaforma uguale +15,
+ * compagnia (+25 se la voce dice «con chi» e combacia, -15 per «da solo» se la voce è per più persone), mood uguale +20 e diverso -20,
+ * energia (uguale +15, richiesta maggiore -30 per livello, minore +5), tipologia uguale +25 e diversa -25, già iniziato +10.
+ * A parità di punti, ordine alfabetico.
+ */
 export function suggerisciStasera(items: Item[], f: FiltriStasera, max = 3): Suggerimento[] {
   const candidati = items.filter((i) => !i.eliminato && !i.inbox && TIPI_VIDEO.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso'));
   const out: Suggerimento[] = [];

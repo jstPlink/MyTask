@@ -7,11 +7,17 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
-/** Ponte tra l'app e i widget della schermata Home. */
+/**
+ * Plugin Capacitor «Widget»: ponte tra la web app e i widget della schermata Home (lato JavaScript: web/src/lib/widget.ts).
+ * L'app scrive la lista di oggi con `aggiorna` e legge-svuotando le azioni fatte dal widget con `coda`.
+ */
 @CapacitorPlugin(name = "Widget")
 public class WidgetPlugin extends Plugin {
 
-    /** Salva la lista di oggi (testo JSON) e aggiorna i widget. */
+    /**
+     * Salva la lista di oggi (`righe`, testo JSON) e, se presente, l'archivio compatto delle note per la ricerca delle
+     * note simili (`archivio`), poi chiede ai widget di ridisegnare la lista.
+     */
     @PluginMethod
     public void aggiorna(PluginCall call) {
         String righe = call.getString("righe", "[]");
@@ -21,7 +27,7 @@ public class WidgetPlugin extends Plugin {
         call.resolve();
     }
 
-    /** Restituisce, svuotandole, le azioni fatte dal widget da quando l'app è stata aperta l'ultima volta. */
+    /** Restituisce, svuotandole, le azioni fatte dal widget da quando l'app le ha lette l'ultima volta: nuove note e spunte. */
     @PluginMethod
     public void coda(PluginCall call) {
         JSObject out = new JSObject();

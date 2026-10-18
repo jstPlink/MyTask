@@ -1,8 +1,11 @@
+// Archivio SQLite (modulo integrato `node:sqlite`, nessuna dipendenza nativa): utenti, sessioni, voci e impostazioni.
+// Ogni voce è un documento JSON con un numero di sequenza globale: i client chiedono le modifiche con `seq` maggiore dell'ultimo visto.
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ImpostazioniSync, Item } from '../../shared/types.ts';
 
+/** L'utente (ce n'è uno solo): email e hash scrypt della password. */
 export interface Utente { id: number; email: string; hash: string }
 
 /** Archivio su SQLite: un documento JSON per voce, con un numero di sequenza per la sincronizzazione. */
@@ -39,7 +42,7 @@ export class Store {
 
   close() { this.db.close(); }
 
-  // utenti e sessioni
+  // utenti e sessioni (si salva l'hash del token, vedi auth.ts)
 
   countUsers(): number {
     return (this.db.prepare('SELECT COUNT(*) AS n FROM users').get() as { n: number }).n;
@@ -51,10 +54,6 @@ export class Store {
 
   getUser(email: string): Utente | undefined {
     return this.db.prepare('SELECT id, email, hash FROM users WHERE email = ?').get(email) as Utente | undefined;
-  }
-
-  updateHash(userId: number, hash: string) {
-    this.db.prepare('UPDATE users SET hash = ? WHERE id = ?').run(hash, userId);
   }
 
   createSession(userId: number, tokenHash: string, expires: number) {
@@ -78,10 +77,12 @@ export class Store {
 
   // voci
 
+  /** Ultimo numero di sequenza assegnato: il client lo salva e lo rimanda come `since`. */
   maxSeq(): number {
     return (this.db.prepare("SELECT v FROM meta WHERE k = 'seq'").get() as { v: number }).v;
   }
 
+  /** Quante voci ci sono (lo usa lo script di importazione per non sovrascrivere dati esistenti). */
   countItems(): number {
     return (this.db.prepare('SELECT COUNT(*) AS n FROM items').get() as { n: number }).n;
   }
@@ -111,6 +112,7 @@ export class Store {
     return applied;
   }
 
+  /** Le voci (anche quelle eliminate logicamente) modificate dopo il numero di sequenza indicato. */
   changesSince(seq: number): Item[] {
     const rows = this.db.prepare('SELECT data FROM items WHERE seq > ? ORDER BY seq').all(seq) as { data: string }[];
     return rows.map((r) => JSON.parse(r.data) as Item);
@@ -127,11 +129,13 @@ export class Store {
     }
   }
 
+  /** Tutte le impostazioni salvate, con la loro data di modifica. */
   allSettings(): ImpostazioniSync {
     const rows = this.db.prepare('SELECT k, v, updated FROM settings').all() as { k: string; v: string; updated: number }[];
     return Object.fromEntries(rows.map((r) => [r.k, { valore: JSON.parse(r.v) as unknown, aggiornato: r.updated }]));
   }
 
+  /** Tutte le voci, per l'esportazione. */
   allItems(): Item[] {
     return this.changesSince(0);
   }

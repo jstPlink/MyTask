@@ -8,6 +8,10 @@ import { completaVoce } from '../lib/actions.ts';
 import { Empty, Row, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 
+/**
+ * Risultati della ricerca della barra laterale (solo sito largo): cerca in tutte le note, anche chiuse, e le apre nel dettaglio.
+ * La casella completa l'attività senza aprirla; per le voci già chiuse è ferma.
+ */
 export function Ricerca() {
   const nav = useNav();
   const items = useItems();

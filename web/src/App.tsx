@@ -30,11 +30,18 @@ import { CompletamentoSheet } from './ui/CompletamentoSheet.tsx';
 import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
 import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Stasera } from './screens/Secondarie.tsx';
 
+// Radice dell'interfaccia: sceglie tra accesso, layout stretto (telefono: una schermata + barra delle schede) e
+// layout largo (computer: barra laterale e voce aperta in finestra), e gestisce la navigazione.
+// La navigazione è una pila di «istantanee» (scheda, pila di schermate, finestre aperte): `indietro` le ripercorre
+// al contrario. Sul sito la pila è agganciata alla cronologia del browser; nell'app Android è gestita a mano.
+
+/** Scheda corrente e sottoschede scelte in «Da fare» e «Da scoprire». */
 interface Posizione { tab: Tab; fareSub: SubFare; scoprireSub: SubScoprire }
 /** Una voce della cronologia: dove si è (scheda, pila di schermate) e quali finestre sono aperte. */
 interface Istantanea { pos: Posizione; stack: Screen[]; layers: string[] }
 const INIZIO: Istantanea = { pos: { tab: 'oggi', fareSub: 'azioni', scoprireSub: 'film' }, stack: [], layers: [] };
 
+/** Disegna una schermata della pila. */
 function Schermata({ s }: { s: Screen }) {
   switch (s.k) {
     case 'item': return <ItemDetail id={s.id} nuovo={s.nuovo} />;
@@ -53,8 +60,10 @@ function Schermata({ s }: { s: Screen }) {
   }
 }
 
+/** Chiave React della schermata: cambia con profondità, tipo e voce/giorno, così ogni apertura riparte da zero. */
 const chiaveSchermata = (stack: Screen[], top: Screen) => stack.length + top.k + ('id' in top ? (top.id ?? '') : 'giorno' in top ? top.giorno : '');
 
+/** Messaggio breve in basso con l'azione opzionale (per esempio «Annulla»). */
 function ToastView() {
   const toast = useToast();
   if (!toast) return null;
@@ -75,13 +84,16 @@ export function App() {
   const wide = useMediaQuery('(min-width: 900px)');
   const xl = useMediaQuery('(min-width: 1300px)');
   const [snap, setSnap] = useState<Istantanea>(INIZIO);
+  // testo precompilato per la finestra di cattura e testo della ricerca (nel layout largo, mostrata al posto della scheda)
   const [captureText, setCaptureText] = useState('');
   const [query, setQuery] = useState('');
 
   // Un'unica pila di cronologia: ogni spostamento (scheda, schermata, finestra) è una voce del browser,
   // quindi "indietro" (tasto del telefono, del browser o pulsante dell'app) ripercorre esattamente l'ordine inverso.
   const hist = useRef({ list: [INIZIO], i: 0 });
+  // copia sempre aggiornata di `snap`, leggibile dalle funzioni stabili senza dipendenze
   const snapRef = useRef(snap);
+  // true tra `history.back()` e il relativo evento popstate: ignora i tocchi su «indietro» ripetuti
   const indietroInCorso = useRef(false);
   const metti = (s: Istantanea) => { snapRef.current = s; setSnap(s); };
 
@@ -100,6 +112,7 @@ export function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  /** Aggiunge una voce alla cronologia (scartando il «avanti» eventualmente rimasto) e la mostra. */
   const spingi = useCallback((next: Istantanea) => {
     const h = hist.current;
     h.list = [...h.list.slice(0, h.i + 1), next];
@@ -114,6 +127,10 @@ export function App() {
     if (cur.layers.length) h.list[h.i] = { ...cur, layers: [] };
     spingi(f({ ...cur, layers: [] }));
   }, [spingi]);
+  /**
+   * Torna alla voce precedente della cronologia. Se la cronologia è all'inizio (per esempio dopo un ricaricamento)
+   * chiude comunque l'ultima finestra o l'ultima schermata.
+   */
   const indietro = useCallback(() => {
     if (indietroInCorso.current) return;
     if (hist.current.i > 0) {
@@ -136,6 +153,7 @@ export function App() {
     return () => { void ascolto.then((h) => h.remove()); };
   }, [indietro]);
 
+  // «layer» = finestre in sovraimpressione (la cattura): hanno una voce di cronologia propria, così «indietro» le chiude
   const openLayer = useCallback((id: string) => {
     const cur = snapRef.current;
     if (!cur.layers.includes(id)) spingi({ ...cur, layers: [...cur.layers, id] });
@@ -156,6 +174,7 @@ export function App() {
   const setFareSub = useCallback((s: SubFare) => vaTab('fare', { fare: s }), [vaTab]);
   const setScoprireSub = useCallback((s: SubScoprire) => vaTab('scoprire', { scoprire: s }), [vaTab]);
 
+  // push: apre una schermata sopra le altre; vai: la sostituisce come unica della pila; nuova: apre una voce da creare
   const push = useCallback((s: Screen) => vaA((cur) => ({ ...cur, stack: [...cur.stack, s] })), [vaA]);
   const pop = indietro;
   const vai = useCallback((s: Screen) => vaA((cur) => ({ ...cur, stack: [s] })), [vaA]);
@@ -256,9 +275,9 @@ export function App() {
         )}
         {capture && <Capture />}
         <RecensioneSheet />
-          <StatoMenu />
-          <CompletamentoSheet />
-          <AvanzamentoProgetto />
+        <StatoMenu />
+        <CompletamentoSheet />
+        <AvanzamentoProgetto />
         <ToastView />
       </div>
     </NavContext.Provider>

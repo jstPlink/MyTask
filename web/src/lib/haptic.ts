@@ -8,6 +8,7 @@ const nativo = Capacitor.isNativePlatform();
 
 type Forza = 'leggero' | 'medio';
 
+/** Plugin Android scritto per l'app (HapticaPlugin): permette di scegliere durata e ampiezza della vibrazione. */
 const Haptica = registerPlugin<{ tocco(o: { durata: number; ampiezza: number }): Promise<void> }>('Haptica');
 
 /** Durata in ms e ampiezza (1-255). Lo standard di Capacitor è 50 ms a 110 (leggero) e 43 ms a 180 (medio). */
@@ -16,6 +17,7 @@ const PROFILI: Record<Forza, { durata: number; ampiezza: number }> = {
   medio: { durata: 43, ampiezza: 126 },
 };
 
+/** Un tocco aptico. App: plugin nostro (se manca, impatto standard di Capacitor); browser del telefono: vibrazione breve; computer: nulla. */
 export function tocco(forza: Forza = 'leggero') {
   try {
     if (nativo) {
@@ -28,6 +30,7 @@ export function tocco(forza: Forza = 'leggero') {
   } catch { /* non supportato: nessun feedback */ }
 }
 
+/** Elementi che danno feedback al tocco. */
 const CONTROLLI = 'button, a[href], [role=tab], [role=switch], [role=checkbox], [role=option], summary, select';
 
 /** Un solo ascoltatore (in cattura, così lo vedono anche i controlli che fermano la propagazione) per tutta l'app: ogni pulsante attivo dà un tocco leggero, il segno di fatto uno più marcato. */
@@ -35,6 +38,7 @@ export function avviaHaptic() {
   document.addEventListener('click', (e) => {
     const el = (e.target as Element | null)?.closest?.(CONTROLLI);
     if (!el || (el as HTMLButtonElement).disabled || el.getAttribute('aria-disabled') === 'true') return;
+    // `.cb` = casella di spunta (segno di fatto): tocco più marcato
     tocco(el.closest('.cb') || el.classList.contains('cb') ? 'medio' : 'leggero');
   }, { passive: true, capture: true });
 }

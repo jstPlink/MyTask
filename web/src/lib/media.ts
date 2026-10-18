@@ -1,3 +1,4 @@
+// Hook per le media query CSS (layout largo / stretto).
 import { useSyncExternalStore } from 'react';
 
 /** Segue una media query CSS (per esempio '(min-width: 900px)'). */

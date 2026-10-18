@@ -1,3 +1,5 @@
+// Avvio del server: apre il database, fa una copia giornaliera (si tengono le ultime 14), mette in ascolto l'app.
+// Eseguito direttamente da Node (`node server/src/index.ts`), come nel container Docker.
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadConfig } from './config.ts';
@@ -12,8 +14,10 @@ if (store.countUsers() === 0) {
   console.warn('Nessun utente: imposta MYTASK_EMAIL e MYTASK_PASSWORD per creare l\'account al primo avvio.');
 }
 
+/** Quante copie giornaliere del database restano nella cartella dei backup. */
 const BACKUP_TENUTI = 14;
 
+/** Copia del giorno (`mytask-AAAA-MM-GG.db`, sovrascritta se già presente) e cancellazione delle più vecchie. */
 function backup() {
   try {
     const nome = `mytask-${new Date().toISOString().slice(0, 10)}.db`;
@@ -25,6 +29,7 @@ function backup() {
   }
 }
 
+// subito all'avvio e poi ogni 24 ore
 backup();
 setInterval(backup, 24 * 3600 * 1000).unref();
 

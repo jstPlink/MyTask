@@ -1,4 +1,4 @@
-// Opzione provvisoria (impostazioni): pesi dei parametri che formano la priorità, salvati solo su questo dispositivo.
+// Pesi dei parametri che formano la priorità (impostazioni), salvati solo su questo dispositivo. Il calcolo è in shared/priority.ts.
 import { getPesi, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, type PesiPunteggio } from '../../../shared/priority.ts';
 import { rinfrescaListe } from './store.ts';
 
@@ -18,9 +18,11 @@ export function avviaPesi() {
   } catch { /* ignora */ }
 }
 
+/** I pesi in uso. */
 export const getPesiUtente = getPesi;
 export const subscribePesi = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 
+/** Imposta i pesi (o ripristina i predefiniti con `undefined`), li salva e rifà le liste. */
 function applica(p: PesiPunteggio | undefined) {
   impostaPesi(p);
   try { if (p) localStorage.setItem(KEY, JSON.stringify(normalizzaPesi(p))); else localStorage.removeItem(KEY); } catch { /* ignora */ }
@@ -30,4 +32,5 @@ function applica(p: PesiPunteggio | undefined) {
 
 export const impostaPesiUtente = (p: PesiPunteggio) => applica(p);
 export const ripristinaPesi = () => applica(undefined);
+/** True se i pesi coincidono con quelli predefiniti (entro mezzo centesimo). */
 export const sonoPredefiniti = (p: PesiPunteggio) => (Object.keys(PESI_PREDEFINITI) as (keyof PesiPunteggio)[]).every((k) => Math.abs(p[k] - PESI_PREDEFINITI[k]) < 0.005);

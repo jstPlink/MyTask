@@ -1,6 +1,7 @@
-// Conversione dell'export CSV di Notion (tabella "Activities") nel modello di MyTask.
-// Le regole di smistamento sono scritte qui in modo esplicito: è la "pulizia con IA" concordata,
-// fatta una volta sola e riproducibile. Ogni scelta incerta finisce nel report.
+// Conversione dell'export CSV di Notion (tabella "Activities") nel modello di MyTask, per l'importazione una tantum
+// (`import-notion.ts`). Unisce i duplicati, decide il tipo di ogni riga, converte priorità e date, trasforma i figli in
+// sotto-attività o checklist e ripulisce i link. Le regole che dipendono dai dati personali stanno in `regole.ts`;
+// ogni scelta incerta finisce nel report.
 import crypto from 'node:crypto';
 import type { Item, Tipo, VoceChecklist } from '../../shared/types.ts';
 import { NOMI_TIPO } from '../../shared/types.ts';
@@ -35,11 +36,13 @@ export function parseCsv(text: string): string[][] {
   return rows;
 }
 
+/** Una riga dell'export di Notion (colonne Name, Date, Note, Parent item, Priority, Rate, Status, Type). */
 export interface RigaNotion {
   name: string; date: string; note: string; parent: string; priority: string;
   rate: string; status: string; type: string;
 }
 
+/** Legge l'export CSV: ignora le righe senza nome e toglie dal "Parent item" il link che Notion aggiunge. */
 export function leggiRighe(csv: string): RigaNotion[] {
   const [head, ...rows] = parseCsv(csv);
   const idx = (n: string) => head.indexOf(n);
@@ -58,20 +61,25 @@ export function leggiRighe(csv: string): RigaNotion[] {
 
 // ---------------------------------------------------------------- utilità
 
+/** Minuscolo senza accenti né maiuscole, con apostrofi uniformi: per confrontare titoli e chiavi delle regole. */
 export function norm(s: string): string {
   return s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' ').trim();
 }
 
+/** Chiave di un titolo per riconoscere i duplicati (ignora il suffisso "(1)" e una variante nota di titolo). */
 function chiave(nome: string): string {
   return norm(nome).replace(/\s*\(1\)$/, '').replace('of the spotless mind', 'of a spotless mind');
 }
 
+/** Priorità di Notion → numero 1-5 (importanza per le attività, interesse per le collezioni). */
 const PRIORITA: Record<string, number> = { 'very high': 5, high: 4, medium: 3, low: 2, 'very low': 1 };
 
+/** Identificativo che dipende da tipo e titolo ("n" + 12 cifre esadecimali): reimportando lo stesso file si ottengono le stesse voci. */
 function idStabile(tipo: string, key: string): string {
   return 'n' + crypto.createHash('sha1').update(`${tipo}|${key}`).digest('hex').slice(0, 12);
 }
 
+/** Toglie dai link i parametri di tracciamento (utm_, fbclid, si, igsh…). */
 function pulisciUrl(u: string): string {
   try {
     const url = new URL(u);
@@ -82,12 +90,14 @@ function pulisciUrl(u: string): string {
   }
 }
 
+/** Ora in formato 12 ore (AM/PM) → HH:MM. */
 function ora24(h: string, m: string, ap: string): string {
   let hh = Number(h) % 12;
   if (ap.toUpperCase() === 'PM') hh += 12;
   return `${String(hh).padStart(2, '0')}:${m}`;
 }
 
+/** Date e orari di una riga, già nel formato di MyTask. */
 export interface DateConvertite { inizio?: string; fine?: string; oraInizio?: string; oraFine?: string }
 
 /** "2026/01/05 12:00 PM (GMT+1) → 12:15 PM", "2026/03/17 → 2026/03/21", "2026/04/18" */
@@ -116,10 +126,12 @@ export function convertiData(s: string): DateConvertite {
 // ---------------------------------------------------------------- regole di smistamento
 // Le tabelle (titoli, persone, luoghi) stanno in regole.esempio.ts / regole.locale.ts: vedi regole.ts.
 
+/** Normalizza le chiavi di una tabella di regole con `norm`. */
 function tabella<T>(o: Record<string, T>): Record<string, T> {
   return Object.fromEntries(Object.entries(o).map(([k, v]) => [norm(k), v]));
 }
 
+/** Prepara le regole per la ricerca veloce (insiemi, chiavi normalizzate, espressioni regolari). */
 function prepara(r: Regole) {
   return {
     serie: new Set(r.serie.map(norm)),
@@ -136,9 +148,12 @@ function prepara(r: Regole) {
   };
 }
 
+/** Tipi in cui si divide il tipo Notion "Video". */
 const VIDEO_TIPI: Tipo[] = ['film', 'serie', 'anime'];
+/** Tipi che hanno `interesse` (invece di `importanza`). */
 const COLLEZIONI: Tipo[] = ['film', 'serie', 'anime', 'gioco', 'libro', 'ricetta', 'curiosita', 'esperienza'];
 
+/** Tipo di Notion → tipo di MyTask di partenza (le regole possono cambiarlo). */
 const TIPO_NOTION: Record<string, Tipo> = {
   Admin: 'azione', 'Attività': 'esperienza', Video: 'film', Gioco: 'gioco', Libri: 'libro', Cibo: 'ricetta', Info: 'curiosita',
 };
@@ -166,17 +181,23 @@ export interface Report {
   campiEstratti: { titolo: string; campi: string }[];
   linkPuliti: string[];
   daVerificare: string[];
-  inRevisione: string[];
+  /** Voci aperte con la data già passata alla data dell'importazione. */
+  scadute: string[];
   senzaPriorita: number;
 }
 
 const NOMI_TIPI_NOTION = (t: string) => t || '(vuoto)';
 
+/**
+ * Converte le righe di Notion in voci di MyTask (più le persone nominate dalle regole) e un report di quello che ha deciso.
+ * Priorità: importanza per attività e progetti, interesse per le collezioni. Un orario d'inizio rende la scadenza rigida.
+ * Un padre con figli diventa un progetto con sotto-attività se è aperto, altrimenti una voce con checklist.
+ */
 export function converti(righe: RigaNotion[], now: number, oggi: string, regole: Regole = REGOLE_ESEMPIO): { items: Item[]; report: Report } {
   const R = prepara(regole);
   const report: Report = {
     righeIniziali: righe.length, voci: 0, persone: 0, perTipo: {}, duplicatiUniti: [], riclassificate: [],
-    checklist: [], sottoTask: [], campiEstratti: [], linkPuliti: [], daVerificare: [], inRevisione: [], senzaPriorita: 0,
+    checklist: [], sottoTask: [], campiEstratti: [], linkPuliti: [], daVerificare: [], scadute: [], senzaPriorita: 0,
   };
 
   // 1. unione dei duplicati
@@ -219,11 +240,9 @@ export function converti(righe: RigaNotion[], now: number, oggi: string, regole:
   const items: Item[] = [];
   const nomiPersone = new Map<string, boolean>(); // nome → daContattare
 
-  const sorgenti = (v: Voce) => v.uniti;
-
   function costruisci(v: Voce, extra: Partial<Item> = {}): Item {
     const r = v.riga;
-    const unite = sorgenti(v);
+    const unite = v.uniti;
     const stati = unite.map((x) => x.status);
     const stato: Item['stato'] = stati.includes('Done') ? 'fatto' : stati.includes('In progress') ? 'in_corso' : 'da_fare';
     const prio = Math.max(0, ...unite.map((x) => PRIORITA[x.priority.toLowerCase()] ?? 0));
@@ -283,8 +302,6 @@ export function converti(righe: RigaNotion[], now: number, oggi: string, regole:
       if (area) item.area = area;
     }
 
-    // revisione manuale: era "Expired" senza una data
-
     // routine
     if (v.tipo === 'routine') {
       const cfg = R.routine[v.key];
@@ -340,7 +357,7 @@ export function converti(righe: RigaNotion[], now: number, oggi: string, regole:
   for (const i of items) report.perTipo[NOMI_TIPO[i.tipo]] = (report.perTipo[NOMI_TIPO[i.tipo]] ?? 0) + 1;
   report.voci = items.filter((i) => i.tipo !== 'persona').length;
   const aperte = items.filter((i) => i.stato !== 'fatto' && i.stato !== 'saltato' && i.stato !== 'parcheggiato');
-  report.inRevisione = aperte
+  report.scadute = aperte
     .filter((i) => i.tipo !== 'persona' && i.tipo !== 'routine')
     .filter((i) => ((i.fine ?? i.inizio) ?? '9999') < oggi)
     .map((i) => `${i.titolo} (${i.fine ?? i.inizio ?? 'senza data'})`);
@@ -348,6 +365,7 @@ export function converti(righe: RigaNotion[], now: number, oggi: string, regole:
   return { items, report };
 }
 
+/** Il report in Markdown (si scrive in `docs/report-importazione.md`). */
 export function reportMarkdown(r: Report, oggi: string): string {
   const lista = (xs: string[]) => (xs.length ? xs.map((x) => `- ${x}`).join('\n') : '_nessuna_');
   const perTipo = Object.entries(r.perTipo).sort((a, b) => b[1] - a[1]).map(([t, n]) => `| ${t} | ${n} |`).join('\n');
@@ -390,7 +408,7 @@ ${lista(r.daVerificare)}
 
 Azioni senza priorità in Notion (nell'app usano importanza 3 finché non la imposti): **${r.senzaPriorita}**.
 
-## In Revisione dopo l'importazione (${r.inRevisione.length})
-${lista(r.inRevisione)}
+## Voci già scadute dopo l'importazione (${r.scadute.length})
+${lista(r.scadute)}
 `;
 }

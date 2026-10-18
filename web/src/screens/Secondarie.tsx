@@ -1,28 +1,32 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+/**
+ * Schermate secondarie, raggiunte da «Altro» (telefono: pulsante tondo in cima alle schede; sito largo: barra laterale).
+ * Altro, Inbox, Archiviate, Completato, Aspetto, Stasera (dal gruppo Intrattenimento) e Account.
+ * Sono tutte colonne semplici con «Indietro» in cima, uguali su telefono e sito largo.
+ */
+import { useEffect, useMemo, useState } from 'react';
 import { NOMI_TIPO, type Item, type Tipo } from '../../../shared/types.ts';
-import { addDays, formatShortYear, monthKey, monthLabel, relativeDays, today } from '../../../shared/dates.ts';
-import { dueDate } from '../../../shared/priority.ts';
+import { formatShortYear, monthKey, monthLabel, today } from '../../../shared/dates.ts';
 import { daParte, archivio, dataChiusura, inbox } from '../../../shared/views.ts';
+import { riapri } from '../../../shared/recurrence.ts';
 import { COMPAGNIE, ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE, suggerisciStasera, type Compagnia } from '../../../shared/stasera.ts';
-import { useAspetto, useAuth, useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
-import { completaVoce, nuovaVoce } from '../lib/actions.ts';
-import { removeItem, saveBatch, saveItem, setAuth } from '../lib/store.ts';
+import { useAspetto, useAuth, useItems, useSyncStatus } from '../lib/hooks.ts';
+import { saveBatch, saveItem, setAuth } from '../lib/store.ts';
 import { validaVoci } from '../../../shared/validate.ts';
 import { apiBase, scaricaEsportazione, logout } from '../lib/api.ts';
 import { VERSIONE } from '../version.ts';
 import { sync } from '../lib/sync.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
 import { mostraToast } from '../lib/toast.ts';
-import { Back, Chips, Empty, Field, Row, Sec, Seg, Toggle, Top } from '../ui/kit.tsx';
-import { useLayer, useNav } from '../ui/nav.tsx';
+import { Back, Chips, Empty, Field, Row, Sec, Seg, Top } from '../ui/kit.tsx';
+import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 
 // ------------------------------------------------------------------ Altro
 
+/** Menu «Altro»: Inbox, Archiviate e Completato con i conteggi, poi le impostazioni dell'app. */
 export function Altro() {
   const nav = useNav();
   const items = useItems();
-  const oggi = useOggi();
   const a = useAspetto();
   const nInbox = useMemo(() => inbox(items).length, [items]);
   const nArch = useMemo(() => archivio(items).length, [items]);
@@ -53,7 +57,7 @@ export function Altro() {
 
 // ------------------------------------------------------------------ Inbox
 
-
+/** Note catturate al volo e non ancora smistate (la più recente prima); si smistano aprendole e scegliendo il tipo. */
 export function Inbox() {
   const nav = useNav();
   const items = useItems();
@@ -73,8 +77,9 @@ export function Inbox() {
   );
 }
 
-// ------------------------------------------------------------------ Da parte
+// ------------------------------------------------------------------ Archiviate
 
+/** Note archiviate (stato «parcheggiato»): non compaiono nelle liste, si ripristinano aprendole. */
 export function DaParte() {
   const nav = useNav();
   const items = useItems();
@@ -93,12 +98,17 @@ export function DaParte() {
   );
 }
 
-// ------------------------------------------------------------------ Completato (ex Archivio)
+// ------------------------------------------------------------------ Completato
 
+// Filtri per tipo della lista dei completati (undefined = tutti).
 const FILTRI_ARCHIVIO: Record<string, Tipo[] | undefined> = {
   Tutto: undefined, Film: ['film'], Serie: ['serie'], Anime: ['anime'], Libri: ['libro'], Giochi: ['gioco'], Attività: ['azione', 'progetto', 'esperienza'],
 };
 
+/**
+ * Diario di ciò che è fatto o saltato (non le routine né i passi dei progetti), dal più recente, con una sezione per mese.
+ * Il segno di spunta di una riga riapre la nota. Il voto, se c'è, compare a destra.
+ */
 export function Archivio() {
   const nav = useNav();
   const items = useItems();
@@ -123,7 +133,7 @@ export function Archivio() {
               <Row key={i.id} titolo={i.titolo} tipo={i.tipo} done={i.stato === 'fatto'} light={i.stato === 'saltato'}
                 meta={[NOMI_TIPO[i.tipo], i.stato === 'saltato' ? 'saltata' : undefined, formatShortYear(dataChiusura(i))].filter(Boolean).join(' · ')}
                 right={i.voto ? `${i.voto}/10` : undefined}
-                onCheck={() => saveItem({ ...i, stato: 'da_fare', completatoIl: undefined })}
+                onCheck={() => saveItem(riapri(i, Date.now()))}
                 selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
             ))}
           </div>
@@ -135,8 +145,10 @@ export function Archivio() {
 
 // ------------------------------------------------------------------ Aspetto
 
+// Colori d'accento a scelta (le tinte stanno in styles.css, variabili --o-*).
 const COLORI: { id: Colore; nome: string }[] = [{ id: 'verde', nome: 'Verde' }, { id: 'petrolio', nome: 'Petrolio' }, { id: 'indaco', nome: 'Indaco' }];
 
+/** Tema (sistema, chiaro, scuro) e colore d'accento: si applicano subito e restano salvati sul dispositivo. */
 export function Aspetto() {
   const a = useAspetto();
   return (
@@ -168,6 +180,11 @@ export function Aspetto() {
 
 // ------------------------------------------------------------------ Cosa guardo stasera
 
+/**
+ * «Cosa guardo stasera»: propone un film, una serie o un anime in base a compagnia, piattaforma, mood, energia e
+ * tipologia. I filtri spostano il punteggio senza escludere (`suggerisciStasera`); «Un altro» passa alla proposta
+ * successiva, «Lo guardo» mette la voce «in corso». Sotto la proposta principale ci sono altre due alternative.
+ */
 export function Stasera() {
   const nav = useNav();
   const items = useItems();
@@ -177,6 +194,7 @@ export function Stasera() {
   const [energia, setEnergia] = useState('Qualsiasi');
   const [tipologia, setTipologia] = useState('Qualsiasi');
   const [salta, setSalta] = useState(0);
+  // Piattaforme già usate nelle voci, più quelle di base non ancora presenti.
   const piatt = useMemo(() => {
     const usate = [...new Set(items.filter((i) => i.piattaforma && !i.eliminato).map((i) => i.piattaforma!))];
     const base = PIATTAFORME_BASE.filter((b) => !usate.some((u) => u.toLowerCase() === b.toLowerCase()));
@@ -229,12 +247,17 @@ export function Stasera() {
 
 // ------------------------------------------------------------------ Account
 
+/**
+ * Account e dati: email, stato e ultima sincronizzazione, versioni di app e server (segnala se diverse),
+ * sincronizzazione manuale, esportazione e importazione JSON, uscita (i dati restano sul dispositivo).
+ */
 export function Account() {
   const auth = useAuth();
   const st = useSyncStatus();
   const nVoci = useItemsCount();
   const versioneServer = useVersioneServer();
 
+  // Importa le voci da un file JSON: le voci non valide si scartano, quelle con lo stesso id vengono sostituite (dopo conferma).
   async function importaDaFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -291,6 +314,7 @@ function useVersioneServer(): string | undefined {
   return v;
 }
 
+/** Numero di voci non eliminate salvate su questo dispositivo. */
 function useItemsCount(): number {
   return useItems().filter((i) => !i.eliminato).length;
 }

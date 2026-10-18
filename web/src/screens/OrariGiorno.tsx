@@ -7,6 +7,7 @@ import { mostraToast } from '../lib/toast.ts';
 import { useNav } from '../ui/nav.tsx';
 import { Back, Top } from '../ui/kit.tsx';
 
+// fasce da aggiungere con un tocco
 const PRESET: { nome: string; f: FasciaOraria }[] = [
   { nome: 'Mattina', f: { da: '09:00', a: '13:00' } },
   { nome: 'Pomeriggio', f: { da: '14:00', a: '18:00' } },
@@ -14,7 +15,10 @@ const PRESET: { nome: string; f: FasciaOraria }[] = [
 ];
 const durata = (min: number) => `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}`;
 
-/** Modalità flessibile: si inseriscono gli orari in cui si è liberi in un giorno (di solito domani) e MyTask prepara il calendario. */
+/**
+ * Modalità flessibile del tempo libero: si inseriscono le fasce orarie in cui si è liberi in un giorno (di solito domani)
+ * e MyTask prepara il calendario di quel giorno. «Nessun tempo libero» salva il giorno senza fasce. Si apre da Oggi o da Tempo libero.
+ */
 export function OrariGiorno({ giorno }: { giorno: string }) {
   const nav = useNav();
   const oggi = today();

@@ -8,8 +8,9 @@ import { clsx } from '../lib/util.ts';
 import { useNav } from '../ui/nav.tsx';
 import { Back, Sec, Seg, Top } from '../ui/kit.tsx';
 
-const GRUPPO = 15; // opere per richiesta
+const GRUPPO = 15; // opere per ogni richiesta all'IA
 
+/** Chiave API e modello di un servizio. «Salva e controlla» salva e fa una richiesta di prova; la chiave resta su questo dispositivo. */
 function CampiProvider({ p }: { p: Provider }) {
   const cfg = useSyncExternalStore(subscribeIA, getConfigIA)[p];
   const [chiave, setChiave] = useState(cfg?.chiave ?? '');
@@ -55,7 +56,11 @@ function CampiProvider({ p }: { p: Provider }) {
   );
 }
 
-/** Impostazioni › Intelligenza artificiale: chiavi di Gemini e Groq, chat e autocompilazione delle opere di intrattenimento. */
+/**
+ * Altro › Intelligenza artificiale: chiavi di Gemini e Groq, accesso alla chat e autocompilazione della tipologia delle opere
+ * (film, serie, anime, giochi, libri) a gruppi di 15, con una pausa tra una richiesta e l'altra. Non sovrascrive mai ciò che c'è già;
+ * il pulsante «Ferma» interrompe dopo il gruppo in corso.
+ */
 export function IA() {
   const nav = useNav();
   const items = useItems();

@@ -7,6 +7,7 @@ import { VERSIONE } from '../version.ts';
 import { Icona, type NomeIcona } from './kit.tsx';
 import { useNav, type Screen, type SubFare, type SubScoprire, type Tab } from './nav.tsx';
 
+/** Voce della barra laterale: `main` = categoria principale con icona, `sub` = sotto-voce rientrata, `n` = conteggio (in arancio con `warn`). */
 function Link({ nome, on, sub, main, n, warn, icona, onClick }: { nome: string; on?: boolean; sub?: boolean; main?: boolean; n?: number; warn?: boolean; icona?: NomeIcona; onClick: () => void }) {
   return (
     <button className={clsx('sb-link', on && 'on', sub && 'sub', main && 'princ')} onClick={onClick} aria-current={on ? 'page' : undefined}>
@@ -22,7 +23,11 @@ const SUB_SCOPRIRE: { id: SubScoprire; nome: string }[] = [
   { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' },
 ];
 
-/** Barra laterale per schermi larghi: sostituisce le schede in basso e il menu "Altro". */
+/**
+ * Barra laterale per schermi larghi (≥900px): sostituisce le schede in basso e il menu «Altro». Contiene «Nuova nota» (tasto N),
+ * la ricerca (tasto /), le cinque sezioni con i conteggi (le sotto-sezioni di Attività e Intrattenimento si aprono sotto la sezione attiva),
+ * Inbox, Archiviate, Completato, Tempo libero, Aspetto, Account e in fondo la versione e lo stato offline.
+ */
 export function Sidebar() {
   const nav = useNav();
   const items = useItems();
@@ -31,7 +36,7 @@ export function Sidebar() {
 
   const n = useMemo(() => {
     const per = (t: Tipo) => collezione(items, [t]).length;
-    const esp = listaEsperienze(items, oggi);
+    const esp = listaEsperienze(items);
     return {
       oggi: vistaOggi(items, oggi).fare.length,
       azioni: listaAzioni(items, oggi).length,

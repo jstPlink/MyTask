@@ -1,15 +1,20 @@
-// Stima dei tempi con margine d'errore. Il margine parte da un valore di partenza e si affina da solo:
-// ogni attività completata con tempo stimato e tempo reale ne sposta il valore.
+// Stima dei tempi con margine d'errore (editor della nota, piano di Oggi). Il margine parte da un valore di partenza e si affina da solo:
+// ogni attività completata con tempo stimato e tempo reale (`durataRealeMin`, misurato dall'app) ne sposta il valore.
 import type { Item } from './types.ts';
-import { chiaveTitolo } from './capture.ts';
+import { chiaveTitolo } from './testo.ts';
 
 /** Margine di partenza (±30%): conta come qualche attività già misurata, poi cede il posto ai dati veri. */
 export const MARGINE_INIZIALE = 0.3;
+/** Quante attività misurate «vale» il margine di partenza nella media. */
 const PESO_INIZIALE = 3;
+/** Il margine atteso resta tra ±5% e ±100%. */
 export const MARGINE_MIN = 0.05;
 export const MARGINE_MAX = 1;
+/** Somiglianza minima (0-1, parole in comune sul totale) perché un titolo conti come «simile». */
 const SOGLIA_SIMILE = 0.34;
+/** Al massimo questi titoli simili entrano nella stima. */
 const MAX_SIMILI = 5;
+/** Parole troppo comuni per giudicare la somiglianza dei titoli. */
 const PAROLE_VUOTE = new Set(['il', 'lo', 'la', 'le', 'gli', 'un', 'una', 'uno', 'di', 'da', 'del', 'della', 'dei', 'delle', 'al', 'alla', 'per', 'con', 'in', 'su', 'che', 'the', 'and']);
 
 export interface Stima {
@@ -23,6 +28,7 @@ export interface Stima {
 
 const parole = (t: string) => new Set(chiaveTitolo(t).split(' ').filter((p) => p.length >= 3 && !PAROLE_VUOTE.has(p)));
 
+/** Somiglianza tra due titoli: parole in comune (da 3 lettere, senza articoli e preposizioni) sul totale delle parole distinte, da 0 a 1. */
 export function somiglianza(a: string, b: string): number {
   const x = parole(a);
   const y = parole(b);
@@ -67,6 +73,7 @@ export function stimaPer(titolo: string, items: Item[]): Stima | undefined {
   return { minuti, margine, fonte: 'simili', campioni: simili.length };
 }
 
+/** "±30%". */
 export const percentuale = (margine: number) => `±${Math.round(margine * 100)}%`;
 
 /** Intervallo di tempo atteso per una stima con il suo margine, in minuti. */

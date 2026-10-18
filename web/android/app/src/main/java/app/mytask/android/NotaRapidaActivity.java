@@ -31,7 +31,11 @@ import org.json.JSONObject;
 /**
  * Nota veloce dal widget: barra sopra la tastiera con un campo tondo e il pulsante di invio, coi colori dell'app
  * (chiaro o scuro come il widget). Mentre si scrive compaiono le note che contengono le stesse parole, per non
- * ripetersi. La nota finisce nell'Inbox senza aprire l'app.
+ * ripetersi. L'interfaccia è costruita in codice (nessun layout XML), col tema traslucido che lascia vedere la Home.
+ * Al tocco sul pulsante di invio la nota non viene salvata qui: va nella coda locale (WidgetDati.accoda, tipo «nota»)
+ * e l'app la mette nell'Inbox alla prima apertura, senza aprirsi adesso.
+ * Le note simili si cercano nell'archivio compatto scritto dall'app; ogni voce ha: k = chiave di ricerca (titolo, note e
+ * altri campi, normalizzati), t = titolo, m = riga di dettaglio, c = 1 se chiusa, a = ultimo aggiornamento.
  */
 public class NotaRapidaActivity extends Activity {
 
@@ -43,10 +47,12 @@ public class NotaRapidaActivity extends Activity {
     private ScrollView scorrevole;
     private TextView intestazione;
 
+    /** Da dp a pixel. */
     private int dp(float v) {
         return Math.round(v * getResources().getDisplayMetrics().density);
     }
 
+    /** Sfondo arrotondato (o ovale) con bordo facoltativo, per il campo di testo e il pulsante di invio. */
     private GradientDrawable forma(int riempimento, float raggioDp, int bordo, float spessoreDp, boolean ovale) {
         GradientDrawable g = new GradientDrawable();
         g.setShape(ovale ? GradientDrawable.OVAL : GradientDrawable.RECTANGLE);
@@ -63,6 +69,7 @@ public class NotaRapidaActivity extends Activity {
         return n.replaceAll("[^a-z0-9' ]", " ").replaceAll("\\s+", " ").trim();
     }
 
+    /** Una nota dell'archivio che contiene le parole scritte. */
     private static class Simile {
         int punti;
         int chiusa;
@@ -145,6 +152,7 @@ public class NotaRapidaActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
+        // colori: stessa palette dell'app, nel tema (chiaro o scuro) del widget che ha aperto la barra
         boolean scuro = getIntent().getBooleanExtra("scuro", false);
         sfondo = Color.parseColor(scuro ? "#0E0F12" : "#F1F0EC");
         campoBg = Color.parseColor(scuro ? "#1D1F23" : "#FFFFFF");

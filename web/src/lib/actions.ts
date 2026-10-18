@@ -1,3 +1,5 @@
+// Azioni sulle voci (creare, completare, cambiare stato, ordinare i passi): unico punto in cui la logica di dominio
+// condivisa (shared/) incontra l'archivio locale, i toast e i fogli di conferma. Le schermate chiamano queste funzioni.
 import type { Item, Stato, Tipo } from '../../../shared/types.ts';
 import { formatShort, today } from '../../../shared/dates.ts';
 import { completa, riapri } from '../../../shared/recurrence.ts';
@@ -14,12 +16,13 @@ import { newId, nomeTempo } from './util.ts';
 import { chiediRecensione } from './recensione.ts';
 import { mostraAvanzamento, type PassoProgetto } from './avanzamento.ts';
 
+/** Crea una voce nuova in memoria (da passare a `saveItem`): id casuale, da fare, date di creazione e modifica adesso. */
 export function nuovaVoce(p: Partial<Item> & { tipo: Tipo; titolo: string }): Item {
   const now = Date.now();
   return { id: newId(), stato: 'da_fare', creato: now, aggiornato: now, ...p };
 }
 
-/** Spunta una voce. Offre "Annulla" e, se era l'ultimo passo di un progetto, di chiudere il progetto. */
+/** Tipi per cui, prima di segnarli fatti, si chiede voto e commento (foglio «Com'è andata?»). */
 const TIPI_CON_VOTO = new Set<Tipo>(['film', 'serie', 'anime', 'gioco', 'libro', 'ricetta']);
 
 /** Il progetto com'è adesso: passi (checklist e voci figlie) e avanzamento; il passo `idTarget` risulta ancora da fare. */
@@ -31,6 +34,10 @@ function fotografaProgetto(progetto: Item, idTarget: string) {
   return { padre: progetto, passi, prima: avanzamento(progetto, getItems()) };
 }
 
+/**
+ * Spunta una voce. Offre «Annulla» e, se era l'ultimo passo di un progetto, di chiudere il progetto.
+ * Per le note «in corso» registra il tempo impiegato misurato dall'app (vedi `durataRealeInCorso`).
+ */
 export function completaVoce(item: Item) {
   // film, serie, libri, giochi…: prima si chiede il voto e un commento, poi si segna come fatto
   if (TIPI_CON_VOTO.has(item.tipo) && !item.ricorrenza) { chiediRecensione(item); return; }
@@ -81,11 +88,7 @@ export function ordinaPassi(padreId: string, idsNuovi: string[]) {
   nuovo.forEach((c, n) => { if (c.ordine !== n) saveItem({ ...c, ordine: n }); });
 }
 
-export function riapriVoce(item: Item) {
-  saveItem(riapri(item, Date.now()));
-}
-
-/** Nome degli stati scelti dall'utente: da fare, in corso, fatta, archiviata. */
+/** Gli stati che l'utente può scegliere (menu «Stato»): da fare, in corso, fatta, archiviata. */
 export const STATI_NOTA: { id: Stato; nome: string; descr: string }[] = [
   { id: 'da_fare', nome: 'Da fare', descr: 'Non ancora iniziata' },
   { id: 'in_corso', nome: 'In corso', descr: 'Ci sto lavorando' },
@@ -155,6 +158,7 @@ export function avanzaStato(item: Item) {
   cambiaStato(item, s === 'da_fare' ? 'in_corso' : s === 'in_corso' ? 'fatto' : 'da_fare');
 }
 
+/** Segna (o toglie) la routine per oggi. */
 export function segnaRoutine(item: Item) {
   saveItem(toggleOggi(item, today(), Date.now()));
 }
@@ -163,4 +167,3 @@ export function segnaRoutine(item: Item) {
 export function segnaRoutineGiorno(item: Item, giorno: string) {
   saveItem(toggleOggi(item, giorno, Date.now()));
 }
-

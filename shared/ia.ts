@@ -6,8 +6,10 @@ import { MOOD, TIPOLOGIE } from './stasera.ts';
 import { dueDate, isOpen, score, barLevel } from './priority.ts';
 import { live } from './views.ts';
 
+/** Servizi IA ammessi: la chiave la inserisce l'utente e le richieste partono dal dispositivo (web/src/lib/ia.ts), non dal server di MyTask. */
 export type Provider = 'gemini' | 'groq';
 export const NOMI_PROVIDER: Record<Provider, string> = { gemini: 'Gemini', groq: 'Groq' };
+/** Modello usato se l'utente non ne indica uno. */
 export const MODELLI_PREDEFINITI: Record<Provider, string> = { gemini: 'gemini-2.0-flash', groq: 'llama-3.3-70b-versatile' };
 
 /** Tipi di opere di cui si compila la tipologia. */
@@ -18,7 +20,7 @@ const VIDEO: Item['tipo'][] = ['film', 'serie', 'anime'];
 export const opereSenzaTipologia = (items: Item[]): Item[] =>
   live(items).filter((i) => TIPI_OPERE.includes(i.tipo) && !i.genere?.trim() && !i.inbox);
 
-/** Richiesta per un gruppo di opere: tipologie, mood ed energia, scelti solo tra i valori che l'app conosce. */
+/** Richiesta per un gruppo di opere (l'app ne manda 15 per volta): tipologie, mood ed energia, scelti solo tra i valori che l'app conosce. */
 export function promptTipologie(opere: Item[]): string {
   const elenco = opere.map((o, n) => `${n}. [${NOMI_TIPO[o.tipo]}] ${o.titolo.slice(0, 120)}${o.piattaforma ? ` (${o.piattaforma})` : ''}`).join('\n');
   return `Sei l'assistente di un'app personale in italiano. Per ogni opera (film, serie, anime, videogioco o libro) indica:
@@ -32,6 +34,7 @@ Opere:
 ${elenco}`;
 }
 
+/** Risposta dell'IA per una delle opere della richiesta (`n` è la sua posizione nell'elenco). */
 export interface RispostaOpera { n: number; tipologie?: string[]; mood?: string; energia?: string }
 
 /** Estrae i risultati dalla risposta dell'IA (anche se è dentro un blocco di codice o ha testo attorno). */
@@ -58,7 +61,7 @@ export function campiDaRisposta(item: Item, r: RispostaOpera): Partial<Item> {
   return out;
 }
 
-/** Istruzioni per la chat: cos'è l'app e come rispondere. */
+/** Istruzioni date alla chat: cos'è l'app e come rispondere (la descrizione della priorità riassume `score`). */
 export const ISTRUZIONI_CHAT = `Sei l'assistente di MyTask, un'app personale in italiano per organizzare attività, progetti, esperienze, routine, curiosità e cose da guardare, giocare o leggere.
 Come funziona: ogni nota ha una priorità da 0 a 100 (urgenza, importanza, poco sforzo, età, scadenza fissa); in Oggi il piano dispone le attività nel tempo libero; l'Inbox raccoglie le note non ancora smistate; gli stati sono da fare, in corso, fatta e archiviata.
 Rispondi in italiano, in modo breve e concreto. Se ti viene dato un riepilogo delle note usalo, altrimenti dì che non hai accesso ai dati dell'utente. Non inventare note che non vedi.`;

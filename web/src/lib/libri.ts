@@ -1,8 +1,10 @@
 // Ricerca del numero di pagine di un libro su Open Library (gratuita, senza chiave, ammette le richieste dal browser).
 // Al servizio esterno va solo il titolo scritto dall'utente.
 
+/** Campi richiesti a Open Library per ogni risultato. */
 interface Documento { title?: string; author_name?: string[]; number_of_pages_median?: number }
 
+/** Titolo normalizzato per il confronto: minuscole, senza accenti né punteggiatura. */
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 
 /** Pagine del libro con quel titolo, o undefined se non si trovano (o se si è offline). */

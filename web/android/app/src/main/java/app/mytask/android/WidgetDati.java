@@ -7,7 +7,15 @@ import android.content.SharedPreferences;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** Dati condivisi tra app e widget: la lista di oggi (scritta dall'app) e le azioni fatte dal widget (lette dall'app). */
+/**
+ * Archivio locale (SharedPreferences «mytask_widget») condiviso tra app e widget. Il widget non legge i dati dell'app
+ * e non usa la rete: conserva solo quattro valori testuali in JSON.
+ *  - «righe»: la lista di oggi, scritta dall'app (WidgetPlugin.aggiorna); per riga: id, titolo «t», posizione «r»,
+ *    livello di priorità «l», battiti al minuto «b», orario «o», stato fatto «f».
+ *  - «archivio»: note compatte per la ricerca delle note simili nella nota veloce.
+ *  - «coda»: le azioni fatte dall'utente sul widget, in attesa dell'app: {tipo:"nota", testo, ts} e {tipo:"fatto", id, ts}.
+ *    L'app la svuota (WidgetPlugin.coda) quando si apre o torna in primo piano e applica le azioni ai suoi dati.
+ */
 final class WidgetDati {
     private static final String PREFS = "mytask_widget";
 
@@ -37,6 +45,7 @@ final class WidgetDati {
         prefs(c).edit().putString("archivio", json).apply();
     }
 
+    /** Sostituisce la lista di oggi e fa ridisegnare i widget. */
     static void salvaRighe(Context c, String json) {
         prefs(c).edit().putString("righe", json).apply();
         aggiornaWidget(c);
@@ -52,6 +61,7 @@ final class WidgetDati {
         }
     }
 
+    /** Restituisce la coda e la azzera, in un solo passaggio protetto (nessuna azione va persa o letta due volte). */
     static synchronized JSONArray svuotaCoda(Context c) {
         try {
             JSONArray coda = new JSONArray(prefs(c).getString("coda", "[]"));
@@ -62,7 +72,11 @@ final class WidgetDati {
         }
     }
 
-    /** Spunta una riga del widget: la segna subito come fatta e la mette in coda per l'app. */
+    /**
+     * Spunta una riga del widget: la inverte subito (fatta/da fare, così il widget la mostra sbarrata) e mette
+     * l'azione in coda per l'app. La coda è sempre aggiornata sulla riga: se c'è già una richiesta «fatto» per
+     * lo stesso id, la nuova spunta la annulla invece di aggiungerne un'altra.
+     */
     static void fatto(Context c, String id) {
         try {
             JSONArray r = righe(c);
@@ -74,7 +88,6 @@ final class WidgetDati {
             a.put("tipo", "fatto");
             a.put("id", id);
             a.put("ts", System.currentTimeMillis());
-            // spuntare di nuovo una riga già fatta annulla la richiesta ancora in coda
             JSONArray coda = new JSONArray(prefs(c).getString("coda", "[]"));
             boolean annullata = false;
             JSONArray nuova = new JSONArray();
@@ -90,6 +103,7 @@ final class WidgetDati {
         aggiornaWidget(c);
     }
 
+    /** Dice ai due widget (chiaro e scuro) che la lista è cambiata: WidgetService rilegge le righe. */
     static void aggiornaWidget(Context c) {
         AppWidgetManager m = AppWidgetManager.getInstance(c);
         for (Class<?> k : new Class<?>[] {MyTaskWidgetChiaro.class, MyTaskWidgetScuro.class}) {

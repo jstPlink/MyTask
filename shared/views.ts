@@ -1,12 +1,15 @@
-// Selezioni e ordinamenti usati dalle schermate. Funzioni pure: stesso input, stesso output.
+// Selezioni e ordinamenti che alimentano le schermate (Oggi, Attività, Progetti, Esperienze, collezioni, Inbox, Archivio, ricerca)
+// e il widget. Funzioni pure sul solo elenco di voci: stesso input, stesso output. Vale ovunque la regola dei progetti:
+// un progetto non compare mai da solo nelle liste di azione, compare il suo prossimo passo.
 import type { Item } from './types.ts';
-import { chiaveTitolo } from './capture.ts';
+import { chiaveTitolo } from './testo.ts';
 import { addDays, diffDays } from './dates.ts';
 import {
   dueDate, isClosed, isOpen, score, withInheritance,
 } from './priority.ts';
 import { routineDueToday } from './routine.ts';
 
+/** Una riga delle liste di azione con il suo punteggio di priorità. */
 export interface Entry {
   /** La voce da mostrare (per un progetto, il suo prossimo passo con le eredità applicate). */
   item: Item;
@@ -15,17 +18,20 @@ export interface Entry {
   punteggio: number;
 }
 
+/** Le voci non eliminate (la cancellazione è logica: le eliminate restano nei dati per la sincronizzazione). */
 export const live = (items: Item[]) => items.filter((i) => !i.eliminato);
 
 /** Nella Inbox: catturata e non ancora smistata, oppure ancora senza tipo. */
 export const inInbox = (i: Item) => !!i.inbox || i.tipo === 'nota';
 
+/** I passi di un progetto, nell'ordine scelto dall'utente (`ordine`); senza ordine vengono dopo, per data d'inizio e poi per creazione. */
 export function figli(items: Item[], padreId: string): Item[] {
   return live(items)
     .filter((i) => i.padreId === padreId)
     .sort((a, b) => (a.ordine ?? 1e9) - (b.ordine ?? 1e9) || (a.inizio ?? '9999').localeCompare(b.inizio ?? '9999') || a.creato - b.creato);
 }
 
+/** Avanzamento di un progetto (es. 3 su 8): passi fatti e voci della checklist spuntate, sul totale. Si calcola, non si inserisce a mano. */
 export function avanzamento(padre: Item, items: Item[]): { fatti: number; totale: number } {
   const f = figli(items, padre.id);
   const checklist = padre.checklist ?? [];
@@ -34,13 +40,14 @@ export function avanzamento(padre: Item, items: Item[]): { fatti: number; totale
   return { fatti, totale };
 }
 
+/** Il primo passo ancora aperto del progetto (non archiviato), cioè quello che compare in Oggi al posto del progetto. */
 export function prossimoPasso(padre: Item, items: Item[]): Item | undefined {
   return figli(items, padre.id).find((c) => isOpen(c) && c.stato !== 'parcheggiato');
 }
 
 const parcheggiata = (i: Item) => i.stato === 'parcheggiato';
 
-/** Voce che appartiene alle liste di azione (non a collezioni, routine, persone). */
+/** Tipi che appartengono alle liste di azione (non collezioni, routine, persone). */
 const TIPI_LISTA_AZIONE = new Set(['azione', 'progetto', 'esperienza']);
 
 /**
@@ -61,6 +68,10 @@ export function punteggioEffettivo(i: Item, items: Item[], today: string, now: n
   return Math.max(...passi.slice(k).map((c) => score(withInheritance(c, padre), today, now)));
 }
 
+/**
+ * Le voci tra cui scegliere cosa fare, ognuna col suo punteggio. Esclude chiuse, archiviate, Inbox e passi di progetto;
+ * un progetto con passi aperti entra con il solo prossimo passo (con le eredità del progetto), uno senza passi entra come voce a sé.
+ */
 export function candidatiOggi(items: Item[], today: string, now: number): Entry[] {
   const tutte = live(items);
   const cache = new Map<string, Item[]>();
@@ -74,7 +85,7 @@ export function candidatiOggi(items: Item[], today: string, now: number): Entry[
       if (next) {
         const eff = withInheritance(next, i);
         out.push({ item: eff, padre: i, punteggio: punteggioEffettivo(next, tutte, today, now, cache) });
-      } else if (!next && figli(tutte, i.id).length === 0) {
+      } else if (figli(tutte, i.id).length === 0) {
         out.push({ item: i, punteggio: score(i, today, now) });
       }
       continue;
@@ -108,8 +119,13 @@ export interface VistaOggi {
   inbox: number;
 }
 
+/** Quante note mostra Oggi al massimo: le scadute o in scadenza oggi compaiono tutte (anche se più di 5), le senza data riempiono fino a 5. */
 const MAX_OGGI = 5;
 
+/**
+ * Cosa compare in Oggi: le routine del giorno, le note "da fare" (scadute o in scadenza oggi, poi le senza data più prioritarie, in corso
+ * prima a parità, fino a `MAX_OGGI`; le esperienze senza data non compaiono mai), le scadenze dei prossimi 7 giorni e il numero di note in Inbox.
+ */
 export function vistaOggi(items: Item[], today: string, now: number = Date.now()): VistaOggi {
   const cand = candidatiOggi(items, today, now);
   const due = (e: Entry) => dueDate(e.item);
@@ -141,9 +157,9 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
   };
 }
 
+/** Tutte le attività aperte (comprese le scadute), per priorità; a parità, i passi di uno stesso progetto restano nell'ordine del progetto. */
 export function listaAzioni(items: Item[], today: string, now: number = Date.now()): Entry[] {
   const tutte = live(items);
-  // tutte le attività aperte, comprese quelle scadute
   const cache = new Map<string, Item[]>();
   const ordinePasso = new Map<string, number>();
   for (const p of tutte.filter((x) => x.tipo === 'progetto')) figli(tutte, p.id).forEach((c, n) => ordinePasso.set(c.id, n));
@@ -176,8 +192,10 @@ export function daParte(items: Item[]): Item[] {
     .sort((a, b) => b.aggiornato - a.aggiornato);
 }
 
+/** Un progetto con avanzamento e prossimo passo. */
 export interface VoceProgetto { progetto: Item; fatti: number; totale: number; prossimo?: Item }
 
+/** Progetti aperti, dal più prioritario. */
 export function listaProgetti(items: Item[], today: string, now: number = Date.now()): VoceProgetto[] {
   const tutte = live(items);
   return tutte
@@ -186,9 +204,11 @@ export function listaProgetti(items: Item[], today: string, now: number = Date.n
     .sort((a, b) => score(b.progetto, today, now) - score(a.progetto, today, now));
 }
 
+/** Esperienze aperte: con una data (in ordine di data) e senza data (raggruppate per luogo, `zona`, con «Altro» in fondo). */
 export interface VistaEsperienze { conData: Item[]; perZona: [string, Item[]][] }
 
-export function listaEsperienze(items: Item[], today: string, now: number = Date.now()): VistaEsperienze {
+/** Esperienze aperte divise in «con data» e «senza data»; le senza data sono una lista di desideri ordinata per interesse. */
+export function listaEsperienze(items: Item[]): VistaEsperienze {
   const e = live(items).filter((i) => i.tipo === 'esperienza' && isOpen(i) && !i.inbox && !parcheggiata(i));
   const conData = e.filter((i) => dueDate(i)).sort((a, b) => (dueDate(a) ?? '').localeCompare(dueDate(b) ?? ''));
   const senza = e.filter((i) => !dueDate(i)).sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo));
@@ -201,6 +221,7 @@ export function listaEsperienze(items: Item[], today: string, now: number = Date
   return { conData, perZona };
 }
 
+/** Voci di collezione (film, serie, libri…) ancora da fare o in corso, per interesse, opzionalmente di una piattaforma. */
 export function collezione(items: Item[], tipi: Item['tipo'][], piattaforma?: string): Item[] {
   return live(items)
     .filter((i) => tipi.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso') && !i.inbox)
@@ -208,18 +229,21 @@ export function collezione(items: Item[], tipi: Item['tipo'][], piattaforma?: st
     .sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo, 'it'));
 }
 
+/** Le piattaforme già scritte nelle voci di questi tipi (escluse quelle completate), in ordine alfabetico. */
 export function piattformeUsate(items: Item[], tipi: Item['tipo'][]): string[] {
   const set = new Set<string>();
   for (const i of live(items)) if (tipi.includes(i.tipo) && i.piattaforma && i.stato !== 'fatto') set.add(i.piattaforma);
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
+/** Curiosità non ancora chiuse, le più recenti prima. */
 export function curiosita(items: Item[]): Item[] {
   return live(items)
     .filter((i) => i.tipo === 'curiosita' && i.stato !== 'fatto' && i.stato !== 'saltato' && !i.inbox)
     .sort((a, b) => b.aggiornato - a.aggiornato);
 }
 
+/** Note in Inbox (da smistare o senza tipo), le più recenti prima. */
 export function inbox(items: Item[]): Item[] {
   return live(items).filter(inInbox).sort((a, b) => b.creato - a.creato);
 }
@@ -229,6 +253,7 @@ export function dataChiusura(i: Item): string {
   return i.completatoIl ?? i.fine ?? i.inizio ?? new Date(i.aggiornato).toISOString().slice(0, 10);
 }
 
+/** Voci chiuse (fatte o saltate), esclusi i passi di progetto (si leggono dentro il progetto), per data di chiusura. */
 export function archivio(items: Item[]): Item[] {
   return live(items)
     .filter((i) => isClosed(i) && i.tipo !== 'persona' && i.tipo !== 'routine' && !i.padreId)

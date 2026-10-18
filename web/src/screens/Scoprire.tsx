@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import type { Tipo } from '../../../shared/types.ts';
 import { cercaVoci, collezione, piattformeUsate } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { completaVoce } from '../lib/actions.ts';
 import { Cerca, Chips, Empty, Fab, Row, Seg, Top, Sezione } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubScoprire } from '../ui/nav.tsx';
@@ -12,6 +11,11 @@ const SUB: { id: SubScoprire; nome: string }[] = [
   { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' },
 ];
 
+/**
+ * Scheda Intrattenimento: una lista per tipo (film, serie, anime, giochi, libri, ricette) scelta con i segmenti, con ricerca.
+ * Per film, serie e anime ci sono il filtro per piattaforma e il collegamento «Cosa guardo stasera?». Su ogni riga: interesse (1-5)
+ * e casella a quattro stati. Sul sito largo i segmenti si nascondono perché le sotto-sezioni sono nella barra laterale.
+ */
 export function Scoprire() {
   const nav = useNav();
   const items = useItems();
@@ -45,7 +49,8 @@ export function Scoprire() {
         {lista.length === 0 && <Empty>{filtro ? 'Nessun risultato: prova con altre parole.' : 'Niente in lista.'}</Empty>}
         {lista.length > 0 && (
           <Sezione titolo={`${SUB.find((x) => x.id === sub)?.nome ?? ''} da fare`} dettaglio={lista.length}>
-            {lista.map((i) => {          const meta = [i.stato === 'in_corso' ? 'In corso' : undefined, i.piattaforma, i.consigliatoDa ? `consigliato da ${i.consigliatoDa}` : undefined, i.genere, i.note?.split('\n')[0]].filter(Boolean).join(' · ');
+            {lista.map((i) => {
+          const meta = [i.stato === 'in_corso' ? 'In corso' : undefined, i.piattaforma, i.consigliatoDa ? `consigliato da ${i.consigliatoDa}` : undefined, i.genere, i.note?.split('\n')[0]].filter(Boolean).join(' · ');
           const interesse = i.interesse ?? 3;
           return (
             <Row

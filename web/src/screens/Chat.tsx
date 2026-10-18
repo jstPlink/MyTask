@@ -8,9 +8,14 @@ import { Back, Seg, Toggle, Top } from '../ui/kit.tsx';
 type Scelta = Provider | 'entrambe';
 interface Bolla { ruolo: 'utente' | 'ia'; testo: string; da?: Provider; errore?: boolean }
 
+// ricorda sul dispositivo se il riepilogo delle note va condiviso con l'IA
 const CHIAVE_RIEPILOGO = 'mytask.chat.riepilogo';
 
-/** Chat con Gemini, con Groq o con tutte e due insieme per chiedere cose sull'app e sulle proprie note. */
+/**
+ * Chat con Gemini, con Groq o con tutte e due insieme (le risposte compaiono una sotto l'altra, col nome del servizio).
+ * La conversazione vive solo nella schermata. Se l'interruttore è acceso, a ogni richiesta si aggiunge un riepilogo delle note
+ * (titoli e priorità); è spento di base. Ogni servizio vede le domande dell'utente e le proprie risposte, non quelle dell'altro.
+ */
 export function Chat() {
   const items = useItems();
   const oggi = useOggi();

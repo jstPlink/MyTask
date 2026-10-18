@@ -1,3 +1,12 @@
+/**
+ * Attività (scheda «Fare»): tre sotto-schede scelte dal selettore in cima (sul sito largo le sostituisce
+ * la barra laterale, che porta alla stessa sotto-scheda) e una ricerca che vale per tutte e tre.
+ *
+ * - Tutte le attività: tutte le attività aperte in ordine di priorità, con i passi di uno stesso progetto
+ *   riuniti sotto la sua testata; sotto, le esperienze.
+ * - Progetti: un gruppo per progetto con tutti i suoi passi (aperti per priorità, poi i chiusi barrati).
+ * - Esperienze: un'unica lista con quattro ordini (Data, Luogo, Interesse, Per te).
+ */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
 import type { Item } from '../../../shared/types.ts';
@@ -8,7 +17,6 @@ import { ordinaPerTe } from '../../../shared/esperienze.ts';
 import { chiediPosizione, posizioneRecente, posizioneSalvata, type EsitoPosizione, type Posizione } from '../lib/posizione.ts';
 import { cercaLuoghi, coordinateNote, leggiCacheLuoghi, luoghiDaCercare } from '../lib/luoghi.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
-import { completaVoce, riapriVoce } from '../lib/actions.ts';
 import { Cerca, Empty, Fab, GruppoProgetto, Row, Seg, Sezione, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
@@ -18,6 +26,7 @@ const SUB: { id: SubFare; nome: string }[] = [
   { id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' },
 ];
 
+/** Scheda Attività: intestazione con i conteggi, selettore delle sotto-schede, ricerca e la lista scelta. */
 export function Fare() {
   const nav = useNav();
   const items = useItems();
@@ -25,13 +34,15 @@ export function Fare() {
   const nAttivita = useMemo(() => listaAzioni(items, oggi).length, [items, oggi]);
   const nProgetti = useMemo(() => listaProgetti(items, oggi).length, [items, oggi]);
   const [q, setQ] = useState('');
-  // note che contengono tutte le parole cercate (titolo, note e campi di testo); null = nessuna ricerca
+  // Id delle note che contengono tutte le parole cercate (titolo, note e campi di testo); null = nessuna ricerca.
+  // Lo stesso filtro vale per la sotto-scheda aperta.
   const filtro = useMemo(() => (q.trim() ? new Set(cercaVoci(items, q, 5000).map((i) => i.id)) : null), [items, q]);
-  const nEsperienze = useMemo(() => { const v = listaEsperienze(items, oggi); return v.conData.length + v.perZona.reduce((n, [, l]) => n + l.length, 0); }, [items, oggi]);
+  // Esperienze aperte: con data più quelle senza data (raggruppate per luogo da `listaEsperienze`).
+  const nEsperienze = useMemo(() => { const v = listaEsperienze(items); return v.conData.length + v.perZona.reduce((n, [, l]) => n + l.length, 0); }, [items]);
 
   return (
     <>
-      <Top title="Attività" sub={`${nAttivita} ${nAttivita === 1 ? 'attività' : 'attività'} · ${nProgetti} ${nProgetti === 1 ? 'progetto' : 'progetti'} · ${nEsperienze} ${nEsperienze === 1 ? 'esperienza' : 'esperienze'}`} right={<PulsanteAspetto />} />
+      <Top title="Attività" sub={`${nAttivita} attività · ${nProgetti} ${nProgetti === 1 ? 'progetto' : 'progetti'} · ${nEsperienze} ${nEsperienze === 1 ? 'esperienza' : 'esperienze'}`} right={<PulsanteAspetto />} />
       <div className="scroll">
         <Seg nav uguali voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
         <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle attività" />
@@ -44,9 +55,11 @@ export function Fare() {
   );
 }
 
+/** Id ammessi dalla ricerca, o null se non si sta cercando. */
 type Filtro = Set<string> | null;
 const NESSUN_RISULTATO = 'Nessun risultato: prova con altre parole.';
 
+/** Tutte le attività aperte in ordine di priorità; il numero nel pallino è la posizione nella classifica completa, anche con la ricerca attiva. */
 function Azioni({ filtro }: { filtro: Filtro }) {
   const nav = useNav();
   const items = useItems();
@@ -88,6 +101,7 @@ function Azioni({ filtro }: { filtro: Filtro }) {
   );
 }
 
+/** Un gruppo per progetto attivo, con avanzamento e passi. */
 function Progetti({ filtro }: { filtro: Filtro }) {
   const nav = useNav();
   const items = useItems();
@@ -125,32 +139,38 @@ function Progetti({ filtro }: { filtro: Filtro }) {
   return <Sezione titolo="Progetti" dettaglio={lista.length}>{lista.map(gruppo)}</Sezione>;
 }
 
+/** Sotto-scheda Esperienze (la lista vera è `RigheEsperienze`). */
 function Esperienze({ filtro }: { filtro: Filtro }) {
   const items = useItems();
   const oggi = useOggi();
-  const v = useMemo(() => listaEsperienze(items, oggi), [items, oggi]);
+  const v = useMemo(() => listaEsperienze(items), [items]);
   if (v.conData.length + v.perZona.length === 0) return <Empty>Nessuna esperienza in lista.</Empty>;
   return <RigheEsperienze filtro={filtro} />;
 }
 
+// Ordine scelto per le esperienze, ricordato su questo dispositivo.
 type OrdineEsperienze = 'data' | 'luogo' | 'interesse' | 'perte';
 const CHIAVE_ORDINE = 'mytask.esperienze.ordine';
 const leggiOrdine = (): OrdineEsperienze => { try { const v = localStorage.getItem(CHIAVE_ORDINE); return v === 'luogo' || v === 'interesse' || v === 'perte' ? v : 'data'; } catch { return 'data'; } };
 
-/** Esperienze: ordinate per data (di base), per luogo, per interesse o «Per te» (interesse, data più vicina e distanza dalla tua posizione). Con `titolo` compaiono anche nella lista Attività, in una sola sezione. */
+/**
+ * Esperienze, ordinabili per data (di base: «Con data» poi «Senza data»), luogo (una sezione per luogo),
+ * interesse o «Per te» (punteggio che unisce interesse, data più vicina e distanza dalla posizione del telefono).
+ * Con `titolo` sono invece una sola sezione in fondo a «Tutte le attività», senza selettore dell'ordine.
+ */
 function RigheEsperienze({ titolo, filtro }: { titolo?: boolean; filtro?: Filtro }) {
   const nav = useNav();
   const items = useItems();
   const oggi = useOggi();
   const [ordine, setOrdine] = useState<OrdineEsperienze>(leggiOrdine);
   const cambiaOrdine = (o: OrdineEsperienze) => { setOrdine(o); try { localStorage.setItem(CHIAVE_ORDINE, o); } catch { /* ignora */ } };
-  const v = useMemo(() => listaEsperienze(items, oggi), [items, oggi]);
+  const v = useMemo(() => listaEsperienze(items), [items]);
   const senzaData = useMemo(
     () => v.perZona.flatMap(([, l]) => l).sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo, 'it')),
     [v],
   );
   const tutte = useMemo(() => [...v.conData, ...senzaData].filter((i) => !filtro || filtro.has(i.id)), [v, senzaData, filtro]);
-  // «Per te»: posizione del telefono e coordinate dei luoghi (cercate una volta sola e ricordate)
+  // «Per te»: posizione del telefono (resta sul dispositivo) e coordinate dei luoghi, cercate una volta sola e ricordate.
   const [pos, setPos] = useState<Posizione | undefined>(posizioneSalvata);
   const [esitoPos, setEsitoPos] = useState<EsitoPosizione | 'attesa' | undefined>();
   const [cacheLuoghi, setCacheLuoghi] = useState(leggiCacheLuoghi);
@@ -169,6 +189,7 @@ function RigheEsperienze({ titolo, filtro }: { titolo?: boolean; filtro?: Filtro
     const ricerca = daCercare.length ? cercaLuoghi(daCercare, (nuova) => { if (attivo) setCacheLuoghi({ ...nuova }); }) : undefined;
     return () => { attivo = false; ricerca?.ferma(); };
   }, [ordine, tutte.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  // La ricerca senza risultati lo dice solo nella sotto-scheda Esperienze, non in fondo a Tutte le attività.
   if (tutte.length === 0) return filtro && !titolo ? <Empty>{NESSUN_RISULTATO}</Empty> : null;
   const riga = (i: Item, km?: number) => (
     <Row key={i.id} titolo={i.titolo} tipo={i.tipo} meta={[i.oraInizio, ordine !== 'luogo' ? i.zona : undefined, km !== undefined ? `a ${km < 10 ? km.toFixed(1).replace('.', ',') : Math.round(km)} km` : undefined].filter(Boolean).join(' · ') || undefined} interesse={i.interesse ?? 3}
@@ -178,7 +199,7 @@ function RigheEsperienze({ titolo, filtro }: { titolo?: boolean; filtro?: Filtro
         : <a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
       voce={i} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
   );
-  // nella lista Attività le esperienze sono una sola sezione
+  // In «Tutte le attività» le esperienze sono una sola sezione, prima quelle con data.
   const conDataF = v.conData.filter((i) => !filtro || filtro.has(i.id));
   const senzaDataF = senzaData.filter((i) => !filtro || filtro.has(i.id));
   if (titolo) return <Sezione titolo="Esperienze" dettaglio={tutte.length}>{conDataF.map(riga)}{senzaDataF.map(riga)}</Sezione>;

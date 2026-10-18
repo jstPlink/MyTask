@@ -9,6 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- App (WebView di Capacitor), solo verticale; il tema di avvio mostra la schermata iniziale -->
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
@@ -25,6 +26,8 @@
 
         </activity>
 
+        <!-- Widget «Oggi» della schermata Home, in due aspetti (chiaro e scuro): ricevono solo APPWIDGET_UPDATE.
+             Non c'è aggiornamento periodico (updatePeriodMillis=0): è l'app a spingere la lista. -->
         <receiver
             android:name=".MyTaskWidgetChiaro"
             android:label="@string/widget_nome_chiaro"
@@ -49,11 +52,13 @@
                 android:resource="@xml/widget_info_scuro" />
         </receiver>
 
+        <!-- Fornisce le righe al ListView del widget; solo il sistema può collegarsi (BIND_REMOTEVIEWS) -->
         <service
             android:name=".WidgetService"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 
+        <!-- Tocco su una riga del widget (spunta o apre l'app): senza schermata, fuori dalle app recenti -->
         <activity
             android:name=".AzioneActivity"
             android:exported="false"
@@ -62,6 +67,7 @@
             android:noHistory="true"
             android:theme="@android:style/Theme.NoDisplay" />
 
+        <!-- Nota veloce dal pulsante + del widget: barra sopra la tastiera su sfondo traslucido, tastiera aperta subito -->
         <activity
             android:name=".NotaRapidaActivity"
             android:exported="false"
@@ -71,6 +77,7 @@
             android:windowSoftInputMode="stateVisible|adjustResize"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- FileProvider richiesto da Capacitor per condividere file (percorsi in res/xml/file_paths.xml) -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -82,9 +89,12 @@
         </provider>
     </application>
 
-    <!-- Permissions -->
+    <!-- Permessi dichiarati qui. Altri (notifiche, sveglie esatte, vibrazione) li aggiungono per fusione i plugin
+         Capacitor delle notifiche locali e dell'aptica. -->
 
+    <!-- collegamento al server -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- posizione (navigator.geolocation nella WebView) per i luoghi delle voci -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 </manifest>

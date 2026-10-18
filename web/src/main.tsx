@@ -14,10 +14,12 @@ import { avviaPesi } from './lib/pesi.ts';
 import { sistemaPersoneEChecklist } from './lib/migrazioni.ts';
 import { avviaArricchimento } from './lib/arricchimento.ts';
 
+// Punto d'ingresso. Tema, pesi della priorità e aptica non dipendono dai dati: partono subito, prima del disegno.
 avviaTema();
 avviaPesi();
 avviaHaptic();
 
+/** Carica l'archivio locale, mostra l'app e avvia i servizi in background (diversi per app Android e sito). */
 async function avvia() {
   await initStore();
   sistemaPersoneEChecklist();
@@ -27,9 +29,11 @@ async function avvia() {
   avviaSync();
   avviaArricchimento();
   if (isNative()) {
+    // app Android: notifiche pianificate dal sistema e widget della Home; l'APK contiene già i file, niente service worker
     avviaNotificheNative();
     avviaWidget();
   } else {
+    // sito: promemoria con l'API Notification (finché la pagina è aperta) e service worker per l'uso offline e l'installazione
     avviaPromemoria();
     registerSW({ immediate: true });
   }

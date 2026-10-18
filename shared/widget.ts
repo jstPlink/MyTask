@@ -1,10 +1,11 @@
+// Dati per il widget «Oggi» della schermata Home di Android: le righe del piano di oggi e un archivio compatto delle note.
+// L'app li calcola e li invia al widget (plugin Widget); il widget non legge i dati dell'app né usa la rete.
 import type { Item } from './types.ts';
 import { pianifica, orario, type Disponibilita } from './piano.ts';
-import { barLevel, battitoBpm, score, urgency } from './priority.ts';
+import { barLevel, battitoBpm, isClosed, score, urgency } from './priority.ts';
 import { live, vistaOggi } from './views.ts';
-import { chiaveTitolo } from './capture.ts';
+import { chiaveTitolo } from './testo.ts';
 import { NOMI_TIPO } from './types.ts';
-import { isClosed } from './priority.ts';
 
 /** Una riga del widget "Oggi" della schermata Home. */
 export interface RigaWidget {
@@ -58,6 +59,7 @@ export interface VoceArchivio {
   a: number;
 }
 
+/** Il testo di ricerca di ogni nota è accorciato a tanti caratteri, per tenere piccolo l'archivio passato al widget. */
 const LUNGHEZZA_CHIAVE = 300;
 
 /** Tutte le note (esclusi i contatti) in forma compatta, per la ricerca di note simili dentro il widget. */

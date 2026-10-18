@@ -9,6 +9,7 @@ import { Row } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 
+// Riconoscimento vocale del browser (non nei tipi di TypeScript): c'è solo dove il sistema lo offre, altrimenti il microfono non compare.
 interface RiconoscimentoVocale { lang: string; interimResults: boolean; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null; start(): void; stop(): void }
 type CostruttoreVocale = new () => RiconoscimentoVocale;
 
@@ -18,9 +19,10 @@ function vocale(): CostruttoreVocale | undefined {
 }
 
 /**
- * Cattura rapida: il testo non viene interpretato. Si salva così com'è come bozza in Inbox
- * e, mentre si scrive, compaiono tutte le note che contengono le stesse parole (anche in forme diverse),
- * per accorgersi subito se la nota esiste già.
+ * Cattura rapida (pulsante «+»): foglio dal basso sul telefono, finestra al centro sul sito largo. Il testo non viene interpretato:
+ * si salva così com'è come bozza in Inbox (il tipo lo sceglie l'utente dopo). Mentre si scrive compaiono le note che contengono
+ * le stesse parole (anche in forme diverse), per accorgersi subito se esiste già: sul telefono sopra il campo, sul sito sotto.
+ * Il microfono dettando sostituisce il testo con la trascrizione.
  */
 export function Capture() {
   const nav = useNav();

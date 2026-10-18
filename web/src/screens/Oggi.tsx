@@ -1,3 +1,17 @@
+/**
+ * Oggi: la schermata iniziale. Mostra un giorno alla volta (di base oggi): routine del giorno e piano.
+ *
+ * - Piano: se è impostato il tempo libero, `pianifica` distribuisce le attività in blocchi con ora e durata;
+ *   la «linea a fasce» (`LineaPiano`) mostra le 24 ore con le fasce libere e, sotto, la fascia scelta
+ *   con un segmento per attività. L'elenco sotto mostra solo i blocchi della fascia scelta, con le attività
+ *   dello stesso progetto riunite sotto la sua testata. Senza tempo libero c'è la lista semplice «Da fare oggi»
+ *   (`vistaOggi`) con l'invito a impostarlo.
+ * - Giorni: le frecce, lo swipe orizzontale e il mese (si apre toccando il nome del giorno) cambiano giorno.
+ *   Un giorno futuro mostra il suo piano (per quelli coperti dalla pianificazione) e le voci che vi scadono;
+ *   un giorno passato le voci rimaste aperte. Routine, Inbox e stato di sincronizzazione solo su oggi.
+ * - Telefono: titolo con i pulsanti tondi (Aspetto, Inbox, Altro) e «+» per la cattura. Da 900 px (`nav.wide`)
+ *   la stessa colonna senza pulsanti né «+», che stanno nella barra laterale.
+ */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { sistemaNumeri } from '../../../shared/linea.ts';
 import type { Item } from '../../../shared/types.ts';
@@ -8,27 +22,32 @@ import { classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from 
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useDisponibilita, useItems, useMinuto, useOggi, useSyncStatus } from '../lib/hooks.ts';
-import { completaVoce, segnaRoutine } from '../lib/actions.ts';
+import { segnaRoutine } from '../lib/actions.ts';
 import { Fab, Sezione, GruppoProgetto, Icona, Row, Top } from '../ui/kit.tsx';
 import { useLayer, useNav } from '../ui/nav.tsx';
 import { clsx, nomeTempo } from '../lib/util.ts';
 import { margineAtteso, percentuale } from '../../../shared/stima.ts';
 import { GrigliaMese, type SegnoGiorno } from './Calendario.tsx';
 
-// il giorno scelto resta finché l'app è aperta (anche aprendo una voce e tornando indietro)
+// Il giorno scelto resta finché l'app è aperta (anche aprendo una voce e tornando indietro); undefined = oggi.
 const scelta: { giorno: string | undefined } = { giorno: undefined };
+// Tipi che compaiono nei giorni diversi da oggi quando hanno una scadenza in quel giorno.
 const TIPI_DATATI = new Set(['azione', 'progetto', 'esperienza']);
 const durata = (min: number) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`);
 
 const pct = (m: number) => (m / 1440) * 100;
+/** Fascia libera [inizio, fine] in minuti dalla mezzanotte. */
 type Fascia = [number, number];
+
+/** Diametro massimo dei pallini numerati sotto la barra della fascia (si rimpiccioliscono se sono tanti). */
+const DIAMETRO_NUMERO = 24;
 
 /**
  * Linea del piano: in alto le 24 ore (fasce libere cliccabili, attività, impegni fissi, ora attuale);
- * sotto gli orari della fascia scelta e la sua barra a segmenti, un segmento per attività col numero d'ordine.
+ * sotto gli orari della fascia scelta e la sua barra a segmenti, un segmento per attività colorato dalla
+ * priorità (la parte chiara è il margine d'errore). Sotto la barra un pallino per attività col numero d'ordine
+ * (la posizione in classifica), centrato sul suo segmento e distanziato dagli altri (`sistemaNumeri`).
  */
-const DIAMETRO_NUMERO = 24;
-
 function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: Blocco[]; fasce: Fascia[]; sel: number; onSel: (i: number) => void; ora?: number; rank: Map<string, number>; oggi: string }) {
   const contenitore = useRef<HTMLDivElement>(null);
   const [larghezza, setLarghezza] = useState(300);
@@ -41,6 +60,7 @@ function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: 
     ro.observe(e);
     return () => ro.disconnect();
   }); // a ogni disegno: il contenitore può essere un altro elemento dopo un cambio di giorno
+  // I pallini si dispongono sulla larghezza reale del contenitore, quindi la si rimisura.
   if (!fasce.length) return null;
   const f = fasce[Math.max(0, Math.min(sel, fasce.length - 1))];
   const livello = (b: Blocco) => (b.pausa ? 'pausa' : `p${barLevel(b.punteggio ?? score(b.item, oggi))}`);
@@ -95,6 +115,7 @@ function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: 
   );
 }
 
+/** Schermata Oggi (vedi l'intestazione del file). */
 export function Oggi() {
   const items = useItems();
   const oggi = useOggi();
@@ -106,7 +127,8 @@ export function Oggi() {
   const minutoCorrente = useMinuto();
   const piano = useMemo(() => (disp ? pianifica(items, disp, oggi, minutoCorrente * 60000, undefined, margine) : null), [items, disp, oggi, minutoCorrente, margine]);
   const [meseAperto, setMeseAperto] = useState(false);
-  // fascia libera scelta nella barra (per giorno); di default quella in corso o la prossima
+  // Fascia libera scelta nella barra (per giorno); di default quella in corso o la prossima.
+  // Per oggi le fasce già finite non sono selezionabili.
   const [fasciaScelta, setFasciaScelta] = useState<Record<string, number>>({});
   const minutiOra = new Date(minutoCorrente * 60000).getHours() * 60 + new Date(minutoCorrente * 60000).getMinutes();
   const fasceDi = (g: string): Fascia[] => (disp ? fasceLibere(disp, g) : []);
@@ -119,9 +141,11 @@ export function Oggi() {
     return i >= 0 ? i : fasce.length - 1;
   };
   const inFascia = (bl: Blocco, f?: Fascia) => !f || (bl.da < f[1] && bl.a > f[0]);
+  // Giorno mostrato: se l'app resta aperta oltre la mezzanotte un giorno passato non scelto di proposito torna a oggi.
   const [giornoScelto, setGiornoState] = useState<string>(scelta.giorno ?? oggi);
   const giorno = giornoScelto < oggi && giornoScelto !== scelta.giorno ? oggi : giornoScelto;
   const setGiorno = (d: string) => { scelta.giorno = d === oggi ? undefined : d; setGiornoState(d); };
+  // Voci aperte con scadenza, per giorno: alimentano «Con scadenza questo giorno», «Rimaste aperte» e i pallini del mese.
   const voci = useMemo(() => {
     const m = new Map<string, Item[]>();
     for (const i of items) {
@@ -137,8 +161,10 @@ export function Oggi() {
     for (const [d, l] of voci) aggiungi(d, l.length, l.some((i) => i.rigida || isOverdue(i, oggi)));
     return m;
   }, [voci, oggi]);
+  // Direzione dell'ultimo cambio di giorno: decide da che lato entra l'animazione.
   const [direzione, setDirezione] = useState<'avanti' | 'indietro' | ''>('');
   const vaiGiorno = (d: string) => { setDirezione(d > giorno ? 'avanti' : 'indietro'); setGiorno(d); };
+  // Barra del giorno: frecce ai lati; il nome apre il mese, «Torna a oggi» compare lontano da oggi.
   const navGiorno = (
     <div className="giorno-nav">
       <button onClick={() => vaiGiorno(addDays(giorno, -1))} aria-label="Giorno precedente">‹</button>
@@ -152,7 +178,8 @@ export function Oggi() {
       <button onClick={() => vaiGiorno(addDays(giorno, 1))} aria-label="Giorno successivo">›</button>
     </div>
   );
-  // swipe orizzontale nella vista giorno: a sinistra il giorno dopo, a destra quello prima
+  // Swipe orizzontale: a sinistra il giorno dopo, a destra quello prima. Conta solo un gesto lungo e quasi
+  // orizzontale; non parte su elenchi scorrevoli, campi di testo o con il mese aperto.
   const inizioTocco = useRef<{ x: number; y: number } | null>(null);
   const tocco = {
     onTouchStart: (e: React.TouchEvent) => {
@@ -171,6 +198,7 @@ export function Oggi() {
     },
   };
 
+  // Riga grigia sotto il titolo nella lista semplice «Da fare oggi».
   const meta = (e: Entry) => {
     const i = e.item;
     const pezzi: string[] = [];
@@ -179,15 +207,17 @@ export function Oggi() {
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return pezzi.join(' · ');
   };
+  // Data a destra della riga: scadenza, o «ieri» / «N gg fa» se scaduta (arancio); per oggi niente.
   const destra = (e: Entry) => {
     const d = dueDate(e.item);
     if (!d) return null;
     const ritardo = daysOverdue(e.item, oggi);
-    if (d === oggi) return null; // in Oggi la scadenza di oggi è già chiara
+    if (d === oggi) return null;
     if (ritardo > 0) return <span className="hard">{ritardo === 1 ? 'ieri' : `${ritardo} gg fa`}</span>;
     return e.item.rigida ? <span className="hard rigida">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
   };
 
+  // Routine del giorno come chip da spuntare (solo su oggi).
   const routineFatte = v.routine.filter((r) => fattaOggi(r, oggi)).length;
   const routine = v.routine.length > 0 && (
     <Sezione titolo="Routine di oggi" dettaglio={`${routineFatte} su ${v.routine.length}`}>
@@ -201,12 +231,16 @@ export function Oggi() {
     </Sezione>
   );
 
+  // Dove il piano ha messo una voce (per dire «pianificata domani alle 18:00» tra le voci con scadenza).
   const dovePianificata = (id: string) => piano?.giorni.flatMap((g) => g.blocchi).find((x) => x.item.id === id && !x.fisso);
   const nomeGiorno = (d: string) => (d === addDays(oggi, 1) ? 'domani' : formatLong(d).toLowerCase());
-  // posizione in classifica dei blocchi del giorno mostrato (per priorità, gli impegni con orario fisso non contano)
+  // Numero d'ordine dei blocchi del giorno mostrato: posizione nella classifica di priorità di tutte le attività
+  // (la stessa di Attività e della scheda); impegni con orario fisso e pause non hanno numero.
   const classificaGlobale = useMemo(() => classificaPriorita(items, oggi, minutoCorrente * 60000), [items, oggi, minutoCorrente]);
   const idBlocchi = new Set((piano?.giorni.find((x) => x.data === giorno)?.blocchi ?? []).filter((x) => !x.fisso && !x.pausa).map((x) => x.item.id));
   const classifica = new Map<string, number>([...classificaGlobale].filter(([id]) => idBlocchi.has(id)));
+  // Riga di un blocco del piano: ora e durata a sinistra, poi titolo, dettagli (prossimo passo, parte N di M,
+  // margine), scadenza o «scaduta» se il blocco finisce oltre la scadenza. La pausa curiosità ha un aspetto più leggero.
   const bloccoRiga = (bl: NonNullable<typeof piano>['giorni'][number]['blocchi'][number]) => bl.pausa ? (
     <Row
       key={`${bl.item.id}-${bl.da}`}
@@ -235,7 +269,7 @@ export function Oggi() {
     />
   );
 
-  /** Righe in ordine, con le attività dello stesso progetto riunite sotto la sua testata. */
+  /** Righe in ordine, con le attività dello stesso progetto riunite sotto la sua testata (toccandola si apre il progetto). */
   const raggruppate = <T extends { padre?: Item }>(voci: T[], riga: (v: T) => React.ReactNode) =>
     raggruppaPerProgetto(voci, items).map((g) => g.progetto
       ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
@@ -246,6 +280,8 @@ export function Oggi() {
   const selOggi = fasciaDi(oggi, fasceOggi);
   const totaleOggi = piano && disp ? minutiDisponibili(disp, oggi, oggi, minutoCorrente * 60000) : 0;
 
+  // Giorno diverso da oggi: piano del giorno (solo se futuro e coperto dalla pianificazione) e voci con scadenza
+  // in quel giorno non già nel piano; per un giorno passato, le voci rimaste aperte.
   const altroGiorno = (() => {
     const g = piano?.giorni.find((x) => x.data === giorno);
     const blocchi = g?.blocchi ?? [];
@@ -259,7 +295,7 @@ export function Oggi() {
     return (
       <>
         {!passato && g && (
-          <Sezione titolo={`Piano di ${giorno === addDays(oggi, 1) ? 'domani' : formatLong(giorno).toLowerCase()}`}>
+          <Sezione titolo={`Piano di ${nomeGiorno(giorno)}`}>
             <LineaPiano blocchi={blocchi} fasce={fasceG} sel={selG} onSel={(i) => setFasciaScelta((c) => ({ ...c, [giorno]: i }))} rank={classifica} oggi={oggi} />
             {blocchi.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>{totale === 0 ? 'Nessun tempo libero impostato per questo giorno.' : 'Niente di pianificato.'}</div>}
             {raggruppate(blocchiG, bloccoRiga)}
@@ -286,7 +322,7 @@ export function Oggi() {
     );
   })();
 
-  // modalità flessibile: dopo l'ora scelta (o se oggi non ha orari) chiede quando si è liberi
+  // Modalità «orari flessibili»: se oggi non ha orari chiede quando si è liberi; per domani lo chiede dopo l'ora scelta.
   const domani = addDays(oggi, 1);
   const chiediDomani = !!disp?.flessibile && !disp.eccezioni?.[domani] && minutiOra >= minuti(disp.oraChiedi ?? ORA_CHIEDI_PREDEFINITA);
   const chiediOggi = !!disp?.flessibile && !disp.eccezioni?.[oggi];
@@ -297,22 +333,22 @@ export function Oggi() {
     </button>
   );
 
+  // Contenuto di oggi: inviti a inserire gli orari (modalità flessibile), poi il piano con la linea a fasce oppure,
+  // senza tempo libero impostato, la lista semplice «Da fare oggi».
   const faroggi = (
     <>
       {chiediOggi && chiediOrari(oggi, 'oggi')}
       {chiediDomani && chiediOrari(domani, 'domani')}
       {piano && pianoOggi ? (
-        <>
-          <Sezione titolo="Piano di oggi">
-            <LineaPiano blocchi={pianoOggi.blocchi} fasce={fasceOggi} sel={selOggi} onSel={(i) => setFasciaScelta((c) => ({ ...c, [oggi]: i }))} ora={minutiOra} rank={classifica} oggi={oggi} />
-            {pianoOggi.blocchi.length === 0 && (
-              <div className="t2" style={{ padding: '14px 0' }}>
-                {totaleOggi === 0 && !pianoOggi.blocchi.length ? 'Oggi non hai tempo libero impostato (o la giornata è finita).' : 'Niente da pianificare per oggi.'}
-              </div>
-            )}
-            {raggruppate(pianoOggi.blocchi.filter((x) => inFascia(x, fasceOggi[selOggi])), bloccoRiga)}
-          </Sezione>
-        </>
+        <Sezione titolo="Piano di oggi">
+          <LineaPiano blocchi={pianoOggi.blocchi} fasce={fasceOggi} sel={selOggi} onSel={(i) => setFasciaScelta((c) => ({ ...c, [oggi]: i }))} ora={minutiOra} rank={classifica} oggi={oggi} />
+          {pianoOggi.blocchi.length === 0 && (
+            <div className="t2" style={{ padding: '14px 0' }}>
+              {totaleOggi === 0 ? 'Oggi non hai tempo libero impostato (o la giornata è finita).' : 'Niente da pianificare per oggi.'}
+            </div>
+          )}
+          {raggruppate(pianoOggi.blocchi.filter((x) => inFascia(x, fasceOggi[selOggi])), bloccoRiga)}
+        </Sezione>
       ) : (
         <Sezione titolo="Da fare oggi" dettaglio={v.fare.length || undefined}>
           <button className="card tap" style={{ marginTop: 8 }} onClick={() => nav.push({ k: 'tempolibero' })}>
@@ -339,6 +375,8 @@ export function Oggi() {
     </>
   );
 
+  // Stato di sincronizzazione: sul telefono solo se si è offline o ci sono modifiche in attesa
+  // (sul sito è sempre nella barra laterale, quindi qui non viene mostrato).
   const stato = sync.online && !sync.inAttesa ? null : (
     <div style={{ textAlign: 'center', marginTop: 18 }}>
       <span className={clsx('pill-sync', !sync.online && 'off')}>
@@ -347,6 +385,7 @@ export function Oggi() {
     </div>
   );
 
+  // Mese in un foglio (telefono) o finestra (sito): è un livello della pila «Indietro» e si chiude anche con Esc.
   useLayer('mese', meseAperto, () => setMeseAperto(false));
   const scegli = (d: string) => { setGiorno(d); setMeseAperto(false); };
   useEffect(() => {
@@ -370,6 +409,7 @@ export function Oggi() {
   );
   const eOggi = giorno === oggi;
 
+  // Sito largo: titolo con il riepilogo, una sola colonna centrata; il gesto di swipe vale anche qui.
   if (nav.wide) {
     return (
       <>
@@ -384,6 +424,7 @@ export function Oggi() {
     );
   }
 
+  // Telefono: titolo con i pulsanti tondi, giorno, contenuto e pulsante «+».
   return (
     <>
       <Top

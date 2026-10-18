@@ -1,4 +1,4 @@
-// Indirizzo del server scritto dall'utente: schema (http o https) separato dal resto.
+// Indirizzo del server scritto dall'utente nella schermata di accesso dell'app: schema (http o https) separato dal resto.
 
 export type Schema = 'http' | 'https';
 

@@ -2,7 +2,11 @@ import { useRef, useState } from 'react';
 import { MAX_IMMAGINI_VOCE, pesoImmagini, riduciImmagine } from '../lib/immagini.ts';
 import { mostraToast } from '../lib/toast.ts';
 
-/** Sotto le note: pulsanti per aggiungere un link o un'immagine, con l'elenco di quelli già allegati. */
+/**
+ * Sotto le note: pulsanti per aggiungere un link o un'immagine, con l'elenco di quelli già allegati.
+ * Le immagini sono ridotte prima di essere salvate nella voce (con un tetto di spazio per voce); un tocco sull'immagine la ingrandisce.
+ * `onChange` riceve solo il campo cambiato; un elenco rimasto vuoto diventa `undefined`.
+ */
 export function AllegatiNote({ link, immagini, onChange }: {
   link: string[] | undefined;
   immagini: string[] | undefined;

@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { addDays, addMonths, formatLong, monthLabel, startOfWeek } from '../../../shared/dates.ts';
 
+// iniziali dei giorni, da lunedì
 const SETTIMANA = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
 
 const primoDelMese = (iso: string) => `${iso.slice(0, 7)}-01`;
 
+/** Cosa mostrare sotto un giorno: `n` attività (al massimo 3 pallini) e `avviso` se la prima è una scadenza fissa o scaduta. */
 export interface SegnoGiorno { n: number; avviso: boolean }
 
-/** Mese con un pallino per i giorni che hanno attività (arancio se c'è una scadenza fissa o scaduta). Toccando un giorno lo si sceglie. */
+/**
+ * Griglia del mese usata in Oggi (finestra del calendario): frecce per cambiare mese, un pallino per i giorni che hanno attività
+ * (arancio se c'è una scadenza fissa o scaduta). Toccando un giorno lo si sceglie: `giorno` è quello selezionato, `oggi` quello evidenziato.
+ */
 export function GrigliaMese({ giorno, oggi, segni, onScegli }: {
   giorno: string;
   oggi: string;

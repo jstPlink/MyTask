@@ -3,6 +3,7 @@ import { leggiDurata, scomponi, scriviDurata } from '../../../shared/tempo.ts';
 import { clsx } from '../lib/util.ts';
 import { useLayer } from './nav.tsx';
 
+// i minuti del selettore avanzano a passi di 15 e girano da 45 a 0
 const PASSO_MINUTI = 15;
 
 /**
@@ -37,6 +38,7 @@ export function CampoTempo({ label, valore, onChange }: { label: string; valore:
   );
 }
 
+/** Foglio dal basso con tre colonne (giorni, ore, minuti) con pulsanti più/meno; «Togli la stima» azzera il valore. */
 function SelettoreTempo({ label, iniziale, onFatto, onChiudi }: { label: string; iniziale: number | undefined; onFatto: (min: number | undefined) => void; onChiudi: () => void }) {
   const [t, setT] = useState(() => {
     const s = scomponi(iniziale);

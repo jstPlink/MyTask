@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { cercaVoci, curiosita } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { completaVoce } from '../lib/actions.ts';
 import { Cerca, Empty, Fab, Row, Top, Sezione } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav } from '../ui/nav.tsx';
 
-/** Cose da approfondire. Ogni tanto compaiono nel piano di Oggi come pausa tra le attività più grandi. */
+/**
+ * Scheda Curiosità: le note da approfondire, con ricerca. Ogni riga mostra l'interesse (1-5) e ha la casella a quattro stati.
+ * Ogni tanto compaiono nel piano di Oggi come pausa tra le attività più grandi.
+ */
 export function Curiosita() {
   const nav = useNav();
   const items = useItems();

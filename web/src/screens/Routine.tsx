@@ -10,9 +10,15 @@ import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { clsx } from '../lib/util.ts';
 
+// ordine delle sezioni; una routine senza fascia sta in «sera»
 const FASCE: Fascia[] = ['mattina', 'pomeriggio', 'sera', 'prima_di_dormire'];
 const nomeGiorno = (iso: string) => new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: 'numeric' }).format(parseISO(iso));
 
+/**
+ * Scheda Routine: le routine attive per fascia della giornata, con la casella di oggi, la riga dei sette giorni della settimana
+ * e il conteggio. Sul sito largo sopra c'è la griglia della settimana in sette colonne, dove si può spuntare qualsiasi giorno.
+ * Le routine archiviate stanno in «Parcheggiate» e non compaiono in Oggi finché non si riattivano.
+ */
 export function Routine() {
   const nav = useNav();
   const items = useItems();
