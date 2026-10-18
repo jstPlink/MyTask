@@ -1,7 +1,10 @@
 import type { Item } from './types.ts';
 import { pianifica, orario, type Disponibilita } from './piano.ts';
 import { barLevel, battitoBpm, score, urgency } from './priority.ts';
-import { vistaOggi } from './views.ts';
+import { live, vistaOggi } from './views.ts';
+import { chiaveTitolo } from './capture.ts';
+import { NOMI_TIPO } from './types.ts';
+import { isClosed } from './priority.ts';
 
 /** Una riga del widget "Oggi" della schermata Home. */
 export interface RigaWidget {
@@ -38,4 +41,35 @@ export function righeWidget(items: Item[], disp: Disponibilita | null, oggi: str
     righe.push({ id: b.item.id, t: b.item.titolo, o: orario(b.da), r: b.fisso ? undefined : classifica.get(b.item.id), l: barLevel(score(b.item, oggi)), b: b.fisso ? undefined : battitoBpm(urgency(b.item, oggi)) || undefined });
   }
   return righe.slice(0, max);
+}
+
+/** Una nota nell'archivio del widget: serve alla nota veloce per mostrare le note con parole simili. */
+export interface VoceArchivio {
+  id: string;
+  /** Titolo. */
+  t: string;
+  /** Riga grigia: tipo, piattaforma, stato. */
+  m: string;
+  /** 1 se completata, saltata o archiviata. */
+  c: 0 | 1;
+  /** Testo di ricerca già normalizzato (titolo, note e campi di testo), accorciato. */
+  k: string;
+  /** Ultima modifica. */
+  a: number;
+}
+
+const LUNGHEZZA_CHIAVE = 300;
+
+/** Tutte le note (esclusi i contatti) in forma compatta, per la ricerca di note simili dentro il widget. */
+export function archivioWidget(items: Item[]): VoceArchivio[] {
+  return live(items)
+    .filter((i) => i.tipo !== 'persona')
+    .map((i) => ({
+      id: i.id,
+      t: i.titolo,
+      m: [NOMI_TIPO[i.tipo], i.piattaforma, i.stato === 'fatto' ? 'completata' : i.stato === 'saltato' ? 'saltata' : i.stato === 'parcheggiato' ? 'archiviata' : i.inbox ? 'in Inbox' : undefined].filter(Boolean).join(' · '),
+      c: (isClosed(i) ? 1 : 0) as 0 | 1,
+      k: chiaveTitolo([i.titolo, i.note, i.consigliatoDa, i.conChi, i.piattaforma, i.genere, ...(i.checklist ?? []).map((c) => c.testo)].filter(Boolean).join(' ')).slice(0, LUNGHEZZA_CHIAVE),
+      a: i.aggiornato,
+    }));
 }

@@ -100,6 +100,8 @@ export interface Item {
   completatoIl?: string;
   /** Quando è stata completata (millisecondi), oltre al giorno: serve per mostrare l'ora. */
   completatoTs?: number;
+  /** Quando la nota è passata allo stato «in corso» (millisecondi). */
+  inCorsoTs?: number;
   /** Posizione di un passo dentro il suo progetto (0 = il primo, il più prioritario). */
   ordine?: number;
 

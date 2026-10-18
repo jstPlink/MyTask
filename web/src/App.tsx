@@ -22,6 +22,7 @@ import { TempoLibero } from './screens/TempoLibero.tsx';
 import { OrariGiorno } from './screens/OrariGiorno.tsx';
 import { ascoltaRichiestaOrari, prendiRichiestaOrari } from './lib/richiestaOrari.ts';
 import { RecensioneSheet } from './ui/Recensione.tsx';
+import { StatoMenu } from './ui/StatoMenu.tsx';
 import { DurataSheet } from './ui/DurataSheet.tsx';
 import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
 import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Revisione, Stasera } from './screens/Secondarie.tsx';
@@ -215,6 +216,7 @@ export function App() {
           <TabBar />
           {capture && <Capture />}
           <RecensioneSheet />
+          <StatoMenu />
           <DurataSheet />
           <AvanzamentoProgetto />
           <ToastView />
@@ -249,6 +251,7 @@ export function App() {
         )}
         {capture && <Capture />}
         <RecensioneSheet />
+          <StatoMenu />
           <DurataSheet />
           <AvanzamentoProgetto />
         <ToastView />

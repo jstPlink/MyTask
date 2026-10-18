@@ -53,7 +53,7 @@ export function Scoprire() {
               check="square"
               centrato
               light={interesse <= 1}
-              onCheck={() => completaVoce(i)}
+              voce={i}
               selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })}
             />
           );

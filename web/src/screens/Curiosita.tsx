@@ -27,7 +27,7 @@ export function Curiosita() {
               interesse={i.interesse ?? 3}
               check="square"
               centrato
-              onCheck={() => completaVoce(i)}
+              voce={i}
               selected={nav.openId === i.id}
               onOpen={() => nav.push({ k: 'item', id: i.id })}
             />

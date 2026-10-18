@@ -12,7 +12,7 @@
   --warn: #D1430B; --warn-soft: #FDEBE2; --shadow: 0 6px 20px rgba(30,30,40,.10); --on-accent: #FFFFFF;
   --accent: var(--accent-l); --accent-soft: var(--accent-soft-l);
   --o-verde: #2F7D5B; --o-petrolio: #0E7490; --o-indaco: #4F46E5;
-  --amber: #B7791F; --amber-soft: #FBEBD0;
+  --amber: #B7791F; --amber-soft: #FBEBD0; --giallo: #D9A400;
   --c1: #2F7D5B; --c1s: #E3F1EA; --c2: #9A5B0B; --c2s: #FBEBD0; --c3: #4F46E5; --c3s: #ECEBFD; --c4: #B03A6E; --c4s: #FADFEB; --c5: #0E7490; --c5s: #DDF1F6;
 }
 :root[data-theme=dark] {
@@ -21,7 +21,7 @@
   --warn: #FF9466; --warn-soft: #3A2218; --shadow: 0 6px 24px rgba(0,0,0,.55); --on-accent: #0E0F12;
   --accent: var(--accent-d); --accent-soft: var(--accent-soft-d);
   --o-verde: #6FCF9B; --o-petrolio: #4FC3DD; --o-indaco: #9A9EFF;
-  --amber: #F0B866; --amber-soft: #3A2C14;
+  --amber: #F0B866; --amber-soft: #3A2C14; --giallo: #F4C542;
   --c1: #6FCF9B; --c1s: #17332A; --c2: #F0B866; --c2s: #3A2C14; --c3: #9A9EFF; --c3s: #25274F; --c4: #F08DB8; --c4s: #3D1B2B; --c5: #4FC3DD; --c5s: #12323B;
 }
 
@@ -478,7 +478,7 @@ a { color: var(--accent); }
 .modal-voce .back { display: inline-flex; }
 
 /* slider dell'importanza: cuneo continuo con gradiente grigio -> rosso */
-.slider-c { position: relative; flex: 1; max-width: 220px; height: 32px; --p: 50%; --col: var(--accent); }
+.slider-c { position: relative; flex: 1; max-width: 154px; height: 32px; --p: 50%; --col: var(--accent); }
 .slider-tr { position: absolute; left: 0; right: 0; top: 7px; height: 18px; clip-path: polygon(0 72%, 100% 0, 100% 100%, 0 100%); background: var(--surface2); }
 .slider-tr i { position: absolute; inset: 0; display: block; background: linear-gradient(to right, var(--soft), var(--warn)); clip-path: inset(0 calc(100% - var(--p)) 0 0); }
 .slider-c input[type=range] { -webkit-appearance: none; appearance: none; position: absolute; inset: 0; width: 100%; height: 32px; background: transparent; margin: 0; cursor: pointer; z-index: 2; }
@@ -610,3 +610,33 @@ a { color: var(--accent); }
 /* margine d'errore sulla stima: coda tratteggiata del segmento (il segmento dura già stima + margine) */
 .lp-bs i { overflow: hidden; }
 .lp-bs i .lp-m { position: absolute; right: 0; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--bg) 62%, transparent) 0 2px, transparent 2px 5px); border-left: 1.5px solid color-mix(in srgb, var(--bg) 70%, transparent); }
+
+/* ---------- Stati di una nota: da fare, in corso (giallo, mezza casella), fatta, archiviata (tratteggiata) ---------- */
+.cb.prog { border-color: var(--giallo); background: linear-gradient(90deg, var(--giallo) 50%, transparent 50%); }
+.cb.arch { border-style: dashed; background: transparent; color: var(--soft); }
+.cb.arch::after { content: "\25A4"; font-size: 12px; }
+.row.st-arch { opacity: .6; }
+.stato-voce { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 10px; border-radius: 12px; text-align: left; font-size: 15px; }
+.stato-voce b { display: block; font-weight: 650; }
+.stato-voce small { display: block; color: var(--mid); font-size: 12px; }
+.stato-voce.on { background: var(--accent-soft); color: var(--accent); }
+.stato-voce:active { background: var(--surface2); }
+.stati-seg { display: flex; background: var(--surface2); border-radius: 14px; padding: 3px; gap: 2px; margin: 4px 0 12px; }
+.stati-seg button { flex: 1; padding: 9px 2px; border-radius: 11px; font-size: 12.5px; font-weight: 700; color: var(--mid); }
+.stati-seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.stati-seg button.on.prog { color: var(--giallo); }
+.stati-seg button.on.fatto { color: var(--accent); }
+
+/* Blocco priorità collassabile: la testata è il pulsante, la freccia ruota */
+.prio-testa { width: 100%; text-align: left; cursor: pointer; }
+.prio-chev { flex: none; width: 22px; text-align: center; color: var(--mid); font-size: 14px; transition: transform .2s; }
+.prio.aperta .prio-chev { transform: rotate(180deg); }
+.prio { transition: padding-bottom .28s ease; }
+.prio:not(.aperta) { padding-bottom: 14px; }
+/* apertura e chiusura animate: l'altezza passa da 0 a quella del contenuto */
+.prio-corpo { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .28s ease, opacity .22s ease; }
+.prio.aperta .prio-corpo { grid-template-rows: 1fr; opacity: 1; }
+.prio-corpo-in { overflow: hidden; min-height: 0; }
+
+/* testi dello stato al centro del pulsante */
+.stati-seg button { display: flex; align-items: center; justify-content: center; text-align: center; }

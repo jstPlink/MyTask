@@ -212,7 +212,7 @@ export function Oggi() {
       meta="Pausa curiosità"
       check="square"
       light
-      onCheck={() => completaVoce(bl.item)}
+      voce={bl.item}
       selected={nav.openId === bl.item.id}
       onOpen={() => nav.push({ k: 'item', id: bl.item.id })}
     />
@@ -226,7 +226,7 @@ export function Oggi() {
       level={barLevel(score(bl.item, oggi))}
       rank={bl.fisso ? undefined : classifica.get(bl.item.id)}
       urgenza={urgency(bl.item, oggi)}
-      onCheck={() => completaVoce(bl.item)}
+      voce={bl.item}
       selected={nav.openId === bl.item.id}
       onOpen={() => nav.push({ k: 'item', id: bl.item.id })}
     />
@@ -268,7 +268,7 @@ export function Oggi() {
               <Row key={i.id} titolo={i.titolo} tipo={i.tipo} light meta={i.tipo === 'esperienza' ? 'Esperienza' : (() => { const d = dovePianificata(i.id); return d ? `pianificata ${d.data === oggi ? 'oggi' : nomeGiorno(d.data)} alle ${orario(d.da)}` : undefined; })()}
                 level={barLevel(score(i, oggi))} check={i.tipo === 'esperienza' ? 'square' : 'circle'}
                 right={i.rigida || passato ? <span className={clsx('hard', i.rigida && 'rigida')}>{formatShortYear(dueDate(i)!, oggi)}</span> : undefined}
-                onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+                voce={i} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
             ))}
           </Sezione>
         )}
@@ -326,7 +326,7 @@ export function Oggi() {
               meta={meta(e)}
               right={destra(e)}
               level={barLevel(e.punteggio)}
-              onCheck={() => completaVoce(e.item)}
+              voce={e.item}
               selected={nav.openId === e.item.id}
               onOpen={() => nav.push({ k: 'item', id: e.item.id })}
             />

@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { clsx } from '../lib/util.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
 import { GlifoTipo } from './Icone.tsx';
-import type { Item, Tipo } from '../../../shared/types.ts';
+import { avanzaStato, statoVisto } from '../lib/actions.ts';
+import { apriStatoMenu } from '../lib/statoMenu.ts';
+import type { Item, Stato, Tipo } from '../../../shared/types.ts';
 import { battito } from '../lib/battito.ts';
 
 export function Top({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
@@ -41,6 +43,8 @@ export interface RowProps {
   rank?: number;
   /** Interesse 1-5 (Intrattenimento, Curiosità, Esperienze): numero in un pallino verde che si riempie con l'interesse, fermo. */
   interesse?: number;
+  /** La nota della riga: la casella ha quattro stati (un tocco avanza, pressione lunga apre il menu). */
+  voce?: Item;
   /** Urgenza 0-100: il numero d'ordine batte a ritmo crescente con l'urgenza (fermo se 0 o assente). */
   urgenza?: number;
   check?: 'circle' | 'square' | 'none';
@@ -52,7 +56,38 @@ export interface RowProps {
   onOpen?: () => void;
 }
 
-export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+/** Classe della casella per uno stato: «in corso» mezza piena, «fatta» piena col segno, «archiviata» tratteggiata. */
+export function ClasseCasella(s: Stato): string {
+  const v = statoVisto(s);
+  return v === 'in_corso' ? 'prog' : v === 'fatto' ? 'done' : v === 'parcheggiato' ? 'arch' : '';
+}
+
+const PRESSIONE_LUNGA_MS = 450;
+
+/** Casella a quattro stati di una nota: tocco = stato successivo, pressione lunga o tasto destro = menu con tutti gli stati. */
+function CasellaStato({ voce }: { voce: Item }) {
+  const timer = useRef<number | undefined>(undefined);
+  const lungo = useRef(false);
+  const ferma = () => { window.clearTimeout(timer.current); timer.current = undefined; };
+  const stato = statoVisto(voce.stato);
+  const nome = { da_fare: 'da fare', in_corso: 'in corso', fatto: 'fatta', parcheggiato: 'archiviata' }[stato as 'da_fare'] ?? '';
+  return (
+    <span
+      className={clsx('cb', ClasseCasella(voce.stato))}
+      role="button"
+      aria-label={`«${voce.titolo}»: ${nome}. Tocca per cambiare, tieni premuto per scegliere`}
+      style={{ cursor: 'pointer', touchAction: 'manipulation' }}
+      onPointerDown={() => { lungo.current = false; ferma(); timer.current = window.setTimeout(() => { lungo.current = true; navigator.vibrate?.(12); apriStatoMenu(voce); }, PRESSIONE_LUNGA_MS); }}
+      onPointerUp={ferma}
+      onPointerLeave={ferma}
+      onPointerCancel={ferma}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ferma(); lungo.current = true; apriStatoMenu(voce); }}
+      onClick={(e) => { e.stopPropagation(); if (lungo.current) { lungo.current = false; return; } avanzaStato(voce); }}
+    />
+  );
+}
+
+export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, voce, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
       {ora && <div className="piano-ora">{ora}</div>}
@@ -60,12 +95,13 @@ export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, ur
       {interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${interesse}`)} role="img" aria-label={`Interesse ${interesse} su 5`}>{interesse}</span>}
       <div className="grow">
         <div className="line">
-          <div className={clsx('t1', light && 'light', struck && 'struck')}>{titolo}</div>
+          <div className={clsx('t1', (light || (voce && statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso')) && 'light', (struck || (voce && statoVisto(voce.stato) === 'fatto')) && 'struck')}>{titolo}</div>
         </div>
         {(meta || tipo) && <div className="t2">{tipo && <GlifoTipo tipo={tipo} />}{meta}</div>}
       </div>
       {right && <div className="right">{right}</div>}
-      {check !== 'none' && (
+      {check !== 'none' && voce && <CasellaStato voce={voce} />}
+      {check !== 'none' && !voce && (
         <span
           className={clsx('cb', done && 'done')}
           role={onCheck ? 'checkbox' : undefined}
@@ -77,7 +113,7 @@ export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, ur
       )}
     </>
   );
-  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel');
+  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch');
   return onOpen ? <button className={cls} onClick={onOpen}>{body}</button> : <div className={cls}>{body}</div>;
 }
 

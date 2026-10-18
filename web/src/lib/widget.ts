@@ -4,7 +4,7 @@ import { today } from '../../../shared/dates.ts';
 import { completa } from '../../../shared/recurrence.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { margineAtteso } from '../../../shared/stima.ts';
-import { righeWidget } from '../../../shared/widget.ts';
+import { archivioWidget, righeWidget } from '../../../shared/widget.ts';
 import { getDisponibilita, subscribeDisponibilita } from './disponibilita.ts';
 import { nuovaVoce } from './actions.ts';
 import { getItem, getItems, saveItem, subscribe } from './store.ts';
@@ -14,7 +14,7 @@ import { debounce } from './util.ts';
 // (note per l'Inbox e voci spuntate) e l'app le applica appena si apre.
 
 type AzioneWidget = { tipo: 'nota'; testo: string; ts: number } | { tipo: 'fatto'; id: string; ts: number };
-const Widget = registerPlugin<{ aggiorna(o: { righe: string }): Promise<void>; coda(): Promise<{ azioni: AzioneWidget[] }> }>('Widget');
+const Widget = registerPlugin<{ aggiorna(o: { righe: string; archivio?: string }): Promise<void>; coda(): Promise<{ azioni: AzioneWidget[] }> }>('Widget');
 
 /** Applica le note scritte e le voci spuntate dal widget. */
 async function applicaAzioni() {
@@ -33,7 +33,7 @@ async function applicaAzioni() {
 async function spingiLista() {
   try {
     const righe = righeWidget(getItems(), getDisponibilita(), today(), Date.now(), margineAtteso(getItems()));
-    await Widget.aggiorna({ righe: JSON.stringify(righe) });
+    await Widget.aggiorna({ righe: JSON.stringify(righe), archivio: JSON.stringify(archivioWidget(getItems())) });
   } catch (e) {
     console.warn('Widget: aggiornamento non riuscito', e);
   }

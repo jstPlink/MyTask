@@ -2,8 +2,8 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.53.1
-- **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA, widget (vedi 8.2)
+- **Versione documento:** 0.55.4
+- **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Fatti: widget «Oggi» (chiaro e scuro), stati della nota, tempo libero flessibile, build dell'APK in locale. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
 - **Decisioni di dettaglio:** `docs/01-setup-decisioni.md` (registro locale delle decisioni, non pubblicato)
@@ -108,7 +108,7 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 
 L'app distribuisce da sola le attività nei giorni, in base alle priorità, al tempo libero e alla durata (`shared/piano.ts`, con test).
 
-- **Tempo libero:** in Altro > Tempo libero si impostano, per ogni giorno della settimana, una o più fasce orarie (es. lun-ven 18:00-21:00). Si salva sul dispositivo. Finché non è impostato, Oggi mostra la lista semplice con un invito a impostarlo.
+- **Tempo libero:** in Altro > Tempo libero si impostano, per ogni giorno della settimana, una o più fasce orarie (es. lun-ven 18:00-21:00). Si salva sul dispositivo. Finché non è impostato, Oggi mostra la lista semplice con un invito a impostarlo. In alternativa c'è la modalità **Orari flessibili** (interruttore nella stessa schermata): le fasce della settimana non contano e ogni sera una notifica chiede gli orari liberi del giorno dopo (vedi «Tempo libero flessibile» in fondo).
 - **Algoritmo:** si prendono le azioni aperte e i prossimi passi dei progetti (stessi candidati di Oggi), ordinati per punteggio di priorità. Ognuna va nella prima fascia libera con spazio sufficiente, partendo da oggi (e per oggi dall'ora attuale), entro 14 giorni. Durata = sforzo stimato, 30 minuti se non è stimato.
 - **Pausa tra le attività (0.40.0):** in Altro > Tempo libero c'è il parametro "Pausa dopo ogni attività" (di base **5 minuti**, da 0 a 60): il piano lascia questo tempo libero tra un'attività e la successiva (non dopo gli impegni con orario fisso). Si salva con il tempo libero e viaggia con la sincronizzazione (`pausaMin` in `shared/piano.ts`, con test).
 - **Rimandare:** se non c'è spazio, le meno prioritarie passano ai giorni successivi. In Oggi compaiono in "Non entrano oggi" quelle che scadono oggi o sono scadute, con il giorno e l'ora a cui sono state spostate. Se finiscono dopo la scadenza il blocco è segnato "oltre la scadenza".
@@ -138,11 +138,11 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 ### 2.4.1 Scheda di una voce, tipi e stato (implementato)
 
 - **Tipo accorpato:** nella scelta del tipo ci sono Attività, Progetto, Esperienza, Routine, Intrattenimento, Ricetta e Curiosità. Scegliendo Intrattenimento compare sotto una seconda scelta "Sezione" (Film, Serie, Anime, Gioco, Libro). Sotto il cofano i tipi restano quelli di prima.
-- **Niente stato da scegliere:** ogni voce nuova è "da fare". In fondo alla scheda ci sono, nell'ordine, "Elimina", "Archivia" e "Completato". Le voci archiviate stanno in **Altro > Archiviate** (non compaiono più nelle liste) e si ripristinano aprendole ("Ripristina"). Non va confusa con l'**Archivio**, che raccoglie le voci completate.
+- **Stato della nota (0.55.0):** ogni voce nuova è "da fare". Sotto il titolo della scheda c'è il selettore a quattro stati (Da fare, In corso, Fatta, Archiviata); in fondo resta solo "Elimina". Anche le righe delle liste hanno la casella a quattro stati (vedi «Stati di una nota» in fondo). Il blocco della priorità in cima è collassabile e ricorda l'ultima scelta; il campo «Ora» non è più nell'editor (0.55.4). Le voci archiviate stanno in **Altro > Archiviate** (non compaiono più nelle liste) e si ripristinano aprendole ("Ripristina"). Non va confusa con l'**Archivio**, che raccoglie le voci completate.
 - **Gruppo Intrattenimento:** per film, serie, anime, giochi e libri un solo gruppo unisce interesse, piattaforma, consigliato da, con chi, durata e genere (per le ricette il gruppo si chiama Ricetta).
 - **Voto e commento:** segnando come fatto un film, un libro, un gioco o simili (dal segno di spunta o dal pulsante) si apre "Com'è andata?" con il voto da 1 a 10 e un commento facoltativo; confermando la voce risulta fatta quel giorno. Non esiste più la sezione "Dopo averlo fatto". Voto e commento si vedono nel gruppo "Completata".
 - **Link e documenti:** per ora tolti dalla scheda (il campo resta nei dati).
-- **Pannello unico per Attività e Progetto:** un solo gruppo con, in ordine, Progetto (solo per le attività: tendina con i progetti aperti, "Nessuno" se non è collegata), Data, Importanza e Tempo stimato (da 5 minuti a 1 giorno: 5, 15, 30 min, 1, 2, 4, 6, 8, 12 ore, 1 giorno). Se c'è una data compaiono sotto Ora, Scadenza rigida e Promemoria. Tolti Area, Ricorrenza e la sezione dei sotto-task (le voci già esistenti con quei dati continuano a funzionare); il campo Progetto è il vecchio "Progetto padre" (`padreId`) tornato in prima posizione.
+- **Pannello unico per Attività e Progetto:** un solo gruppo con, in ordine, Progetto (solo per le attività: tendina con i progetti aperti, "Nessuno" se non è collegata), Data, Importanza e Tempo stimato (da 5 minuti a 1 giorno: 5, 15, 30 min, 1, 2, 4, 6, 8, 12 ore, 1 giorno). Se c'è una data compaiono sotto Scadenza rigida e Promemoria (il campo Ora è stato tolto nella 0.55.4). Tolti Area, Ricorrenza e la sezione dei sotto-task (le voci già esistenti con quei dati continuano a funzionare); il campo Progetto è il vecchio "Progetto padre" (`padreId`) tornato in prima posizione.
 - **Attività raggruppate per progetto:** in Attività e in Oggi (piano del giorno e lista semplice) i task di uno stesso progetto stanno insieme sotto una testata con icona, nome (toccandola si apre il progetto), avanzamento "fatti / totale" e barra; le attività senza progetto restano righe singole. Il gruppo sta dove si trova il suo task più prioritario e il numero d'ordine resta quello globale. In Attività compaiono tutti i task aperti del progetto, in Oggi solo il prossimo passo (`raggruppaPerProgetto` in `shared/views.ts`).
 - **Elenco Esperienze:** un solo elenco, "Con data" e "Da fare quando capita", senza raggruppamenti per luogo.
 - **Contenuto centrato sul web (0.48.0):** da 900 px la barra laterale resta a sinistra e tutto il resto (titolo con i pulsanti tondi e corpo della pagina) sta in una colonna larga al massimo 760 px, centrata nello spazio a destra della barra, con lo stesso vuoto ai due lati. La griglia della settimana in Routine usa una colonna fino a 1120 px. Il riquadro che scorre resta largo quanto tutto lo spazio, così la rotellina funziona anche ai lati; sotto gli 800 px circa la colonna riempie lo spazio con 22 px di margine. Il telefono non cambia (mockup `16-web-contenuto-centrato.html`).
@@ -231,6 +231,7 @@ Un'unica tabella **Elemento** (`shared/types.ts`) con un campo `tipo`. Sul serve
 | `zona`, `luogo`, `linkMaps` | non più usati dalle schermate (restano nei dati vecchi) |
 | `piattaforma`, `consigliatoDa`, `conChi`, `durataMin`, `genere`, `mood`, `energia`, `pagine`, `arricchitoIl` | collezioni (gli ultimi cinque si compilano da soli, vedi 2.4.3) |
 | `voto`, `completatoIl` | collezioni e archivio |
+| `inCorsoTs` | quando la nota è passata a «in corso» (millisecondi); vuoto se torna «da fare» |
 | `fascia`, `volteSettimana`, `obiettivo`, `oraPromemoria`, `log[]` | routine: momento della giornata, quota settimanale, obiettivo minimo, ora del promemoria, giorni in cui è stata fatta |
 
 ### Conversione dal vecchio Priority (per l'import)
@@ -337,7 +338,7 @@ Le scelte marcate "confermato" sono decise dall'utente; le altre sono proposte t
 | Hosting | Un container Docker su un NAS (confermato). L'immagine viene costruita da GitHub Actions e pubblicata su `ghcr.io/jstplink/mytask`; il NAS la scarica, senza costruire nulla in locale |
 | Backend | Node.js 24 con Fastify e SQLite integrato (`node:sqlite`, nessuna dipendenza nativa); TypeScript eseguito direttamente, senza passaggio di compilazione |
 | Frontend | React + Vite, web app installabile (PWA) con archivio locale in IndexedDB e service worker |
-| App Android | PWA + APK tramite Capacitor, con notifiche locali (confermato). I widget sono rimandati a una versione successiva |
+| App Android | PWA + APK tramite Capacitor, con notifiche locali (confermato). Widget «Oggi» chiaro e scuro dalla 0.52.0 |
 | Accesso | Email e password. HTTPS e accesso da fuori casa tramite **Cloudflare Tunnel**, come già per Seafile, con un sottodominio dedicato che punta al container sul NAS (confermato) |
 | IA | Gemini per iniziare (scelta dell'utente), dietro un modulo con interfaccia comune per poter cambiare provider senza riscrivere nulla |
 | Documenti | Solo collegamenti a Seafile, incollati a mano (confermato) |
@@ -354,7 +355,7 @@ Le scelte marcate "confermato" sono decise dall'utente; le altre sono proposte t
 
 - **Capacitor**: la web app è impacchettata in un'app Android (`web/android`); l'interfaccia è la stessa. Al primo accesso chiede l'indirizzo del server.
 - **Notifiche locali**: `shared/pianifica.ts` calcola, per i prossimi 14 giorni, le notifiche da programmare nel sistema operativo (promemoria delle scadenze, insistenza ogni N minuti, routine all'ora scelta). Il telefono le consegna anche ad app chiusa; si riprogrammano a ogni modifica dei dati e quando si torna nell'app. Nel browser restano i promemoria ad app aperta.
-- **Costruzione**: il PC di sviluppo non ha l'SDK Android; l'APK si costruisce nel workflow di GitHub e finisce nelle Releases (`mytask.apk`).
+- **Costruzione**: l'APK si costruisce nel workflow di GitHub (Releases, `mytask.apk`) oppure in locale, senza commit né push (dal 2026-10-18 il PC ha Java 21 in `C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot` e l'SDK in `%LOCALAPPDATA%\Android\Sdk`). Build locale: `JAVA_HOME` al JDK 21, `ANDROID_HOME` all'SDK, `MYTASK_VERSION_NAME=x.y.z` e `MYTASK_VERSION_CODE=x*10000+y*100+z`, poi `npm run build`, `npx cap sync android` (in `web`) e `./gradlew --no-daemon assembleRelease` (in `web/android`, circa 2 minuti); l'APK è in `web/android/app/build/outputs/apk/release/app-release.apk`, firmato con la chiave pubblica del repository come quello di GitHub. `cap sync` modifica `web/android/app/capacitor.build.gradle` e `web/android/capacitor.settings.gradle`: dopo la build vanno ripristinati con `git checkout`. Il nome del telefono per `adb` cambia (controllare `adb devices`).
 - **Firma**: chiave pubblica nel repository per poter aggiornare l'app sopra la versione precedente; chiave privata facoltativa tramite segreti del repository.
 - **CORS**: il server ammette le origini dell'app (`https://localhost`, `capacitor://localhost`) e quelle in `CORS_ORIGINS`.
 - Se davanti al dominio c'è Cloudflare Access, l'app non riuscirebbe a collegarsi senza le credenziali di servizio di Cloudflare.
@@ -399,7 +400,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2 | Mockup estetici | Completata, stile e palette approvati |
 | 3 | Scrittura dell'app: base, Oggi, Inbox, import | Fatta e provata in locale |
 | 4 | Collezioni, Routine, Revisione | Fatta insieme alla fase 3 (progettazione unica) |
-| 5 | APK con notifiche e widget | Fatta: APK costruito da GitHub Actions, notifiche locali programmate nel telefono. Widget rimandati |
+| 5 | APK con notifiche e widget | Fatta: APK costruito da GitHub Actions o in locale, notifiche locali programmate nel telefono, widget «Oggi» (0.52.0) |
 | 6 | IA | Cattura rapida con Gemini fatta (serve la chiave); le altre funzioni IA da fare |
 | 7 | Layout web per schermi larghi, icone e pulsanti tondi sul telefono, ricerca | Fatta (0.10.0) |
 
@@ -418,7 +419,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | Notifiche locali programmate nel telefono | Scritte e provate con i test del pianificatore; **da verificare sul telefono** |
 | Service worker (apertura dell'app senza rete) | Generato dalla build, **non verificato** in un browser reale |
 | Collegamento Google Calendar | Solo i dati sono pronti (date e orari). Il modulo di sincronizzazione non è scritto |
-| Widget | Rimandati (decisione dell'utente) |
+| Widget | Fatti (0.52.0): «Oggi» chiaro e scuro con nota veloce |
 
 ### 8.2 Ancora da fare
 
@@ -426,7 +427,6 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 - Scorciatoie J e K per scorrere l'elenco e F per segnare fatto (layout largo).
 - Funzioni IA: stima dello sforzo, spezzare un'idea in passi, revisione settimanale.
 - Collegamento a Google Calendar.
-- Widget Android.
 - Decidere se mettere Cloudflare Access davanti al sito (richiede di gestire l'accesso dell'app Android).
 - Chiave di firma privata per l'APK, se si vuole (oggi si usa una chiave pubblica inclusa nel repository).
 
@@ -500,13 +500,21 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-17 | 0.52.0 | Widget Android «Oggi» (proposta C, trasparente) in due versioni, MyTask · chiaro e MyTask · scuro: in cima un campo per scrivere una nota in Inbox (finestrella, senza aprire l'app), sotto la lista di oggi con orario, posizione e checkbox per spuntare. Nativo in `web/android/.../Widget*.java`; l'app scrive la lista (`web/src/lib/widget.ts`, `shared/widget.ts`) e applica note e spunte accodate dal widget appena viene aperta |
 | 2026-10-17 | 0.53.0 | Tempo libero flessibile: interruttore in Impostazioni › Tempo libero (Fasce fisse / Orari flessibili); in modalità flessibile ogni sera all'ora scelta una notifica chiede gli orari liberi del giorno dopo e prepara il calendario (`Disponibilita.flessibile`, `oraChiedi`, `fasceDelGiorno`, `richiesteOrari`, schermata `OrariGiorno`). Widget: orario sotto il titolo e pallino di priorità che batte come nell'app (ViewFlipper a quadri) |
 | 2026-10-17 | 0.53.1 | Oggi: tolto l'avviso «x attività non entrano nelle prossime due settimane»; linea divisoria tra la timeline del piano e la lista delle attività; tolta la legenda del tratteggio sotto la barra (il margine resta tratteggiato) |
+| 2026-10-18 | 0.53.2 | Widget: tolta la barra «Scrivi una nota…», più spazio alla lista e pulsante + tondo nell'angolo in basso a destra per la nota veloce |
+| 2026-10-18 | 0.53.3 | Widget: nota veloce nello stile dell'app (barra sopra la tastiera con campo tondo e pulsante ↑, chiara o scura come il widget) e pulsante + più grande (56 dp) |
+| 2026-10-18 | 0.54.0 | Nota veloce del widget: mentre si scrive compaiono le note con parole simili (stessa logica di `cercaSimili`, con radici delle parole), come nella cattura rapida dell'app. L'app invia al widget un archivio compatto (`archivioWidget`) insieme alla lista di oggi |
+| 2026-10-18 | 0.55.0 | Stati di una nota (da fare, in corso, fatta, archiviata): la casella nelle righe ha quattro stati (un tocco avanza, pressione lunga o tasto destro apre il menu), «in corso» è mezza casella gialla, «archiviata» tratteggiata; nella nota un selettore a segmenti sotto il titolo al posto dei pulsanti Archivia/Completato; la Cronologia mostra anche «In corso dal» (`inCorsoTs`) |
+| 2026-10-18 | 0.55.1 | Nota: il blocco priorità è collassabile (proposta A): chiuso di base con posizione e livello, un tocco sulla testata mostra barre e dati; ricorda l'ultima scelta (`mytask.prio.aperta`) |
+| 2026-10-18 | 0.55.2 | Nota: apertura e chiusura del blocco priorità animate (altezza e dissolvenza, 0,28 s); testi dei quattro stati centrati nei pulsanti del selettore |
+| 2026-10-18 | 0.55.3 | Nota: barra dell'importanza più stretta del 30% (da 220 a 154 px) |
+| 2026-10-18 | 0.55.4 | Nota: tolto il campo «Ora» dall'editor (le note che hanno già un'ora la mantengono e il piano continua a trattarle come impegni con orario) |
 
 
-## Widget della schermata Home (0.52.0)
+## Widget della schermata Home (0.52.0, aggiornato fino alla 0.54.0)
 
 - Due widget, «MyTask · chiaro» e «MyTask · scuro» (4×3, ridimensionabili, sfondo semi-trasparente). Si aggiungono dal selettore dei widget del telefono.
-- Cosa mostrano: campo «Scrivi una nota…» (apre `NotaRapidaActivity`, la nota va in Inbox) e la lista di oggi nell'ordine del piano (`righeWidget` in `shared/widget.ts`, con test): orario, posizione in classifica colorata per priorità, titolo, checkbox quadrato.
-- Dati: l'app Capacitor invia la lista al widget (plugin `Widget`: `aggiorna`) a ogni modifica, ogni 5 minuti e al ritorno in primo piano. Il widget non legge i dati dell'app e non usa la rete: note e spunte vanno in una coda locale (`WidgetDati`) che l'app svuota (`coda`) e applica (nuova voce con `inbox`, `completa`) alla prima apertura; fino ad allora la riga spuntata appare sbarrata nel widget e la nota non è ancora nell'Inbox.
+- Cosa mostrano: pulsante + in basso a destra (apre `NotaRapidaActivity`, la nota va in Inbox) e la lista di oggi nell'ordine del piano (`righeWidget` in `shared/widget.ts`, con test): posizione in classifica colorata per priorità (il pallino batte come nell'app), titolo con l'orario sotto, checkbox quadrato. La nota veloce è una barra sopra la tastiera, nello stile dell'app (chiara o scura come il widget), che mentre si scrive mostra le note con parole simili.
+- Dati: l'app Capacitor invia la lista (e un archivio compatto delle note, per le note simili) al widget (plugin `Widget`: `aggiorna`) a ogni modifica, ogni 5 minuti e al ritorno in primo piano. Il widget non legge i dati dell'app e non usa la rete: note e spunte vanno in una coda locale (`WidgetDati`) che l'app svuota (`coda`) e applica (nuova voce con `inbox`, `completa`) alla prima apertura; fino ad allora la riga spuntata appare sbarrata nel widget e la nota non è ancora nell'Inbox.
 - Toccare una riga apre l'app; toccare il checkbox la segna come fatta (di nuovo per annullare, finché l'app non è stata aperta).
 
 ## Tempo libero flessibile (0.53.0)
@@ -515,3 +523,10 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 - Modalità flessibile: le fasce della settimana non contano; il tempo libero di un giorno è solo quello inserito (`eccezioni[giorno]`). Un giorno senza orari non ha tempo libero, quindi il piano resta vuoto.
 - Ogni sera, all'ora scelta (di base 21:00), arriva una notifica locale «Quando sei libero domani?» (programmata per 7 giorni, saltando i giorni già inseriti). Toccandola si apre `OrariGiorno` (fasce con preset Mattina/Pomeriggio/Sera, oppure «Nessun tempo libero»), poi «Prepara il calendario». In Oggi compare lo stesso invito (oggi, o domani dopo l'ora scelta) anche sul sito.
 - Widget: la riga ha l'orario sotto il titolo; il pallino di priorità batte (due colpi di 450 ms e pausa, come l'animazione dell'app) con quadri alternati di un ViewFlipper, al massimo 2,5 s tra un battito e l'altro.
+
+## Stati di una nota (0.55.0)
+
+- Quattro stati visibili: Da fare (`da_fare`), In corso (`in_corso`), Fatta (`fatto`, anche `saltato`), Archiviata (`parcheggiato`). Logica in `cambiaStato` e `avanzaStato` (`web/src/lib/actions.ts`): «Fatta» passa sempre da `completaVoce` (voto, durata, ricorrenze, avanzamento dei progetti); riaprire una nota fatta usa `riapri`; archiviare si può annullare dal messaggio.
+- Riga: `Row` con `voce={nota}` mostra la casella a quattro stati (`CasellaStato`): tocco = stato successivo (da fare → in corso → fatta; fatta e archiviata tornano da fare), pressione lunga (450 ms) o tasto destro = foglio `StatoMenu` con tutti gli stati. Le righe di routine e quelle senza `voce` restano a due stati.
+- Nota: selettore a segmenti sotto il titolo (`.stati-seg`); i pulsanti Archivia, Ripristina, Riapri e Completato non ci sono più, resta Elimina.
+- Quando una nota passa a «in corso» si salva `inCorsoTs`; torna vuoto se la nota torna «da fare». Nella Cronologia compare «In corso dal».

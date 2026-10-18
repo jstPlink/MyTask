@@ -4,7 +4,7 @@ import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { barLevel, componentiPunteggio, dueDate, score } from '../../../shared/priority.ts';
 import { avanzamento, figli, listaAzioni, nomiUsati } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { completaVoce, nuovaVoce, ordinaPassi, riapriVoce } from '../lib/actions.ts';
+import { STATI_NOTA, cambiaStato, completaVoce, nuovaVoce, ordinaPassi, riapriVoce, statoVisto } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
@@ -71,14 +71,14 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const salvataOra = tutte.find((i) => i.id === d.id);
   useEffect(() => {
     if (!salvataOra) return;
-    const { stato, completatoIl, completatoTs, voto, commento, durataRealeMin } = salvataOra;
-    setD((x) => (x.stato === stato && x.completatoIl === completatoIl && x.completatoTs === completatoTs && x.voto === voto && x.commento === commento && x.durataRealeMin === durataRealeMin
+    const { stato, completatoIl, completatoTs, inCorsoTs, voto, commento, durataRealeMin } = salvataOra;
+    setD((x) => (x.stato === stato && x.completatoIl === completatoIl && x.completatoTs === completatoTs && x.inCorsoTs === inCorsoTs && x.voto === voto && x.commento === commento && x.durataRealeMin === durataRealeMin
       ? x
-      : { ...x, stato, completatoIl, completatoTs, voto, commento, durataRealeMin }));
+      : { ...x, stato, completatoIl, completatoTs, inCorsoTs, voto, commento, durataRealeMin }));
     if (ultimoSalvato.current) {
-      try { ultimoSalvato.current = JSON.stringify({ ...JSON.parse(ultimoSalvato.current), stato, completatoIl, completatoTs, voto, commento, durataRealeMin }); } catch { /* ignora */ }
+      try { ultimoSalvato.current = JSON.stringify({ ...JSON.parse(ultimoSalvato.current), stato, completatoIl, completatoTs, inCorsoTs, voto, commento, durataRealeMin }); } catch { /* ignora */ }
     }
-  }, [salvataOra?.stato, salvataOra?.completatoIl, salvataOra?.completatoTs, salvataOra?.voto, salvataOra?.commento, salvataOra?.durataRealeMin]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [salvataOra?.stato, salvataOra?.completatoIl, salvataOra?.completatoTs, salvataOra?.inCorsoTs, salvataOra?.voto, salvataOra?.commento, salvataOra?.durataRealeMin]); // eslint-disable-line react-hooks/exhaustive-deps
   // aprire una voce messa in Revisione vale come averla vista: esce dalla Revisione (si salva da sola)
   useEffect(() => { if (id && iniziale.daRivedere) setD((x) => ({ ...x, daRivedere: undefined })); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const t = d.tipo;
@@ -91,6 +91,9 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const margine = useMemo(() => (suggerita ? suggerita.margine : margineAtteso(tutte)), [suggerita, tutte]);
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
+  // blocco priorità: chiuso di base, si ricorda l'ultima scelta
+  const [prioAperta, setPrioAperta] = useState(() => { try { return localStorage.getItem('mytask.prio.aperta') === '1'; } catch { return false; } });
+  const alternaPrio = () => setPrioAperta((v) => { try { localStorage.setItem('mytask.prio.aperta', v ? '0' : '1'); } catch { /* ignora */ } return !v; });
   const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
   const ordChecklist = useRiordino(checklist.map((c) => c.id), (idsNuovi) => setCheck(idsNuovi.map((i) => checklist.find((c) => c.id === i)!)));
   const ordPassi = useRiordino(passi.map((c) => c.id), (idsNuovi) => ordinaPassi(d.id, idsNuovi));
@@ -180,16 +183,28 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         right={d.inbox ? <span className="badge">Da smistare</span> : undefined}
       />
       <div className="scroll">
+        {getItem(d.id) && t !== 'routine' && t !== 'persona' && (
+          <div className="stati-seg" role="tablist" aria-label="Stato della nota">
+            {STATI_NOTA.map((s) => (
+              <button key={s.id} role="tab" aria-selected={statoVisto(d.stato) === s.id}
+                className={clsx(statoVisto(d.stato) === s.id && 'on', s.id === 'in_corso' && 'prog', s.id === 'fatto' && 'fatto')}
+                onClick={() => { salva(d); cambiaStato(getItem(d.id) ?? d, s.id); }}>{s.nome}</button>
+            ))}
+          </div>
+        )}
         {puntegg !== undefined && d.stato !== 'fatto' && (
-          <div className={clsx('prio', `p${barLevel(puntegg)}`)} aria-label={`Priorità ${['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}, ${posizione.pos}ª da fare su ${posizione.tot}`}>
-            <div className="prio-testa">
+          <div className={clsx('prio', `p${barLevel(puntegg)}`, prioAperta && 'aperta')} aria-label={`Priorità ${['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}, ${posizione.pos}ª da fare su ${posizione.tot}`}>
+            <button type="button" className="prio-testa" aria-expanded={prioAperta} aria-controls="prio-dettagli" onClick={alternaPrio}>
               <span className="prio-n">{posizione.pos}</span>
               <div className="prio-t">
                 <b>{posizione.pos}ª da fare</b>
                 <span>su {posizione.tot}</span>
               </div>
               <span className="prio-lvl">Priorità {['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}</span>
-            </div>
+              <span className="prio-chev" aria-hidden="true">▾</span>
+            </button>
+            <div className="prio-corpo" id="prio-dettagli" aria-hidden={!prioAperta} inert={!prioAperta}>
+              <div className="prio-corpo-in">
             <div className="prio-parti">
               {([['Urgenza', componenti.urgenza], ['Importanza', componenti.importanza], ['Poco sforzo', componenti.sforzo], ['Età', componenti.eta]] as const).map(([nome, v]) => (
                 <div key={nome} className="prio-riga"><span>{nome}</span><div className="prio-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, Math.max(0, v))}%` }} /></div></div>
@@ -199,6 +214,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza rigida' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
               <span>Importanza {['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'][Math.round(d.importanza ?? 3)]}</span>
               {d.sforzoMin ? <span>{nomeSforzo(d.sforzoMin)} {percentuale(margine)}</span> : null}
+            </div>
+              </div>
             </div>
           </div>
         )}
@@ -249,7 +266,6 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {t === 'esperienza' && d.titolo.trim() && (
               <a className="field link" href={mapsUrl(d.titolo, d.zona)} target="_blank" rel="noreferrer"><b style={{ fontWeight: 620 }}>Apri in Google Maps</b><span className="muted">›</span></a>
             )}
-            {d.inizio && <Field label="Ora"><input type="time" value={d.oraInizio ?? ''} onChange={(e) => up({ oraInizio: e.target.value || undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>}
             {d.inizio && (
               <>
                 <div className="t2" style={{ marginTop: 12 }}>Promemoria (alle 9:00)</div>
@@ -393,6 +409,9 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {getItem(d.id) && (
           <Gruppo titolo="Cronologia">
             <div className="field"><span>Creata</span><b style={{ fontWeight: 650 }}>{scriviQuando(d.creato)}</b></div>
+            {d.inCorsoTs && d.stato !== 'parcheggiato' && (
+              <div className="field"><span>In corso dal</span><b style={{ fontWeight: 650 }}>{scriviQuando(d.inCorsoTs)}</b></div>
+            )}
             {d.stato === 'fatto' && (d.completatoTs || d.completatoIl) && (
               <div className="field"><span>Completata</span><b style={{ fontWeight: 650 }}>{d.completatoTs ? scriviQuando(d.completatoTs) : scriviQuando(new Date(`${d.completatoIl}T12:00:00`).getTime(), true)}</b></div>
             )}
@@ -412,14 +431,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         )}
 
         {getItem(d.id) && (
-          <div className="btns tre" style={{ marginTop: 18 }}>
+          <div className="btns" style={{ marginTop: 18 }}>
             <button className="btn danger" onClick={elimina}>Elimina</button>
-            {d.stato === 'parcheggiato'
-              ? <button className="btn" onClick={() => esci({ ...d, stato: 'da_fare' }, 'Ripristinata')}>Ripristina</button>
-              : d.stato !== 'fatto' && <button className="btn" onClick={() => esci({ ...d, stato: 'parcheggiato' }, 'Archiviata')}>Archivia</button>}
-            {d.stato === 'fatto'
-              ? <button className="btn solid" onClick={() => { riapriVoce(d); nav.pop(); }}>Riapri</button>
-              : t !== 'routine' && t !== 'persona' && d.stato !== 'parcheggiato' && <button className="btn solid" onClick={() => { salva(d); completaVoce(getItem(d.id) ?? d); }}>Completato</button>}
           </div>
         )}
       </div>

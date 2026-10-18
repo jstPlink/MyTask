@@ -1,4 +1,4 @@
-import type { Item, Tipo } from '../../../shared/types.ts';
+import type { Item, Stato, Tipo } from '../../../shared/types.ts';
 import { formatShort, today } from '../../../shared/dates.ts';
 import { completa, riapri } from '../../../shared/recurrence.ts';
 import { toggleOggi } from '../../../shared/routine.ts';
@@ -78,6 +78,33 @@ export function ordinaPassi(padreId: string, idsNuovi: string[]) {
 
 export function riapriVoce(item: Item) {
   saveItem(riapri(item, Date.now()));
+}
+
+/** Nome degli stati scelti dall'utente: da fare, in corso, fatta, archiviata. */
+export const STATI_NOTA: { id: Stato; nome: string; descr: string }[] = [
+  { id: 'da_fare', nome: 'Da fare', descr: 'Non ancora iniziata' },
+  { id: 'in_corso', nome: 'In corso', descr: 'Ci sto lavorando' },
+  { id: 'fatto', nome: 'Fatta', descr: 'Completata' },
+  { id: 'parcheggiato', nome: 'Archiviata', descr: 'Messa da parte' },
+];
+
+/** Lo stato che l'utente vede: «saltato» conta come fatta. */
+export const statoVisto = (s: Stato): Stato => (s === 'saltato' ? 'fatto' : s);
+
+/** Porta una nota in uno stato. «Fatta» passa da `completaVoce` (voto, durata, ricorrenze, progetti); l'archiviazione si può annullare. */
+export function cambiaStato(item: Item, nuovo: Stato) {
+  if (statoVisto(item.stato) === nuovo) return;
+  if (nuovo === 'fatto') { completaVoce(item); return; }
+  const base = statoVisto(item.stato) === 'fatto' ? riapri(item, Date.now()) : item;
+  const ora = Date.now();
+  saveItem({ ...base, stato: nuovo, inCorsoTs: nuovo === 'in_corso' ? ora : nuovo === 'da_fare' ? undefined : base.inCorsoTs, aggiornato: ora });
+  if (nuovo === 'parcheggiato') mostraToast('Archiviata', { label: 'Annulla', fn: () => saveItem(item) });
+}
+
+/** Un tocco sulla casella: da fare → in corso → fatta; una nota fatta o archiviata torna da fare. */
+export function avanzaStato(item: Item) {
+  const s = statoVisto(item.stato);
+  cambiaStato(item, s === 'da_fare' ? 'in_corso' : s === 'in_corso' ? 'fatto' : 'da_fare');
 }
 
 export function segnaRoutine(item: Item) {

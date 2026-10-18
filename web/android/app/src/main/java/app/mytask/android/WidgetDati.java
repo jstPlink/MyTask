@@ -25,6 +25,18 @@ final class WidgetDati {
         }
     }
 
+    static JSONArray archivio(Context c) {
+        try {
+            return new JSONArray(prefs(c).getString("archivio", "[]"));
+        } catch (Exception e) {
+            return new JSONArray();
+        }
+    }
+
+    static void salvaArchivio(Context c, String json) {
+        prefs(c).edit().putString("archivio", json).apply();
+    }
+
     static void salvaRighe(Context c, String json) {
         prefs(c).edit().putString("righe", json).apply();
         aggiornaWidget(c);

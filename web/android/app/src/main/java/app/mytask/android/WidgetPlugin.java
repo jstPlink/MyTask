@@ -15,6 +15,8 @@ public class WidgetPlugin extends Plugin {
     @PluginMethod
     public void aggiorna(PluginCall call) {
         String righe = call.getString("righe", "[]");
+        String archivio = call.getString("archivio");
+        if (archivio != null) WidgetDati.salvaArchivio(getContext(), archivio);
         WidgetDati.salvaRighe(getContext(), righe);
         call.resolve();
     }

@@ -57,7 +57,7 @@ function Azioni() {
         rank={lista.findIndex((x) => x.item.id === item.id) + 1}
         urgenza={urgency(item, oggi)}
         light={item.stato === 'parcheggiato'}
-        onCheck={() => completaVoce(item)}
+        voce={item}
         selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}
       />
     );
@@ -94,7 +94,7 @@ function Progetti() {
           meta={chiuso ? undefined : c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
           right={d && !chiuso ? (c.rigida || isOverdue(c, oggi) ? <span className={clsx('hard', c.rigida && 'rigida')}>{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
           level={chiuso ? undefined : barLevel(score(withInheritance(c, p.progetto), oggi))}
-          onCheck={() => (chiuso ? riapriVoce(c) : completaVoce(c))}
+          voce={c}
           selected={nav.openId === c.id} onOpen={() => nav.push({ k: 'item', id: c.id })} />
       );
     };
@@ -138,13 +138,13 @@ function RigheEsperienze({ titolo }: { titolo?: boolean }) {
   const righeConData = v.conData.map((i) => (
     <Row key={i.id} titolo={i.titolo} tipo={i.tipo} meta={i.oraInizio} interesse={i.interesse ?? 3}
       right={i.rigida ? <span className="hard rigida">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi)}
-      level={barLevel(score(i, oggi))} onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+      level={barLevel(score(i, oggi))} voce={i} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
   ));
   const righeQuandoCapita = quandoCapita.map((i) => (
     <Row key={i.id} titolo={i.titolo} tipo={i.tipo} light check="square"
       interesse={i.interesse ?? 3}
       right={<a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
-      onCheck={() => completaVoce(i)} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
+      voce={i} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
   ));
   // nella lista Attività le esperienze sono una sola sezione; nella sotto-scheda Esperienze sono due
   if (titolo) return <Sezione titolo="Esperienze" dettaglio={v.conData.length + quandoCapita.length}>{righeConData}{righeQuandoCapita}</Sezione>;

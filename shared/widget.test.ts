@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
 import type { Disponibilita } from './piano.ts';
-import { righeWidget } from './widget.ts';
+import { archivioWidget, righeWidget } from './widget.ts';
 
 const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
 const OGGI = '2026-10-15';
@@ -27,4 +27,15 @@ test('widget: senza tempo libero è la lista semplice di Oggi, senza orari', () 
   assert.equal(r.length, 1);
   assert.equal(r[0].o, undefined);
   assert.equal(r[0].r, 1);
+});
+
+test('widget: archivio compatto con testo di ricerca normalizzato, senza contatti ed eliminate', () => {
+  const a = mk({ titolo: "Chiamare l'idraulico", note: 'Perdita nel Bagno' });
+  const p = mk({ tipo: 'persona', titolo: 'Marco' });
+  const e = mk({ titolo: 'Vecchia', eliminato: true });
+  const arch = archivioWidget([a, p, e]);
+  assert.equal(arch.length, 1);
+  assert.equal(arch[0].c, 0);
+  assert.ok(arch[0].k.includes('perdita nel bagno'));
+  assert.equal(archivioWidget([mk({ stato: 'fatto' })])[0].c, 1);
 });
