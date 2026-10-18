@@ -58,10 +58,31 @@ export function componentiPunteggio(i: Item, today: string, now: number = Date.n
   return { urgenza: urgency(i, today), importanza, sforzo, eta };
 }
 
+/** Peso di ogni componente nel punteggio. */
+export type PesiPunteggio = ComponentiPunteggio;
+
+/** Pesi di base: 45% urgenza, 35% importanza, 10% poco sforzo, 10% età. */
+export const PESI_PREDEFINITI: PesiPunteggio = { urgenza: 0.45, importanza: 0.35, sforzo: 0.10, eta: 0.10 };
+
+let pesiAttivi: PesiPunteggio = { ...PESI_PREDEFINITI };
+
+/** Porta i pesi a somma 1 (così il punteggio resta tra 0 e 100); se sono tutti zero tornano quelli di base. */
+export function normalizzaPesi(p: PesiPunteggio): PesiPunteggio {
+  const v = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
+  const somma = v(p.urgenza) + v(p.importanza) + v(p.sforzo) + v(p.eta);
+  if (somma <= 0) return { ...PESI_PREDEFINITI };
+  return { urgenza: v(p.urgenza) / somma, importanza: v(p.importanza) / somma, sforzo: v(p.sforzo) / somma, eta: v(p.eta) / somma };
+}
+
+export const getPesi = (): PesiPunteggio => pesiAttivi;
+/** Opzione provvisoria: cambia i pesi usati da tutto il calcolo delle priorità. */
+export function impostaPesi(p: PesiPunteggio | undefined) { pesiAttivi = p ? normalizzaPesi(p) : { ...PESI_PREDEFINITI }; }
+
 /** Punteggio 0-100 di un'azione o di un progetto (formula in DOCUMENTAZIONE.md, sezione 4.1). */
 export function score(i: Item, today: string, now: number = Date.now()): number {
   const c = componentiPunteggio(i, today, now);
-  const s = 0.45 * c.urgenza + 0.35 * c.importanza + 0.10 * c.sforzo + 0.10 * c.eta;
+  const w = pesiAttivi;
+  const s = w.urgenza * c.urgenza + w.importanza * c.importanza + w.sforzo * c.sforzo + w.eta * c.eta;
   return Math.round(Math.min(100, Math.max(0, s)));
 }
 

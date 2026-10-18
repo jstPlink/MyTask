@@ -124,7 +124,7 @@ function Esperienze() {
   return <RigheEsperienze />;
 }
 
-/** Esperienze con data e "da fare quando capita". Con `titolo` compaiono anche nella lista Attività, sotto una sezione. */
+/** Esperienze con data e "senza data". Con `titolo` compaiono anche nella lista Attività, sotto una sezione. */
 function RigheEsperienze({ titolo }: { titolo?: boolean }) {
   const nav = useNav();
   const items = useItems();
@@ -151,7 +151,7 @@ function RigheEsperienze({ titolo }: { titolo?: boolean }) {
   return (
     <>
       {v.conData.length > 0 && <Sezione titolo="Con data" dettaglio={v.conData.length}>{righeConData}</Sezione>}
-      {quandoCapita.length > 0 && <Sezione titolo="Da fare quando capita" dettaglio={quandoCapita.length}>{righeQuandoCapita}</Sezione>}
+      {quandoCapita.length > 0 && <Sezione titolo="Senza data" dettaglio={quandoCapita.length}>{righeQuandoCapita}</Sezione>}
     </>
   );
 }

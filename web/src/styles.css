@@ -640,3 +640,23 @@ a { color: var(--accent); }
 
 /* testi dello stato al centro del pulsante */
 .stati-seg button { display: flex; align-items: center; justify-content: center; text-align: center; }
+
+/* ora attuale nella barra della fascia scelta: linea e targhetta con l'orario */
+.lp-bs.con-ora { margin-top: 22px; }
+.lp-bs .lp-bs-ora { position: absolute; top: -6px; bottom: -6px; width: 2px; border-radius: 1px; background: var(--ink); z-index: 3; overflow: visible; }
+.lp-bs .lp-bs-tag { position: absolute; top: -26px; transform: translateX(-50%); font-size: 10.5px; font-weight: 700; line-height: 1; padding: 3px 6px; border-radius: 6px; background: var(--ink); color: var(--bg); font-variant-numeric: tabular-nums; z-index: 3; pointer-events: none; }
+.slider-verde .slider-tr i { background: linear-gradient(to right, var(--soft), var(--accent)); }
+
+/* righe dei passi nella nota: stesso aspetto delle altre righe, maniglia sottile a sinistra */
+.riordinabile .row .t1 { overflow-wrap: anywhere; }
+.riordinabile > .row:last-child { border-bottom: 0; }
+
+/* ---------- Opzione provvisoria e sperimentale: gialla ---------- */
+.badge-sper { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--giallo); color: #1b1500; vertical-align: 1px; white-space: nowrap; }
+.sper-voce { background: color-mix(in srgb, var(--giallo) 16%, transparent); border-radius: 12px; padding-left: 10px; padding-right: 10px; margin: 6px 0; }
+.sper-box { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--giallo); background: color-mix(in srgb, var(--giallo) 14%, transparent); font-size: 12.5px; color: var(--ink); margin: 6px 0 4px; }
+.sper-box b { font-size: 13.5px; }
+.peso { padding: 10px 0 8px; border-bottom: 1px solid var(--line); }
+.peso-testa { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.peso-val { font-weight: 800; color: var(--giallo); font-variant-numeric: tabular-nums; }
+.peso-range { width: 100%; accent-color: var(--giallo); height: 28px; margin: 0; }

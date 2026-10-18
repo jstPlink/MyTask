@@ -2,7 +2,7 @@
 
 Documento vivo. Si aggiorna a ogni modifica e ogni aggiornamento va annotato nel registro in fondo.
 
-- **Versione documento:** 0.55.4
+- **Versione documento:** 0.57.1
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con icone e notifiche locali. Fatti: widget «Oggi» (chiaro e scuro), stati della nota, tempo libero flessibile, build dell'APK in locale. Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Non sono pubblicati perché usano i dati reali dell'utente
@@ -508,6 +508,9 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 2026-10-18 | 0.55.2 | Nota: apertura e chiusura del blocco priorità animate (altezza e dissolvenza, 0,28 s); testi dei quattro stati centrati nei pulsanti del selettore |
 | 2026-10-18 | 0.55.3 | Nota: barra dell'importanza più stretta del 30% (da 220 a 154 px) |
 | 2026-10-18 | 0.55.4 | Nota: tolto il campo «Ora» dall'editor (le note che hanno già un'ora la mantengono e il piano continua a trattarle come impegni con orario) |
+| 2026-10-18 | 0.56.0 | Passi di progetto come righe normali (con maniglia, priorità, casella a stati) e più respiro nella cartella del progetto; l'ordine dei passi vale anche nelle liste e un passo non ha priorità più bassa dei successivi (`punteggioEffettivo`); targhetta con l'ora nella seconda barra di Oggi; archiviando o ripristinando un progetto si archiviano o ripristinano i suoi passi; una nota «in corso» resta dove era nel piano (`pianoData`, `pianoDa`); esperienze: luogo, «Senza data» al posto di «Da fare quando capita», interesse con barra verde; intrattenimento: descrizione cercata anche su Wikipedia e messa nelle note vuote (`descrittoIl`); Android: il tocco dal widget non toglie più l'app dai recenti |
+| 2026-10-18 | 0.57.0 | Opzione provvisoria e sperimentale (gialla) in Altro › «Pesi della priorità»: quattro cursori per il peso di urgenza, importanza, poco sforzo ed età nel punteggio, con ripristino ai valori di base e anteprima delle prime attività. I pesi valgono solo sul dispositivo (`mytask.pesi`) e cambiano subito liste, piano e widget |
+| 2026-10-18 | 0.57.1 | La posizione di priorità è la stessa in Oggi e nella scheda della nota (`classificaPriorita`, `posizionePriorita`, a parità vince la nota più vecchia); una nota «in corso» resta ferma nella timeline: se non ha un posto salvato (segnata prima) parte dall'ora in cui è passata in corso (`inCorsoTs`) |
 
 
 ## Widget della schermata Home (0.52.0, aggiornato fino alla 0.54.0)
@@ -530,3 +533,19 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 - Riga: `Row` con `voce={nota}` mostra la casella a quattro stati (`CasellaStato`): tocco = stato successivo (da fare → in corso → fatta; fatta e archiviata tornano da fare), pressione lunga (450 ms) o tasto destro = foglio `StatoMenu` con tutti gli stati. Le righe di routine e quelle senza `voce` restano a due stati.
 - Nota: selettore a segmenti sotto il titolo (`.stati-seg`); i pulsanti Archivia, Ripristina, Riapri e Completato non ci sono più, resta Elimina.
 - Quando una nota passa a «in corso» si salva `inCorsoTs`; torna vuoto se la nota torna «da fare». Nella Cronologia compare «In corso dal».
+
+## Priorità dei passi, note «in corso», progetti archiviati (0.56.0)
+
+- **Dipendenze tra i passi:** un passo dipende dal precedente, quindi non può avere priorità più bassa dei passi che vengono dopo di lui. `punteggioEffettivo` (`shared/views.ts`) dà a ogni passo aperto il punteggio più alto tra il suo e quello dei successivi; lo usano le liste (`listaAzioni`, `candidatiOggi`), il piano (`Blocco.punteggio`) e il widget. Riordinando i passi cambiano di conseguenza posizioni e colori anche in Attività e in Oggi.
+- **Note «in corso»:** quando una nota passa «in corso» si salvano il giorno e l'ora in cui era nel piano (`pianoData`, `pianoDa`); il piano la lascia lì (con stima più margine) e dispone le altre attorno. Se la nota non ha un posto salvato (era già «in corso» da prima), il piano la fa partire dall'ora in cui è passata «in corso» (`inCorsoTs`). Se la nota torna «da fare» o è fatta/archiviata, il posto si libera.
+- **Posizione di priorità:** il numero che si legge in Oggi e quello della scheda della nota vengono dalla stessa classifica (`classificaPriorita` in `shared/views.ts`: punteggio, a parità la nota più vecchia, poi l'id), quindi coincidono.
+- **Progetti:** archiviare un progetto archivia anche i suoi passi aperti; ripristinarlo (da fare o in corso) riporta «da fare» i passi archiviati. Il messaggio ha «Annulla» che rimette tutto com'era.
+- **Esperienze:** campo «Luogo» nell'editor, sezione «Senza data» (prima «Da fare quando capita»), interesse con barra verde (stessa forma dell'importanza). Nelle liste resta il numero in un pallino verde.
+- **Intrattenimento:** oltre a genere, mood, impegno, durata e pagine (Wikidata), l'arricchimento cerca una breve descrizione (prime frasi di Wikipedia) e la mette nelle note se sono vuote (`accorciaDescrizione`, `descrittoIl`); le voci già presenti vengono descritte una volta, in background, a ritmo lento.
+- **Android, app tra i recenti:** `AzioneActivity` (tocco dal widget) ha ora `taskAffinity=""`, così non trascina l'app in un'attività esclusa dai recenti. Se il telefono chiude comunque l'app in background, serve togliere il risparmio batteria per MyTask (Impostazioni › App › MyTask › Batteria › Senza restrizioni).
+
+## Pesi della priorità, opzione provvisoria (0.57.0)
+
+- Altro › «Pesi della priorità» (voce gialla con etichetta «provvisorio»): schermata `PesiPriorita` con un cursore da 0 a 100 per Urgenza, Importanza, Poco sforzo ed Età. I pesi si portano a somma 100% (`normalizzaPesi`), quindi il punteggio resta tra 0 e 100; se sono tutti a zero valgono quelli di base (45/35/10/10).
+- I pesi stanno in `shared/priority.ts` (`getPesi`, `impostaPesi`) e `score` li usa; il valore scelto si salva solo sul dispositivo (`localStorage`, chiave `mytask.pesi`, `web/src/lib/pesi.ts`) e non si sincronizza. A ogni cambio si rifanno le liste (`rinfrescaListe`), quindi Attività, Oggi, piano e widget si aggiornano subito.
+- «Ripristina i pesi di base» toglie la personalizzazione. L'anteprima mostra le prime sei attività con il loro punteggio.

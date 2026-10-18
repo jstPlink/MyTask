@@ -20,6 +20,7 @@ import { Capture } from './screens/Capture.tsx';
 import { Login } from './screens/Login.tsx';
 import { TempoLibero } from './screens/TempoLibero.tsx';
 import { OrariGiorno } from './screens/OrariGiorno.tsx';
+import { PesiPriorita } from './screens/PesiPriorita.tsx';
 import { ascoltaRichiestaOrari, prendiRichiestaOrari } from './lib/richiestaOrari.ts';
 import { RecensioneSheet } from './ui/Recensione.tsx';
 import { StatoMenu } from './ui/StatoMenu.tsx';
@@ -45,6 +46,7 @@ function Schermata({ s }: { s: Screen }) {
     case 'stasera': return <Stasera />;
     case 'account': return <Account />;
     case 'orari': return <OrariGiorno giorno={s.giorno} />;
+    case 'pesi': return <PesiPriorita />;
   }
 }
 

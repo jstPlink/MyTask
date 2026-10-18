@@ -42,6 +42,7 @@ export function Altro() {
         {voce('Completato', nArch, { k: 'archivio' })}
         <Sec a="App" />
         {voce('Tempo libero', undefined, { k: 'tempolibero' })}
+        <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Pesi della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
         <div className="field"><span>Calendario</span><span className="muted">non collegato</span></div>
         {voce('Account e sincronizzazione', undefined, { k: 'account' })}

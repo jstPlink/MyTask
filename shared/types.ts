@@ -102,6 +102,11 @@ export interface Item {
   completatoTs?: number;
   /** Quando la nota è passata allo stato «in corso» (millisecondi). */
   inCorsoTs?: number;
+  /** Posto nel piano di una nota «in corso»: giorno e minuto d'inizio, fissati quando è iniziata (il piano non la sposta più). */
+  pianoData?: string;
+  pianoDa?: number;
+  /** Quando si è cercata una descrizione su internet (millisecondi). */
+  descrittoIl?: number;
   /** Posizione di un passo dentro il suo progetto (0 = il primo, il più prioritario). */
   ordine?: number;
 

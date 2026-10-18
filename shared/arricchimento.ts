@@ -83,6 +83,21 @@ export interface DatiTrovati {
   durataMin?: number;
   /** Pagine (libri). */
   pagine?: number;
+  /** Breve descrizione presa da Wikipedia (le prime frasi). */
+  descrizione?: string;
+}
+
+/** Prime frasi di un testo (al massimo due, entro `max` caratteri), per la descrizione di una nota. */
+export function accorciaDescrizione(testo: string | undefined, max = 320): string | undefined {
+  const t = (testo ?? '').replace(/\s+/g, ' ').replace(/\s*\([^)]*\)/g, '').trim();
+  if (t.length < 20) return undefined;
+  const frasi = t.match(/[^.!?]+[.!?]+(?=\s|$)/g) ?? [t];
+  let out = '';
+  for (const f of frasi.slice(0, 2)) {
+    if ((out + f).length > max && out) break;
+    out += (out ? ' ' : '') + f.trim();
+  }
+  return out.length > max ? `${out.slice(0, max - 1).trimEnd()}…` : out;
 }
 
 const maiuscola = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -101,12 +116,15 @@ export function campiDaDati(item: Item, dati: DatiTrovati): Partial<Item> {
     if (!item.genere && dati.generi.length) out.genere = [...new Set(dati.generi.map(maiuscola))].slice(0, 2).join(', ');
     if (item.tipo === 'libro' && !item.pagine && dati.pagine && dati.pagine > 0) out.pagine = Math.round(dati.pagine);
   }
+  // la descrizione va nelle note, solo se sono ancora vuote
+  if (!item.note && dati.descrizione) out.note = dati.descrizione;
   return out;
 }
 
 /** Vero se alla voce mancano ancora dati che si possono cercare. */
 export function mancaQualcosa(i: Item): boolean {
   if (!TIPI_ARRICCHIBILI.includes(i.tipo)) return false;
+  if (!i.note && i.descrittoIl === undefined) return true;
   if (VIDEO.includes(i.tipo)) return !i.genere || !i.mood || !i.energia || (i.tipo === 'film' && !i.durataMin);
   return !i.genere || (i.tipo === 'libro' && !i.pagine);
 }

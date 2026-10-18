@@ -31,14 +31,14 @@ export function righeWidget(items: Item[], disp: Disponibilita | null, oggi: str
   }
   const blocchi = (pianifica(items, disp, oggi, now, undefined, margine).giorni[0]?.blocchi ?? []).filter((b) => !b.pausa);
   const classifica = new Map(
-    blocchi.filter((b) => !b.fisso).sort((a, b) => score(b.item, oggi) - score(a.item, oggi)).map((b, n) => [b.item.id, n + 1] as const),
+    blocchi.filter((b) => !b.fisso).sort((a, b) => (b.punteggio ?? score(b.item, oggi)) - (a.punteggio ?? score(a.item, oggi))).map((b, n) => [b.item.id, n + 1] as const),
   );
   const viste = new Set<string>();
   const righe: RigaWidget[] = [];
   for (const b of [...blocchi].sort((a, c) => a.da - c.da)) {
     if (viste.has(b.item.id)) continue;
     viste.add(b.item.id);
-    righe.push({ id: b.item.id, t: b.item.titolo, o: orario(b.da), r: b.fisso ? undefined : classifica.get(b.item.id), l: barLevel(score(b.item, oggi)), b: b.fisso ? undefined : battitoBpm(urgency(b.item, oggi)) || undefined });
+    righe.push({ id: b.item.id, t: b.item.titolo, o: orario(b.da), r: b.fisso ? undefined : classifica.get(b.item.id), l: barLevel(b.punteggio ?? score(b.item, oggi)), b: b.fisso ? undefined : battitoBpm(urgency(b.item, oggi)) || undefined });
   }
   return righe.slice(0, max);
 }

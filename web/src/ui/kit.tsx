@@ -45,6 +45,12 @@ export interface RowProps {
   interesse?: number;
   /** La nota della riga: la casella ha quattro stati (un tocco avanza, pressione lunga apre il menu). */
   voce?: Item;
+  /** Riga riordinabile: a sinistra c'è la maniglia di trascinamento. */
+  maniglia?: boolean;
+  /** Classe in più (es. riga sollevata durante il trascinamento). */
+  classe?: string;
+  /** Attributi in più sulla riga (gestori del trascinamento). */
+  extra?: React.HTMLAttributes<HTMLElement>;
   /** Urgenza 0-100: il numero d'ordine batte a ritmo crescente con l'urgenza (fermo se 0 o assente). */
   urgenza?: number;
   check?: 'circle' | 'square' | 'none';
@@ -87,9 +93,10 @@ function CasellaStato({ voce }: { voce: Item }) {
   );
 }
 
-export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, voce, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   const body = (
     <>
+      {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
       {ora && <div className="piano-ora">{ora}</div>}
       {rank !== undefined && <span className="rank" style={urgenza ? battito(urgenza) : undefined} aria-label={`Posizione ${rank}`}>{rank}</span>}
       {interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${interesse}`)} role="img" aria-label={`Interesse ${interesse} su 5`}>{interesse}</span>}
@@ -113,8 +120,8 @@ export function Row({ titolo, meta, right, ora, tipo, level, rank, interesse, vo
       )}
     </>
   );
-  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch');
-  return onOpen ? <button className={cls} onClick={onOpen}>{body}</button> : <div className={cls}>{body}</div>;
+  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch', classe);
+  return onOpen ? <button className={cls} onClick={onOpen} {...extra}>{body}</button> : <div className={cls} {...extra}>{body}</div>;
 }
 
 export function Chips({ voci, attivo, onChange, scroll }: { voci: string[]; attivo: string; onChange: (v: string) => void; scroll?: boolean }) {
@@ -158,12 +165,12 @@ const NOMI_IMPORTANZA = ['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alt
  * Importanza da 1 a 5 con uno slider continuo a cuneo: si allarga verso destra e passa dal grigio al rosso
  * (come le priorità), senza etichette di testo. Il cursore prende il colore del punto raggiunto.
  */
-export function SliderImportanza({ valore, onChange, label }: { valore?: number; onChange: (v: number) => void; label: string }) {
+export function SliderImportanza({ valore, onChange, label, verde }: { valore?: number; onChange: (v: number) => void; label: string; verde?: boolean }) {
   const v = valore ?? 3;
   const p = Math.min(1, Math.max(0, (v - 1) / 4)) * 100;
-  const stile = { '--p': `${p}%`, '--col': `color-mix(in srgb, var(--soft) ${100 - p}%, var(--warn) ${p}%)` } as React.CSSProperties;
+  const stile = { '--p': `${p}%`, '--col': `color-mix(in srgb, var(--soft) ${100 - p}%, var(${verde ? '--accent' : '--warn'}) ${p}%)` } as React.CSSProperties;
   return (
-    <div className="slider-c" style={stile}>
+    <div className={clsx('slider-c', verde && 'slider-verde')} style={stile}>
       <div className="slider-tr" aria-hidden="true"><i /></div>
       <input type="range" min={1} max={5} step={0.05} value={v} aria-label={label} aria-valuetext={NOMI_IMPORTANZA[Math.round(v)]}
         onChange={(e) => onChange(Math.round(Number(e.target.value) * 100) / 100)} />

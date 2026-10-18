@@ -1,9 +1,9 @@
 // Pianificazione automatica: distribuisce le attività nei giorni in base a priorità,
 // tempo libero e durata. Funzione pura: stesso input, stesso output.
 import type { Item } from './types.ts';
-import { addDays } from './dates.ts';
+import { addDays, today as giornoDi } from './dates.ts';
 import { dueDate } from './priority.ts';
-import { candidatiOggi, curiosita, type Entry } from './views.ts';
+import { candidatiOggi, curiosita, perPriorita, type Entry } from './views.ts';
 
 /** Fascia di tempo libero, orari HH:MM. */
 export interface FasciaOraria { da: string; a: string }
@@ -54,6 +54,8 @@ export interface Blocco {
   inRitardo?: boolean;
   /** Ultimi minuti del blocco che sono margine d'errore sulla stima (il blocco dura già stima + margine). */
   margineMin?: number;
+  /** Punteggio di priorità usato dal piano (tiene conto delle dipendenze tra i passi di un progetto). */
+  punteggio?: number;
   /** Pausa breve con una curiosità, tra un'attività grande e l'altra: `item` è la curiosità. */
   pausa?: boolean;
 }
@@ -130,6 +132,21 @@ function sottrai(gaps: Gap[], da: number, a: number): Gap[] {
   return out;
 }
 
+/**
+ * Dove sta una nota «in corso»: il posto salvato quando è passata in corso; se non c'è (note segnate prima),
+ * il giorno e l'ora (a passi di 5 minuti) in cui è passata in corso. Vale solo se il giorno è tra quelli pianificati.
+ */
+function postoInCorso(i: Item, giorni: string[]): { data: string; da: number } | undefined {
+  if (i.stato !== 'in_corso') return undefined;
+  let posto: { data: string; da: number } | undefined;
+  if (i.pianoData && i.pianoDa !== undefined) posto = { data: i.pianoData, da: i.pianoDa };
+  else if (i.inCorsoTs) {
+    const d = new Date(i.inCorsoTs);
+    posto = { data: giornoDi(d), da: Math.floor((d.getHours() * 60 + d.getMinutes()) / PASSO) * PASSO };
+  }
+  return posto && giorni.includes(posto.data) ? posto : undefined;
+}
+
 const durataDi = (i: Item) => Math.max(PASSO, arrotonda(i.sforzoMin ?? DURATA_PREDEFINITA));
 
 export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now: number = Date.now(), giorniOrizzonte = ORIZZONTE_GIORNI, margine = 0): Piano {
@@ -156,8 +173,16 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
     if (i.oraInizio && giorno) {
       const da = minuti(i.oraInizio);
       const a = i.oraFine ? minuti(i.oraFine) : da + durataDi(i);
-      giorno.blocchi.push({ item: i, padre: e.padre, data: giorno.data, da, a, fisso: true });
+      giorno.blocchi.push({ item: i, padre: e.padre, data: giorno.data, da, a, fisso: true, punteggio: e.punteggio });
       gaps.set(giorno.data, sottrai(gaps.get(giorno.data)!, da, a));
+    } else if (postoInCorso(i, giorni.map((g) => g.data))) {
+      // nota già iniziata: resta dove era quando è passata «in corso» (stima più margine), non si sposta più
+      const posto = postoInCorso(i, giorni.map((g) => g.data))!;
+      const g = giorni.find((x) => x.data === posto.data)!;
+      const base = durataDi(i);
+      const totale = arrotonda(base * (1 + Math.max(0, margine)));
+      g.blocchi.push({ item: i, padre: e.padre, data: g.data, da: posto.da, a: posto.da + totale, margineMin: totale - base, punteggio: e.punteggio });
+      gaps.set(g.data, sottrai(gaps.get(g.data)!, posto.da, posto.da + totale));
     } else {
       flessibili.push(e);
     }
@@ -186,7 +211,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
   };
 
   const fuori: Entry[] = [];
-  const ordinati = [...flessibili].sort((a, b) => b.punteggio - a.punteggio);
+  const ordinati = [...flessibili].sort(perPriorita);
   for (const e of ordinati) {
     const i = e.item;
     // il tempo reale è sempre la stima più il margine d'errore atteso
@@ -208,7 +233,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
           const presa = Math.min(resto, spazio);
           if (presa < BLOCCO_MINIMO && presa < resto) continue;
           const fino = s + Math.min(spazio, presa + pausa);
-          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + presa, fino, margineMin: Math.round(presa * quotaMargine) };
+          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + presa, fino, margineMin: Math.round(presa * quotaMargine), punteggio: e.punteggio };
           pezzi.push(pezzo);
           l.splice(k, 1, ...(fino < f ? [[fino, f] as Gap] : []));
           if (presa >= SOGLIA_GRANDE && fino < f) riservaPausa(pezzo, l, k);
@@ -216,7 +241,7 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
           resto -= presa;
         } else if (spazio >= totale) {
           const fino = s + Math.min(spazio, totale + pausa);
-          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + totale, fino, margineMin: totale - base };
+          const pezzo: Pezzo = { item: i, padre: e.padre, data: g.data, da: s, a: s + totale, fino, margineMin: totale - base, punteggio: e.punteggio };
           pezzi.push(pezzo);
           l.splice(k, 1, ...(fino < f ? [[fino, f] as Gap] : []));
           if (totale >= SOGLIA_GRANDE && fino < f) riservaPausa(pezzo, l, k);

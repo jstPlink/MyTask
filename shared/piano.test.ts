@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
 import { DISPONIBILITA_SUGGERITA, fasceDelGiorno, minutiDisponibili, minuti, orario, pianifica, senzaGiorniPassati, type Disponibilita } from './piano.ts';
 import { richiesteOrari } from './pianifica.ts';
+import { classificaPriorita, listaAzioni, posizionePriorita, punteggioEffettivo } from './views.ts';
+import { impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
 
 // giovedì 15 ottobre 2026, ore 10:00
 const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
@@ -340,4 +342,66 @@ test("notifiche: la richiesta serale degli orari c'è solo in modalità flessibi
   // dopo l'ora scelta la richiesta di stasera è già passata
   const tardi = richiesteOrari(flex, new Date(2026, 9, 15, 22, 0), 2);
   assert.deepEqual(tardi.map((x) => x.giorno), ['2026-10-17']);
+});
+
+test('piano: una nota in corso resta dove era, anche se arrivano note più urgenti', () => {
+  const a = mk({ titolo: 'Iniziata', importanza: 1, sforzoMin: 30, stato: 'in_corso', pianoData: OGGI, pianoDa: minuti('19:00') });
+  const b = mk({ titolo: 'Urgente', importanza: 5, sforzoMin: 30 });
+  const g = pianifica([a, b], { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), pausaMin: 0 }, OGGI, NOW).giorni[0];
+  const ba = g.blocchi.find((x) => x.item.id === a.id)!;
+  const bb = g.blocchi.find((x) => x.item.id === b.id)!;
+  assert.equal(orario(ba.da), '19:00');
+  assert.equal(orario(bb.da), '18:00');
+  assert.ok(bb.a <= ba.da, 'la nota urgente entra prima, senza toccare quella iniziata');
+});
+
+test('priorità: un passo di progetto non ha priorità più bassa dei passi che lo seguono', () => {
+  const p = mk({ tipo: 'progetto', titolo: 'Progetto', importanza: 3 });
+  const s1 = mk({ padreId: p.id, ordine: 0, importanza: 1, titolo: 'Primo' });
+  const s2 = mk({ padreId: p.id, ordine: 1, importanza: 5, titolo: 'Secondo' });
+  const items = [p, s1, s2];
+  const eff1 = punteggioEffettivo(s1, items, OGGI, NOW);
+  const eff2 = punteggioEffettivo(s2, items, OGGI, NOW);
+  assert.ok(eff1 >= eff2, 'il primo eredita il punteggio più alto dei successivi');
+  assert.equal(eff1, eff2);
+  const lista = listaAzioni(items, OGGI, NOW).map((e) => e.item.titolo);
+  assert.ok(lista.indexOf('Primo') < lista.indexOf('Secondo'));
+});
+
+test('priorità: i pesi sono configurabili e si normalizzano', () => {
+  const urgente = mk({ importanza: 1, fine: OGGI });
+  const importante = mk({ importanza: 5 });
+  const base = score(urgente, OGGI, NOW) - score(importante, OGGI, NOW);
+  try {
+    impostaPesi({ urgenza: 0, importanza: 1, sforzo: 0, eta: 0 });
+    assert.ok(score(importante, OGGI, NOW) > score(urgente, OGGI, NOW), "con solo l'importanza vince la nota importante");
+    impostaPesi({ urgenza: 10, importanza: 0, sforzo: 0, eta: 0 });
+    assert.equal(score(urgente, OGGI, NOW), 100);
+    assert.deepEqual(normalizzaPesi({ urgenza: 0, importanza: 0, sforzo: 0, eta: 0 }), PESI_PREDEFINITI);
+    assert.equal(Math.round(normalizzaPesi({ urgenza: 2, importanza: 2, sforzo: 0, eta: 0 }).urgenza * 100), 50);
+  } finally {
+    impostaPesi(undefined);
+  }
+  assert.equal(score(urgente, OGGI, NOW) - score(importante, OGGI, NOW), base, 'tornano i pesi di base');
+});
+
+test('priorità: la posizione nella scheda è quella che si legge in Oggi, anche a parità di punteggio', () => {
+  const a = mk({ titolo: 'Uguale A', importanza: 3, creato: NOW - 5000 });
+  const b = mk({ titolo: 'Uguale B', importanza: 3, creato: NOW - 1000 });
+  const c = mk({ titolo: 'Più importante', importanza: 5 });
+  const items = [b, a, c];
+  const classifica = classificaPriorita(items, OGGI, NOW);
+  assert.equal(classifica.get(c.id), 1);
+  assert.equal(classifica.get(a.id), 2, 'a parità vince la più vecchia');
+  assert.equal(classifica.get(b.id), 3);
+  for (const x of items) assert.equal(posizionePriorita(items, x, OGGI, NOW).pos, classifica.get(x.id));
+  assert.equal(posizionePriorita(items, a, OGGI, NOW).tot, 3);
+});
+
+test("piano: una nota in corso senza posto salvato parte dall'ora in cui è passata in corso", () => {
+  const inizio = new Date(2026, 9, 15, 9, 0).getTime();
+  const a = mk({ importanza: 1, sforzoMin: 30, stato: 'in_corso', inCorsoTs: inizio });
+  const adesso = new Date(2026, 9, 15, 10, 55).getTime();
+  const g = pianifica([a], { settimana: Array.from({ length: 7 }, () => [{ da: '08:00', a: '21:00' }]), pausaMin: 0 }, OGGI, adesso).giorni[0];
+  assert.equal(orario(g.blocchi[0].da), '09:00');
 });

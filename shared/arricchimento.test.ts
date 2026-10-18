@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { campiDaDati, daArricchire, descrizioneCompatibile, energiaDa, moodDa, tipologieDa } from './arricchimento.ts';
+import { accorciaDescrizione, campiDaDati, daArricchire, descrizioneCompatibile, energiaDa, moodDa, tipologieDa } from './arricchimento.ts';
 
 let n = 0;
 const mk = (p: Partial<Item>): Item => ({ id: `a${++n}`, tipo: 'film', titolo: `Titolo ${n}`, stato: 'da_fare', creato: 1, aggiornato: 1, ...p });
@@ -52,10 +52,21 @@ test('arricchimento: non sovrascrive quello che c\'è già e compila durata e pa
 test('arricchimento: scelta delle voci da cercare', () => {
   const NOW = 100 * 86400000;
   const nuova = mk({});
-  const completa = mk({ genere: 'Azione', mood: 'Emozionante', energia: 'media', durataMin: 100 });
+  const completa = mk({ genere: 'Azione', mood: 'Emozionante', energia: 'media', durataMin: 100, descrittoIl: 1 });
   const giaCercata = mk({ arricchitoIl: NOW - 86400000 });
   const vecchiaRicerca = mk({ arricchitoIl: NOW - 40 * 86400000 });
   const azione = mk({ tipo: 'azione' });
   const ids = daArricchire([nuova, completa, giaCercata, vecchiaRicerca, azione], NOW).map((i) => i.id);
   assert.deepEqual(ids.sort(), [nuova.id, vecchiaRicerca.id].sort());
+});
+
+test('arricchimento: la descrizione va nelle note solo se sono vuote e si accorcia alle prime frasi', () => {
+  const testo = 'Inception è un film del 2010 (uscito in Italia a settembre) scritto e diretto da Christopher Nolan. Il protagonista è un ladro di segreti. Una terza frase che non serve. E una quarta.';
+  const d = accorciaDescrizione(testo)!;
+  assert.ok(d.startsWith('Inception è un film del 2010 scritto e diretto da Christopher Nolan.'));
+  assert.ok(!d.includes('terza'));
+  assert.equal(accorciaDescrizione('breve'), undefined);
+  assert.equal(campiDaDati(mk({}), { generi: [], descrizione: d }).note, d);
+  assert.equal(campiDaDati(mk({ note: 'mia nota' }), { generi: [], descrizione: d }).note, undefined);
+  assert.ok(daArricchire([mk({ genere: 'Azione', mood: 'Emozionante', energia: 'media', durataMin: 100 })], 5).length === 1, 'senza descrizione va cercata');
 });

@@ -3,7 +3,7 @@
 // Al servizio esterno va solo il titolo. I dati trovati si salvano nella voce, quindi si sincronizzano e
 // i filtri di "Cosa guardo stasera" li usano. Vale per le voci nuove e per quelle già inserite.
 import type { Item, Tipo } from '../../../shared/types.ts';
-import { campiDaDati, daArricchire, descrizioneCompatibile, type DatiTrovati } from '../../../shared/arricchimento.ts';
+import { accorciaDescrizione, campiDaDati, daArricchire, descrizioneCompatibile, type DatiTrovati } from '../../../shared/arricchimento.ts';
 import { chiaveTitolo } from '../../../shared/capture.ts';
 import { getItem, getItems, saveItem, subscribe } from './store.ts';
 import { cercaPagine } from './libri.ts';
@@ -51,8 +51,19 @@ export async function cercaDati(titolo: string, tipo: Tipo): Promise<DatiTrovati
   }
   const dati: DatiTrovati = { generi: [] };
   if (trovato) {
-    const e = await json<{ entities?: Record<string, { claims?: Claims }> }>(`${WIKIDATA}action=wbgetentities&props=claims&ids=${trovato.id}`);
+    const e = await json<{ entities?: Record<string, { claims?: Claims; sitelinks?: Record<string, { title: string }> }> }>(`${WIKIDATA}action=wbgetentities&props=claims|sitelinks&sitefilter=itwiki|enwiki&ids=${trovato.id}`);
     const claims = e.entities?.[trovato.id]?.claims ?? {};
+    // breve descrizione dalle prime frasi di Wikipedia (italiano, altrimenti inglese)
+    const link = e.entities?.[trovato.id]?.sitelinks;
+    const voce = link?.itwiki ?? link?.enwiki;
+    if (voce) {
+      try {
+        const r = await json<{ extract?: string }>(`https://${link?.itwiki ? 'it' : 'en'}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(voce.title.replace(/ /g, '_'))}`);
+        dati.descrizione = accorciaDescrizione(r.extract);
+      } catch (err) {
+        if (err instanceof LimiteRichieste) throw err;
+      }
+    }
     const idGeneri = valori(claims, 'P136').map((v) => v.id).filter((x): x is string => !!x).slice(0, 12);
     if (idGeneri.length) {
       const g = await json<{ entities?: Record<string, { labels?: Record<string, { value: string }> }> }>(`${WIKIDATA}action=wbgetentities&props=labels&languages=it|en&ids=${idGeneri.join('|')}`);
@@ -63,7 +74,7 @@ export async function cercaDati(titolo: string, tipo: Tipo): Promise<DatiTrovati
     if (Number.isFinite(pagine) && pagine > 0) dati.pagine = pagine;
   }
   if (tipo === 'libro' && !dati.pagine) dati.pagine = await cercaPagine(t);
-  const nulla = !dati.generi.length && !dati.durataMin && !dati.pagine;
+  const nulla = !dati.generi.length && !dati.durataMin && !dati.pagine && !dati.descrizione;
   return nulla ? null : dati;
 }
 
@@ -87,7 +98,7 @@ async function elabora() {
         const dati = await cercaDati(prossima.titolo, prossima.tipo);
         const attuale: Item = getItem(prossima.id) ?? prossima;
         // non si sovrascrive nulla: se nel frattempo è cambiato qualcosa, vale la versione più recente
-        saveItem({ ...attuale, ...(dati ? campiDaDati(attuale, dati) : {}), arricchitoIl: Date.now() });
+        saveItem({ ...attuale, ...(dati ? campiDaDati(attuale, dati) : {}), arricchitoIl: Date.now(), descrittoIl: Date.now() });
         limiti = 0;
       } catch (e) {
         if (e instanceof LimiteRichieste) {

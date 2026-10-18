@@ -10,6 +10,7 @@ import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
+import { posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
 import { Back, DotsPick, Field, Gruppo, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
@@ -120,15 +121,14 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   }, [d.titolo, d.tipo, d.pagine]);
 
   const generi = (d.genere ?? '').split(',').map((x) => x.trim()).filter(Boolean);
-  const puntegg = IS_AZIONE(t) ? score(withTemp(d), oggi) : undefined;
+  const puntegg = IS_AZIONE(t) ? punteggioEffettivo(withTemp(d), tutte, oggi) : undefined;
   const due = dueDate(d);
   const componenti = componentiPunteggio(withTemp(d), oggi);
   // posizione in classifica tra le attività aperte (1 = la più prioritaria)
   const posizione = useMemo(() => {
     if (puntegg === undefined) return { pos: 1, tot: 1 };
-    const altre = listaAzioni(tutte, oggi).filter((e) => e.item.id !== d.id);
-    return { pos: 1 + altre.filter((e) => e.punteggio > puntegg).length, tot: altre.length + 1 };
-  }, [tutte, oggi, d.id, puntegg]);
+    return posizionePriorita(tutte, withTemp(d), oggi);
+  }, [tutte, oggi, d, puntegg]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function withTemp(x: Item): Item {
     return x.padreId ? { ...x, importanza: x.importanza ?? getItem(x.padreId)?.importanza, fine: x.fine ?? (x.inizio ? undefined : getItem(x.padreId)?.fine) } : x;
@@ -247,7 +247,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               </Field>
             )}
             {IS_AZIONE(t) && <Field label="Importanza"><SliderImportanza label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>}
-            {t === 'esperienza' && <Field label="Interesse"><DotsPick label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
+            {t === 'esperienza' && <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
             {IS_AZIONE(t) && (
               <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} />
             )}
@@ -263,6 +263,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                 )}
               </div>
             )}
+            {t === 'esperienza' && <Field label="Luogo"><input value={d.zona ?? ''} placeholder="es. Torino, Osteria da Gigi" onChange={(e) => up({ zona: e.target.value || undefined })} /></Field>}
             {t === 'esperienza' && d.titolo.trim() && (
               <a className="field link" href={mapsUrl(d.titolo, d.zona)} target="_blank" rel="noreferrer"><b style={{ fontWeight: 620 }}>Apri in Google Maps</b><span className="muted">›</span></a>
             )}
@@ -385,15 +386,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               ))}
             </div>
             <div ref={ordPassi.cont} className="riordinabile">
-              {ordPassi.ordinati(passi).map((c) => (
-                <div key={c.id} className={clsx('row passo-riga', ordPassi.preso === c.id && 'sollevata')} {...ordPassi.presa(c.id)}>
-                  <span className="maniglia" data-grip aria-hidden="true"><i /></span>
-                  <button className="passo-titolo" onClick={() => nav.push({ k: 'item', id: c.id })}>
-                    <span className={clsx('t1', c.stato === 'fatto' && 'light struck')}>{c.titolo}</span>
-                    {dueDate(c) && <span className="t2" style={{ display: 'block' }}>{formatShortYear(dueDate(c)!, oggi)}</span>}
-                  </button>
-                  <button className={clsx('cb', c.stato === 'fatto' && 'done')} role="checkbox" aria-checked={c.stato === 'fatto'} aria-label={`Segna «${c.titolo}»`} onClick={() => (c.stato === 'fatto' ? riapriVoce(c) : completaVoce(c))} />
-                </div>
+              {ordPassi.ordinati(passi).map((c, n) => (
+                <Row key={c.id} voce={c} titolo={c.titolo} tipo={c.tipo} maniglia rank={n + 1}
+                  level={barLevel(punteggioEffettivo(c, tutte, oggi))}
+                  meta={dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : undefined}
+                  classe={ordPassi.preso === c.id ? 'sollevata' : undefined}
+                  extra={ordPassi.presa(c.id)}
+                  onOpen={() => nav.push({ k: 'item', id: c.id })} />
               ))}
             </div>
             {(passi.length > 1 || checklist.length > 1) && <div className="t2" style={{ padding: '6px 0 4px' }}>L'ordine è la priorità: il primo passo aperto è il prossimo da fare. Tieni premuta una riga, o trascinala dal bordo sinistro, per spostarla.</div>}

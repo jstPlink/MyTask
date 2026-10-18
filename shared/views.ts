@@ -69,9 +69,28 @@ export function revisione(items: Item[], today: string, now: number = Date.now()
   return out.sort((a, b) => (dueDate(a.item) ?? '9999').localeCompare(dueDate(b.item) ?? '9999'));
 }
 
+/**
+ * Punteggio di una nota tenendo conto delle dipendenze: in un progetto ogni passo dipende dal precedente, quindi un passo
+ * non può avere priorità più bassa di quelli che vengono dopo (se un passo successivo è urgente, anche i passi che lo precedono lo sono).
+ * Per le note fuori da un progetto è il punteggio normale.
+ */
+export function punteggioEffettivo(i: Item, items: Item[], today: string, now: number = Date.now(), cache?: Map<string, Item[]>): number {
+  const padre = i.padreId ? items.find((p) => p.id === i.padreId && p.tipo === 'progetto' && !p.eliminato) : undefined;
+  if (!padre) return score(i, today, now);
+  let passi = cache?.get(padre.id);
+  if (!passi) {
+    passi = figli(items, padre.id).filter((c) => isOpen(c) && !parcheggiata(c));
+    cache?.set(padre.id, passi);
+  }
+  const k = passi.findIndex((c) => c.id === i.id);
+  if (k < 0) return score(withInheritance(i, padre), today, now);
+  return Math.max(...passi.slice(k).map((c) => score(withInheritance(c, padre), today, now)));
+}
+
 export function candidatiOggi(items: Item[], today: string, now: number): Entry[] {
   const tutte = live(items);
   const inRevisione = new Set(revisione(tutte, today, now).map((v) => v.item.id));
+  const cache = new Map<string, Item[]>();
   const out: Entry[] = [];
   for (const i of tutte) {
     if (!isOpen(i) || parcheggiata(i) || i.inbox || inRevisione.has(i.id)) continue;
@@ -81,7 +100,7 @@ export function candidatiOggi(items: Item[], today: string, now: number): Entry[
       const next = prossimoPasso(i, tutte);
       if (next && !inRevisione.has(next.id)) {
         const eff = withInheritance(next, i);
-        out.push({ item: eff, padre: i, punteggio: score(eff, today, now) });
+        out.push({ item: eff, padre: i, punteggio: punteggioEffettivo(next, tutte, today, now, cache) });
       } else if (!next && figli(tutte, i.id).length === 0) {
         out.push({ item: i, punteggio: score(i, today, now) });
       }
@@ -90,6 +109,23 @@ export function candidatiOggi(items: Item[], today: string, now: number): Entry[
     out.push({ item: i, punteggio: score(i, today, now) });
   }
   return out;
+}
+
+/** Ordine di priorità, uguale ovunque: prima il punteggio, a parità la nota più vecchia (poi l'id, per essere stabili). */
+export const perPriorita = (a: Entry, b: Entry) => b.punteggio - a.punteggio || a.item.creato - b.item.creato || a.item.id.localeCompare(b.item.id);
+
+/** Posizione di ogni nota nella classifica di priorità (1 = la prima): quella che si legge in Oggi e nella scheda della nota. */
+export function classificaPriorita(items: Item[], today: string, now: number = Date.now()): Map<string, number> {
+  return new Map(candidatiOggi(items, today, now).sort(perPriorita).map((e, n) => [e.item.id, n + 1] as [string, number]));
+}
+
+/** Posizione di una nota (anche non ancora salvata o con modifiche in corso) tra quelle da fare, con lo stesso ordine di Oggi. */
+export function posizionePriorita(items: Item[], nota: Item, today: string, now: number = Date.now()): { pos: number; tot: number } {
+  const altre = candidatiOggi(items.filter((i) => i.id !== nota.id), today, now);
+  const padre = nota.padreId ? items.find((p) => p.id === nota.padreId && p.tipo === 'progetto') : undefined;
+  const mia: Entry = { item: nota, padre, punteggio: punteggioEffettivo(nota, [...items.filter((i) => i.id !== nota.id), nota], today, now) };
+  const tutte = [...altre, mia].sort(perPriorita);
+  return { pos: tutte.findIndex((e) => e.item.id === nota.id) + 1, tot: tutte.length };
 }
 
 export interface VistaOggi {
@@ -137,14 +173,16 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
 export function listaAzioni(items: Item[], today: string, now: number = Date.now()): Entry[] {
   const tutte = live(items);
   // tutte le attività aperte, comprese quelle in Revisione (scadute o ferme da tempo)
+  const cache = new Map<string, Item[]>();
+  const ordinePasso = new Map<string, number>();
+  for (const p of tutte.filter((x) => x.tipo === 'progetto')) figli(tutte, p.id).forEach((c, n) => ordinePasso.set(c.id, n));
   return tutte
     .filter((i) => i.tipo === 'azione' && !i.inbox && isOpen(i) && !parcheggiata(i))
     .map((i) => {
       const padre = i.padreId ? tutte.find((p) => p.id === i.padreId && p.tipo === 'progetto') : undefined;
-      const eff = withInheritance(i, padre);
-      return { item: i, padre, punteggio: score(eff, today, now) };
+      return { item: i, padre, punteggio: punteggioEffettivo(i, tutte, today, now, cache) };
     })
-    .sort((a, b) => b.punteggio - a.punteggio);
+    .sort((a, b) => b.punteggio - a.punteggio || (ordinePasso.get(a.item.id) ?? 0) - (ordinePasso.get(b.item.id) ?? 0));
 }
 
 /** Raggruppa le voci per progetto: il gruppo sta dove sta la sua voce più prioritaria; le attività senza progetto restano singole. */

@@ -4,7 +4,7 @@ import type { Item } from '../../../shared/types.ts';
 import { addDays, formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { ORA_CHIEDI_PREDEFINITA, fasceLibere, minuti, minutiDisponibili, orario, pianifica, type Blocco } from '../../../shared/piano.ts';
 import { barLevel, dueDate, daysOverdue, isOpen, isOverdue, score, urgency } from '../../../shared/priority.ts';
-import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
+import { classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { useDisponibilita, useItems, useMinuto, useOggi, useSyncStatus } from '../lib/hooks.ts';
@@ -43,7 +43,7 @@ function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: 
   }); // a ogni disegno: il contenitore può essere un altro elemento dopo un cambio di giorno
   if (!fasce.length) return null;
   const f = fasce[Math.max(0, Math.min(sel, fasce.length - 1))];
-  const livello = (b: Blocco) => (b.pausa ? 'pausa' : `p${barLevel(score(b.item, oggi))}`);
+  const livello = (b: Blocco) => (b.pausa ? 'pausa' : `p${barLevel(b.punteggio ?? score(b.item, oggi))}`);
   const dentro = blocchi.filter((b) => !b.fisso && b.a > f[0] && b.da < f[1]);
   const q = (m: number) => ((Math.min(f[1], Math.max(f[0], m)) - f[0]) / (f[1] - f[0])) * 100;
   return (
@@ -61,7 +61,13 @@ function LineaPiano({ blocchi, fasce, sel, onSel, ora, rank, oggi }: { blocchi: 
       </div>
       <div className="lp-ticks" aria-hidden="true">{[0, 6, 12, 18].map((h) => <span key={h} style={{ left: `${(h / 24) * 100}%` }}>{h}</span>)}<span style={{ right: 0 }}>24</span></div>
       <div className="lp-orari"><span>{orario(f[0])}</span><span>{orario(f[1])}</span></div>
-      <div className="lp-bs" role="img" aria-label={`Attività dalle ${orario(f[0])} alle ${orario(f[1])}`}>
+      <div className={clsx('lp-bs', ora !== undefined && ora >= f[0] && ora <= f[1] && 'con-ora')} role="img" aria-label={`Attività dalle ${orario(f[0])} alle ${orario(f[1])}`}>
+        {ora !== undefined && ora >= f[0] && ora <= f[1] && (
+          <>
+            <i className="lp-bs-ora" style={{ left: `${q(ora)}%` }} aria-hidden="true" />
+            <span className="lp-bs-tag" style={{ left: `${Math.min(88, Math.max(12, q(ora)))}%` }}>{orario(ora)}</span>
+          </>
+        )}
         {dentro.map((b) => (
           <i key={`${b.item.id}-${b.da}`} className={livello(b)} style={{ left: `${q(b.da)}%`, width: `calc(${q(b.a) - q(b.da)}% - 2px)` }} title={`${b.item.titolo} · ${durata(b.a - b.da)}${b.margineMin ? ` (di cui ${durata(b.margineMin)} di margine)` : ''}`}>
             {!!b.margineMin && <b className="lp-m" style={{ width: `${(b.margineMin / (b.a - b.da)) * 100}%` }} />}
@@ -198,12 +204,9 @@ export function Oggi() {
   const dovePianificata = (id: string) => piano?.giorni.flatMap((g) => g.blocchi).find((x) => x.item.id === id && !x.fisso);
   const nomeGiorno = (d: string) => (d === addDays(oggi, 1) ? 'domani' : formatLong(d).toLowerCase());
   // posizione in classifica dei blocchi del giorno mostrato (per priorità, gli impegni con orario fisso non contano)
-  const classifica = new Map<string, number>(
-    (piano?.giorni.find((x) => x.data === giorno)?.blocchi ?? [])
-      .filter((x) => !x.fisso && !x.pausa)
-      .sort((x, y) => score(y.item, oggi) - score(x.item, oggi))
-      .map((x, n) => [x.item.id, n + 1] as [string, number]),
-  );
+  const classificaGlobale = useMemo(() => classificaPriorita(items, oggi, minutoCorrente * 60000), [items, oggi, minutoCorrente]);
+  const idBlocchi = new Set((piano?.giorni.find((x) => x.data === giorno)?.blocchi ?? []).filter((x) => !x.fisso && !x.pausa).map((x) => x.item.id));
+  const classifica = new Map<string, number>([...classificaGlobale].filter(([id]) => idBlocchi.has(id)));
   const bloccoRiga = (bl: NonNullable<typeof piano>['giorni'][number]['blocchi'][number]) => bl.pausa ? (
     <Row
       key={`${bl.item.id}-${bl.da}`}
@@ -223,7 +226,7 @@ export function Oggi() {
       ora={<>{orario(bl.da)}<small>{durata(bl.a - bl.da)}</small></>}
       meta={[bl.fisso ? 'impegno con orario' : undefined, bl.padre ? 'prossimo passo' : undefined, bl.parte ? `parte ${bl.parte.n} di ${bl.parte.di}` : undefined, bl.fisso || !bl.margineMin ? undefined : `${nomeTempo(bl.a - bl.da - bl.margineMin)} + ${nomeTempo(bl.margineMin)} di margine`].filter(Boolean).join(' · ') || undefined}
       right={bl.inRitardo ? <span className="piano-avviso">scaduta</span> : destra({ item: bl.item, padre: bl.padre, punteggio: 0 })}
-      level={barLevel(score(bl.item, oggi))}
+      level={barLevel(bl.punteggio ?? score(bl.item, oggi))}
       rank={bl.fisso ? undefined : classifica.get(bl.item.id)}
       urgenza={urgency(bl.item, oggi)}
       voce={bl.item}

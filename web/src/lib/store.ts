@@ -26,6 +26,9 @@ function rebuild() {
   listeners.forEach((l) => l());
 }
 
+/** Rifà le liste con gli stessi dati (per esempio dopo aver cambiato i pesi della priorità). */
+export const rinfrescaListe = () => rebuild();
+
 export async function initStore(): Promise<void> {
   db = await openDB<Schema>('mytask', 1, {
     upgrade(d) {

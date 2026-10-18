@@ -5,6 +5,9 @@ import { toggleOggi } from '../../../shared/routine.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { avanzamento, figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
+import { pianifica } from '../../../shared/piano.ts';
+import { margineAtteso } from '../../../shared/stima.ts';
+import { getDisponibilita } from './disponibilita.ts';
 import { mostraToast } from './toast.ts';
 import { newId } from './util.ts';
 import { chiediRecensione } from './recensione.ts';
@@ -91,14 +94,57 @@ export const STATI_NOTA: { id: Stato; nome: string; descr: string }[] = [
 /** Lo stato che l'utente vede: «saltato» conta come fatta. */
 export const statoVisto = (s: Stato): Stato => (s === 'saltato' ? 'fatto' : s);
 
-/** Porta una nota in uno stato. «Fatta» passa da `completaVoce` (voto, durata, ricorrenze, progetti); l'archiviazione si può annullare. */
+/** Dove è nel piano di oggi (o dei prossimi giorni) una nota: serve a fissarla quando passa «in corso». */
+function postoNelPiano(item: Item): { pianoData?: string; pianoDa?: number } {
+  const disp = getDisponibilita();
+  if (!disp) return {};
+  const tutte = getItems();
+  const giorni = pianifica(tutte, disp, today(), Date.now(), undefined, margineAtteso(tutte)).giorni;
+  for (const g of giorni) {
+    const b = g.blocchi.find((x) => x.item.id === item.id && !x.pausa && !x.fisso);
+    if (b) return { pianoData: b.data, pianoDa: b.da };
+  }
+  return {};
+}
+
+/**
+ * Porta una nota in uno stato. «Fatta» passa da `completaVoce` (voto, durata, ricorrenze, progetti).
+ * Archiviare un progetto archivia anche i suoi passi; ripristinarlo li ripristina (da fare). Tutto si può annullare.
+ * Una nota che passa «in corso» resta dove era nel piano e non viene più spostata.
+ */
 export function cambiaStato(item: Item, nuovo: Stato) {
   if (statoVisto(item.stato) === nuovo) return;
   if (nuovo === 'fatto') { completaVoce(item); return; }
   const base = statoVisto(item.stato) === 'fatto' ? riapri(item, Date.now()) : item;
   const ora = Date.now();
-  saveItem({ ...base, stato: nuovo, inCorsoTs: nuovo === 'in_corso' ? ora : nuovo === 'da_fare' ? undefined : base.inCorsoTs, aggiornato: ora });
-  if (nuovo === 'parcheggiato') mostraToast('Archiviata', { label: 'Annulla', fn: () => saveItem(item) });
+  const posto = nuovo === 'in_corso' ? postoNelPiano(item) : {};
+  const prima: Item[] = [item];
+  saveItem({
+    ...base,
+    stato: nuovo,
+    inCorsoTs: nuovo === 'in_corso' ? ora : nuovo === 'da_fare' ? undefined : base.inCorsoTs,
+    pianoData: posto.pianoData,
+    pianoDa: posto.pianoDa,
+    aggiornato: ora,
+  });
+  if (item.tipo === 'progetto') {
+    const era = statoVisto(item.stato);
+    for (const c of figli(getItems(), item.id)) {
+      if (nuovo === 'parcheggiato' && statoVisto(c.stato) !== 'fatto' && c.stato !== 'parcheggiato') {
+        prima.push(c);
+        saveItem({ ...c, stato: 'parcheggiato', pianoData: undefined, pianoDa: undefined, aggiornato: ora });
+      } else if (era === 'parcheggiato' && nuovo !== 'parcheggiato' && c.stato === 'parcheggiato') {
+        prima.push(c);
+        saveItem({ ...c, stato: 'da_fare', aggiornato: ora });
+      }
+    }
+  }
+  const passi = prima.length - 1;
+  if (nuovo === 'parcheggiato') {
+    mostraToast(passi ? `Archiviato con ${passi} ${passi === 1 ? 'passo' : 'passi'}` : 'Archiviata', { label: 'Annulla', fn: () => prima.forEach((x) => saveItem(x)) });
+  } else if (passi) {
+    mostraToast(`Ripristinato con ${passi} ${passi === 1 ? 'passo' : 'passi'}`, { label: 'Annulla', fn: () => prima.forEach((x) => saveItem(x)) });
+  }
 }
 
 /** Un tocco sulla casella: da fare → in corso → fatta; una nota fatta o archiviata torna da fare. */

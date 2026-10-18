@@ -10,10 +10,12 @@ import { avviaPromemoria } from './lib/reminders.ts';
 import { avviaNotificheNative, isNative } from './lib/native.ts';
 import { avviaWidget } from './lib/widget.ts';
 import { avviaHaptic } from './lib/haptic.ts';
+import { avviaPesi } from './lib/pesi.ts';
 import { sistemaPersoneEChecklist } from './lib/migrazioni.ts';
 import { avviaArricchimento } from './lib/arricchimento.ts';
 
 avviaTema();
+avviaPesi();
 avviaHaptic();
 
 async function avvia() {
