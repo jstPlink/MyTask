@@ -1,10 +1,11 @@
-// Sincronizzazione con il server: a ogni passata si inviano le voci in coda (store.ts) e le impostazioni (tempo libero),
+// Sincronizzazione con il server: a ogni passata si inviano le voci in coda (store.ts) e le impostazioni (tempo libero e sessione di lavoro),
 // e si riceve ciò che è cambiato dopo `since`. Parte dopo ogni modifica (con attesa di 1,2 s), al ritorno della rete,
 // quando l'app torna visibile e ogni minuto. Senza rete o senza accesso non fa nulla: i dati restano in coda.
 import type { SyncResponse } from '../../../shared/types.ts';
 import { applyRemote, getAuth, getSince, markSent, pendingCount, setAuth, setOnLocalChange, setSince, takeDirty } from './store.ts';
 import { apiBase } from './api.ts';
 import { applicaDaServer, impostazioniDaInviare, subscribeDisponibilita } from './disponibilita.ts';
+import { applicaSessioneDaServer, impostazioniSessioneDaInviare, subscribeSessione } from './sessione.ts';
 import { debounce } from './util.ts';
 
 /** Stato mostrato nell'interfaccia (rete, sincronizzazione in corso, ultimo errore, voci in attesa). */
@@ -36,7 +37,7 @@ export async function sync(): Promise<void> {
     const res = await fetch(`${apiBase()}/api/sync`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-      body: JSON.stringify({ since: getSince(), changes, impostazioni: impostazioniDaInviare() }),
+      body: JSON.stringify({ since: getSince(), changes, impostazioni: { ...impostazioniDaInviare(), ...impostazioniSessioneDaInviare() } }),
     });
     if (res.status === 401) {
       await setAuth({ email: getAuth().email }); // la sessione è scaduta: serve rifare l'accesso, i dati restano
@@ -49,7 +50,7 @@ export async function sync(): Promise<void> {
     await applyRemote(data.items);
     await setSince(data.seq);
     applicando = true;
-    try { applicaDaServer(data.impostazioni); } finally { applicando = false; }
+    try { applicaDaServer(data.impostazioni); applicaSessioneDaServer(data.impostazioni); } finally { applicando = false; }
     set({ ultima: Date.now(), online: true });
   } catch (e) {
     set({ errore: e instanceof Error ? e.message : 'Sincronizzazione non riuscita' });
@@ -67,6 +68,7 @@ const sincronizzaPoi = debounce(() => { void sync(); }, 1200);
 export function avviaSync() {
   setOnLocalChange(() => { set({ inAttesa: pendingCount() }); sincronizzaPoi(); });
   subscribeDisponibilita(() => { if (!applicando) sincronizzaPoi(); });
+  subscribeSessione(() => { if (!applicando) sincronizzaPoi(); });
   window.addEventListener('online', () => { set({ online: true }); void sync(); });
   window.addEventListener('offline', () => set({ online: false }));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void sync(); });

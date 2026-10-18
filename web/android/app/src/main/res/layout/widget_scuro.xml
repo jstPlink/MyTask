@@ -1,24 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget Oggi: lista delle righe (riga_*), messaggio a lista vuota, pulsante + per la nota veloce. Il padding in basso della lista lascia spazio al pulsante. -->
+<!-- Widget Oggi (scuro): in cima il pulsante «Sto lavorando» oppure, a sessione aperta, la barra del cronometro
+     (Chronometer nativo, avanza da solo) con «Fine» e pausa; sotto la lista delle righe (riga_*), il messaggio a lista vuota
+     e il pulsante + per la nota veloce. Il padding in basso della lista lascia spazio al pulsante. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="10dp"
     android:background="@drawable/widget_bg_s">
 
-    <ListView
-        android:id="@+id/lista"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:divider="@null"
-        android:dividerHeight="0dp"
-        android:paddingBottom="64dp" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/avvia"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/avvia_bg_s"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/widget_avvia"
+            android:textColor="#0E0F12"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/crono_barra"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/crono_bg_s"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="8dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <Chronometer
+                    android:id="@+id/crono"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textColor="#F1F0EC"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/crono_titolo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#BDBDC4"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/crono_fine"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/fine_bg_s"
+                android:gravity="center"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="@string/widget_fine"
+                android:textColor="#F3F3F6"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/crono_pausa"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/piu_bg_s"
+                android:gravity="center"
+                android:textColor="#0E0F12"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/lista"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:paddingBottom="64dp" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/vuoto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="60dp"
         android:gravity="center"
         android:text="@string/widget_vuoto"
         android:textColor="#A5A5B0"

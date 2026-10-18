@@ -43,7 +43,7 @@ export function Altro() {
         {voce('Archiviate', nParte || undefined, { k: 'daparte' })}
         {voce('Completato', nArch, { k: 'archivio' })}
         <Sec a="App" />
-        {voce('Tempo libero', undefined, { k: 'tempolibero' })}
+        <button className="field link sper-voce" onClick={() => nav.push({ k: 'tempolibero' })}><b style={{ fontWeight: 620 }}>Tempo libero <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Intelligenza artificiale', 'Gemini e Groq', { k: 'ia' })}
         <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Pesi della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}

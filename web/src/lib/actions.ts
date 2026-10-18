@@ -10,6 +10,8 @@ import { getItem, getItems, saveItem } from './store.ts';
 import { durataRealeInCorso, pianifica } from '../../../shared/piano.ts';
 import { margineAtteso } from '../../../shared/stima.ts';
 import { getDisponibilita } from './disponibilita.ts';
+import { dopoCompletamento, elencoIdPrima, tempoDi } from './sessione.ts';
+import { minutiMisurati } from '../../../shared/sessione.ts';
 import { mostraCompletamento } from './completamento.ts';
 import { mostraToast } from './toast.ts';
 import { newId, nomeTempo } from './util.ts';
@@ -36,9 +38,12 @@ function fotografaProgetto(progetto: Item, idTarget: string) {
 
 /**
  * Spunta una voce. Offre «Annulla» e, se era l'ultimo passo di un progetto, di chiudere il progetto.
- * Per le note «in corso» registra il tempo impiegato misurato dall'app (vedi `durataRealeInCorso`).
+ * Registra il tempo impiegato: quello del cronometro «Sto lavorando» (`lavoratoMs`); in mancanza, per le note «in corso»
+ * senza cronometro, il tempo libero trascorso da quando sono partite (`durataRealeInCorso`). Se il cronometro correva su
+ * questo task, passa al successivo della lista di Oggi. `ora` (di base adesso) è il momento del completamento: il widget
+ * lo passa quando l'azione è stata fatta mentre l'app era chiusa.
  */
-export function completaVoce(item: Item) {
+export function completaVoce(item: Item, ora = Date.now()) {
   // film, serie, libri, giochi…: prima si chiede il voto e un commento, poi si segna come fatto
   if (TIPI_CON_VOTO.has(item.tipo) && !item.ricorrenza) { chiediRecensione(item); return; }
   const oggi = today();
@@ -47,10 +52,12 @@ export function completaVoce(item: Item) {
   // passo di un progetto: si fotografa il progetto prima del segno di fatto, per l'animazione dell'avanzamento
   const progetto = padre?.tipo === 'progetto' && !item.ricorrenza ? padre : undefined;
   const fotoPrima = progetto ? fotografaProgetto(progetto, item.id) : undefined;
-  const ora = Date.now();
-  // il tempo impiegato non si chiede: si misura da quando la nota è passata «in corso», contando solo il tempo libero segnato
-  const durata = item.tipo === 'azione' && !item.ricorrenza ? durataRealeInCorso(item, ora, getDisponibilita()) : undefined;
-  const dopo = { ...completa(item, oggi, ora), ...(durata ? { durataRealeMin: durata } : {}) };
+  // il tempo impiegato non si chiede: arriva dal cronometro, o si misura dal passaggio «in corso» contando solo il tempo libero
+  const lavoratoMs = tempoDi(item, ora);
+  const misurabile = item.tipo === 'azione' && !item.ricorrenza;
+  const durata = misurabile ? (minutiMisurati(lavoratoMs) ?? durataRealeInCorso(item, ora, getDisponibilita())) : undefined;
+  const dopo = { ...completa(item, oggi, ora), ...(lavoratoMs > 0 ? { lavoratoMs: Math.round(lavoratoMs) } : {}), ...(durata ? { durataRealeMin: durata } : {}) };
+  dopoCompletamento(item.id, elencoIdPrima(), ora); // il cronometro passa al task successivo
   const margineDa = margineAtteso(getItems());
   saveItem(dopo);
   // con il tempo misurato e una stima si apre il foglio con il confronto e il margine d'errore aggiornato

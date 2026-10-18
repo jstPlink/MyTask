@@ -196,13 +196,38 @@ export function pianifica(items: Item[], disp: Disponibilita, oggi: string, now:
       giorno.blocchi.push({ item: i, padre: e.padre, data: giorno.data, da, a, fisso: true, punteggio: e.punteggio });
       gaps.set(giorno.data, sottrai(gaps.get(giorno.data)!, da, a));
     } else if (postoInCorso(i, giorni.map((g) => g.data))) {
-      // nota già iniziata: resta dove era quando è passata «in corso» (stima più margine), non si sposta più
+      // nota già iniziata: il primo pezzo resta dove era quando è passata «in corso» e dura fino alla fine di quella fascia
+      // libera; se il tempo (stima più margine) non basta, il resto prosegue nelle fasce libere successive (anche nei giorni dopo).
+      // Il margine d'errore sta solo in coda all'ultimo pezzo: finché non è entrato tutto il tempo di base non si vede.
       const posto = postoInCorso(i, giorni.map((g) => g.data))!;
-      const g = giorni.find((x) => x.data === posto.data)!;
       const base = durataDi(i);
       const totale = arrotonda(base * (1 + Math.max(0, margine)));
-      g.blocchi.push({ item: i, padre: e.padre, data: g.data, da: posto.da, a: posto.da + totale, margineMin: totale - base, punteggio: e.punteggio });
-      gaps.set(g.data, sottrai(gaps.get(g.data)!, posto.da, posto.da + totale));
+      const fascia = fasceDelGiorno(disp, posto.data).map((f) => [minuti(f.da), minuti(f.a)] as Gap).find(([s, f]) => s <= posto.da && posto.da < f);
+      const fineIniziale = fascia ? Math.min(posto.da + totale, fascia[1]) : posto.da + totale;
+      const tratti: { data: string; da: number; a: number }[] = [{ data: posto.data, da: posto.da, a: fineIniziale }];
+      gaps.set(posto.data, sottrai(gaps.get(posto.data)!, posto.da, fineIniziale));
+      let resto = totale - (fineIniziale - posto.da);
+      for (const g of giorni) {
+        if (resto <= 0) break;
+        if (g.data < posto.data) continue;
+        const l = gaps.get(g.data)!;
+        for (let k = 0; k < l.length && resto > 0; k++) {
+          const [s, f] = l[k];
+          if (g.data === posto.data && s < fineIniziale) continue;
+          const presa = Math.min(resto, f - s);
+          tratti.push({ data: g.data, da: s, a: s + presa });
+          l.splice(k, 1, ...(s + presa < f ? [[s + presa, f] as Gap] : []));
+          if (s + presa >= f) k--;
+          resto -= presa;
+        }
+      }
+      let fatto = 0;
+      tratti.forEach((t, n) => {
+        const durata = t.a - t.da;
+        const margineMin = Math.max(0, fatto + durata - Math.max(fatto, base));
+        fatto += durata;
+        giorni.find((x) => x.data === t.data)!.blocchi.push({ item: i, padre: e.padre, data: t.data, da: t.da, a: t.a, margineMin, parte: tratti.length > 1 ? { n: n + 1, di: tratti.length } : undefined, punteggio: e.punteggio });
+      });
     } else {
       flessibili.push(e);
     }

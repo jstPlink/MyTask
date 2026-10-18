@@ -57,6 +57,11 @@ public class WidgetService extends RemoteViewsService {
             boolean fatto = o.optInt("f", 0) == 1;
             String id = o.optString("id");
 
+            // il task su cui corre (o è in pausa) il cronometro «Sto lavorando» ha lo sfondo evidenziato
+            JSONObject lavoro = WidgetDati.lavoro(c);
+            boolean inLavoro = lavoro != null && id.equals(lavoro.optString("id")) && !fatto;
+            v.setInt(R.id.riga, "setBackgroundColor", inLavoro ? colore("#E3F1EA", "#17332A") : Color.TRANSPARENT);
+
             // orario del piano sotto il titolo
             String ora = o.optString("o", "");
             v.setViewVisibility(R.id.sub, ora.isEmpty() ? View.GONE : View.VISIBLE);

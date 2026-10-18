@@ -1,8 +1,8 @@
-// Dati per il widget «Oggi» della schermata Home di Android: le righe del piano di oggi e un archivio compatto delle note.
-// L'app li calcola e li invia al widget (plugin Widget); il widget non legge i dati dell'app né usa la rete.
+// Dati per il widget «Oggi» della schermata Home di Android: le righe della lista di oggi, la sessione «Sto lavorando» e un
+// archivio compatto delle note. L'app li calcola e li invia al widget (plugin Widget); il widget non legge i dati dell'app né usa la rete.
 import type { Item } from './types.ts';
-import { pianifica, orario, type Disponibilita } from './piano.ts';
-import { barLevel, battitoBpm, isClosed, score, urgency } from './priority.ts';
+import { barLevel, battitoBpm, isClosed, urgency } from './priority.ts';
+import type { Sessione } from './sessione.ts';
 import { live, vistaOggi } from './views.ts';
 import { chiaveTitolo } from './testo.ts';
 import { NOMI_TIPO } from './types.ts';
@@ -12,36 +12,40 @@ export interface RigaWidget {
   id: string;
   /** Titolo. */
   t: string;
-  /** Orario di inizio nel piano (HH:MM). */
-  o?: string;
-  /** Posizione in classifica (assente per gli impegni con orario fisso). */
+  /** Posizione in classifica (1 = la prima da fare). */
   r?: number;
+  /** Millisecondi già lavorati sul task con il cronometro: il widget li usa come punto di partenza se lo avvia lui. */
+  w?: number;
   /** Livello di priorità 1-3, per il colore del pallino. */
   l: 1 | 2 | 3;
   /** Battiti al minuto del pallino (come nell'app: più veloce quanto più la scadenza è vicina); assente se non batte. */
   b?: number;
 }
 
-/**
- * Le cose da fare oggi per il widget, nell'ordine del piano di oggi (con orario e posizione in classifica).
- * Senza tempo libero impostato è la lista semplice di Oggi. Le attività spezzate compaiono una volta sola.
- */
-export function righeWidget(items: Item[], disp: Disponibilita | null, oggi: string, now: number, margine: number, max = 20): RigaWidget[] {
-  if (!disp) {
-    return vistaOggi(items, oggi).fare.slice(0, max).map((e, n) => ({ id: e.item.id, t: e.item.titolo, r: n + 1, l: barLevel(e.punteggio), b: battitoBpm(urgency(e.item, oggi)) || undefined }));
-  }
-  const blocchi = (pianifica(items, disp, oggi, now, undefined, margine).giorni[0]?.blocchi ?? []).filter((b) => !b.pausa);
-  const classifica = new Map(
-    blocchi.filter((b) => !b.fisso).sort((a, b) => (b.punteggio ?? score(b.item, oggi)) - (a.punteggio ?? score(a.item, oggi))).map((b, n) => [b.item.id, n + 1] as const),
-  );
-  const viste = new Set<string>();
-  const righe: RigaWidget[] = [];
-  for (const b of [...blocchi].sort((a, c) => a.da - c.da)) {
-    if (viste.has(b.item.id)) continue;
-    viste.add(b.item.id);
-    righe.push({ id: b.item.id, t: b.item.titolo, o: orario(b.da), r: b.fisso ? undefined : classifica.get(b.item.id), l: barLevel(b.punteggio ?? score(b.item, oggi)), b: b.fisso ? undefined : battitoBpm(urgency(b.item, oggi)) || undefined });
-  }
-  return righe.slice(0, max);
+/** Le cose da fare oggi per il widget: la lista semplice di Oggi (`vistaOggi`), con posizione in classifica, priorità e battito. */
+export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[] {
+  return vistaOggi(items, oggi).fare.slice(0, max).map((e, n) => ({
+    id: e.item.id, t: e.item.titolo, r: n + 1, l: barLevel(e.punteggio), b: battitoBpm(urgency(e.item, oggi)) || undefined, w: e.item.lavoratoMs || undefined,
+  }));
+}
+
+/** La sessione «Sto lavorando» come la vede il widget: il cronometro mostra `base` più, se corre (`lavoro`), il tempo da `ref`. */
+export interface LavoroWidget {
+  stato: 'lavoro' | 'pausa';
+  id: string;
+  /** Titolo del task. */
+  t: string;
+  /** Millisecondi già accumulati sul task (senza il tratto che sta correndo). */
+  base: number;
+  /** Inizio del tratto che sta correndo (millisecondi). */
+  ref: number;
+}
+
+/** La sessione da mostrare nel widget, o null se non si sta lavorando (o il task non esiste più). */
+export function lavoroWidget(items: Item[], s: Sessione): LavoroWidget | null {
+  if (s.stato === 'ferma' || !s.taskId) return null;
+  const item = items.find((i) => i.id === s.taskId && !i.eliminato);
+  return item ? { stato: s.stato, id: item.id, t: item.titolo, base: item.lavoratoMs ?? 0, ref: s.inizio ?? 0 } : null;
 }
 
 /** Una nota nell'archivio del widget: serve alla nota veloce per mostrare le note con parole simili. */

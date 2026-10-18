@@ -28,6 +28,7 @@ import { RecensioneSheet } from './ui/Recensione.tsx';
 import { StatoMenu } from './ui/StatoMenu.tsx';
 import { CompletamentoSheet } from './ui/CompletamentoSheet.tsx';
 import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
+import { ControlloSessione } from './ui/ControlloSessione.tsx';
 import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Stasera } from './screens/Secondarie.tsx';
 
 // Radice dell'interfaccia: sceglie tra accesso, layout stretto (telefono: una schermata + barra delle schede) e
@@ -243,6 +244,7 @@ export function App() {
           <StatoMenu />
           <CompletamentoSheet />
           <AvanzamentoProgetto />
+          <ControlloSessione />
           <ToastView />
         </div>
       </NavContext.Provider>
@@ -278,6 +280,7 @@ export function App() {
         <StatoMenu />
         <CompletamentoSheet />
         <AvanzamentoProgetto />
+        <ControlloSessione />
         <ToastView />
       </div>
     </NavContext.Provider>

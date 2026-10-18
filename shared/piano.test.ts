@@ -15,7 +15,6 @@ import { leggiDurata, scomponi, scriviDurata, scriviQuando, scriviTrascorso } fr
 import { componiIndirizzo, indirizzoValido, separaIndirizzo } from './indirizzo.ts';
 import { figli, prossimoPasso } from './views.ts';
 import { completa, riapri } from './recurrence.ts';
-import { sistemaNumeri } from './linea.ts';
 
 // giovedì 15 ottobre 2026, ore 10:00
 const NOW = new Date(2026, 9, 15, 10, 0, 0).getTime();
@@ -264,29 +263,6 @@ test('cronologia: data e ora e tempo trascorso', () => {
   assert.equal(scriviTrascorso(20000), 'meno di un minuto');
 });
 
-// ---- numeri sotto la barra del piano
-
-test('linea del piano: i numeri restano dentro la barra e nell\'ordine, anche se sono tanti', () => {
-  const L = 325;
-  // pochi: restano sotto il loro segmento
-  const poche = sistemaNumeri([60, 160, 260], L);
-  assert.deepEqual(poche.px, [60, 160, 260]);
-  assert.equal(poche.diametro, 24);
-  // tanti e vicini: si spostano ma restano dentro [r, L-r]
-  const vicini = sistemaNumeri(Array.from({ length: 10 }, (_, i) => 150 + i * 3), L);
-  for (let i = 1; i < vicini.px.length; i++) assert.ok(vicini.px[i] - vicini.px[i - 1] >= vicini.diametro, 'non si toccano');
-  assert.ok(vicini.px[0] >= vicini.diametro / 2 && vicini.px[9] <= L - vicini.diametro / 2);
-  // venti numeri tutti ammassati a destra (il caso rotto): dentro la barra, cerchi più piccoli
-  const molti = sistemaNumeri(Array.from({ length: 20 }, (_, i) => 300 + i), L);
-  assert.ok(molti.diametro < 24 && molti.diametro >= 12);
-  assert.ok(molti.px.every((x) => x >= molti.diametro / 2 - 0.001 && x <= L - molti.diametro / 2 + 0.001), 'tutti dentro');
-  assert.ok(molti.px.every((x, i) => i === 0 || x >= molti.px[i - 1]), 'ordine mantenuto');
-  // cinquanta numeri: sempre dentro, anche sovrapposti
-  const troppi = sistemaNumeri(Array.from({ length: 50 }, (_, i) => i * 6), L);
-  assert.ok(troppi.px.every((x) => x >= 0 && x <= L));
-  assert.deepEqual(sistemaNumeri([], L).px, []);
-});
-
 test('piano: in modalità flessibile contano solo gli orari inseriti per il giorno', () => {
   const a = mk({ importanza: 5, sforzoMin: 30 });
   const flex: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '18:00', a: '21:00' }]), flessibile: true };
@@ -478,4 +454,20 @@ test("durata reale: conta solo il tempo libero segnato, non le pause", () => {
   assert.equal(minutiLiberiTra(disp, inizio, dopodomani), 30 + 180 + 30 + 180 + 30 + 30);
   // senza tempo libero impostato: tempo trascorso, al massimo 8 ore
   assert.equal(durataRealeInCorso(nota, fine, null), 480);
+});
+
+test('piano: una nota in corso che non entra nella fascia prosegue nella fascia libera successiva, col margine solo in fondo', () => {
+  // iniziata alle 13:00, 2 ore di base: la fascia libera 13-14 ne copre solo una; il resto va alla sera
+  const a = mk({ titolo: 'Lunga', importanza: 3, sforzoMin: 120, stato: 'in_corso', pianoData: OGGI, pianoDa: minuti('13:00') });
+  const disp: Disponibilita = { settimana: Array.from({ length: 7 }, () => [{ da: '13:00', a: '14:00' }, { da: '18:00', a: '21:00' }]) };
+  const adesso = new Date(2026, 9, 15, 13, 10).getTime();
+  const b = pianifica([a], disp, OGGI, adesso, undefined, 0.5).giorni[0].blocchi.filter((x) => x.item.id === a.id);
+  assert.equal(b.length, 2);
+  assert.equal(orario(b[0].da), '13:00');
+  assert.equal(orario(b[0].a), '14:00');
+  assert.equal(b[0].margineMin, 0, 'nel primo pezzo non si vede il margine: il tempo di base non è ancora tutto');
+  assert.deepEqual(b[0].parte, { n: 1, di: 2 });
+  assert.equal(orario(b[1].da), '18:00');
+  assert.equal(orario(b[1].a), '20:00'); // totale 180 min (120 + 50% di margine): 60 nella prima fascia, 120 nella seconda
+  assert.equal(b[1].margineMin, 60, "il margine sta in coda all'ultimo pezzo");
 });

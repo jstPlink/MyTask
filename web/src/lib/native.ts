@@ -8,6 +8,10 @@ import { debounce } from './util.ts';
 import { getItems, subscribe } from './store.ts';
 import { getDisponibilita, subscribeDisponibilita } from './disponibilita.ts';
 import { richiediOrari } from './richiestaOrari.ts';
+import { getSessione, scadenzaControllo, subscribeSessione } from './sessione.ts';
+
+/** Identificativo della notifica «Stai ancora lavorando?» (la sessione ne ha una sola alla volta). */
+const ID_CONTROLLO_SESSIONE = 990001;
 
 /** True dentro l'app Android (Capacitor), false nel browser. */
 export const isNative = (): boolean => Capacitor.isNativePlatform();
@@ -38,7 +42,8 @@ async function chiediPermessoNotificheNative(): Promise<PermessoNotifiche> {
 
 /**
  * Riprogramma tutte le notifiche del sistema in base ai dati correnti: cancella quelle in attesa e ne pianifica di nuove
- * (promemoria delle voci e, in modalità flessibile, la richiesta serale degli orari liberi). I calcoli sono in shared/pianifica.ts.
+ * (promemoria delle voci, in modalità flessibile la richiesta serale degli orari liberi e, se si sta lavorando, il controllo
+ * «Stai ancora lavorando?» dopo 45 minuti senza conferme). I calcoli sono in shared/pianifica.ts e shared/sessione.ts.
  */
 async function aggiornaNotificheNative(items: Item[]): Promise<void> {
   if ((await permessoNotificheNative()) !== 'granted') return;
@@ -47,9 +52,15 @@ async function aggiornaNotificheNative(items: Item[]): Promise<void> {
     if (notifications.length) await LocalNotifications.cancel({ notifications: notifications.map((n) => ({ id: n.id })) });
     const lista = pianificaNotifiche(items, new Date());
     const richieste = richiesteOrari(getDisponibilita(), new Date());
-    if (lista.length || richieste.length) {
+    const scadenza = scadenzaControllo();
+    const titolo = getItems().find((i) => i.id === getSessione().taskId)?.titolo;
+    const controllo = scadenza && scadenza > Date.now()
+      ? [{ id: ID_CONTROLLO_SESSIONE, title: 'Stai ancora lavorando?', body: titolo ? `«${titolo}»: apri MyTask per confermare` : 'Apri MyTask per confermare', schedule: { at: new Date(scadenza), allowWhileIdle: true }, smallIcon: 'ic_stat_mytask' }]
+      : [];
+    if (lista.length || richieste.length || controllo.length) {
       await LocalNotifications.schedule({
         notifications: [
+          ...controllo,
           ...lista.map((n) => ({
             id: n.id,
             title: n.titolo,
@@ -82,6 +93,7 @@ export function avviaNotificheNative() {
   const aggiorna = debounce(() => { void aggiornaNotificheNative(getItems()); }, 2000);
   subscribe(aggiorna);
   subscribeDisponibilita(aggiorna);
+  subscribeSessione(aggiorna);
   void LocalNotifications.addListener('localNotificationActionPerformed', (a) => {
     const extra = a.notification.extra as { azione?: string; giorno?: string } | undefined;
     if (extra?.azione === 'orari' && extra.giorno) richiediOrari(extra.giorno);

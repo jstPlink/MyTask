@@ -9,12 +9,15 @@ import { getStatoSync, subscribeSync } from './sync.ts';
 import { getToast, subscribeToast } from './toast.ts';
 import { getAspetto, subscribeAspetto } from './theme.ts';
 import { getDisponibilita, subscribeDisponibilita } from './disponibilita.ts';
+import { getSessione, subscribeSessione } from './sessione.ts';
 
 export const useItems = (): Item[] => useSyncExternalStore(subscribe, getItems);
 export const useAuth = () => useSyncExternalStore(subscribeAuth, getAuth);
 export const useSyncStatus = () => useSyncExternalStore(subscribeSync, getStatoSync);
 export const useToast = () => useSyncExternalStore(subscribeToast, getToast);
 export const useAspetto = () => useSyncExternalStore(subscribeAspetto, getAspetto);
+/** La sessione di lavoro («Sto lavorando»). */
+export const useSessione = () => useSyncExternalStore(subscribeSessione, getSessione);
 export const useDisponibilita = () => useSyncExternalStore(subscribeDisponibilita, getDisponibilita);
 
 /**
@@ -46,9 +49,15 @@ export function useOggi(): string {
   return d;
 }
 
-/** Il minuto corrente (millisecondi / 60000), aggiornato ogni 15 secondi e al ritorno in primo piano: serve alla linea dell'ora e al piano. */
-export function useMinuto(): number {
-  const [m, setM] = useState(() => Math.floor(Date.now() / 60000));
-  usaAggiornamento(() => setM((x) => { const n = Math.floor(Date.now() / 60000); return n === x ? x : n; }), 15_000);
-  return m;
+/** L'istante corrente (millisecondi), aggiornato ogni secondo finché `attivo`: per far scorrere il cronometro. */
+export function useAdesso(attivo: boolean): number {
+  const [t, setT] = useState(() => Date.now());
+  useEffect(() => {
+    if (!attivo) return;
+    setT(Date.now());
+    const i = setInterval(() => setT(Date.now()), 1000);
+    return () => clearInterval(i);
+  }, [attivo]);
+  return t;
 }
+

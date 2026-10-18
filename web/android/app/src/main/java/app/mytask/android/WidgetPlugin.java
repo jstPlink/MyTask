@@ -16,18 +16,20 @@ public class WidgetPlugin extends Plugin {
 
     /**
      * Salva la lista di oggi (`righe`, testo JSON) e, se presente, l'archivio compatto delle note per la ricerca delle
-     * note simili (`archivio`), poi chiede ai widget di ridisegnare la lista.
+     * note simili (`archivio`) e, se presente, la sessione «Sto lavorando» (`lavoro`, testo JSON; vuoto = nessuna sessione),
+     * poi chiede ai widget di ridisegnarsi.
      */
     @PluginMethod
     public void aggiorna(PluginCall call) {
         String righe = call.getString("righe", "[]");
         String archivio = call.getString("archivio");
         if (archivio != null) WidgetDati.salvaArchivio(getContext(), archivio);
+        if (call.hasOption("lavoro")) WidgetDati.salvaLavoro(getContext(), call.getString("lavoro", ""));
         WidgetDati.salvaRighe(getContext(), righe);
         call.resolve();
     }
 
-    /** Restituisce, svuotandole, le azioni fatte dal widget da quando l'app le ha lette l'ultima volta: nuove note e spunte. */
+    /** Restituisce, svuotandole, le azioni fatte dal widget da quando l'app le ha lette l'ultima volta: nuove note, spunte e comandi della sessione. */
     @PluginMethod
     public void coda(PluginCall call) {
         JSObject out = new JSObject();

@@ -8,11 +8,11 @@ import { CampoNuovaNota } from './CampoNuovaNota.tsx';
 import { Icona, type NomeIcona } from './kit.tsx';
 import { useNav, type Screen, type SubFare, type SubScoprire, type Tab } from './nav.tsx';
 
-/** Voce della barra laterale: `main` = categoria principale con icona, `sub` = sotto-voce rientrata, `n` = conteggio (in arancio con `warn`). */
-function Link({ nome, on, sub, main, n, warn, icona, onClick }: { nome: string; on?: boolean; sub?: boolean; main?: boolean; n?: number; warn?: boolean; icona?: NomeIcona; onClick: () => void }) {
+/** Voce della barra laterale: `main` = categoria principale con icona, `sub` = sotto-voce rientrata, `n` = conteggio (in arancio con `warn`), `sper` = opzione provvisoria (gialla). */
+function Link({ nome, on, sub, main, n, warn, icona, sper, onClick }: { nome: string; on?: boolean; sub?: boolean; main?: boolean; n?: number; warn?: boolean; icona?: NomeIcona; sper?: boolean; onClick: () => void }) {
   return (
-    <button className={clsx('sb-link', on && 'on', sub && 'sub', main && 'princ')} onClick={onClick} aria-current={on ? 'page' : undefined}>
-      <b>{icona && <Icona nome={icona} size={24} />}{nome}</b>
+    <button className={clsx('sb-link', on && 'on', sub && 'sub', main && 'princ', sper && 'sper-voce')} onClick={onClick} aria-current={on ? 'page' : undefined}>
+      <b>{icona && <Icona nome={icona} size={24} />}{nome}{sper && <span className="badge-sper">provvisorio</span>}</b>
       {n !== undefined && <span className={clsx('sb-n', warn && n > 0 && 'warn')}>{n}</span>}
     </button>
   );
@@ -106,7 +106,7 @@ export function Sidebar() {
 
       <div className="sb-spacer" />
       <div className="sb-group">
-        <Link nome="Tempo libero" on={scr('tempolibero')} onClick={() => vai({ k: 'tempolibero' })} />
+        <Link sper nome="Tempo libero" on={scr('tempolibero')} onClick={() => vai({ k: 'tempolibero' })} />
         <Link nome="Aspetto" on={scr('aspetto')} onClick={() => vai({ k: 'aspetto' })} />
         <Link nome="Account" on={scr('account')} onClick={() => vai({ k: 'account' })} />
       </div>
