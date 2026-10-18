@@ -36,7 +36,7 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 
 | Area | Contenuto | Origine in Notion |
 |---|---|---|
-| **Oggi** | Cose da fare oggi, scadenze imminenti, routine, voci scadute da rivedere | Nuovo |
+| **Oggi** | Cose da fare oggi, scadenze imminenti, routine, voci scadute | Nuovo |
 | **Attività** | Burocrazia, casa, digitale, salute, lavoro, ecc. | Type "Admin" |
 | **Progetti** | Obiettivi con sotto-attività e avanzamento | Voci con figli |
 | **Esperienze** | Cose da fare fuori casa, eventi, uscite, luoghi | Type "Attività" |
@@ -45,14 +45,13 @@ Dato che si progetta tutto insieme, ecco la mappa completa.
 | **Curiosità** | Cose da approfondire | Type "Info" |
 | **Inbox** | Idee catturate al volo, ancora da smistare | Nuovo |
 | **Completato** (ex Archivio) | Tutto ciò che è completato, consultabile come diario | Status "Done" |
-| **Revisione** | Voci scadute o dimenticate, da ripianificare o chiudere | Nuovo |
 
 ### 2.1 Navigazione (telefono)
 
 - **Cinque schede in basso** con icona (Oggi, Attività, Intrattenimento, Curiosità, Routine), più un pulsante "+" fisso per la cattura rapida. Su schermi larghi la navigazione diventa una barra laterale (sezione 2.3).
 - **Attività** (prima "Fare") contiene tre sezioni: Attività, Progetti ed Esperienze.
 - **Intrattenimento** contiene le collezioni (Film, Serie, Anime, Giochi, Libri, Ricette). Le **Curiosità** hanno una scheda propria.
-- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Revisione, Archiviate, Completato, Tempo libero, Aspetto, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
+- In cima a ogni scheda principale c'è il pulsante tondo con la tavolozza (**Stile e aspetto**), che apre subito tema e colore. In "Oggi", accanto a lui, ci sono **Inbox** e **Altro**, due pulsanti tondi. Altro apre: Inbox, Archiviate, Completato, Tempo libero, Aspetto, Account (con la versione in fondo). Anche Revisione compare in Oggi come scheda quando ci sono voci da rivedere.
 - **Gerarchia visiva in tre livelli:** grassetto grande = ciò che conta; testo normale = contesto; grigio piccolo = dettaglio. La priorità si vede da una barra a sinistra (3 spessori), non da etichette "Alta/Bassa". Il pallino pieno segna la scadenza fissa.
 
 ### 2.2 Estetica (stile e palette approvati dall'utente)
@@ -86,11 +85,11 @@ Layout identico ai mockup minimalisti, con questi cambi:
 
 Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul telefono e nelle finestre strette resta la colonna singola con le schede in basso.
 
-- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox e Revisione con contatori; Completato; Tempo libero, Aspetto, Account; versione e, solo se si è offline, lo stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
+- **Da 900 px:** barra laterale al posto delle schede (Oggi, Fare con Attività/Progetti/Esperienze, Intrattenimento con le sei collezioni, Curiosità, Routine; "Da sistemare": Inbox con contatore; Completato; Tempo libero, Aspetto, Account; versione e, solo se si è offline, lo stato di sincronizzazione). I gruppi Fare e Intrattenimento si aprono solo quando sono attivi. I selettori a schede di Fare e Intrattenimento spariscono perché li sostituisce la barra laterale. Il dettaglio di una voce si apre a tutta pagina, con "Indietro".
 - **Dettaglio in finestra (0.29.0):** da 900 px la voce si apre in una finestra in sovraimpressione al centro, sopra la schermata corrente (non più a tutta pagina né in un pannello a destra); si chiude con "Indietro", Esc o toccando lo sfondo.
 - **Barra in alto:** cattura rapida (scrivi e premi Invio: si apre la conferma con la proposta), ricerca, pulsante Stile e aspetto e "+ Nuova voce" (il tipo segue la sezione in cui si è).
 - **Ricerca:** per parole, senza maiuscole né accenti, nel titolo, nelle note, in "consigliato da" e "con chi", nelle zone e nelle checklist; le voci aperte vengono prima di quelle chiuse. Si attiva da 2 lettere.
-- **Oggi** è un cruscotto a due colonne (cose da fare; routine, revisione e inbox). **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
+- **Oggi** è un cruscotto a due colonne (cose da fare; routine e inbox). **Routine** ha una griglia settimanale a sette colonne in cui si può spuntare qualsiasi giorno.
 - **Scorciatoie da tastiera:** N (cattura rapida), / (ricerca), Esc (chiude la conferma, la ricerca o il pannello). Spostarsi nell'elenco con J e K e segnare fatto con F non sono ancora implementati.
 - La cattura rapida si apre al centro, come finestra, invece che dal basso.
 
@@ -100,9 +99,9 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sul tel
 - **Tag e area:** tolti dall'interfaccia (nessuna pillola sulle righe, nessun filtro per area; il campo `area` resta solo nei dati).
 - **Riga V2 (0.50.0):** in tutte le liste la riga ha, da sinistra a destra, l'orario (solo nel piano di Oggi), il pallino numerato della priorità, il titolo con sotto la riga grigia che comincia con una piccola icona del tipo di nota (attività, progetto, esperienza, film, ricetta, curiosità…), la scadenza e, all'estrema destra, il checkbox. Il checkbox è lo stesso per tutte le note: un quadrato stondato neutro (così non si confonde con il pallino rotondo della priorità), pieno e con la spunta quando è fatto; vale anche per i passi dei progetti e le checklist. Il colore della priorità sta solo sul pallino. Mockup `21-riga-schermo-grande-ui-piccola.html` (variante V2, pensata per schermi larghi come quello del Nothing Phone).
 - **Sezioni nello stesso stile in tutte le schede (0.49.0, stile M3):** Oggi (Routine di oggi, Piano di oggi, Non entrano oggi), Attività (Tutte le attività, Esperienze; nei sotto-schede Progetti e Esperienze le loro sezioni), Intrattenimento (Stasera, l'elenco della sotto-scheda), Curiosità (Da approfondire) e Routine (una sezione per fascia della giornata, Parcheggiate) usano lo stesso componente `Sezione`: una fascia con titolo grande in grassetto, chiusa sopra e sotto da una linea sottile, con il conteggio in verde a destra, e le righe libere sotto, senza contenitori. Sul telefono la fascia va da bordo a bordo; sul web occupa la colonna centrale. Le cartelle dei progetti restano riquadri (mockup `19-stili-tra-B1-e-B2.html`, variante M3). Nello schermo di Oggi si scorre con lo swipe tra i giorni (a sinistra il giorno dopo, a destra quello prima) e la navigazione tra i giorni è un riquadro unico con le frecce ai lati.
-- **Giorno e mese in Oggi:** Oggi è un'unica pagina e mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro). Non c'è più il selettore Giorno/Mese: toccando il nome del giorno (con la freccetta) si apre una finestra con il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza fissa o scaduta); toccando un giorno la finestra si chiude e si vede quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine, Revisione e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
+- **Giorno e mese in Oggi:** Oggi è un'unica pagina e mostra la giornata con i blocchi orari; con le frecce si passa al giorno prima o dopo ("Torna a oggi" riporta indietro). Non c'è più il selettore Giorno/Mese: toccando il nome del giorno (con la freccetta) si apre una finestra con il mese, con un pallino per i giorni con attività (arancio se c'è una scadenza fissa o scaduta); toccando un giorno la finestra si chiude e si vede quel giorno. Un altro giorno mostra il suo piano (per i prossimi 14 giorni), le voci con scadenza quel giorno e, per i giorni passati, quelle rimaste aperte. Routine e Inbox compaiono solo su oggi. Non c'è più una vista Calendario separata in Attività.
 - **Stato di sincronizzazione:** in Oggi (telefono) compare solo se si è offline o ci sono modifiche in attesa; nella barra laterale del sito resta sempre visibile.
-- **Indietro (pila unica):** ogni spostamento è una voce della cronologia del browser: cambio scheda o sotto-sezione, apertura di una schermata o di una voce, apertura di una finestra o di un pannello (cattura rapida, scelta del mese, voto, "quanto ci hai messo", menu a tendina come Tipo e Sezione, pannello della data in "Ripianifica" di Revisione). Il tasto indietro del telefono, quello del browser e il pulsante "Indietro" dell'app ripercorrono esattamente l'ordine inverso: prima si chiude la finestra aperta, poi si torna alla schermata precedente, poi alla scheda precedente. Aprire qualcosa da una finestra la chiude senza lasciare voci in sospeso (`web/src/App.tsx`, `useLayer` in `web/src/ui/nav.tsx`). **App Android (0.43.0):** la pila è gestita dall'app stessa senza usare la cronologia del WebView (che sul telefono non risultava affidabile) e il tasto indietro del telefono arriva dal plugin `@capacitor/app`: chiude il pannello in cima, poi risale la pila, e a pila vuota esce dall'app.
+- **Indietro (pila unica):** ogni spostamento è una voce della cronologia del browser: cambio scheda o sotto-sezione, apertura di una schermata o di una voce, apertura di una finestra o di un pannello (cattura rapida, scelta del mese, voto, "quanto ci hai messo", menu a tendina come Tipo e Sezione). Il tasto indietro del telefono, quello del browser e il pulsante "Indietro" dell'app ripercorrono esattamente l'ordine inverso: prima si chiude la finestra aperta, poi si torna alla schermata precedente, poi alla scheda precedente. Aprire qualcosa da una finestra la chiude senza lasciare voci in sospeso (`web/src/App.tsx`, `useLayer` in `web/src/ui/nav.tsx`). **App Android (0.43.0):** la pila è gestita dall'app stessa senza usare la cronologia del WebView (che sul telefono non risultava affidabile) e il tasto indietro del telefono arriva dal plugin `@capacitor/app`: chiude il pannello in cima, poi risale la pila, e a pila vuota esce dall'app.
 
 ### 2.3.2 Piano della giornata (implementato)
 
@@ -123,7 +122,7 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 - **Barra in alto e barra laterale (0.26.0):** cattura rapida e ricerca hanno la stessa larghezza; tolti l'icona Aspetto (resta nella barra laterale) e il pulsante "+ Nuova voce" (la cattura resta nella barra e con N); le cinque sezioni principali della barra laterale hanno la stessa dimensione delle altre voci.
 
-- **Barra laterale (0.27.0):** il contatore di Revisione compare solo se ci sono voci da rivedere; l'indicatore di sincronizzazione compare solo quando il sito è offline. La schermata **Notifiche** è stata tolta (telefono e web): le notifiche continuano a funzionare, il permesso viene chiesto al primo avvio dell'app Android e, se negato, si riattiva dalle impostazioni di Android.
+- **Barra laterale (0.27.0):** l'indicatore di sincronizzazione compare solo quando il sito è offline. La schermata **Notifiche** è stata tolta (telefono e web): le notifiche continuano a funzionare, il permesso viene chiesto al primo avvio dell'app Android e, se negato, si riattiva dalle impostazioni di Android.
 
 - **Importanza e curiosità (0.32.0):** l'importanza di attività e progetti si sceglie con uno **slider** da 1 a 5 al posto dei pallini; dalla 0.40.0 è **continuo** (anche 3,4; il punteggio lo usa così com'è), a **cuneo** che si allarga verso destra con un gradiente dal grigio al rosso delle priorità, senza etichette né − e + (mockup `21-slider-importanza.html` e `22-slider-cuneo-gradiente.html`, variante A1); le curiosità hanno il campo **Tempo stimato** (di base 15 minuti, anche se create dalla cattura) e la pausa curiosità nel piano dura quanto il loro tempo.
 - **Vista web (0.32.0):** tolta la barra in alto: in cima alla barra laterale ci sono il pulsante **+ Nuova nota** (apre "Cosa ti è venuto in mente?", scorciatoia N) e subito sotto la **ricerca** (scorciatoia /); la finestra della voce è più alta (fino al 96% dello schermo); in Oggi non c'è più la scheda Inbox e la Routine sta tra la barra del giorno e il piano.
@@ -172,23 +171,22 @@ L'app distribuisce da sola le attività nei giorni, in base alle priorità, al t
 
 - **Pulsante "+":** in ogni scheda (e "+ Nuova nota" sullo schermo largo) apre sempre "Cosa ti è venuto in mente?". Il salvataggio crea una **bozza in Inbox** (anche se il tipo è chiaro), da rivedere e smistare aprendola.
 - **Scadenza fissa:** appena si imposta una data compare il checkbox "Scadenza fissa", subito sotto la Data.
-- **Attività:** la lista mostra tutte le attività aperte (anche quelle in Revisione), con i task dei progetti raggruppati sotto il progetto.
+- **Attività:** la lista mostra tutte le attività aperte, con i task dei progetti raggruppati sotto il progetto.
 - **Completato:** la voce "Archivio" di Altro si chiama ora "Completato".
 - **Stima con margine d'errore** (`shared/stima.ts`, con test): ogni attività ha un margine d'errore atteso. Parte da ±30% (vale come 3 misurazioni) e si affina con l'uso: al segno di fatto di un'attività l'app chiede, in una finestra facoltativa, "Quanto ci hai messo?" (campo `durataRealeMin`); l'errore medio |reale − stimato| / stimato delle attività completate sposta il margine verso l'alto o il basso (tra 5% e 100%). Per una nuova nota l'app cerca attività simili già fatte (somiglianza tra le parole del titolo, fino a 5), usa la mediana dei loro tempi reali come stima e mostra margine e intervallo atteso; nella cattura rapida la stima viene inserita da sola, nella scheda compare un suggerimento con "Usa". Il margine si vede in Attività e in Oggi accanto al tempo (es. "30 min ±30%"). Il piano della giornata non lo usa ancora per allargare i blocchi.
 
 - **Gruppi di progetto (0.24.0):** i task sotto la testata sono rientrati e allineati (stessa indentazione per aperti e chiusi); l'icona del progetto è una cartella senza colore dentro un tondino con contorno. Il checkbox dei task non cambia più colore con la priorità (resta solo il numero d'ordine colorato). La scheda **Progetti** usa lo stesso aspetto: un gruppo per progetto con tutti i suoi task (aperti per priorità, poi i completati barrati).
 - **Curiosità:** ogni riga mostra l'interesse con cinque pallini. Le barre di scorrimento delle pagine sono nascoste.
 
-- **Attività (0.25.0):** l'intestazione elenca i conteggi reali ("N attività · N progetti · N esperienze", più quelle da rivedere) e la scheda Attività mostra tutto: i task (raggruppati per progetto) e, sotto, le esperienze (comprese quelle in Revisione).
+- **Attività (0.25.0):** l'intestazione elenca i conteggi reali ("N attività · N progetti · N esperienze") e la scheda Attività mostra tutto: i task (raggruppati per progetto) e, sotto, le esperienze (comprese quelle in Revisione).
 - **Blocco di priorità nella scheda (0.30.0, variante C1):** riquadro col contorno del colore della priorità; il numero grande è la **posizione** in classifica (1 = la più prioritaria, "3ª da fare su 28"), niente punteggio; a destra la targhetta "Priorità alta/media/bassa"; sotto quattro barre con quanto pesano urgenza, importanza, poco sforzo ed età, e una riga con scadenza, importanza a parole e tempo con margine d'errore.
 - **Barra del piano per attività:** la barra del tempo libero in Oggi è divisa in un segmento per blocco, colorato dalla priorità (le pause sono più chiare); ogni riga del piano mostra il margine d'errore (es. "margine ±9 min"). Dalla 0.31.0 il piano usa la **linea a fasce** (mockup `17-piano-c2-orari.html`, variante 4): in alto la barra sottile delle 24 ore con le fasce libere **cliccabili** (tempo libero, attività colorate dalla priorità, impegni fissi con bordo, ora attuale; le fasce già passate sono disattivate); sotto gli orari di inizio e fine della fascia scelta e la sua barra sottile a segmenti colorati dalla priorità; sotto la barra, senza linee di collegamento, un pallino numerato (24 px, come i pallini delle righe, mockup `20-numeri-sotto-barra.html` stile B1) per attività, centrato sotto il suo segmento e spostato di lato quando due pallini si toccherebbero. L'elenco sotto mostra solo le attività di quella fascia, con il margine d'errore di ciascuna; di default è scelta la fascia in corso o la prossima. Tolto il riepilogo "ore usate su totale". Se una fascia è molto lunga e le attività vicine, i segmenti stretti possono sovrapporsi. Mockup locali: `10`-`17` in `docs/mockups/`.
 
 - **Interesse a pallini grandi (0.34.0):** nelle righe di intrattenimento e di curiosità l'interesse (1-5) è mostrato a destra con cinque pallini da 11 px (dalla 0.35.0; erano 22 px) pieni nel colore d'accento o vuoti con il contorno, senza numero, con checkbox e pallini centrati in verticale sulla riga; non compare più nella riga delle informazioni. Mockup locali: `18-interesse-righe.html`, `19-interesse-pallini.html`.
 
-- **Oggi sul web (0.36.0):** una sola colonna: titolo, barra del giorno, **Revisione** (solo se ci sono voci da rivedere), routine e piano. Nella barra laterale c'è più spazio tra il logo e "+ Nuova nota" e tra la ricerca e le sezioni. Mockup locali dei numeri sotto la barra (senza linee guida): `20-numeri-sotto-barra.html`.
+- **Oggi sul web (0.36.0):** una sola colonna: titolo, barra del giorno, routine e piano. Nella barra laterale c'è più spazio tra il logo e "+ Nuova nota" e tra la ricerca e le sezioni. Mockup locali dei numeri sotto la barra (senza linee guida): `20-numeri-sotto-barra.html`.
 
-- **Barra laterale e Oggi web (0.38.0):** il logo, il blocco "+ Nuova nota" con la ricerca e le sezioni sono separati da divisori, come i gruppi più in basso; tra la barra del giorno, la Revisione e la routine c'è lo stesso spazio (16 px). Il pulsante "+" sul telefono è più grande (62 px).
-- **Revisione delle voci importate:** le attività e i progetti importati da Notion (identificativo "n" + 12 cifre) che non sono mai stati toccati dopo l'importazione (data di modifica uguale a quella di creazione) vengono messi in **Revisione** una sola volta, all'avvio (`segnaImportataDaRivedere` in `shared/migrazioni.ts`, con test). Aprire una voce da rivedere nella scheda la toglie dalla Revisione.
+- **Barra laterale e Oggi web (0.38.0):** il logo, il blocco "+ Nuova nota" con la ricerca e le sezioni sono separati da divisori, come i gruppi più in basso; tra la barra del giorno e la routine c'è lo stesso spazio (16 px). Il pulsante "+" sul telefono è più grande (62 px).
 
 ### 2.4.3 Arricchimento da internet e cosa guardo stasera (implementato, 0.33.0)
 
@@ -218,7 +216,6 @@ Un'unica tabella **Elemento** (`shared/types.ts`) con un campo `tipo`. Sul serve
 | `creato`, `aggiornato` | millisecondi; `aggiornato` decide chi vince nella sincronizzazione |
 | `eliminato` | cancellazione logica: la voce resta, così la cancellazione arriva agli altri dispositivi |
 | `inbox` | catturata ma non ancora smistata; si toglie da sola alla prima modifica nell'editor |
-| `daRivedere` | messa in Revisione a mano o dall'importazione |
 | `note`, `link[]` | link ammessi anche a file su Seafile |
 | `inizio`, `fine`, `oraInizio`, `oraFine` | date YYYY-MM-DD e orari HH:MM facoltativi |
 | `rigida` | `true` se la scadenza non è spostabile |
@@ -261,9 +258,7 @@ Le collezioni non hanno punteggio di urgenza: si ordinano per **interesse**, fil
 
 ### 4.2 Stato "scaduto"
 
-Calcolato: data finale passata e stato diverso da fatto/saltato. Le voci scadute compaiono nell'area **Revisione**, con azioni rapide: ripianifica, segna come saltato, segna come fatto.
-
-Entrano in Revisione anche le **attività senza scadenza che non vengono modificate da più di 45 giorni** (costante `GIORNI_ATTIVITA_VECCHIA` in `shared/views.ts`), perché la priorità o altri parametri potrebbero non essere più giusti. Le azioni sono: "Va ancora bene" (conferma e riparte il conteggio), "Cambia priorità e parametri" (apre la scheda), "Parcheggia" e "Salta". Non riguarda le attività con scadenza, quelle parcheggiate, i sotto-task e i progetti (che hanno la loro regola dei 30 giorni). Finché sono in Revisione, queste attività non compaiono in Oggi né nel piano.
+Calcolato: data finale passata e stato diverso da fatto/saltato. Le voci scadute restano nelle liste e nel piano, con la data in arancio (dalla 0.62.0 non c'è più la Revisione).
 
 ### 4.3 Promemoria
 
@@ -303,7 +298,7 @@ Nei dati di Notion c'erano 9 voci con figli (da 2 a 25). Il problema è che un p
 4. **Lo stato del padre segue i figli.** Almeno un figlio avviato = in corso. Quando tutti i figli sono completati, l'app propone di chiudere il progetto (conferma con un tocco).
 5. **Scadenza e importanza ereditate.** Un figlio senza data o importanza usa quelle del padre. L'urgenza del progetto è quella del suo figlio più urgente.
 6. **Checklist o sotto-task?** Se un elemento ha solo un nome da spuntare (es. "Controllare le foto del 2019, 2020…"), è una **checklist** interna, che non compare nelle liste né in Oggi. Se ha data, note o priorità proprie, è un **sotto-task**. Con un tocco si promuove una riga di checklist a sotto-task.
-7. **Progetti fermi.** Un progetto aperto senza attività da 30 giorni va in Revisione.
+7. **Progetti fermi.** Nessun avviso (la Revisione e la sezione dei progetti fermi sono state tolte nella 0.62.0).
 8. **Nelle collezioni i figli sono obiettivi, non task.** Un videogioco da finire è una voce con una checklist di obiettivi (battere il boss, esplorare la mappa…) e non finisce in Oggi.
 9. **Chiusi e archiviati:** i figli completati si comprimono in un solo elenco leggibile, per non rovinare la lettura dell'archivio.
 
@@ -323,7 +318,7 @@ Come vengono importati i padri (le regole esatte stanno in `server/scripts/regol
 3. Di un progetto compare **solo il prossimo passo**, con le eredità di importanza e scadenza.
 4. Le **esperienze senza data** non compaiono mai in Oggi: sono una lista di desideri.
 5. I giorni successivi si guardano scegliendo il giorno dalla finestra del mese (il piano copre 14 giorni).
-6. Le voci scadute da **più di 2 giorni**, quelle segnate "da rivedere" e i progetti fermi da 30 giorni e le attività senza scadenza ferme da 45 giorni vanno in **Revisione**, non in Oggi né nelle liste di Fare.
+6. Le voci scadute restano nelle liste e nel piano; non c'è più una Revisione separata (tolta nella 0.62.0).
 7. Le voci parcheggiate non compaiono in Oggi.
 
 ### 4.9 Tipi e regole di smistamento nell'importazione
@@ -374,7 +369,7 @@ Una sola volta, dal CSV esportato, con lo script `server/scripts/import-notion.t
 3. Smistamento dei tipi con regole esplicite (sezione 4.9): Video → Film/Serie/Anime; voci "Info" che sono film o giochi → tipo giusto; "Attività" → Attività, Progetti, Routine o Esperienze; "Admin" tecnici → Attività; parole come progetto o routine da elenchi.
 4. Estrazione dalle note: piattaforma, consigliato da, con chi, genere, link ripuliti dai parametri di tracciamento.
 5. Conversione di priorità (importanza o interesse), stati e date; orari che diventano scadenza fissa; ricostruzione dei padri e dei figli (sotto-task o checklist).
-6. Le 26 voci con data passata e non fatte finiscono in Revisione, perché la data è scaduta da più di due giorni.
+6. Le 26 voci con data passata e non fatte restano nelle liste come scadute.
 7. Report finale (non pubblicato) con tutto ciò che è stato modificato.
 
 Risultato: 383 voci più 14 persone. Il file si prepara sul computer (`--json`), dove stanno le regole personali, e si carica nell'app da *Altro > Account > Importa le voci da un file (JSON)*; in alternativa dentro il container con `--from-json`. Nessun identificativo né link a Notion viene conservato.
@@ -400,7 +395,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | 1 | Mockup minimalisti (gerarchia delle informazioni) | Completata, layout approvato |
 | 2 | Mockup estetici | Completata, stile e palette approvati |
 | 3 | Scrittura dell'app: base, Oggi, Inbox, import | Fatta e provata in locale |
-| 4 | Collezioni, Routine, Revisione | Fatta insieme alla fase 3 (progettazione unica) |
+| 4 | Collezioni, Routine (la Revisione è stata tolta nella 0.62.0) | Fatta insieme alla fase 3 (progettazione unica) |
 | 5 | APK con notifiche e widget | Fatta: APK costruito da GitHub Actions o in locale, notifiche locali programmate nel telefono, widget «Oggi» (0.52.0) |
 | 6 | IA | Cattura rapida con Gemini fatta (serve la chiave); le altre funzioni IA da fare |
 | 7 | Layout web per schermi larghi, icone e pulsanti tondi sul telefono, ricerca | Fatta (0.10.0) |
@@ -410,7 +405,7 @@ Le voci sensibili (banca, salute, contratti) vanno escluse dall'invio a servizi 
 | Parte | Stato |
 |---|---|
 | Server: login, sessioni, limite ai tentativi, CORS per l'app, sincronizzazione, esportazione JSON, versione, copia giornaliera | Fatto, con test; in funzione sul NAS |
-| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Revisione, Completato, Cosa guardo stasera, ricerca, editor completo, Aspetto, Account | Fatta, provata nel browser su dati reali importati |
+| App web: Oggi, Fare (azioni, progetti, esperienze), Intrattenimento (6 collezioni e curiosità), Routine, Inbox, Completato, Cosa guardo stasera, ricerca, editor completo, Aspetto, Account | Fatta, provata nel browser su dati reali importati |
 | Layout per schermi larghi (barra laterale, pannello di dettaglio, cruscotto, griglia della routine, scorciatoie N, /, Esc) | Fatto e provato nel browser a 1440, 1100 e 375 px |
 | Uso offline: modifiche in coda e sincronizzazione al ritorno della rete | Provato in locale |
 | Importazione da Notion con report e caricamento da file nell'app | Fatta; il caricamento nell'app è provato in locale |
