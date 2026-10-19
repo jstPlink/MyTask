@@ -50,7 +50,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
         v.setChronometer(R.id.crono, SystemClock.elapsedRealtime() - trascorso, null, !pausa);
         long previsto = l.optLong("p", 0); // tempo previsto in minuti (0 = nessuna stima)
         v.setTextViewText(R.id.crono_titolo, (pausa ? "In pausa · " : "") + l.optString("t") + (previsto > 0 ? " · su " + durata(previsto) : ""));
-        v.setTextViewText(R.id.crono_pausa, pausa ? "▶" : "⏸");
+        v.setTextViewText(R.id.crono_pausa, pausa ? "▶︎" : "❚❚"); // glifi di testo (non emoji): prendono il colore del testo, senza il quadrato arancione
         v.setInt(R.id.crono_barra, "setBackgroundResource", pausa ? (s ? R.drawable.crono_pausa_bg_s : R.drawable.crono_pausa_bg_c) : (s ? R.drawable.crono_bg_s : R.drawable.crono_bg_c));
         v.setInt(R.id.crono_pausa, "setBackgroundResource", pausa ? R.drawable.pl_bg_ambra : (s ? R.drawable.piu_bg_s : R.drawable.piu_bg_c));
         v.setTextColor(R.id.crono_pausa, pausa || !s ? 0xFFFFFFFF : 0xFF0E0F12);

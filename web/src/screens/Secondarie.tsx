@@ -303,7 +303,7 @@ function useVersioneServer(): string | undefined {
 function useRiepilogoVoci() {
   const items = useItems();
   return useMemo(() => {
-    const vive = items.filter((i) => !i.eliminato);
+    const vive = items.filter((i) => !i.eliminato && i.tipo !== 'persona'); // i contatti della vecchia importazione non si contano più
     const chiuse = vive.filter((i) => i.stato === 'fatto' || i.stato === 'saltato').length;
     const archiviate = vive.filter((i) => i.stato === 'parcheggiato').length;
     const perTipo = new Map<string, number>();

@@ -14,12 +14,12 @@ import type { Item } from '../../../shared/types.ts';
 import { barLevel, dueDate, isOverdue, score, urgency, withInheritance } from '../../../shared/priority.ts';
 import { cercaVoci, figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto } from '../../../shared/views.ts';
 import { listaGameDesign } from '../../../shared/gamedesign.ts';
-import { margineAtteso, percentuale } from '../../../shared/stima.ts';
+import { margineAtteso } from '../../../shared/stima.ts';
 import { ordinaPerTe } from '../../../shared/esperienze.ts';
 import { chiediPosizione, posizioneRecente, posizioneSalvata, type EsitoPosizione, type Posizione } from '../lib/posizione.ts';
 import { cercaLuoghi, coordinateNote, leggiCacheLuoghi, luoghiDaCercare } from '../lib/luoghi.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
-import { Cerca, Empty, Fab, GruppoProgetto, Row, Seg, Sezione, Top } from '../ui/kit.tsx';
+import { Cerca, Empty, Fab, GruppoProgetto, Margine, Row, Seg, Sezione, Top, unisciMeta } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
 import { clsx, mapsUrl, nomeGiorniOre, nomeTempo } from '../lib/util.ts';
@@ -104,7 +104,7 @@ function Azioni({ filtro }: { filtro: Filtro }) {
       <Row
         key={item.id}
         titolo={item.titolo} tipo={item.tipo}
-        meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : [item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? `${nomeTempo(item.sforzoMin)} ${percentuale(margine)}` : undefined].filter(Boolean).join(' · ')}
+        meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : unisciMeta([item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? <>{nomeTempo(item.sforzoMin)} <Margine valore={margine} /></> : undefined])}
         right={d ? (item.rigida || scaduta ? <span className={clsx('hard', item.rigida && 'rigida')}>{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
         level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
         rank={completa.findIndex((x) => x.item.id === item.id) + 1}

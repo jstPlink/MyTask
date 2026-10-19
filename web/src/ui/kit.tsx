@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { clsx, nomeTempo } from '../lib/util.ts';
 import { useItems } from '../lib/hooks.ts';
 import { stimaProgetto } from '../../../shared/views.ts';
+import { percentuale } from '../../../shared/stima.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
 import { GlifoTipo } from './Icone.tsx';
 import { avanzaStato, statoVisto } from '../lib/actions.ts';
@@ -254,6 +255,18 @@ export function ImportanzaDoppia({ valore, onChange, label }: { valore?: number;
       <div className="imp-ag"><span>basso</span><span>alto</span></div>
     </div>
   );
+}
+
+/** Margine delle stime con segno: rosso se positivo (conviene aggiungere tempo), verde se negativo (stime abbondanti). */
+export function Margine({ valore }: { valore: number }) {
+  const p = Math.round(valore * 100);
+  return <span className={clsx('mg', p > 0 && 'mg-su', p < 0 && 'mg-giu')}>{percentuale(valore)}</span>;
+}
+
+/** Unisce i pezzi della riga grigia con « · » (accetta anche elementi, non solo testo). */
+export function unisciMeta(pezzi: (ReactNode | false | undefined | null)[]): ReactNode {
+  const vivi = pezzi.filter((p): p is ReactNode => p !== false && p !== undefined && p !== null && p !== '');
+  return vivi.map((p, i) => <span key={i}>{i > 0 ? ' · ' : ''}{p}</span>);
 }
 
 export type NomeIcona = 'oggi' | 'fare' | 'scoprire' | 'curiosita' | 'routine' | 'inbox' | 'altro' | 'aspetto';

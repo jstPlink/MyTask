@@ -14,7 +14,7 @@
  * - Telefono: titolo con i pulsanti tondi (Aspetto, Inbox, Altro) e «+» per la cattura. Da 900 px (`nav.wide`) la stessa
  *   colonna senza pulsanti né «+», che stanno nella barra laterale.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { barLevel, dueDate, daysOverdue, urgency } from '../../../shared/priority.ts';
@@ -22,11 +22,11 @@ import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/vie
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { formatoCronometro } from '../../../shared/sessione.ts';
-import { margineAtteso, percentuale } from '../../../shared/stima.ts';
+import { margineAtteso } from '../../../shared/stima.ts';
 import { useAdesso, useItems, useOggi, useSessione, useSyncStatus } from '../lib/hooks.ts';
 import { segnaRoutine } from '../lib/actions.ts';
 import { finisciSessione, iniziaLavoro, mettiInPausa, nonOra, passaA, riprendi, tempoDi } from '../lib/sessione.ts';
-import { Fab, Sezione, GruppoProgetto, Icona, Row, Top } from '../ui/kit.tsx';
+import { Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
 import { useLayer, useNav } from '../ui/nav.tsx';
 import { avanzamentoTempo, clsx, durataLavoro, nomeTempo } from '../lib/util.ts';
 
@@ -58,14 +58,14 @@ export function Oggi() {
   // Riga grigia sotto il titolo: prossimo passo di un progetto, tempo stimato con margine, ricorrenza.
   const meta = (e: Entry) => {
     const i = e.item;
-    const pezzi: string[] = [];
+    const pezzi: ReactNode[] = [];
     const ms = tempoDi(i, adesso);
     const corrente = sessione.stato !== 'ferma' && sessione.taskId === i.id;
     if (ms >= 60_000 && !corrente) pezzi.push(avanzamentoTempo(ms, i.sforzoMin).testo); // sulla nota in lavorazione lo dice la barra sotto la riga
     if (e.padre) pezzi.push('prossimo passo');
-    if (i.sforzoMin && (ms < 60_000 || corrente)) pezzi.push(`${nomeTempo(i.sforzoMin)} ${percentuale(margine)}`);
+    if (i.sforzoMin && (ms < 60_000 || corrente)) pezzi.push(<>{nomeTempo(i.sforzoMin)} <Margine valore={margine} /></>);
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
-    return pezzi.join(' · ');
+    return unisciMeta(pezzi);
   };
   // Parte destra della riga: la scadenza (o «ieri» / «N gg fa» se scaduta, in arancio).
   const destra = (e: Entry) => {
@@ -91,7 +91,7 @@ export function Oggi() {
           <div className="lv-tempo">{formatoCronometro(tempoTask)}{task?.sforzoMin ? <span className="lv-su">su {durataLavoro(task.sforzoMin * 60_000)}</span> : null}</div>
           <div className="lv-titolo">{task?.titolo ?? 'Attività'}</div>
         </div>
-        <button className="lv-pl" onClick={() => (lavoro ? mettiInPausa() : riprendi())} aria-label={lavoro ? 'Metti in pausa' : 'Riprendi'}>{lavoro ? '⏸' : '▶'}</button>
+        <button className="lv-pl" onClick={() => (lavoro ? mettiInPausa() : riprendi())} aria-label={lavoro ? 'Metti in pausa' : 'Riprendi'}><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">{lavoro ? <path d="M7 4.5h3.6v15H7zM13.4 4.5H17v15h-3.4z" /> : <path d="M8 5l11 7-11 7z" />}</svg></button>
       </div>
       {avanzamento?.quota !== undefined && (
         <div className="lv-barra" role="img" aria-label={`Tempo lavorato: ${avanzamento.testo}`}>

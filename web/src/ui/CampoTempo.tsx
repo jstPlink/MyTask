@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { scomponi } from '../../../shared/tempo.ts';
-import { intervallo, percentuale } from '../../../shared/stima.ts';
+import { percentuale, tempoAtteso } from '../../../shared/stima.ts';
 import { clsx, nomeTempo } from '../lib/util.ts';
 import { useLayer } from './nav.tsx';
 
@@ -84,7 +84,7 @@ function SelettoreTempo({ label, iniziale, margine, onProgetto, onFatto, onChiud
     return base.includes(m) ? base : [...base, m].sort((a, b) => a - b); // un tempo salvato in precedenza (es. 7 min) resta scegliibile
   }, [iniziale]);
   const grande = totale > MINUTI_GIORNO; // l'avviso scatta solo oltre un giorno, non a un giorno esatto
-  const [da, a] = margine !== undefined && totale ? intervallo(totale, margine) : [0, 0];
+  const atteso = margine !== undefined && totale ? tempoAtteso(totale, margine) : 0;
 
   return (
     <>
@@ -94,7 +94,7 @@ function SelettoreTempo({ label, iniziale, margine, onProgetto, onFatto, onChiud
         <div className="t1" style={{ fontSize: 18 }}>{label}</div>
         <div className={clsx('rot-totale', grande && 'grande')} aria-live="polite">{totale ? nomeTempo(totale) : 'Nessuna stima'}</div>
         {margine !== undefined && totale > 0 && (
-          <div className="rot-margine"><span className="rot-pc">{percentuale(margine)}</span><span>tra {nomeTempo(da)} e {nomeTempo(a)}</span></div>
+          <div className="rot-margine"><span className={clsx('rot-pc', margine > 0.005 && 'mg-su', margine < -0.005 && 'mg-giu')}>{percentuale(margine)}</span><span>{margine > 0.005 ? 'da aggiungere: ' : margine < -0.005 ? 'stime abbondanti: ' : ''}in conto {nomeTempo(atteso)}</span></div>
         )}
         {grande && (
           <div className="rot-avviso" role="note">

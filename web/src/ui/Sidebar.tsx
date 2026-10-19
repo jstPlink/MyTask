@@ -43,6 +43,7 @@ export function Sidebar() {
       progetti: listaProgetti(items, oggi).length,
       esperienze: esp.conData.length + esp.perZona.reduce((s, [, l]) => s + l.length, 0),
       film: per('film'), serie: per('serie'), anime: per('anime'), gioco: per('gioco'), libro: per('libro'), ricetta: per('ricetta'),
+      intrattenimento: collezione(items, ['film', 'serie', 'anime', 'gioco', 'libro', 'ricetta']).length,
       curiosita: curiosita(items).length,
       inbox: inbox(items).length,
       daparte: daParte(items).length,
@@ -75,7 +76,7 @@ export function Sidebar() {
       <Link main nome="Inbox" n={n.inbox} warn on={scr('inbox')} onClick={() => vai({ k: 'inbox' })} />
       <div className="sb-sep" aria-hidden="true" />
 
-      <Link main nome="Priorità" on={inTab('oggi')} n={n.oggi} onClick={() => apriTab('oggi')} />
+      <Link main nome="Priorità" on={inTab('oggi')} onClick={() => apriTab('oggi')} />
 
       <Link main nome="Attività" n={n.azioni + n.progetti + n.esperienze} on={inTab('fare') && !subVisibili('fare')} onClick={() => apriTab('fare')} />
       {nav.tab === 'fare' && !schermata && (
@@ -84,7 +85,7 @@ export function Sidebar() {
         </div>
       )}
 
-      <Link main nome="Intrattenimento" on={inTab('scoprire') && !subVisibili('scoprire')} onClick={() => apriTab('scoprire')} />
+      <Link main nome="Intrattenimento" n={n.intrattenimento} on={inTab('scoprire') && !subVisibili('scoprire')} onClick={() => apriTab('scoprire')} />
       {nav.tab === 'scoprire' && !schermata && (
         <div className="sb-subs">
           {SUB_SCOPRIRE.map((s) => <Link key={s.id} sub nome={s.nome} n={n[s.id]} on={inTab('scoprire') && nav.scoprireSub === s.id} onClick={() => apriScoprire(s.id)} />)}

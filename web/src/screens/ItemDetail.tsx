@@ -20,7 +20,7 @@ import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
-import { Back, Field, Gruppo, ImportanzaDoppia, Row, Scelta, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
+import { Back, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { AllegatiNote } from '../ui/AllegatiNote.tsx';
@@ -28,7 +28,7 @@ import { scriviQuando, scriviTrascorso } from '../../../shared/tempo.ts';
 import { useNav } from '../ui/nav.tsx';
 import { avanzamentoTempo, clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
 import { listaGameDesign, punteggioGameDesign } from '../../../shared/gamedesign.ts';
-import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
+import { margineAtteso, stimaPer, tempoAtteso } from '../../../shared/stima.ts';
 
 // Nella tendina «Tipo» film, serie, anime, gioco e libro sono un solo gruppo «Intrattenimento»
 // (la tendina «Sezione» sotto sceglie quale); gli altri tipi corrispondono a un gruppo ciascuno.
@@ -242,7 +242,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <div className="prio-dati">
               <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza fissa' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
               <span>Importanza {['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'][Math.round(d.importanza ?? 3)]}</span>
-              {d.sforzoMin ? <span>{nomeTempo(d.sforzoMin)} {percentuale(margine)}</span> : null}
+              {d.sforzoMin ? <span>{nomeTempo(d.sforzoMin)} <Margine valore={margine} /></span> : null}
             </div>
               </div>
             </div>
@@ -311,10 +311,10 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {t === 'azione' && (d.sforzoMin || suggerita) && (
               <div className="t2" style={{ padding: '6px 0 10px' }}>
                 {d.sforzoMin ? (
-                  <>Errore atteso <b>{percentuale(margine)}</b>: tra {nomeTempo(intervallo(d.sforzoMin, margine)[0])} e {nomeTempo(intervallo(d.sforzoMin, margine)[1])}.</>
+                  <>Margine <Margine valore={margine} />: {margine > 0 ? 'conviene aggiungere tempo, in conto circa' : margine < 0 ? 'di solito stimi più del necessario, in conto circa' : 'in conto circa'} <b>{nomeTempo(tempoAtteso(d.sforzoMin, margine))}</b>.</>
                 ) : suggerita && (
                   <>
-                    Stima suggerita da {suggerita.campioni} {suggerita.campioni === 1 ? 'attività simile' : 'attività simili'}: <b>{nomeTempo(suggerita.minuti)} {percentuale(suggerita.margine)}</b>{' '}
+                    Stima suggerita da {suggerita.campioni} {suggerita.campioni === 1 ? 'attività simile' : 'attività simili'}: <b>{nomeTempo(suggerita.minuti)}</b> <Margine valore={suggerita.margine} />{' '}
                     <button type="button" className="chip" onClick={() => up({ sforzoMin: suggerita.minuti })}>Usa</button>
                   </>
                 )}

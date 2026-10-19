@@ -23,6 +23,10 @@ export function CompletamentoSheet() {
   const verdetto = diff > 0 ? `Hai finito il ${diff}% prima del previsto` : diff < 0 ? `Ci hai messo il ${-diff}% in più del previsto` : 'Esattamente nei tempi previsti';
   const cambia = c.margineA !== c.margineDa;
   const punti = c.margineA - c.margineDa;
+  const col = (p: number) => (p > 0 ? 'su' : p < 0 ? 'giu' : '');
+  const pc = (p: number) => (p > 0 ? `+${p}%` : p < 0 ? `−${-p}%` : '0%');
+  // salire = stime troppo corte (rosso), scendere = stime abbondanti (verde)
+  const frase = c.margineA > 0 ? 'Conviene aggiungere tempo alle tue stime' : c.margineA < 0 ? 'Stai stimando più del necessario' : 'Le tue stime sono centrate';
 
   return (
     <>
@@ -48,15 +52,16 @@ export function CompletamentoSheet() {
           <div className={clsx('cmp-verdetto', diff < 0 && 'oltre')}>{verdetto}</div>
         </div>
         <div className="cmp-stima">
-          <div className="cmp-su">Margine d&apos;errore delle tue stime</div>
+          <div className="cmp-su">Margine delle tue stime</div>
           <div className="cmp-nuova">
-            {cambia && <span className="cmp-vecchio">±{c.margineDa}%</span>}
+            {cambia && <span className={clsx('cmp-vecchio', col(c.margineDa))}>{pc(c.margineDa)}</span>}
             <div className={clsx('cmp-agg', !cambia && 'fermo')}>
-              {cambia && <span className="a1">±{c.margineDa}%</span>}
-              <span className="a2">±{c.margineA}%</span>
+              {cambia && <span className={clsx('a1', col(c.margineDa))}>{pc(c.margineDa)}</span>}
+              <span className={clsx('a2', col(c.margineA))}>{pc(c.margineA)}</span>
             </div>
-            {cambia && <span className="cmp-delta">{punti > 0 ? '+' : '−'}{Math.abs(punti)} {Math.abs(punti) === 1 ? 'punto' : 'punti'}</span>}
+            {cambia && <span className={clsx('cmp-delta', col(punti))}>{punti > 0 ? '+' : '−'}{Math.abs(punti)} {Math.abs(punti) === 1 ? 'punto' : 'punti'}</span>}
           </div>
+          <div className={clsx('cmp-frase', col(c.margineA))}>{frase}</div>
         </div>
       </div>
     </>

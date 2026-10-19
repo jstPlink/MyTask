@@ -7,7 +7,7 @@ interface Completamento {
   /** Tempo stimato e tempo reale, in minuti. */
   stimaMin: number;
   realeMin: number;
-  /** Margine d'errore delle stime prima e dopo questa nota, in percentuale (30 = ±30%). */
+  /** Margine delle stime (con segno) prima e dopo questa nota, in percentuale (15 = +15%, −20 = stime abbondanti). */
   margineDa: number;
   margineA: number;
 }
