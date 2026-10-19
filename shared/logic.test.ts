@@ -5,7 +5,7 @@ import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.
 import { score, daysOverdue, barLevel, battitoBpm } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
-import { vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
+import { stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
 import { suggerisciStasera } from './stasera.ts';
 import { listaGameDesign, punteggioGameDesign } from './gamedesign.ts';
 
@@ -89,6 +89,16 @@ test('Attività: i task di un progetto stanno insieme sotto di esso, gli altri r
   assert.deepEqual({ fatti: g[0].fatti, totale: g[0].totale }, { fatti: 0, totale: 2 });
   assert.equal(g[1].progetto, undefined);
   assert.equal(g[1].voci[0].item.titolo, 'Libera');
+});
+
+test('Stima del progetto: somma dei passi ancora da fare, senza quelli chiusi o archiviati', () => {
+  const p = mk({ tipo: 'progetto', titolo: 'Trasloco' });
+  const a = mk({ padreId: p.id, sforzoMin: 90 });
+  const b = mk({ padreId: p.id, sforzoMin: 30, stato: 'in_corso' });
+  const fatto = mk({ padreId: p.id, sforzoMin: 60, stato: 'fatto' });
+  const senza = mk({ padreId: p.id });
+  assert.equal(stimaProgetto(p, [p, a, b, fatto, senza]), 120);
+  assert.equal(stimaProgetto(p, [p, senza]), 0);
 });
 
 test('Oggi: prossimi 7 giorni e voci parcheggiate', () => {

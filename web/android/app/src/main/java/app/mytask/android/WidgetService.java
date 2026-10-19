@@ -57,10 +57,12 @@ public class WidgetService extends RemoteViewsService {
             boolean fatto = o.optInt("f", 0) == 1;
             String id = o.optString("id");
 
-            // il task su cui corre (o è in pausa) il cronometro «Sto lavorando» ha lo sfondo evidenziato
+            // «in corso»: lo dice lo stato della nota oppure il cronometro «Sto lavorando» (anche se l'app non ha ancora aggiornato la nota).
+            // La riga non cambia stile: cambia solo la casella (mezza gialla, come nell'app).
             JSONObject lavoro = WidgetDati.lavoro(c);
-            boolean inLavoro = lavoro != null && id.equals(lavoro.optString("id")) && !fatto;
-            v.setInt(R.id.riga, "setBackgroundColor", inLavoro ? colore("#E3F1EA", "#17332A") : Color.TRANSPARENT);
+            boolean inLavoro = lavoro != null && id.equals(lavoro.optString("id"));
+            boolean inCorso = !fatto && (o.optInt("c", 0) == 1 || inLavoro);
+            v.setInt(R.id.riga, "setBackgroundColor", Color.TRANSPARENT);
 
             // orario del piano sotto il titolo
             String ora = o.optString("o", "");
@@ -117,7 +119,9 @@ public class WidgetService extends RemoteViewsService {
             v.setTextViewText(R.id.titolo, titolo);
             v.setTextColor(R.id.titolo, fatto ? colore("#65656E", "#A5A5B0") : colore("#111115", "#F3F3F6"));
 
-            v.setImageViewResource(R.id.cb, fatto ? (s ? R.drawable.cb_fatto_s : R.drawable.cb_fatto_c) : (s ? R.drawable.cb_vuoto_s : R.drawable.cb_vuoto_c));
+            v.setImageViewResource(R.id.cb, fatto ? (s ? R.drawable.cb_fatto_s : R.drawable.cb_fatto_c)
+                    : inCorso ? (s ? R.drawable.cb_corso_s : R.drawable.cb_corso_c)
+                    : (s ? R.drawable.cb_vuoto_s : R.drawable.cb_vuoto_c));
 
             // intenti che completano il modello impostato da WidgetBase: checkbox = spunta, resto della riga = apre l'app
             Intent spunta = new Intent().putExtra("azione", "fatto").putExtra("id", id);

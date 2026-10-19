@@ -3,7 +3,9 @@
 // non si vede: la navigazione è nella Sidebar.
 
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { clsx } from '../lib/util.ts';
+import { clsx, nomeTempo } from '../lib/util.ts';
+import { useItems } from '../lib/hooks.ts';
+import { stimaProgetto } from '../../../shared/views.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
 import { GlifoTipo } from './Icone.tsx';
 import { avanzaStato, statoVisto } from '../lib/actions.ts';
@@ -354,6 +356,7 @@ export function Gruppo({ titolo, dettaglio, children }: { titolo?: string; detta
  */
 export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto: Item; fatti: number; totale: number; children: ReactNode }) {
   const nav = useNav();
+  const stima = stimaProgetto(progetto, useItems()); // la stima del progetto è la somma di quelle dei suoi passi ancora da fare
   return (
     <section className="gp">
       <button className="gp-h" onClick={() => nav.push({ k: 'item', id: progetto.id })} aria-label={`Apri il progetto ${progetto.titolo}`}>
@@ -361,7 +364,7 @@ export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
         </span>
         <b>{progetto.titolo}</b>
-        {totale > 0 && <span>{fatti} / {totale}</span>}
+        {(totale > 0 || stima > 0) && <span>{[totale > 0 ? `${fatti} / ${totale}` : undefined, stima > 0 ? nomeTempo(stima) : undefined].filter(Boolean).join(' · ')}</span>}
       </button>
       {totale > 0 && <div className="gp-bar"><i style={{ width: `${(fatti / totale) * 100}%` }} /></div>}
       {children}

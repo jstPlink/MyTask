@@ -20,6 +20,14 @@ test('widget: righe nell\'ordine di priorità, con posizione e tempo già lavora
   assert.equal(r[1].w, undefined);
 });
 
+test('widget: un task «in corso» è segnalato per la casella mezza gialla', () => {
+  const a = mk({ titolo: 'Iniziata', importanza: 5, fine: OGGI, stato: 'in_corso' });
+  const b = mk({ titolo: 'Da fare', importanza: 2, fine: OGGI });
+  const r = righeWidget([a, b], OGGI);
+  assert.equal(r.find((x) => x.t === 'Iniziata')?.c, 1);
+  assert.equal(r.find((x) => x.t === 'Da fare')?.c, undefined);
+});
+
 test('widget: la sessione «Sto lavorando» mostra il task, il tempo accumulato e l\'inizio del tratto', () => {
   const a = mk({ titolo: 'Garage', lavoratoMs: 60_000, sforzoMin: 80 });
   assert.deepEqual(lavoroWidget([a], { stato: 'lavoro', taskId: a.id, inizio: 5000, aggiornato: 1 }), { stato: 'lavoro', id: a.id, t: 'Garage', base: 60_000, ref: 5000, p: 80 });

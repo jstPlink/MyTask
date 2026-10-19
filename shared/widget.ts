@@ -20,12 +20,14 @@ export interface RigaWidget {
   l: 1 | 2 | 3;
   /** Battiti al minuto del pallino (come nell'app: più veloce quanto più la scadenza è vicina); assente se non batte. */
   b?: number;
+  /** 1 se il task è «in corso»: la casella del widget è mezza gialla come nell'app. */
+  c?: 1;
 }
 
 /** Le cose da fare oggi per il widget: la lista semplice di Oggi (`vistaOggi`), con posizione in classifica, priorità e battito. */
 export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[] {
   return vistaOggi(items, oggi).fare.slice(0, max).map((e, n) => ({
-    id: e.item.id, t: e.item.titolo, r: n + 1, l: barLevel(e.punteggio), b: battitoBpm(urgency(e.item, oggi)) || undefined, w: e.item.lavoratoMs || undefined,
+    id: e.item.id, t: e.item.titolo, r: n + 1, l: barLevel(e.punteggio), b: battitoBpm(urgency(e.item, oggi)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined,
   }));
 }
 

@@ -40,6 +40,13 @@ export function avanzamento(padre: Item, items: Item[]): { fatti: number; totale
   return { fatti, totale };
 }
 
+/** Stima di un progetto: la somma dei tempi stimati dei suoi passi ancora da fare (minuti), 0 se nessun passo ha una stima. Dipende dai passi, non si inserisce a mano. */
+export function stimaProgetto(padre: Item, items: Item[]): number {
+  return figli(items, padre.id)
+    .filter((c) => c.stato !== 'fatto' && c.stato !== 'saltato' && c.stato !== 'parcheggiato')
+    .reduce((somma, c) => somma + (c.sforzoMin ?? 0), 0);
+}
+
 /** Il primo passo ancora aperto del progetto (non archiviato), cioè quello che compare in Oggi al posto del progetto. */
 export function prossimoPasso(padre: Item, items: Item[]): Item | undefined {
   return figli(items, padre.id).find((c) => isOpen(c) && c.stato !== 'parcheggiato');
