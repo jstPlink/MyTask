@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.65.3
+- **Versione documento:** 0.65.4
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -99,8 +99,8 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sotto i
 
 Una lista semplice: in cima il pulsante **Sto lavorando**, poi le routine del giorno e le **Prime attività**. Niente giorni da sfogliare né piano a orari.
 
-- **Sto lavorando** (6.16): un tocco e il cronometro parte da solo sul primo task della lista; il pulsante dice solo «Sto lavorando» e la prima riga ha un contorno tratteggiato che mostra da dove si parte. A sessione aperta il pulsante diventa la **scheda del cronometro**, nello stile delle altre schede dell'app (bordo verde, giallo in pausa): stato, tempo lavorato in grande, «su 1 h 20 min» (il tempo previsto, cioè la stima), titolo del task, pulsante ⏸/▶ tondo e una **barra** del tempo lavorato sul previsto (arancione se lo si supera); sotto «Ho finito di lavorare».
-- **Prime attività** (`vistaOggi`, 6.8): le note scadute o in scadenza oggi e, a seguire, le più prioritarie senza data, fino a cinque in tutto; quelle di uno stesso progetto stanno sotto la testata del progetto. Il numero nel pallino è la posizione in classifica; il task su cui corre il cronometro è evidenziato e mostra il suo tempo; ogni task già iniziato mostra nella riga grigia il **tempo lavorato sul previsto** («42 min su 1 h 20 min»).
+- **Sto lavorando** (6.16): un tocco e il cronometro parte da solo sul primo task della lista; il pulsante dice solo «Sto lavorando». A sessione aperta il pulsante diventa la **scheda del cronometro**, nello stile delle altre schede dell'app (bordo verde, giallo in pausa): stato, tempo lavorato in grande, «su 1 h 20 min» (il tempo previsto, cioè la stima), titolo del task, pulsante ⏸/▶ tondo e una **barra** del tempo lavorato sul previsto (arancione se lo si supera); sotto «Ho finito di lavorare».
+- **Prime attività** (`vistaOggi`, 6.8): le note scadute o in scadenza oggi e, a seguire, le più prioritarie senza data, fino a cinque in tutto; quelle di uno stesso progetto stanno sotto la testata del progetto. Il numero nel pallino è la posizione in classifica; la riga non cambia mai stile: sotto il task su cui corre il cronometro **si apre una barra** (si anima in apertura e in chiusura, passando alla nota successiva) con a sinistra il timer che scorre e a destra il tempo previsto, nello stesso font monospazio, sopra un filo sottile a tutta larghezza che parte dal bordo del pallino di priorità (giallo se in pausa, arancione oltre il previsto); ogni altro task già iniziato mostra nella riga grigia il **tempo lavorato sul previsto** («42 min su 1 h 20 min»).
 - **Tocco su una riga:** apre un menu con **Lavora su questo** (sposta il cronometro lì), **Non ora (passa al successivo)** (solo sul task in lavorazione) e **Apri** (la scheda). La casella a destra completa il task: il cronometro passa da solo al successivo.
 - **Routine di oggi** (chip da spuntare) e, sul telefono, lo stato di sincronizzazione (solo se si è offline o ci sono modifiche in attesa).
 - **Telefono:** in cima Aspetto, Inbox (con contatore), Altro e «+». **Sito largo:** niente pulsanti tondi, il riepilogo sta nel titolo.
@@ -210,7 +210,7 @@ Un'unica tabella **Elemento** (`Item` in `shared/types.ts`) con un campo `tipo`.
 Punteggio da 0 a 100 per ordinare Oggi, le liste, il piano e il widget. Cinque componenti, ognuna da 0 a 100 prima del suo peso:
 
 - **Urgenza:** scaduta o oggi 100; entro 3 giorni 80; entro 7 giorni 60; entro 30 giorni 35; oltre 15; senza data 0.
-- **Importanza:** da 1 a 5 (di base 3) riportata su 0-100.
+- **Importanza:** da 1 a 5 (di base 3) riportata su 0-100. Si imposta a **doppio livello** (`ImportanzaDoppia`): prima uno dei cinque gradi (molto bassa … molto alta), poi lo slider a cuneo che rifinisce solo dentro il grado (il grado 4 copre da 3,5 a 4,5; «basso» e «alto» sono gli estremi); resta un solo numero da 1 a 5, per esempio 4,20.
 - **Poco sforzo:** premia le attività brevi (fino a 15 min 100, fino a 30 min 60, fino a 60 min 30, oltre 0; senza stima 30).
 - **Età:** cresce con le settimane dalla creazione, fino a 10 settimane (100), perché le voci non «marciscano».
 - **Scadenza fissa:** vale come l'urgenza, ma solo per le note con una data non spostabile (0 per le altre); riempie una parte dello spazio che manca al 100, quindi non toglie punti alle altre.
@@ -537,6 +537,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-19 | 0.65.1 | Il cronometro «Sto lavorando» ha lo stile delle schede dell'app (anche nel widget) e mostra tempo lavorato, totale previsto e una barra; i task già avviati mostrano il tempo lavorato sul previsto nelle righe di Oggi e nella Cronologia della nota; il pulsante non dice più «Parte dal primo task» (la prima riga ha un contorno tratteggiato); il salvataggio della scheda non perde più il tempo lavorato |
 | 2026-10-19 | 0.65.2 | Intrattenimento: i filtri per piattaforma sono a scelta multipla (più piattaforme insieme valgono «una o l'altra», quindi si escludono le altre; «Tutte» azzera) e c'è il filtro «Senza piattaforma» per le opere che non ne hanno (`ChipsMulti`, `collezione(…, piattaforme[])`, `SENZA_PIATTAFORMA` in `shared/views.ts`, con test) |
 | 2026-10-19 | 0.65.3 | Tempo stimato con tre rotelle (giorni, ore, minuti a passi di 5) al posto dei pulsanti più/meno, con il margine d'errore e l'intervallo che ne deriva; oltre un giorno compare un avviso giallo che lampeggia piano, con «Mostra esempio» (un lavoro diviso in task piccoli, solo da leggere) e il collegamento «Passa a progetto»; nella scheda resta una riga discreta con lo stesso collegamento (`CampoTempo`, `Rotella`) |
+| 2026-10-19 | 0.65.4 | La nota in lavorazione non cambia più stile (tolti sfondo evidenziato, contorno tratteggiato della prima riga e timer a destra): sotto la riga si apre, con un'animazione, la barra con il timer che scorre a sinistra, il previsto a destra e il filo sottile a tutta larghezza fino al pallino; verde, giallo in pausa, arancione oltre il previsto (`Row` con `sotto`/`aperto`, `sottoRiga` in `Oggi`); l'importanza si imposta a doppio livello: cinque gradi e, sotto, lo slider che rifinisce dentro il grado (`ImportanzaDoppia`) |
 
 ## Selettore del tempo a rotelle (0.65.3)
 
@@ -544,3 +545,10 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 - In alto il tempo scelto e, nelle Attività e nei progetti, il margine d'errore delle tue stime con l'intervallo che ne deriva («±30% · tra 42 min e 1,3 ore»), che cambia mentre si scorre.
 - **Oltre un giorno** (1440 minuti) compare l'avviso giallo «Più di un giorno di lavoro», che lampeggia piano tre volte; «Mostra esempio» apre un esempio di lavoro diviso in task piccoli (solo da leggere: l'app non divide nulla da sola, perché servirebbe un'IA) e, solo per le Attività, il collegamento «Passa a progetto» (cambia il tipo in progetto, con l'elenco dei passi vuoto da scrivere a mano). Dopo «Imposta» nella scheda resta una riga discreta con lo stesso avviso e collegamento.
 - Mockup: `docs/mockups/32`, `33` e `34` (flusso animato).
+
+## Lavorare o installare da un altro computer
+
+- **Solo installare l'app:** dal telefono apri la pagina delle Releases del repository, scarica `mytask.apk` dell'ultima versione e aprilo: si installa sopra la versione precedente e i dati restano (stessa chiave di firma pubblica). Dal computer: `adb install -r mytask.apk` col debug wireless attivo.
+- **Sviluppare:** serve Git, Node.js 24 e le dipendenze (`git clone`, poi `npm ci` nella cartella del progetto). Anteprima in locale: `cd web && MYTASK_SERVER=https://<indirizzo del server> npx vite` per vedere il sito con i dati veri, oppure un server di prova locale (`node server/src/index.ts` con `DATA_DIR`, `MYTASK_EMAIL` e `MYTASK_PASSWORD` d'esempio). Controlli: `npm run typecheck` e `npm test`.
+- **Costruire l'APK in locale:** servono Java 21 (per esempio Microsoft OpenJDK 21) e l'SDK Android (piattaforma 36, `platform-tools`, `build-tools`); i passaggi sono sotto «Costruzione» in questo documento. In alternativa basta il workflow di GitHub, che costruisce l'APK a ogni push su `main`.
+- **Dati:** non stanno nel repository. Il telefono e il sito li prendono dal server (sul NAS) con email e password; le chiavi dell'IA (Gemini, Groq) e i pesi sperimentali della priorità restano invece solo sul dispositivo in cui sono stati inseriti e sul nuovo computer o telefono vanno reinseriti.

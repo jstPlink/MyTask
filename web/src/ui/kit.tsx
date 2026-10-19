@@ -74,6 +74,9 @@ interface RowProps {
   onCheck?: () => void;
   /** Se c'è, la riga è un pulsante che apre la voce. */
   onOpen?: () => void;
+  /** Blocco sotto la riga, a tutta larghezza (la barra del tempo della nota in lavorazione); `aperto` lo mostra con un'animazione. */
+  sotto?: ReactNode;
+  aperto?: boolean;
 }
 
 /** Classe CSS della casella per uno stato: «in corso» mezza piena, «fatta» piena col segno, «archiviata» tratteggiata. */
@@ -115,7 +118,7 @@ function CasellaStato({ voce }: { voce: Item }) {
  * Riga di lista: priorità a sinistra (barra), titolo con riga grigia sotto, parte destra libera e casella.
  * Con `voce` la casella gestisce da sola gli stati della nota; senza, è una casella semplice comandata da `done`/`onCheck`.
  */
-export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen, sotto, aperto }: RowProps) {
   const body = (
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
@@ -139,9 +142,10 @@ export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, m
           style={onCheck ? { cursor: 'pointer' } : undefined}
         />
       )}
+      {sotto && <div className="sotto-riga" aria-hidden={!aperto}>{sotto}</div>}
     </>
   );
-  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch', classe);
+  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch', !!sotto && 'con-sotto', aperto && 'lav', classe);
   return onOpen ? <button className={cls} onClick={onOpen} {...extra}>{body}</button> : <div className={cls} {...extra}>{body}</div>;
 }
 
@@ -211,6 +215,35 @@ export function SliderImportanza({ valore, onChange, label, verde }: { valore?: 
       <div className="slider-tr" aria-hidden="true"><i /></div>
       <input type="range" min={1} max={5} step={0.05} value={v} aria-label={label} aria-valuetext={NOMI_IMPORTANZA[Math.round(v)]}
         onChange={(e) => onChange(Math.round(Number(e.target.value) * 100) / 100)} />
+    </div>
+  );
+}
+
+/**
+ * Importanza a doppio livello: prima il grado (1-5), poi lo slider a cuneo per rifinire dentro quel grado (il grado «4» copre da 3,5 a 4,5,
+ * così il nome resta vero). Il valore salvato è un solo numero da 1 a 5, come con lo slider unico.
+ */
+export function ImportanzaDoppia({ valore, onChange, label }: { valore?: number; onChange: (v: number) => void; label: string }) {
+  const v = Math.min(5, Math.max(1, valore ?? 3));
+  const k = Math.round(v);
+  const lo = Math.max(1, k - 0.5), hi = Math.min(5, k + 0.5);
+  const colore = (x: number) => `color-mix(in srgb, var(--warn) ${Math.round((x - 1) / 4 * 100)}%, var(--soft))`;
+  const stile = { '--p': `${(v - lo) / (hi - lo) * 100}%`, '--col': colore(v) } as React.CSSProperties;
+  return (
+    <div className="imp-blocco" role="group" aria-label={label}>
+      <div className="imp-t"><span>{label}</span><b>{v.toFixed(2).replace('.', ',')} · {NOMI_IMPORTANZA[k]}</b></div>
+      <div className="imp-gradi">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button key={n} type="button" className={clsx(n === k && 'on')} style={{ '--c': colore(n) } as React.CSSProperties}
+            aria-pressed={n === k} aria-label={`Grado ${n}: ${NOMI_IMPORTANZA[n]}`} onClick={() => onChange(n)}>{n}</button>
+        ))}
+      </div>
+      <div className="slider-c largo" style={stile}>
+        <div className="slider-tr" aria-hidden="true"><i /></div>
+        <input type="range" min={lo} max={hi} step={0.05} value={v} aria-label={`${label}: rifinitura dentro il grado ${NOMI_IMPORTANZA[k]}`}
+          onChange={(e) => onChange(Math.round(Number(e.target.value) * 100) / 100)} />
+      </div>
+      <div className="imp-ag"><span>basso</span><span>alto</span></div>
     </div>
   );
 }

@@ -57,17 +57,16 @@ export function Oggi() {
   const meta = (e: Entry) => {
     const i = e.item;
     const pezzi: string[] = [];
-    if (sessione.stato !== 'ferma' && sessione.taskId === i.id) pezzi.push(lavoro ? 'in lavorazione' : 'in pausa');
     const ms = tempoDi(i, adesso);
-    if (ms >= 60_000) pezzi.push(avanzamentoTempo(ms, i.sforzoMin).testo);
+    const corrente = sessione.stato !== 'ferma' && sessione.taskId === i.id;
+    if (ms >= 60_000 && !corrente) pezzi.push(avanzamentoTempo(ms, i.sforzoMin).testo); // sulla nota in lavorazione lo dice la barra sotto la riga
     if (e.padre) pezzi.push('prossimo passo');
-    if (i.sforzoMin && ms < 60_000) pezzi.push(`${nomeTempo(i.sforzoMin)} ${percentuale(margine)}`);
+    if (i.sforzoMin && (ms < 60_000 || corrente)) pezzi.push(`${nomeTempo(i.sforzoMin)} ${percentuale(margine)}`);
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return pezzi.join(' · ');
   };
-  // Parte destra della riga: il tempo del task su cui corre il cronometro; per gli altri la scadenza (o «ieri» / «N gg fa» se scaduta, in arancio).
+  // Parte destra della riga: la scadenza (o «ieri» / «N gg fa» se scaduta, in arancio).
   const destra = (e: Entry) => {
-    if (sessione.stato !== 'ferma' && sessione.taskId === e.item.id) return <span className="tm">{formatoCronometro(tempoTask)}</span>;
     const d = dueDate(e.item);
     if (!d) return null;
     const ritardo = daysOverdue(e.item, oggi);
@@ -116,7 +115,24 @@ export function Oggi() {
   );
 
   // Le prime attività, con quelle di uno stesso progetto riunite sotto la testata (toccandola si apre il progetto).
-  const riga = (e: Entry) => (
+  // Sotto la riga della nota in lavorazione: tempo lavorato a sinistra e previsto a destra sopra una barra sottile.
+  // La barra resta nella riga anche dopo (chiusa) per le note già iniziate, così si chiude con un'animazione.
+  const sottoRiga = (e: Entry) => {
+    const i = e.item;
+    const ms = tempoDi(i, adesso);
+    if (ms <= 0 && !(sessione.stato !== 'ferma' && sessione.taskId === i.id)) return undefined;
+    const quota = i.sforzoMin ? ms / (i.sforzoMin * 60_000) : undefined;
+    return (
+      <div role="img" aria-label={`Tempo lavorato: ${avanzamentoTempo(ms, i.sforzoMin).testo}`}>
+        <div className="sr-tempi"><b>{formatoCronometro(ms)}</b>{i.sforzoMin ? <em>{durataLavoro(i.sforzoMin * 60_000)}</em> : null}</div>
+        {quota !== undefined && <span className="sr-barra"><i style={{ width: `${Math.min(100, quota * 100)}%` }} /></span>}
+      </div>
+    );
+  };
+  const riga = (e: Entry) => {
+    const corrente = sessione.stato !== 'ferma' && sessione.taskId === e.item.id;
+    const quota = e.item.sforzoMin ? tempoDi(e.item, adesso) / (e.item.sforzoMin * 60_000) : 0;
+    return (
     <Row
       rank={v.fare.indexOf(e) + 1}
       urgenza={urgency(e.item, oggi)}
@@ -126,11 +142,13 @@ export function Oggi() {
       right={destra(e)}
       level={barLevel(e.punteggio)}
       voce={e.item}
-      classe={sessione.stato !== 'ferma' ? (sessione.taskId === e.item.id ? 'cur' : undefined) : v.fare[0] === e ? 'prima' : undefined}
+      classe={corrente ? (!lavoro ? 'pausa-lav' : quota > 1 ? 'oltre-lav' : undefined) : undefined}
+      sotto={sottoRiga(e)} aperto={corrente}
       selected={nav.openId === e.item.id}
       onOpen={() => setMenu(e.item)}
     />
-  );
+    );
+  };
   const prime = (
     <Sezione titolo="Prime attività" dettaglio={v.fare.length || undefined}>
       {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Intrattenimento».</div>}
