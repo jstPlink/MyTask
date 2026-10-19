@@ -110,6 +110,17 @@ test('Oggi: prossimi 7 giorni e voci parcheggiate', () => {
   assert.ok(!v.fare.some((e) => e.item.id === park.id));
 });
 
+test('Priorità: il gruppo «Curiosità» propone le cinque più interessanti, a parità le più vecchie, separate dalle attività', () => {
+  const cur = (titolo: string, interesse: number, aggiornato: number, extra: Partial<Item> = {}) => mk({ tipo: 'curiosita', titolo, interesse, aggiornato, ...extra });
+  const buone = [cur('A', 5, NOW), cur('B', 5, NOW - 1000), cur('C', 4, NOW), cur('D', 3, NOW - 5000), cur('E', 3, NOW), cur('F', 2, NOW)];
+  const escluse = [cur('Parcheggiata', 5, NOW, { stato: 'parcheggiato' }), cur('Fatta', 5, NOW, { stato: 'fatto' }), cur('In inbox', 5, NOW, { inbox: true })];
+  const v = vistaOggi([...buone, ...escluse], OGGI, NOW);
+  assert.deepEqual(v.curiosita.map((c) => c.titolo), ['B', 'A', 'C', 'D', 'E']);
+  // le curiosità non entrano nelle attività né nella loro classifica
+  assert.ok(!v.fare.some((e) => e.item.tipo === 'curiosita'));
+  assert.deepEqual(vistaOggi([], OGGI, NOW).curiosita, []);
+});
+
 test('stasera: preferisce interesse alto e rispetta la durata', () => {
   const breve = mk({ tipo: 'film', titolo: 'Film breve', interesse: 4, durataMin: 77 });
   const lungo = mk({ tipo: 'film', titolo: 'Film lungo', interesse: 4, durataMin: 180 });
@@ -125,18 +136,6 @@ test('titoli: maiuscole, accenti e apostrofi non contano', async () => {
   assert.equal(chiaveTitolo("L’Èrba  del Vicino!"), "l'erba del vicino");
   assert.equal(chiaveTitolo('Sensi  e sensibilità'), chiaveTitolo('sensi e sensibilita'));
   assert.notEqual(chiaveTitolo('Serie s1'), chiaveTitolo('Serie s2'));
-});
-
-test('importazione da file: elenco o esportazione, voci non valide scartate', async () => {
-  const { validaVoci } = await import('./validate.ts');
-  const buona = { id: 'a1', tipo: 'film', titolo: 'Titolo', stato: 'da_fare' };
-  const r = validaVoci([buona, { id: 'a1', tipo: 'film', titolo: 'Doppione', stato: 'da_fare' }, { id: 'b', tipo: 'inventato', titolo: 'X', stato: 'da_fare' }, { id: 'c', tipo: 'film', titolo: '  ', stato: 'da_fare' }, null, 'testo'], 5000);
-  assert.equal(r.voci.length, 1);
-  assert.equal(r.scartate, 5);
-  assert.equal(r.voci[0].creato, 5000);
-  assert.equal(r.voci[0].aggiornato, 5000);
-  assert.equal(validaVoci({ esportato: 'oggi', voci: [buona] }).voci.length, 1);
-  assert.throws(() => validaVoci({ cose: [] }), /elenco di voci/);
 });
 
 test('notifiche native: promemoria, insistenza e routine', async () => {

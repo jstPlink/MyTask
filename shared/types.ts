@@ -73,7 +73,7 @@ export interface Item {
 
   // priorità e collezioni
   importanza?: number; // 1-5, azioni e progetti
-  /** Tempo stimato in minuti: dura così tanto nel piano (più il margine d'errore). */
+  /** Tempo stimato in minuti (con il margine d'errore atteso: shared/stima.ts). */
   sforzoMin?: number;
   /** Minuti che l'attività ha richiesto davvero, misurati dall'app dal passaggio a «in corso» al completamento; affina stime e margine d'errore. */
   durataRealeMin?: number;
@@ -124,9 +124,6 @@ export interface Item {
   inCorsoTs?: number;
   /** Millisecondi realmente lavorati sul task con il cronometro «Sto lavorando» (shared/sessione.ts): diventano il tempo reale al completamento. */
   lavoratoMs?: number;
-  /** Posto nel piano di una nota «in corso»: giorno e minuto d'inizio, fissati quando è iniziata (il piano non la sposta più). */
-  pianoData?: string;
-  pianoDa?: number;
   /** Quando si è cercata una descrizione su internet (millisecondi). */
   descrittoIl?: number;
   /** Posizione di un passo dentro il suo progetto (0 = il primo, il più prioritario). */
@@ -147,7 +144,7 @@ export interface Item {
   daContattare?: boolean;
 }
 
-/** Impostazione dell'utente sincronizzata tra i dispositivi (per ora il tempo libero): vince la più recente. */
+/** Impostazione dell'utente sincronizzata tra i dispositivi (per ora la sessione di lavoro): vince la più recente. */
 export interface ImpostazioneSync { valore: unknown; aggiornato: number }
 export type ImpostazioniSync = Record<string, ImpostazioneSync>;
 

@@ -3,11 +3,9 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import type { Item } from '../../../shared/types.ts';
-import { pianificaNotifiche, richiesteOrari } from '../../../shared/pianifica.ts';
+import { pianificaNotifiche } from '../../../shared/pianifica.ts';
 import { debounce } from './util.ts';
 import { getItems, subscribe } from './store.ts';
-import { getDisponibilita, subscribeDisponibilita } from './disponibilita.ts';
-import { richiediOrari } from './richiestaOrari.ts';
 import { getSessione, scadenzaControllo, subscribeSessione } from './sessione.ts';
 
 /** Identificativo della notifica «Stai ancora lavorando?» (la sessione ne ha una sola alla volta). */
@@ -42,7 +40,7 @@ async function chiediPermessoNotificheNative(): Promise<PermessoNotifiche> {
 
 /**
  * Riprogramma tutte le notifiche del sistema in base ai dati correnti: cancella quelle in attesa e ne pianifica di nuove
- * (promemoria delle voci, in modalità flessibile la richiesta serale degli orari liberi e, se si sta lavorando, il controllo
+ * (promemoria delle voci e, se si sta lavorando, il controllo
  * «Stai ancora lavorando?» dopo 45 minuti senza conferme). I calcoli sono in shared/pianifica.ts e shared/sessione.ts.
  */
 async function aggiornaNotificheNative(items: Item[]): Promise<void> {
@@ -51,13 +49,12 @@ async function aggiornaNotificheNative(items: Item[]): Promise<void> {
     const { notifications } = await LocalNotifications.getPending();
     if (notifications.length) await LocalNotifications.cancel({ notifications: notifications.map((n) => ({ id: n.id })) });
     const lista = pianificaNotifiche(items, new Date());
-    const richieste = richiesteOrari(getDisponibilita(), new Date());
     const scadenza = scadenzaControllo();
     const titolo = getItems().find((i) => i.id === getSessione().taskId)?.titolo;
     const controllo = scadenza && scadenza > Date.now()
       ? [{ id: ID_CONTROLLO_SESSIONE, title: 'Stai ancora lavorando?', body: titolo ? `«${titolo}»: apri MyTask per confermare` : 'Apri MyTask per confermare', schedule: { at: new Date(scadenza), allowWhileIdle: true }, smallIcon: 'ic_stat_mytask' }]
       : [];
-    if (lista.length || richieste.length || controllo.length) {
+    if (lista.length || controllo.length) {
       await LocalNotifications.schedule({
         notifications: [
           ...controllo,
@@ -68,15 +65,6 @@ async function aggiornaNotificheNative(items: Item[]): Promise<void> {
             schedule: { at: new Date(n.quando), allowWhileIdle: true },
             smallIcon: 'ic_stat_mytask',
           })),
-          // modalità flessibile: la sera chiede gli orari liberi del giorno dopo (toccandola si apre la schermata per inserirli)
-          ...richieste.map((n) => ({
-            id: n.id,
-            title: n.titolo,
-            body: n.corpo,
-            schedule: { at: new Date(n.quando), allowWhileIdle: true },
-            smallIcon: 'ic_stat_mytask',
-            extra: { azione: 'orari', giorno: n.giorno },
-          })),
         ],
       });
     }
@@ -86,18 +74,13 @@ async function aggiornaNotificheNative(items: Item[]): Promise<void> {
 }
 
 /**
- * Avvia l'aggiornamento automatico delle notifiche: all'avvio, a ogni modifica dei dati o del tempo libero (con attesa
- * di 2 secondi per raggruppare le modifiche) e al ritorno nell'app. Toccando la notifica serale si apre «Quando sei libero?».
+ * Avvia l'aggiornamento automatico delle notifiche: all'avvio, a ogni modifica dei dati o della sessione di lavoro (con attesa
+ * di 2 secondi per raggruppare le modifiche) e al ritorno nell'app.
  */
 export function avviaNotificheNative() {
   const aggiorna = debounce(() => { void aggiornaNotificheNative(getItems()); }, 2000);
   subscribe(aggiorna);
-  subscribeDisponibilita(aggiorna);
   subscribeSessione(aggiorna);
-  void LocalNotifications.addListener('localNotificationActionPerformed', (a) => {
-    const extra = a.notification.extra as { azione?: string; giorno?: string } | undefined;
-    if (extra?.azione === 'orari' && extra.giorno) richiediOrari(extra.giorno);
-  });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') aggiorna(); });
   // la prima volta chiede il permesso (una sola volta: poi resta la scelta dell'utente)
   void (async () => {

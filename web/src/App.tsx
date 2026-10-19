@@ -18,12 +18,9 @@ import { Ricerca } from './screens/Ricerca.tsx';
 import { ItemDetail } from './screens/ItemDetail.tsx';
 import { Capture } from './screens/Capture.tsx';
 import { Login } from './screens/Login.tsx';
-import { TempoLibero } from './screens/TempoLibero.tsx';
-import { OrariGiorno } from './screens/OrariGiorno.tsx';
 import { PesiPriorita } from './screens/PesiPriorita.tsx';
 import { IA } from './screens/IA.tsx';
 import { Chat } from './screens/Chat.tsx';
-import { ascoltaRichiestaOrari, prendiRichiestaOrari } from './lib/richiestaOrari.ts';
 import { RecensioneSheet } from './ui/Recensione.tsx';
 import { StatoMenu } from './ui/StatoMenu.tsx';
 import { CompletamentoSheet } from './ui/CompletamentoSheet.tsx';
@@ -51,10 +48,8 @@ function Schermata({ s }: { s: Screen }) {
     case 'archivio': return <Archivio />;
     case 'daparte': return <DaParte />;
     case 'aspetto': return <Aspetto />;
-    case 'tempolibero': return <TempoLibero />;
     case 'stasera': return <Stasera />;
     case 'account': return <Account />;
-    case 'orari': return <OrariGiorno giorno={s.giorno} />;
     case 'pesi': return <PesiPriorita />;
     case 'ia': return <IA />;
     case 'chat': return <Chat />;
@@ -191,14 +186,6 @@ export function App() {
     tab, setTab, vaTab, stack, push, pop, fareSub, setFareSub, scoprireSub, setScoprireSub,
     capture, layers, openLayer, closeLayer, captureText, openCapture, wide, xl, vai, openId, query, setQuery, nuova,
   }), [tab, setTab, vaTab, stack, push, pop, fareSub, setFareSub, scoprireSub, setScoprireSub, capture, layers, openLayer, closeLayer, captureText, openCapture, wide, xl, vai, openId, query, nuova]);
-
-  // toccando la notifica serale si apre la schermata «Quando sei libero?» (modalità flessibile)
-  useEffect(() => {
-    if (!auth.token) return;
-    const apri = () => { const g = prendiRichiestaOrari(); if (g) push({ k: 'orari', giorno: g }); };
-    apri();
-    return ascoltaRichiestaOrari(apri);
-  }, [auth.token, push]);
 
   // scorciatoie da tastiera (schermi larghi): N nuova nota, / cerca, Esc chiude
   useEffect(() => {

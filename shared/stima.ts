@@ -1,4 +1,4 @@
-// Stima dei tempi con margine d'errore (editor della nota, piano di Oggi). Il margine parte da un valore di partenza e si affina da solo:
+// Stima dei tempi con margine d'errore (editor della nota). Il margine parte da un valore di partenza e si affina da solo:
 // ogni attività completata con tempo stimato e tempo reale (`durataRealeMin`, misurato dall'app) ne sposta il valore.
 import type { Item } from './types.ts';
 import { chiaveTitolo } from './testo.ts';

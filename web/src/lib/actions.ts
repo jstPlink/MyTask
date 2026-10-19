@@ -7,9 +7,7 @@ import { toggleOggi } from '../../../shared/routine.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { avanzamento, figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
-import { durataRealeInCorso, pianifica } from '../../../shared/piano.ts';
 import { margineAtteso } from '../../../shared/stima.ts';
-import { getDisponibilita } from './disponibilita.ts';
 import { dopoCompletamento, elencoIdPrima, tempoDi } from './sessione.ts';
 import { minutiMisurati } from '../../../shared/sessione.ts';
 import { mostraCompletamento } from './completamento.ts';
@@ -38,8 +36,8 @@ function fotografaProgetto(progetto: Item, idTarget: string) {
 
 /**
  * Spunta una voce. Offre «Annulla» e, se era l'ultimo passo di un progetto, di chiudere il progetto.
- * Registra il tempo impiegato: quello del cronometro «Sto lavorando» (`lavoratoMs`); in mancanza, per le note «in corso»
- * senza cronometro, il tempo libero trascorso da quando sono partite (`durataRealeInCorso`). Se il cronometro correva su
+ * Registra il tempo impiegato: quello del cronometro «Sto lavorando» (`lavoratoMs`); senza cronometro non si registra nessuna
+ * durata. Se il cronometro correva su
  * questo task, passa al successivo della lista di Oggi. `ora` (di base adesso) è il momento del completamento: il widget
  * lo passa quando l'azione è stata fatta mentre l'app era chiusa.
  */
@@ -52,10 +50,10 @@ export function completaVoce(item: Item, ora = Date.now()) {
   // passo di un progetto: si fotografa il progetto prima del segno di fatto, per l'animazione dell'avanzamento
   const progetto = padre?.tipo === 'progetto' && !item.ricorrenza ? padre : undefined;
   const fotoPrima = progetto ? fotografaProgetto(progetto, item.id) : undefined;
-  // il tempo impiegato non si chiede: arriva dal cronometro, o si misura dal passaggio «in corso» contando solo il tempo libero
+  // il tempo impiegato non si chiede: arriva dal cronometro «Sto lavorando»
   const lavoratoMs = tempoDi(item, ora);
   const misurabile = item.tipo === 'azione' && !item.ricorrenza;
-  const durata = misurabile ? (minutiMisurati(lavoratoMs) ?? durataRealeInCorso(item, ora, getDisponibilita())) : undefined;
+  const durata = misurabile ? minutiMisurati(lavoratoMs) : undefined;
   const dopo = { ...completa(item, oggi, ora), ...(lavoratoMs > 0 ? { lavoratoMs: Math.round(lavoratoMs) } : {}), ...(durata ? { durataRealeMin: durata } : {}) };
   dopoCompletamento(item.id, elencoIdPrima(), ora); // il cronometro passa al task successivo
   const margineDa = margineAtteso(getItems());
@@ -106,37 +104,20 @@ export const STATI_NOTA: { id: Stato; nome: string; descr: string }[] = [
 /** Lo stato che l'utente vede: «saltato» conta come fatta. */
 export const statoVisto = (s: Stato): Stato => (s === 'saltato' ? 'fatto' : s);
 
-/** Dove è nel piano di oggi (o dei prossimi giorni) una nota: serve a fissarla quando passa «in corso». */
-function postoNelPiano(item: Item): { pianoData?: string; pianoDa?: number } {
-  const disp = getDisponibilita();
-  if (!disp) return {};
-  const tutte = getItems();
-  const giorni = pianifica(tutte, disp, today(), Date.now(), undefined, margineAtteso(tutte)).giorni;
-  for (const g of giorni) {
-    const b = g.blocchi.find((x) => x.item.id === item.id && !x.pausa && !x.fisso);
-    if (b) return { pianoData: b.data, pianoDa: b.da };
-  }
-  return {};
-}
-
 /**
  * Porta una nota in uno stato. «Fatta» passa da `completaVoce` (voto, durata, ricorrenze, progetti).
  * Archiviare un progetto archivia anche i suoi passi; ripristinarlo li ripristina (da fare). Tutto si può annullare.
- * Una nota che passa «in corso» resta dove era nel piano e non viene più spostata.
  */
 export function cambiaStato(item: Item, nuovo: Stato) {
   if (statoVisto(item.stato) === nuovo) return;
   if (nuovo === 'fatto') { completaVoce(item); return; }
   const base = statoVisto(item.stato) === 'fatto' ? riapri(item, Date.now()) : item;
   const ora = Date.now();
-  const posto = nuovo === 'in_corso' ? postoNelPiano(item) : {};
   const prima: Item[] = [item];
   saveItem({
     ...base,
     stato: nuovo,
     inCorsoTs: nuovo === 'in_corso' ? ora : nuovo === 'da_fare' ? undefined : base.inCorsoTs,
-    pianoData: posto.pianoData,
-    pianoDa: posto.pianoDa,
     aggiornato: ora,
   });
   if (item.tipo === 'progetto') {
@@ -144,7 +125,7 @@ export function cambiaStato(item: Item, nuovo: Stato) {
     for (const c of figli(getItems(), item.id)) {
       if (nuovo === 'parcheggiato' && statoVisto(c.stato) !== 'fatto' && c.stato !== 'parcheggiato') {
         prima.push(c);
-        saveItem({ ...c, stato: 'parcheggiato', pianoData: undefined, pianoDa: undefined, aggiornato: ora });
+        saveItem({ ...c, stato: 'parcheggiato', aggiornato: ora });
       } else if (era === 'parcheggiato' && nuovo !== 'parcheggiato' && c.stato === 'parcheggiato') {
         prima.push(c);
         saveItem({ ...c, stato: 'da_fare', aggiornato: ora });

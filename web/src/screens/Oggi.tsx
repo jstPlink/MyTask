@@ -1,5 +1,5 @@
 /**
- * Oggi: la schermata iniziale. In cima il pulsante «Sto lavorando» (o, a sessione aperta, il cronometro con pausa e
+ * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima il pulsante «Sto lavorando» (o, a sessione aperta, il cronometro con pausa e
  * «Ho finito di lavorare»), poi le routine del giorno e le «Prime attività»: le cose da fare in ordine di priorità
  * (`vistaOggi`: scadute o in scadenza oggi e, a seguire, le più prioritarie senza data, fino a cinque in tutto).
  *
@@ -9,6 +9,8 @@
  * - Tocco su una riga: menu con «Lavora su questo» (sposta il cronometro lì), «Non ora» (per il task in corso: passa al
  *   successivo senza completarlo) e «Apri» (la scheda della nota).
  * - Le attività dello stesso progetto sono riunite sotto la testata del progetto, il numero è la posizione in classifica.
+ * - «Curiosità»: dopo le attività, al massimo cinque curiosità (le più interessanti, a parità le più vecchie), senza posizione
+ *   in classifica; la casella le segna come approfondite e toccando la riga si apre la nota.
  * - Telefono: titolo con i pulsanti tondi (Aspetto, Inbox, Altro) e «+» per la cattura. Da 900 px (`nav.wide`) la stessa
  *   colonna senza pulsanti né «+», che stanno nella barra laterale.
  */
@@ -150,11 +152,30 @@ export function Oggi() {
     );
   };
   const prime = (
-    <Sezione titolo="Prime attività" dettaglio={v.fare.length || undefined}>
+    <Sezione titolo="Attività" dettaglio={v.fare.length || undefined}>
       {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Intrattenimento».</div>}
       {raggruppaPerProgetto(v.fare, items).map((g) => g.progetto
         ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
         : g.voci.map(riga))}
+    </Sezione>
+  );
+
+  // Curiosità da smaltire: poche, sotto le attività, senza numero di priorità (hanno un interesse, non un'importanza).
+  const curiosita = v.curiosita.length > 0 && (
+    <Sezione titolo="Curiosità" dettaglio={v.curiosita.length}>
+      {v.curiosita.map((c) => (
+        <Row
+          key={c.id}
+          titolo={c.titolo} tipo="curiosita"
+          meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, c.note?.split('\n')[0]].filter(Boolean).join(' · ') || undefined}
+          interesse={c.interesse ?? 3}
+          check="square"
+          centrato
+          voce={c}
+          selected={nav.openId === c.id}
+          onOpen={() => nav.push({ k: 'item', id: c.id })}
+        />
+      ))}
     </Sezione>
   );
 
@@ -189,10 +210,10 @@ export function Oggi() {
   if (nav.wide) {
     return (
       <>
-        <Top title="Oggi" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} cose da fare`} />
+        <Top title="Priorità" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} attività, ${v.curiosita.length} curiosità`} />
         <div className="scroll wide-dash">
           <div className="dash">
-            <div>{lavora}{routine}{prime}</div>
+            <div>{lavora}{routine}{prime}{curiosita}</div>
           </div>
         </div>
         {menuRiga}
@@ -204,7 +225,7 @@ export function Oggi() {
   return (
     <>
       <Top
-        title="Oggi"
+        title="Priorità"
         sub={formatLong(oggi)}
         right={
           <div className="header-circles">
@@ -225,6 +246,7 @@ export function Oggi() {
         {lavora}
         {routine}
         {prime}
+        {curiosita}
         {stato}
       </div>
       {menuRiga}

@@ -10,9 +10,9 @@ import { daParte, archivio, dataChiusura, inbox } from '../../../shared/views.ts
 import { riapri } from '../../../shared/recurrence.ts';
 import { COMPAGNIE, ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE, suggerisciStasera, type Compagnia } from '../../../shared/stasera.ts';
 import { useAspetto, useAuth, useItems, useSyncStatus } from '../lib/hooks.ts';
-import { saveBatch, saveItem, setAuth } from '../lib/store.ts';
-import { validaVoci } from '../../../shared/validate.ts';
-import { apiBase, scaricaEsportazione, logout } from '../lib/api.ts';
+import { saveItem, setAuth } from '../lib/store.ts';
+import { chiaveTitolo } from '../../../shared/testo.ts';
+import { apiBase, logout } from '../lib/api.ts';
 import { VERSIONE } from '../version.ts';
 import { sync } from '../lib/sync.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
@@ -43,7 +43,6 @@ export function Altro() {
         {voce('Archiviate', nParte || undefined, { k: 'daparte' })}
         {voce('Completato', nArch, { k: 'archivio' })}
         <Sec a="App" />
-        <button className="field link sper-voce" onClick={() => nav.push({ k: 'tempolibero' })}><b style={{ fontWeight: 620 }}>Tempo libero <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Intelligenza artificiale', 'Gemini e Groq', { k: 'ia' })}
         <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Pesi della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
@@ -248,50 +247,32 @@ export function Stasera() {
 // ------------------------------------------------------------------ Account
 
 /**
- * Account e dati: email, stato e ultima sincronizzazione, versioni di app e server (segnala se diverse),
- * sincronizzazione manuale, esportazione e importazione JSON, uscita (i dati restano sul dispositivo).
+ * Account e dati: email, ultima sincronizzazione (lo stato compare solo se offline o con modifiche da inviare), riepilogo delle voci, versioni di app e server (segnala se diverse),
+ * sincronizzazione manuale e uscita (i dati restano sul dispositivo).
  */
 export function Account() {
   const auth = useAuth();
   const st = useSyncStatus();
-  const nVoci = useItemsCount();
+  const riepilogo = useRiepilogoVoci();
   const versioneServer = useVersioneServer();
 
-  // Importa le voci da un file JSON: le voci non valide si scartano, quelle con lo stesso id vengono sostituite (dopo conferma).
-  async function importaDaFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    try {
-      const { voci, scartate } = validaVoci(JSON.parse(await file.text()));
-      if (voci.length === 0) { mostraToast('Nel file non ci sono voci valide'); return; }
-      const ok = window.confirm(`Importare ${voci.length} voci${scartate ? ` (${scartate} non valide scartate)` : ''}? Quelle già presenti con lo stesso identificativo vengono sostituite.`);
-      if (!ok) return;
-      await saveBatch(voci);
-      mostraToast(`Importate ${voci.length} voci`);
-    } catch (err) {
-      mostraToast(err instanceof Error ? err.message : 'File non valido');
-    }
-  }
   return (
     <>
       <Back label="Altro" />
       <Top title="Account" sub="Sincronizzazione e dati" />
       <div className="scroll">
         <Field label="Email"><span>{auth.email ?? '—'}</span></Field>
-        <Field label="Stato"><span>{!st.online ? 'Offline' : st.inCorso ? 'Sincronizzazione…' : st.inAttesa ? `${st.inAttesa} modifiche da inviare` : 'Tutto sincronizzato'}</span></Field>
+        {(!st.online || st.inCorso || st.inAttesa > 0) && <Field label="Stato"><span>{!st.online ? 'Offline' : st.inCorso ? 'Sincronizzazione…' : `${st.inAttesa} modifiche da inviare`}</span></Field>}
         <Field label="Ultima sincronizzazione"><span>{st.ultima ? new Date(st.ultima).toLocaleString('it-IT') : '—'}</span></Field>
         {st.errore && <div className="t2 warn" style={{ padding: '8px 0' }}>{st.errore}</div>}
-        <Field label="Voci salvate su questo dispositivo"><span>{nVoci}</span></Field>
+        <Field label="Voci salvate su questo dispositivo"><span>{riepilogo.totale}</span></Field>
+        <div className="t2" style={{ padding: '0 0 6px' }}>{riepilogo.perStato}</div>
+        <div className="t2" style={{ padding: '0 0 6px' }}>{riepilogo.perTipo}</div>
+        {riepilogo.doppioni > 0 && <div className="t2 warn" style={{ padding: '0 0 6px' }}>Possibili doppioni: {riepilogo.doppioni} (stesso tipo e stesso titolo). Il conteggio comprende anche le completate e le archiviate.</div>}
         <Field label="Versione dell'app"><span>{VERSIONE}</span></Field>
         <Field label="Versione del server"><span>{versioneServer ?? '—'}{versioneServer && versioneServer !== VERSIONE ? ' (diversa)' : ''}</span></Field>
         <div className="btns col" style={{ marginTop: 18 }}>
           <button className="btn solid" onClick={() => { void sync(); mostraToast('Sincronizzazione avviata'); }}>Sincronizza ora</button>
-          <button className="btn" onClick={() => { scaricaEsportazione().catch(() => mostraToast('Esportazione non riuscita (serve la connessione)')); }}>Scarica una copia dei dati (JSON)</button>
-          <label className="btn" style={{ cursor: 'pointer' }}>
-            Importa le voci da un file (JSON)
-            <input type="file" accept=".json,application/json" hidden onChange={importaDaFile} />
-          </label>
           <button className="btn danger" onClick={async () => { if (window.confirm('Uscire? I dati restano su questo dispositivo.')) { await logout(); await setAuth({ email: auth.email }); } }}>Esci</button>
         </div>
         <div className="t2" style={{ marginTop: 16 }}>Oggi è {today()}. Il database sul NAS fa una copia di sicurezza ogni giorno.</div>
@@ -314,7 +295,29 @@ function useVersioneServer(): string | undefined {
   return v;
 }
 
-/** Numero di voci non eliminate salvate su questo dispositivo. */
-function useItemsCount(): number {
-  return useItems().filter((i) => !i.eliminato).length;
+/**
+ * Riepilogo delle voci non eliminate salvate su questo dispositivo: il totale comprende tutto (aperte, completate e archiviate,
+ * passi dei progetti, routine, film, curiosità…). I possibili doppioni sono voci dello stesso tipo, con lo stesso titolo (a
+ * parità di progetto): servono a capire se il totale è gonfiato da copie.
+ */
+function useRiepilogoVoci() {
+  const items = useItems();
+  return useMemo(() => {
+    const vive = items.filter((i) => !i.eliminato);
+    const chiuse = vive.filter((i) => i.stato === 'fatto' || i.stato === 'saltato').length;
+    const archiviate = vive.filter((i) => i.stato === 'parcheggiato').length;
+    const perTipo = new Map<string, number>();
+    const chiavi = new Map<string, number>();
+    for (const i of vive) {
+      perTipo.set(i.tipo, (perTipo.get(i.tipo) ?? 0) + 1);
+      const k = `${i.tipo}|${i.padreId ?? ''}|${chiaveTitolo(i.titolo)}`;
+      chiavi.set(k, (chiavi.get(k) ?? 0) + 1);
+    }
+    return {
+      totale: vive.length,
+      perStato: `Aperte ${vive.length - chiuse - archiviate} · Completate ${chiuse} · Archiviate ${archiviate}`,
+      perTipo: [...perTipo].sort((a, b) => b[1] - a[1]).map(([t, n]) => `${NOMI_TIPO[t as Tipo] ?? t} ${n}`).join(' · '),
+      doppioni: [...chiavi.values()].reduce((s, n) => s + (n > 1 ? n - 1 : 0), 0),
+    };
+  }, [items]);
 }

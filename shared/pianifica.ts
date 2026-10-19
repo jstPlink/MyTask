@@ -5,7 +5,6 @@ import type { Item } from './types.ts';
 import { addDays, diffDays, today as oggiDi, parseISO } from './dates.ts';
 import { dueDate, isOpen } from './priority.ts';
 import { fattaOggi, weekCount } from './routine.ts';
-import { ORA_CHIEDI_PREDEFINITA, type Disponibilita } from './piano.ts';
 
 /** Una notifica locale da programmare nel telefono. */
 export interface Notifica {
@@ -85,28 +84,3 @@ export function pianificaNotifiche(items: Item[], ora: Date, giorni = 14, max = 
   return out.sort((a, b) => a.quando - b.quando).slice(0, max);
 }
 
-
-/** Notifica serale che chiede gli orari liberi del giorno dopo. */
-export interface RichiestaOrari extends Notifica {
-  /** Giorno di cui si chiedono gli orari (il giorno dopo quello in cui arriva la notifica). */
-  giorno: string;
-}
-
-/**
- * Modalità flessibile: ogni sera, all'ora scelta, una notifica chiede gli orari liberi del giorno dopo.
- * Per i prossimi giorni; salta i giorni per cui gli orari sono già stati inseriti. Funzione pura.
- */
-export function richiesteOrari(disp: Disponibilita | null, adesso: Date, giorni = 7): RichiestaOrari[] {
-  if (!disp?.flessibile) return [];
-  const ora = disp.oraChiedi ?? ORA_CHIEDI_PREDEFINITA;
-  const oggi = oggiDi(adesso);
-  const out: RichiestaOrari[] = [];
-  for (let n = 0; n < giorni; n++) {
-    const sera = addDays(oggi, n);
-    const quando = alle(sera, ora);
-    const giorno = addDays(sera, 1);
-    if (quando <= adesso.getTime() || disp.eccezioni?.[giorno]) continue;
-    out.push({ id: idStabile(`orari-${giorno}`), giorno, quando, titolo: 'Quando sei libero domani?', corpo: 'Inserisci gli orari e preparo il calendario di domani.' });
-  }
-  return out;
-}

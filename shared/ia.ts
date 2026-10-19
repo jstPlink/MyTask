@@ -63,7 +63,7 @@ export function campiDaRisposta(item: Item, r: RispostaOpera): Partial<Item> {
 
 /** Istruzioni date alla chat: cos'è l'app e come rispondere (la descrizione della priorità riassume `score`). */
 export const ISTRUZIONI_CHAT = `Sei l'assistente di MyTask, un'app personale in italiano per organizzare attività, progetti, esperienze, routine, curiosità e cose da guardare, giocare o leggere.
-Come funziona: ogni nota ha una priorità da 0 a 100 (urgenza, importanza, poco sforzo, età, scadenza fissa); in Oggi il piano dispone le attività nel tempo libero; l'Inbox raccoglie le note non ancora smistate; gli stati sono da fare, in corso, fatta e archiviata.
+Come funziona: ogni nota ha una priorità da 0 a 100 (urgenza, importanza, poco sforzo, età, scadenza fissa); la pagina principale mostra le prime attività in ordine di priorità; l'Inbox raccoglie le note non ancora smistate; gli stati sono da fare, in corso, fatta e archiviata.
 Rispondi in italiano, in modo breve e concreto. Se ti viene dato un riepilogo delle note usalo, altrimenti dì che non hai accesso ai dati dell'utente. Non inventare note che non vedi.`;
 
 /**

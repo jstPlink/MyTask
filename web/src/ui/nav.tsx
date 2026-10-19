@@ -14,8 +14,8 @@ export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'rice
 export type Screen =
   | { k: 'item'; id?: string; nuovo?: Partial<Item> }
   | { k: 'altro' } | { k: 'inbox' } | { k: 'archivio' } | { k: 'daparte' }
-  | { k: 'aspetto' } | { k: 'tempolibero' } | { k: 'stasera' } | { k: 'account' }
-  | { k: 'orari'; giorno: string } | { k: 'pesi' } | { k: 'ia' } | { k: 'chat' };
+  | { k: 'aspetto' } | { k: 'stasera' } | { k: 'account' }
+  | { k: 'pesi' } | { k: 'ia' } | { k: 'chat' };
 
 /** Valore del contesto di navigazione, fornito da App. */
 export interface Nav {

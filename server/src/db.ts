@@ -118,7 +118,7 @@ export class Store {
     return rows.map((r) => JSON.parse(r.data) as Item);
   }
 
-  /** Impostazioni dell'utente (per ora il tempo libero): vince il valore con la data di modifica più recente. */
+  /** Impostazioni dell'utente (per ora la sessione di lavoro): vince il valore con la data di modifica più recente. */
   applySettings(s: ImpostazioniSync): void {
     const get = this.db.prepare('SELECT updated FROM settings WHERE k = ?');
     const put = this.db.prepare('INSERT INTO settings(k, v, updated) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, updated = excluded.updated');

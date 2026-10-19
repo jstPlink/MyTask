@@ -215,7 +215,7 @@ export function SliderImportanza({ valore, onChange, label, verde }: { valore?: 
   return (
     <div className={clsx('slider-c', verde && 'slider-verde')} style={stile}>
       <div className="slider-tr" aria-hidden="true"><i /></div>
-      <input type="range" min={1} max={5} step={0.05} value={v} aria-label={label} aria-valuetext={NOMI_IMPORTANZA[Math.round(v)]}
+      <input type="range" min={1} max={5} step={0.01} value={v} aria-label={label} aria-valuetext={NOMI_IMPORTANZA[Math.round(v)]}
         onChange={(e) => onChange(Math.round(Number(e.target.value) * 100) / 100)} />
     </div>
   );
@@ -226,7 +226,12 @@ export function SliderImportanza({ valore, onChange, label, verde }: { valore?: 
  * così il nome resta vero). Il valore salvato è un solo numero da 1 a 5, come con lo slider unico.
  */
 export function ImportanzaDoppia({ valore, onChange, label }: { valore?: number; onChange: (v: number) => void; label: string }) {
-  const v = Math.min(5, Math.max(1, valore ?? 3));
+  // Mentre si trascina lo slider il valore sta solo qui (fluido, passi di 0,01); si salva al rilascio o poco dopo l'ultimo movimento.
+  const [locale, setLocale] = useState<number | undefined>(undefined);
+  const timer = useRef<number | undefined>(undefined);
+  const salva = (x: number) => { window.clearTimeout(timer.current); timer.current = undefined; setLocale(undefined); onChange(x); };
+  const muovi = (x: number) => { setLocale(x); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => salva(x), 250); };
+  const v = Math.min(5, Math.max(1, locale ?? valore ?? 3));
   const k = Math.round(v);
   const lo = Math.max(1, k - 0.5), hi = Math.min(5, k + 0.5);
   const colore = (x: number) => `color-mix(in srgb, var(--warn) ${Math.round((x - 1) / 4 * 100)}%, var(--soft))`;
@@ -237,13 +242,14 @@ export function ImportanzaDoppia({ valore, onChange, label }: { valore?: number;
       <div className="imp-gradi">
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} type="button" className={clsx(n === k && 'on')} style={{ '--c': colore(n) } as React.CSSProperties}
-            aria-pressed={n === k} aria-label={`Grado ${n}: ${NOMI_IMPORTANZA[n]}`} onClick={() => onChange(n)}>{n}</button>
+            aria-pressed={n === k} aria-label={`Grado ${n}: ${NOMI_IMPORTANZA[n]}`} onClick={() => salva(n)}>{n}</button>
         ))}
       </div>
       <div className="slider-c largo" style={stile}>
         <div className="slider-tr" aria-hidden="true"><i /></div>
-        <input type="range" min={lo} max={hi} step={0.05} value={v} aria-label={`${label}: rifinitura dentro il grado ${NOMI_IMPORTANZA[k]}`}
-          onChange={(e) => onChange(Math.round(Number(e.target.value) * 100) / 100)} />
+        <input type="range" min={lo} max={hi} step={0.01} value={v} aria-label={`${label}: rifinitura dentro il grado ${NOMI_IMPORTANZA[k]}`}
+          onChange={(e) => muovi(Math.round(Number(e.target.value) * 100) / 100)}
+          onPointerUp={(e) => salva(Math.round(Number(e.currentTarget.value) * 100) / 100)} />
       </div>
       <div className="imp-ag"><span>basso</span><span>alto</span></div>
     </div>
@@ -275,7 +281,7 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 const TAB_NOMI: { id: Tab; nome: string }[] = [
-  { id: 'oggi', nome: 'Oggi' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Intrattenimento' }, { id: 'curiosita', nome: 'Curiosità' }, { id: 'routine', nome: 'Routine' },
+  { id: 'oggi', nome: 'Priorità' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Intrattenimento' }, { id: 'curiosita', nome: 'Curiosità' }, { id: 'routine', nome: 'Routine' },
 ];
 
 /** Barra delle cinque schede in basso (telefono). Nessuna scheda risulta attiva mentre è aperta una schermata sopra la pila. */
@@ -285,7 +291,7 @@ export function TabBar() {
     <nav className="tabs" aria-label="Sezioni">
       {TAB_NOMI.map((t) => (
         <button key={t.id} className={clsx(tab === t.id && stack.length === 0 && 'on')} onClick={() => setTab(t.id)} aria-current={tab === t.id && stack.length === 0 ? 'page' : undefined}>
-          <span className="ic"><Icona nome={t.id} /></span>{t.nome}
+          {t.nome}
         </button>
       ))}
     </nav>
@@ -351,8 +357,21 @@ export function Gruppo({ titolo, dettaglio, children }: { titolo?: string; detta
 }
 
 /**
+ * Barra di avanzamento a tacchette: una per attività del progetto, piena per quelle fatte. Con `anima` le tacche si accendono
+ * una dopo l'altra (animazione del pannello di avanzamento).
+ */
+export function Tacche({ fatti, totale, anima }: { fatti: number; totale: number; anima?: boolean }) {
+  const n = Math.max(0, Math.round(totale));
+  return (
+    <div className={clsx('tacche', n > 40 && 'fitte')} role="img" aria-label={`${fatti} su ${n} fatte`}>
+      {Array.from({ length: n }, (_, k) => <i key={k} className={k < fatti ? 'on' : undefined} style={anima ? { transitionDelay: `${Math.max(0, k - 0) * 40}ms` } : undefined} />)}
+    </div>
+  );
+}
+
+/**
  * Testata di progetto con le sue attività sotto (`children`): il tocco sulla testata apre il progetto; mostra
- * «fatti / totale» e la barra di avanzamento solo se il progetto ha passi.
+ * «stima del tempo · fatti / totale» e la barra a tacchette (una per attività) solo se il progetto ha passi.
  */
 export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto: Item; fatti: number; totale: number; children: ReactNode }) {
   const nav = useNav();
@@ -364,9 +383,9 @@ export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
         </span>
         <b>{progetto.titolo}</b>
-        {(totale > 0 || stima > 0) && <span>{[totale > 0 ? `${fatti} / ${totale}` : undefined, stima > 0 ? nomeTempo(stima) : undefined].filter(Boolean).join(' · ')}</span>}
+        {(totale > 0 || stima > 0) && <span>{[stima > 0 ? nomeTempo(stima) : undefined, totale > 0 ? `${fatti} / ${totale}` : undefined].filter(Boolean).join(' · ')}</span>}
       </button>
-      {totale > 0 && <div className="gp-bar"><i style={{ width: `${(fatti / totale) * 100}%` }} /></div>}
+      {totale > 0 && <Tacche fatti={fatti} totale={totale} />}
       {children}
     </section>
   );

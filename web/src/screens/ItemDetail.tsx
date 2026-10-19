@@ -20,7 +20,7 @@ import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
-import { Back, Field, Gruppo, ImportanzaDoppia, Row, Scelta, SliderImportanza, Toggle, Top } from '../ui/kit.tsx';
+import { Back, Field, Gruppo, ImportanzaDoppia, Row, Scelta, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { AllegatiNote } from '../ui/AllegatiNote.tsx';
@@ -334,7 +334,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           </Gruppo>
         )}
 
-        {/* Curiosità: interesse e tempo stimato (la durata delle pause curiosità del piano) */}
+        {/* Curiosità: interesse e tempo stimato */}
         {t === 'curiosita' && (
           <Gruppo titolo="Interesse">
             <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
@@ -430,7 +430,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {/* Progetto: checklist e passi (voci figlie) riordinabili; l'ordine è la priorità, il primo passo aperto è il prossimo da fare */}
         {t === 'progetto' && (
           <Gruppo titolo={`Checklist${avanz && avanz.totale ? ` · ${avanz.fatti} su ${avanz.totale}` : ''}`}>
-            {avanz && avanz.totale > 0 && <div className="bar"><i style={{ width: `${(avanz.fatti / avanz.totale) * 100}%` }} /></div>}
+            {avanz && avanz.totale > 0 && <Tacche fatti={avanz.fatti} totale={avanz.totale} />}
             <div ref={ordChecklist.cont} className="riordinabile">
               {ordChecklist.ordinati(checklist).map((c) => (
                 <div key={c.id} className={clsx('row', ordChecklist.preso === c.id && 'sollevata')} {...ordChecklist.presa(c.id)}>
@@ -445,7 +445,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               {ordPassi.ordinati(passi).map((c, n) => (
                 <Row key={c.id} voce={c} titolo={c.titolo} tipo={c.tipo} maniglia rank={n + 1}
                   level={barLevel(punteggioEffettivo(c, tutte, oggi))}
-                  meta={dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : undefined}
+                  meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : undefined].filter(Boolean).join(' · ') || undefined}
                   classe={ordPassi.preso === c.id ? 'sollevata' : undefined}
                   extra={ordPassi.presa(c.id)}
                   onOpen={() => nav.push({ k: 'item', id: c.id })} />

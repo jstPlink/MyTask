@@ -122,8 +122,21 @@ export function posizionePriorita(items: Item[], nota: Item, today: string, now:
 export interface VistaOggi {
   routine: Item[];
   fare: Entry[];
+  /** Le curiosità più interessanti, in un gruppo separato dalle attività (non entrano nella classifica numerata). */
+  curiosita: Item[];
   prossimi: Entry[];
   inbox: number;
+}
+
+/** Quante curiosità mostra al massimo la pagina Priorità nel gruppo «Curiosità». */
+export const MAX_CURIOSITA_OGGI = 5;
+
+/** Le curiosità da proporre oggi: prima le più interessanti, a parità quelle aggiornate da più tempo; le parcheggiate no. */
+export function curiositaDaSmaltire(items: Item[], max: number = MAX_CURIOSITA_OGGI): Item[] {
+  return curiosita(items)
+    .filter((c) => c.stato !== 'parcheggiato')
+    .sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.aggiornato - b.aggiornato)
+    .slice(0, max);
 }
 
 /** Quante note mostra Oggi al massimo: le scadute o in scadenza oggi compaiono tutte (anche se più di 5), le senza data riempiono fino a 5. */
@@ -159,6 +172,7 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
   return {
     routine: routineDueToday(items, today),
     fare,
+    curiosita: curiositaDaSmaltire(items),
     prossimi,
     inbox: live(items).filter(inInbox).length,
   };

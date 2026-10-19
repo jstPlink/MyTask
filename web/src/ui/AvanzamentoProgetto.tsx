@@ -1,5 +1,6 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { chiudiAvanzamento, DURATA_ANIMAZIONE_MS, getAvanzamento, subscribeAvanzamento } from '../lib/avanzamento.ts';
+import { Tacche } from './kit.tsx';
 import { useLayer, useNav } from './nav.tsx';
 
 /**
@@ -17,6 +18,15 @@ export function AvanzamentoProgetto() {
     return () => clearTimeout(t);
   }, [a]);
 
+  // le tacche partono da quelle già fatte e si accendono una dopo l'altra fino al nuovo avanzamento
+  const [mostrate, setMostrate] = useState(0);
+  useEffect(() => {
+    if (!a) return;
+    setMostrate(a.prima.fatti);
+    const t = setTimeout(() => setMostrate(a.dopo.fatti), 400);
+    return () => clearTimeout(t);
+  }, [a]);
+
   if (!a) return null;
   const pct = (n: { fatti: number; totale: number }) => (n.totale ? (n.fatti / n.totale) * 100 : 0);
   const testo = (n: { fatti: number; totale: number }) => `${n.fatti} su ${n.totale}`;
@@ -29,7 +39,7 @@ export function AvanzamentoProgetto() {
         {!nav.wide && <div className="grip" />}
         <div className="t2">Progetto</div>
         <div className="t1" style={{ fontSize: 20 }}>{a.padre.titolo}</div>
-        <div className="bar"><i className="avz-barra" /></div>
+        <Tacche fatti={mostrate} totale={a.dopo.totale} anima />
         <div className="t2" style={{ marginBottom: 8 }}>
           <span className="avz-num"><span className="avz-n1">{testo(a.prima)}</span><span className="avz-n2">{testo(a.dopo)}</span></span> passi completati
         </div>

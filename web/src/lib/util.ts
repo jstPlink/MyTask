@@ -46,6 +46,20 @@ export function avanzamentoTempo(ms: number, stimaMin?: number): { testo: string
   return { testo: `${durataLavoro(ms)} su ${durataLavoro(stimaMin * 60_000)}`, quota: ms / (stimaMin * 60_000) };
 }
 
+/**
+ * Totale di molto tempo in giorni e ore (un giorno = 24 ore), arrotondato all'ora: 400 ore → «16 giorni 16 ore»,
+ * 1500 minuti → «1 giorno 1 ora». Sotto un giorno dice solo le ore (o i minuti sotto l'ora).
+ */
+export function nomeGiorniOre(minuti: number): string {
+  const ore = Math.round(minuti / 60);
+  if (ore < 1) return `${Math.round(minuti)} min`;
+  const g = Math.floor(ore / 24);
+  const h = ore % 24;
+  const parteOre = `${h} ${h === 1 ? 'ora' : 'ore'}`;
+  if (!g) return parteOre;
+  return `${g} ${g === 1 ? 'giorno' : 'giorni'}${h ? ` ${parteOre}` : ''}`;
+}
+
 /** Durata in minuti a parole: 15 min, 2 ore, 1 giorno. */
 export function nomeTempo(m: number): string {
   return m >= 1440 && m % 1440 === 0 ? `${m / 1440} ${m === 1440 ? 'giorno' : 'giorni'}` : m >= 60 ? `${+(m / 60).toFixed(1)} ${m === 60 ? 'ora' : 'ore'}` : `${m} min`;

@@ -22,7 +22,7 @@ import { useItems, useOggi } from '../lib/hooks.ts';
 import { Cerca, Empty, Fab, GruppoProgetto, Row, Seg, Sezione, Top } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
-import { clsx, mapsUrl, nomeTempo } from '../lib/util.ts';
+import { clsx, mapsUrl, nomeGiorniOre, nomeTempo } from '../lib/util.ts';
 
 const SUB: { id: SubFare; nome: string }[] = [
   { id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }, { id: 'gamedesign', nome: 'Game design' },
@@ -90,6 +90,13 @@ function Azioni({ filtro }: { filtro: Filtro }) {
   const lista = useMemo(() => (filtro ? completa.filter((e) => filtro.has(e.item.id)) : completa), [completa, filtro]);
   const margine = useMemo(() => margineAtteso(items), [items]);
   const gruppi = useMemo(() => raggruppaPerProgetto(lista, items), [lista, items]);
+  // accanto al conteggio, quanto tempo (in giorni e ore) serve per completare tutte le attività mostrate (somma dei tempi stimati, passi dei progetti compresi)
+  const dettaglio = useMemo(() => {
+    const minuti = lista.reduce((s, e) => s + (e.item.sforzoMin ?? 0), 0);
+    const senza = lista.filter((e) => !e.item.sforzoMin).length;
+    if (minuti <= 0) return lista.length;
+    return `${lista.length} · ${nomeGiorniOre(minuti)}${senza ? `, ${senza} senza stima` : ''}`;
+  }, [lista]);
   const riga = ({ item, punteggio }: (typeof lista)[number]) => {
     const d = dueDate(item);
     const scaduta = isOverdue(item, oggi);
@@ -112,7 +119,7 @@ function Azioni({ filtro }: { filtro: Filtro }) {
     <>
       {lista.length === 0 && <Empty>{filtro ? NESSUN_RISULTATO : 'Nessuna attività aperta.'}</Empty>}
       {lista.length > 0 && (
-        <Sezione titolo="Tutte le attività" dettaglio={lista.length}>
+        <Sezione titolo="Tutte le attività" dettaglio={dettaglio}>
           {gruppi.map((g) => g.progetto
             ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
             : g.voci.map(riga))}

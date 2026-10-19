@@ -8,7 +8,6 @@ import { getAuth, getItems, subscribe, subscribeAuth } from './store.ts';
 import { getStatoSync, subscribeSync } from './sync.ts';
 import { getToast, subscribeToast } from './toast.ts';
 import { getAspetto, subscribeAspetto } from './theme.ts';
-import { getDisponibilita, subscribeDisponibilita } from './disponibilita.ts';
 import { getSessione, subscribeSessione } from './sessione.ts';
 
 export const useItems = (): Item[] => useSyncExternalStore(subscribe, getItems);
@@ -18,7 +17,6 @@ export const useToast = () => useSyncExternalStore(subscribeToast, getToast);
 export const useAspetto = () => useSyncExternalStore(subscribeAspetto, getAspetto);
 /** La sessione di lavoro («Sto lavorando»). */
 export const useSessione = () => useSyncExternalStore(subscribeSessione, getSessione);
-export const useDisponibilita = () => useSyncExternalStore(subscribeDisponibilita, getDisponibilita);
 
 /**
  * Chiama `fn` ogni `ms` e ogni volta che l'app torna in primo piano. Sul telefono i timer si fermano quando l'app è in

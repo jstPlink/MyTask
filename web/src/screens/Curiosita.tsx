@@ -7,7 +7,7 @@ import { useNav } from '../ui/nav.tsx';
 
 /**
  * Scheda Curiosità: le note da approfondire, con ricerca. Ogni riga mostra l'interesse (1-5) e ha la casella a quattro stati.
- * Ogni tanto compaiono nel piano di Oggi come pausa tra le attività più grandi.
+ * Le più interessanti compaiono anche nella pagina principale, nel gruppo «Curiosità».
  */
 export function Curiosita() {
   const nav = useNav();
@@ -23,7 +23,7 @@ export function Curiosita() {
       <div className="scroll">
         {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle curiosità" />}
         {lista.length === 0 && filtro && <Empty>Nessun risultato: prova con altre parole.</Empty>}
-        {lista.length === 0 && !filtro && <Empty>Niente da approfondire. Scrivi una curiosità con il pulsante +: comparirà come pausa tra le attività grandi.</Empty>}
+        {lista.length === 0 && !filtro && <Empty>Niente da approfondire. Scrivi una curiosità con il pulsante +: se è tra le più interessanti comparirà nella pagina principale.</Empty>}
         {lista.length > 0 && (
           <Sezione titolo="Da approfondire" dettaglio={lista.length}>
           {lista.map((i) => (

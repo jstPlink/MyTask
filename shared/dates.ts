@@ -1,4 +1,4 @@
-// Date come stringhe locali YYYY-MM-DD, senza fusi orari: sono giorni di calendario (scadenze, ricorrenze, piano).
+// Date come stringhe locali YYYY-MM-DD, senza fusi orari: sono giorni di calendario (scadenze, ricorrenze).
 // Usato sia dal server (nome del file di esportazione) sia dal sito e dall'app.
 
 const pad = (n: number) => String(n).padStart(2, '0');

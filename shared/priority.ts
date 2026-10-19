@@ -1,4 +1,4 @@
-// Priorità delle azioni e dei progetti: scadenze, urgenza e punteggio da 0 a 100 che ordina Oggi, le liste e il piano.
+// Priorità delle azioni e dei progetti: scadenze, urgenza e punteggio da 0 a 100 che ordina Oggi e le liste.
 // Il punteggio unisce cinque componenti (urgenza, importanza, poco sforzo, età, scadenza fissa) con pesi regolabili
 // da Altro › «Pesi della priorità» (restano solo sul dispositivo). Funzioni pure, tranne i pesi attivi, che sono uno stato del modulo.
 import type { Item } from './types.ts';
@@ -79,7 +79,7 @@ export type PesiPunteggio = ComponentiPunteggio;
  */
 export const PESI_PREDEFINITI: PesiPunteggio = { urgenza: 0.36, importanza: 0.28, sforzo: 0.08, eta: 0.08, fissa: 0.20 };
 
-/** Pesi in uso da tutto il calcolo delle priorità (liste, Oggi, piano, widget). */
+/** Pesi in uso da tutto il calcolo delle priorità (liste, Oggi, widget). */
 let pesiAttivi: PesiPunteggio = { ...PESI_PREDEFINITI };
 
 /** Porta i pesi a somma 1 (così il punteggio resta tra 0 e 100); se sono tutti zero tornano quelli di base. */

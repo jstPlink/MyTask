@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { leggiDurata, scomponi, scriviDurata } from '../../../shared/tempo.ts';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { scomponi } from '../../../shared/tempo.ts';
 import { intervallo, percentuale } from '../../../shared/stima.ts';
 import { clsx, nomeTempo } from '../lib/util.ts';
 import { useLayer } from './nav.tsx';
 
-/** Oltre questo tempo (un giorno) un task è troppo grande: compare l'avviso che consiglia di dividerlo. */
+/** Oltre questo tempo (un giorno) un task è troppo grande: compare l'avviso che consiglia di dividerlo. Un giorno esatto non basta. */
 const MINUTI_GIORNO = 1440;
 /** I minuti delle rotelle avanzano a passi di 5. */
 const PASSO_MINUTI = 5;
@@ -12,34 +12,23 @@ const PASSO_MINUTI = 5;
 const RIGA = 40;
 
 /**
- * Tempo stimato: si scrive a mano ("45m", "6h", "4g", "5g 6h", "1h30") oppure si sceglie con tre rotelle (giorni, ore, minuti).
- * Con `margine` il foglio mostra anche il margine d'errore e l'intervallo che ne deriva. Oltre un giorno compare un avviso
+ * Tempo stimato: non si scrive a mano, si sceglie solo con le tre rotelle (giorni, ore, minuti) che si aprono toccando il valore.
+ * Con `margine` il foglio mostra anche il margine d'errore e l'intervallo che ne deriva. Solo **oltre** un giorno compare un avviso
  * che consiglia di dividere il lavoro in task più piccoli (con un esempio); `onProgetto` aggiunge il collegamento per passare a progetto.
  */
 export function CampoTempo({ label, valore, onChange, margine, onProgetto }: { label: string; valore: number | undefined; onChange: (min: number | undefined) => void; margine?: number; onProgetto?: () => void }) {
-  const [testo, setTesto] = useState(scriviDurata(valore));
   const [aperto, setAperto] = useState(false);
-  const esito = leggiDurata(testo);
   useLayer('tempo', aperto, () => setAperto(false)); // il selettore è un pannello della pila: "indietro" lo chiude
-
-  // se il valore cambia da fuori (selettore, suggerimento "Usa") il testo lo segue
-  useEffect(() => {
-    const letto = leggiDurata(testo);
-    if (!(letto.ok && letto.minuti === valore)) setTesto(scriviDurata(valore));
-  }, [valore]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
       <div className="field campo-tempo">
         <span>{label}</span>
-        <input value={testo} inputMode="text" autoCapitalize="none" autoCorrect="off" placeholder="es. 45m, 6h, 1g 2h"
-          aria-label={label} aria-invalid={!esito.ok}
-          onChange={(e) => { setTesto(e.target.value); const r = leggiDurata(e.target.value); if (r.ok) onChange(r.minuti); }}
-          onBlur={() => { if (esito.ok) setTesto(scriviDurata(esito.minuti)); }} />
-        <button type="button" className="chip" aria-label={`${label}: scegli con le rotelle`} onClick={() => setAperto(true)}>Scegli</button>
+        <button type="button" className="campo-tempo-valore" aria-label={`${label}: ${valore ? nomeTempo(valore) : 'non impostato'}. Scegli con le rotelle`} onClick={() => setAperto(true)}>
+          {valore ? nomeTempo(valore) : 'Scegli'}<em aria-hidden="true">›</em>
+        </button>
       </div>
-      {!esito.ok && <div className="t2 warn" style={{ padding: '2px 0 8px' }}>Non capisco: scrivi per esempio 45m, 6h, 4g oppure 5g 6h.</div>}
-      {esito.ok && (valore ?? 0) >= MINUTI_GIORNO && (
+      {(valore ?? 0) > MINUTI_GIORNO && (
         <div className="tempo-promemoria">
           ⚠ Più di un giorno: meglio dividerlo in task più piccoli
           {onProgetto && <button type="button" onClick={onProgetto}>Passa a progetto</button>}
@@ -92,9 +81,9 @@ function SelettoreTempo({ label, iniziale, margine, onProgetto, onFatto, onChiud
   const minuti = useMemo(() => {
     const base = Array.from({ length: 60 / PASSO_MINUTI }, (_, i) => i * PASSO_MINUTI);
     const m = scomponi(iniziale).m;
-    return base.includes(m) ? base : [...base, m].sort((a, b) => a - b); // un tempo già scritto a mano (es. 7 min) resta scegliibile
+    return base.includes(m) ? base : [...base, m].sort((a, b) => a - b); // un tempo salvato in precedenza (es. 7 min) resta scegliibile
   }, [iniziale]);
-  const grande = totale >= MINUTI_GIORNO;
+  const grande = totale > MINUTI_GIORNO; // l'avviso scatta solo oltre un giorno, non a un giorno esatto
   const [da, a] = margine !== undefined && totale ? intervallo(totale, margine) : [0, 0];
 
   return (

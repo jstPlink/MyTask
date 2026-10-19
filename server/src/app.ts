@@ -55,7 +55,7 @@ function itemValido(x: unknown): x is Item {
 
 /**
  * Crea il server. Rotte: `GET /api/health` (versione), `POST /api/auth/login` e `/logout`, `GET /api/me`,
- * `POST /api/sync` (invia le modifiche, riceve quelle dopo `since`), `GET /api/export`. Tutte tranne health e login richiedono
+ * `POST /api/sync` (invia le modifiche, riceve quelle dopo `since`). Tutte tranne health e login richiedono
  * il token `Bearer`. Al primo avvio crea l'unico utente da `MYTASK_EMAIL` e `MYTASK_PASSWORD`.
  */
 export async function buildApp({ config, store, now = Date.now }: AppDeps): Promise<FastifyInstance> {
@@ -135,12 +135,6 @@ export async function buildApp({ config, store, now = Date.now }: AppDeps): Prom
     store.applyChanges(changes);
     if (body?.impostazioni) store.applySettings(body.impostazioni);
     return { items: store.changesSince(since), seq: store.maxSeq(), impostazioni: store.allSettings() };
-  });
-
-  app.get('/api/export', async (req, reply) => {
-    if (!autentica(req)) return reply.code(401).send({ error: 'non_autenticato' });
-    reply.header('content-disposition', `attachment; filename="mytask-${today(new Date(now()))}.json"`);
-    return { esportato: new Date(now()).toISOString(), voci: store.allItems(), impostazioni: store.allSettings() };
   });
 
   // interfaccia web (se compilata): file statici e, per ogni altro indirizzo, index.html (l'app gestisce i percorsi)

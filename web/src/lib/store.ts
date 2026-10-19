@@ -94,22 +94,6 @@ export function saveItem(item: Item): Item {
 /** Salva più voci, una alla volta (ognuna notifica l'interfaccia). */
 export function saveMany(items: Item[]) { items.forEach(saveItem); }
 
-/** Salva molte voci in un colpo solo (importazione): un solo aggiornamento dell'interfaccia. */
-export async function saveBatch(items: Item[]): Promise<void> {
-  const now = Date.now();
-  const tx = db?.transaction(['items', 'dirty'], 'readwrite');
-  items.forEach((item, n) => {
-    const prev = map.get(item.id);
-    const saved: Item = { ...item, aggiornato: Math.max(now + n, (prev?.aggiornato ?? 0) + 1) };
-    map.set(saved.id, saved);
-    dirty.add(saved.id);
-    void tx?.objectStore('items').put(saved);
-    void tx?.objectStore('dirty').put({ id: saved.id });
-  });
-  await tx?.done;
-  rebuild();
-  onLocalChange?.();
-}
 
 /** Cancellazione logica: la voce resta come "eliminata" così la cancellazione arriva anche agli altri dispositivi. */
 export function removeItem(id: string) {

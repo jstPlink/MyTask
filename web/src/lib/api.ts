@@ -47,15 +47,3 @@ export async function logout(): Promise<void> {
   try { await fetch(`${apiBase()}/api/auth/logout`, { method: 'POST', headers: { authorization: `Bearer ${token}` } }); } catch { /* offline: la sessione scade da sola */ }
 }
 
-/** Scarica tutti i dati come file JSON. */
-export async function scaricaEsportazione(): Promise<void> {
-  const { token } = getAuth();
-  const res = await fetch(`${apiBase()}/api/export`, { headers: { authorization: `Bearer ${token}` } });
-  if (!res.ok) throw new ErroreApi(res.status, 'Esportazione non riuscita');
-  const blob = await res.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `mytask-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-}
