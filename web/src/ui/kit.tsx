@@ -166,6 +166,17 @@ export function Cerca({ valore, onChange, placeholder }: { valore: string; onCha
 }
 
 /** Selettore a segmenti (schede). `uguali` = segmenti di larghezza uguale; `nav` = variante che sul sito largo si nasconde perché c'è la barra laterale. */
+/** Chip a scelta multipla: «Tutte» (nessun filtro) e le altre voci si accendono e si spengono una per una; più voci scelte insieme valgono come «una o l'altra». */
+export function ChipsMulti({ voci, scelte, onChange, tutte = 'Tutte' }: { voci: string[]; scelte: string[]; onChange: (v: string[]) => void; tutte?: string }) {
+  const alterna = (v: string) => onChange(scelte.includes(v) ? scelte.filter((x) => x !== v) : [...scelte, v]);
+  return (
+    <div className="chips scroll-x" role="group" aria-label="Filtri">
+      <button type="button" className={clsx('chip', scelte.length === 0 && 'on')} aria-pressed={scelte.length === 0} onClick={() => onChange([])}>{tutte}</button>
+      {voci.map((v) => <button key={v} type="button" className={clsx('chip', scelte.includes(v) && 'on')} aria-pressed={scelte.includes(v)} onClick={() => alterna(v)}>{v}</button>)}
+    </div>
+  );
+}
+
 export function Seg<T extends string>({ voci, attivo, onChange, nav, uguali, compatto }: { voci: { id: T; nome: string }[]; attivo: T; onChange: (v: T) => void; nav?: boolean; uguali?: boolean; compatto?: boolean }) {
   return (
     <div className={clsx('seg', nav && 'nav-seg', uguali && 'uguali', compatto && 'compatto')} role="tablist">

@@ -7,6 +7,7 @@ import { campiDaRisposta, leggiRisposta, opereSenzaTipologia, promptTipologie, r
 import { inboxNonAssegnata } from './migrazioni.ts';
 import { inbox as listaInbox } from './views.ts';
 import { coordinateDaLink, distanzaKm, ordinaPerTe } from './esperienze.ts';
+import { SENZA_PIATTAFORMA, collezione, opereSenzaPiattaforma } from './views.ts';
 import { classificaPriorita, listaAzioni, luoghiUsati, posizionePriorita, punteggioEffettivo } from './views.ts';
 import { barLevel, componentiPunteggio, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
 import { ripristinaChecklistProgetto, spostaInNote } from './migrazioni.ts';
@@ -470,4 +471,18 @@ test('piano: una nota in corso che non entra nella fascia prosegue nella fascia 
   assert.equal(orario(b[1].da), '18:00');
   assert.equal(orario(b[1].a), '20:00'); // totale 180 min (120 + 50% di margine): 60 nella prima fascia, 120 nella seconda
   assert.equal(b[1].margineMin, 60, "il margine sta in coda all'ultimo pezzo");
+});
+
+test("intrattenimento: più piattaforme scelte insieme e filtro per le opere senza piattaforma", () => {
+  const a = mk({ tipo: 'film', titolo: 'A', piattaforma: 'Netflix' });
+  const b = mk({ tipo: 'film', titolo: 'B', piattaforma: 'Prime Video' });
+  const c = mk({ tipo: 'film', titolo: 'C', piattaforma: 'Disney+' });
+  const d = mk({ tipo: 'film', titolo: 'D' });
+  const tutti = [a, b, c, d];
+  assert.equal(collezione(tutti, ['film']).length, 4);
+  assert.deepEqual(collezione(tutti, ['film'], ['Netflix', 'Prime Video']).map((i) => i.titolo).sort(), ['A', 'B']);
+  assert.deepEqual(collezione(tutti, ['film'], [SENZA_PIATTAFORMA]).map((i) => i.titolo), ['D']);
+  assert.deepEqual(collezione(tutti, ['film'], ['Disney+', SENZA_PIATTAFORMA]).map((i) => i.titolo).sort(), ['C', 'D']);
+  assert.equal(opereSenzaPiattaforma(tutti, ['film']), 1);
+  assert.equal(opereSenzaPiattaforma([a, b], ['film']), 0);
 });

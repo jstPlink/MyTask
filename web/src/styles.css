@@ -646,3 +646,39 @@ a { color: var(--accent); }
 
 /* scheda aperta in finestra sullo schermo largo: il titolo ha lo stesso margine delle schede (--colonna non esiste fuori dall'area principale) */
 .modal-voce .top { padding: 8px 22px 12px; }
+
+/* ---------- Selettore del tempo a rotelle (giorni, ore, minuti) ---------- */
+.rot-totale { text-align: center; font-size: 30px; font-weight: 800; color: var(--accent); margin: 8px 0 2px; font-variant-numeric: tabular-nums; }
+.rot-totale.grande { color: var(--giallo); }
+.rot-margine { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 12.5px; color: var(--mid); font-weight: 600; margin-bottom: 8px; }
+.rot-pc { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 2px 10px; font-weight: 800; font-size: 12px; }
+.rot-gruppo { position: relative; display: flex; gap: 6px; justify-content: center; margin: 4px 0 12px; }
+.rot-banda { position: absolute; left: 0; right: 0; top: 78px; height: 40px; background: var(--surface2); border-radius: 12px; }
+.rot-col { position: relative; flex: 1; max-width: 116px; }
+.rot-nome { text-align: center; font-size: 11px; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; height: 18px; }
+.rot { position: relative; height: 160px; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: none; text-align: center; outline: none; overscroll-behavior: contain; -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+.rot::-webkit-scrollbar { display: none; }
+.rot-riga { height: 40px; line-height: 40px; scroll-snap-align: center; font-size: 20px; font-variant-numeric: tabular-nums; color: var(--mid); cursor: pointer; }
+.rot-riga.sel { color: var(--ink); font-weight: 800; }
+.rot-sp { height: 60px; }
+.rot:focus-visible { box-shadow: 0 0 0 2px var(--accent); border-radius: 10px; }
+/* avviso oltre un giorno: giallo, lampeggia piano tre volte per far capire che si può toccare */
+.rot-avviso { display: flex; gap: 10px; align-items: flex-start; background: color-mix(in srgb, var(--giallo) 16%, var(--bg)); border: 1.5px solid var(--giallo); border-radius: 14px; padding: 10px 12px; margin: 2px 0 10px; font-size: 12.5px; animation: rot-entra .4s ease-out both, rot-lampeggia .9s ease-in-out .5s 3; }
+.rot-avviso > i { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--giallo); color: #1b1500; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 13px; }
+.rot-avviso b { display: block; font-size: 13px; }
+.rot-avviso > div > span { display: block; color: var(--mid); }
+.rot-mostra { display: inline-block; margin-top: 6px; font-weight: 800; color: var(--giallo); }
+.rot-mostra em { font-style: normal; }
+.rot-esempio { margin-top: 8px; animation: rot-entra .3s ease-out both; }
+.rot-es-t { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--giallo); font-weight: 800; margin-bottom: 4px; }
+.rot-es-g { font-weight: 700; text-decoration: line-through; color: var(--mid); font-size: 12.5px; margin-bottom: 2px; }
+.rot-es-p { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; padding: 4px 0; border-top: 1px solid color-mix(in srgb, var(--giallo) 40%, transparent); }
+.rot-es-p span { color: var(--mid); white-space: nowrap; }
+@keyframes rot-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes rot-lampeggia { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--giallo) 40%, transparent); background: color-mix(in srgb, var(--giallo) 28%, var(--bg)); } }
+.tempo-promemoria { font-size: 12px; font-weight: 600; color: var(--giallo); padding: 2px 0 10px; }
+.tempo-promemoria button { color: var(--accent); font-weight: 800; margin-left: 6px; }
+@media (prefers-reduced-motion: reduce) { .rot-avviso, .rot-esempio { animation: none; } }
+
+.rot-sheet { max-height: calc(100% - 16px); overflow-y: auto; scrollbar-width: none; }
+.rot-sheet::-webkit-scrollbar { display: none; }

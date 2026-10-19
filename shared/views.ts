@@ -222,10 +222,22 @@ export function listaEsperienze(items: Item[]): VistaEsperienze {
 }
 
 /** Voci di collezione (film, serie, libri…) ancora da fare o in corso, per interesse, opzionalmente di una piattaforma. */
-export function collezione(items: Item[], tipi: Item['tipo'][], piattaforma?: string): Item[] {
+/** Voce speciale dei filtri per piattaforma: le opere che non hanno nessuna piattaforma. */
+export const SENZA_PIATTAFORMA = 'Senza piattaforma';
+
+/** Vero se l'opera passa il filtro: nessun filtro, oppure la sua piattaforma è tra quelle scelte (o non ne ha e «Senza piattaforma» è scelta). */
+export const passaPiattaforme = (i: Item, scelte: string[]): boolean =>
+  scelte.length === 0 || (i.piattaforma ? scelte.includes(i.piattaforma) : scelte.includes(SENZA_PIATTAFORMA));
+
+/** Opere in lista (da fare o in corso) senza piattaforma, per sapere se proporre il filtro «Senza piattaforma». */
+export const opereSenzaPiattaforma = (items: Item[], tipi: Item['tipo'][]): number =>
+  live(items).filter((i) => tipi.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso') && !i.inbox && !i.piattaforma?.trim()).length;
+
+/** Opere da fare di questi tipi, filtrate (se serve) per una o più piattaforme scelte insieme. */
+export function collezione(items: Item[], tipi: Item['tipo'][], piattaforme: string[] = []): Item[] {
   return live(items)
     .filter((i) => tipi.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso') && !i.inbox)
-    .filter((i) => !piattaforma || i.piattaforma === piattaforma)
+    .filter((i) => passaPiattaforme(i, piattaforme))
     .sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo, 'it'));
 }
 

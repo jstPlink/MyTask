@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import type { Tipo } from '../../../shared/types.ts';
-import { cercaVoci, collezione, piattformeUsate } from '../../../shared/views.ts';
+import { SENZA_PIATTAFORMA, cercaVoci, collezione, opereSenzaPiattaforma, piattformeUsate } from '../../../shared/views.ts';
 import { useItems } from '../lib/hooks.ts';
-import { Cerca, Chips, Empty, Fab, Row, Seg, Top, Sezione } from '../ui/kit.tsx';
+import { Cerca, ChipsMulti, Empty, Fab, Row, Seg, Top, Sezione } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubScoprire } from '../ui/nav.tsx';
 
@@ -20,25 +20,30 @@ export function Scoprire() {
   const nav = useNav();
   const items = useItems();
   const sub = nav.scoprireSub;
-  const [piattaforma, setPiattaforma] = useState('Tutte');
+  const [scelte, setScelte] = useState<string[]>([]);
   const video = sub === 'film' || sub === 'serie' || sub === 'anime';
   const tipi: Tipo[] = [sub];
   const [q, setQ] = useState('');
   const filtro = useMemo(() => (q.trim() ? new Set(cercaVoci(items, q, 5000).map((i) => i.id)) : null), [items, q]);
   const lista = useMemo(
-    () => collezione(items, tipi, video && piattaforma !== 'Tutte' ? piattaforma : undefined).filter((i) => !filtro || filtro.has(i.id)),
+    () => collezione(items, tipi, video ? scelte : []).filter((i) => !filtro || filtro.has(i.id)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [items, sub, piattaforma, filtro],
+    [items, sub, scelte, filtro],
   );
-  const piattaforme = useMemo(() => (video ? piattformeUsate(items, tipi) : []), [items, sub, video]); // eslint-disable-line react-hooks/exhaustive-deps
+  const piattaforme = useMemo(() => {
+    if (!video) return [];
+    const usate = piattformeUsate(items, tipi);
+    // «Senza piattaforma» compare solo se ci sono opere senza piattaforma (o se è già scelta)
+    return opereSenzaPiattaforma(items, tipi) > 0 || scelte.includes(SENZA_PIATTAFORMA) ? [...usate, SENZA_PIATTAFORMA] : usate;
+  }, [items, sub, video, scelte]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
       <Top title="Intrattenimento" sub={`${lista.length} da fare`} right={<PulsanteAspetto />} />
       <div className="scroll">
-        <Seg nav uguali voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setPiattaforma('Tutte'); }} />
+        <Seg nav uguali voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setScelte([]); }} />
         {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca in intrattenimento" />}
-        {video && piattaforme.length > 0 && <Chips scroll voci={['Tutte', ...piattaforme]} attivo={piattaforma} onChange={setPiattaforma} />}
+        {video && piattaforme.length > 0 && <ChipsMulti voci={piattaforme} scelte={scelte} onChange={setScelte} />}
         {video && !filtro && (
           <Sezione titolo="Stasera">
             <button className="card strong tap" onClick={() => nav.push({ k: 'stasera' })}>

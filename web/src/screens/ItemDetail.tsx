@@ -279,7 +279,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {IS_AZIONE(t) && <Field label="Importanza"><SliderImportanza label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} /></Field>}
             {t === 'esperienza' && <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
             {IS_AZIONE(t) && (
-              <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} />
+              <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} margine={margine} onProgetto={t === 'azione' ? () => cambiaTipo('progetto') : undefined} />
             )}
             {IS_AZIONE(t) && (d.sforzoMin || suggerita) && (
               <div className="t2" style={{ padding: '6px 0 10px' }}>

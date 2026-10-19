@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.65.1
+- **Versione documento:** 0.65.3
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -535,3 +535,12 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-18 | 0.64.1 | Una nota «in corso» che non entra nella fascia libera in cui è iniziata prosegue nelle fasce libere successive; il margine d'errore si vede solo sull'ultimo pezzo, quando tutto il tempo di base è entrato |
 | 2026-10-18 | 0.65.0 | Nuovo tracciamento del tempo «Sto lavorando»: Oggi diventa una lista semplice (pulsante Sto lavorando o cronometro, routine, prime attività) con menu «Lavora su questo / Non ora / Apri»; un solo cronometro che passa da solo al task successivo quando si completa quello in corso, con pausa, controllo periodico «Stai ancora lavorando?» (anche notifica su Android) e sincronizzazione tra telefono e sito; il widget Android ha il pulsante Sto lavorando e il cronometro nativo, con azioni accodate e riapplicate dall'app. Tolti da Oggi il piano a orari, la scelta del giorno e il mese; il pulsante rapido del tempo libero è stato tolto e la voce Tempo libero è gialla «provvisorio» (telefono e sito) |
 | 2026-10-19 | 0.65.1 | Il cronometro «Sto lavorando» ha lo stile delle schede dell'app (anche nel widget) e mostra tempo lavorato, totale previsto e una barra; i task già avviati mostrano il tempo lavorato sul previsto nelle righe di Oggi e nella Cronologia della nota; il pulsante non dice più «Parte dal primo task» (la prima riga ha un contorno tratteggiato); il salvataggio della scheda non perde più il tempo lavorato |
+| 2026-10-19 | 0.65.2 | Intrattenimento: i filtri per piattaforma sono a scelta multipla (più piattaforme insieme valgono «una o l'altra», quindi si escludono le altre; «Tutte» azzera) e c'è il filtro «Senza piattaforma» per le opere che non ne hanno (`ChipsMulti`, `collezione(…, piattaforme[])`, `SENZA_PIATTAFORMA` in `shared/views.ts`, con test) |
+| 2026-10-19 | 0.65.3 | Tempo stimato con tre rotelle (giorni, ore, minuti a passi di 5) al posto dei pulsanti più/meno, con il margine d'errore e l'intervallo che ne deriva; oltre un giorno compare un avviso giallo che lampeggia piano, con «Mostra esempio» (un lavoro diviso in task piccoli, solo da leggere) e il collegamento «Passa a progetto»; nella scheda resta una riga discreta con lo stesso collegamento (`CampoTempo`, `Rotella`) |
+
+## Selettore del tempo a rotelle (0.65.3)
+
+- Il tempo stimato (Attività, progetti, curiosità) si scrive ancora a mano («45m», «1g 2h»), oppure con «Scegli»: un foglio con tre rotelle che scorrono e si fermano sul valore (giorni 0-30, ore 0-23, minuti a passi di 5; un tempo già scritto con minuti diversi, per esempio 7, resta scegliibile). Si può anche toccare una riga o usare le frecce su/giù.
+- In alto il tempo scelto e, nelle Attività e nei progetti, il margine d'errore delle tue stime con l'intervallo che ne deriva («±30% · tra 42 min e 1,3 ore»), che cambia mentre si scorre.
+- **Oltre un giorno** (1440 minuti) compare l'avviso giallo «Più di un giorno di lavoro», che lampeggia piano tre volte; «Mostra esempio» apre un esempio di lavoro diviso in task piccoli (solo da leggere: l'app non divide nulla da sola, perché servirebbe un'IA) e, solo per le Attività, il collegamento «Passa a progetto» (cambia il tipo in progetto, con l'elenco dei passi vuoto da scrivere a mano). Dopo «Imposta» nella scheda resta una riga discreta con lo stesso avviso e collegamento.
+- Mockup: `docs/mockups/32`, `33` e `34` (flusso animato).
