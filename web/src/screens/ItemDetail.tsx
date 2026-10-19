@@ -12,7 +12,8 @@ import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, t
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { barLevel, componentiPunteggio, dueDate } from '../../../shared/priority.ts';
 import { avanzamento, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
-import { useItems } from '../lib/hooks.ts';
+import { useAdesso, useItems, useSessione } from '../lib/hooks.ts';
+import { tempoDi } from '../lib/sessione.ts';
 import { STATI_NOTA, cambiaStato, nuovaVoce, ordinaPassi, statoVisto } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
 import { mostraToast } from '../lib/toast.ts';
@@ -25,7 +26,7 @@ import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { AllegatiNote } from '../ui/AllegatiNote.tsx';
 import { scriviQuando, scriviTrascorso } from '../../../shared/tempo.ts';
 import { useNav } from '../ui/nav.tsx';
-import { clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
+import { avanzamentoTempo, clsx, mapsUrl, newId, nomeTempo } from '../lib/util.ts';
 import { listaGameDesign, punteggioGameDesign } from '../../../shared/gamedesign.ts';
 import { intervallo, margineAtteso, percentuale, stimaPer } from '../../../shared/stima.ts';
 
@@ -66,7 +67,9 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     if (!x.titolo.trim()) return;
     const s = JSON.stringify(x);
     if (s === ultimoSalvato.current) return;
-    saveItem({ ...x, inbox: x.tipo === 'nota' ? true : undefined }); // una voce modificata nell'editor è smistata, ma resta in Inbox finché non ha un tipo
+    // una voce modificata nell'editor è smistata, ma resta in Inbox finché non ha un tipo; il tempo lavorato si prende sempre
+    // dalla voce salvata (il cronometro può averlo aggiornato mentre l'editor era aperto)
+    saveItem({ ...x, lavoratoMs: getItem(x.id)?.lavoratoMs ?? x.lavoratoMs, inbox: x.tipo === 'nota' ? true : undefined });
     ultimoSalvato.current = s;
   };
 
@@ -108,6 +111,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     const mio = punteggioGameDesign(d);
     return `${Math.round(mio)} su 100 · ${altre.filter((e) => e.punteggio > mio).length + 1}ª su ${altre.length + 1}`;
   }, [tutte, d, t]);
+  // Tempo lavorato con il cronometro «Sto lavorando» (anche il tratto che sta correndo adesso) e quota sul tempo stimato
+  const sessione = useSessione();
+  const inLavoro = sessione.stato === 'lavoro' && sessione.taskId === d.id;
+  const adesso = useAdesso(inLavoro);
+  const salvataLavoro = tutte.find((i) => i.id === d.id);
+  const lavoratoMs = salvataLavoro ? tempoDi(salvataLavoro, adesso) : 0;
+  const lavorato = lavoratoMs >= 1000 ? avanzamentoTempo(lavoratoMs, d.sforzoMin) : undefined;
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
   // Blocco della priorità in cima: chiuso di base, ricorda l'ultima scelta (solo su questo dispositivo).
@@ -455,6 +465,16 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {getItem(d.id) && (
           <Gruppo titolo="Cronologia">
             <div className="field"><span>Creata</span><b style={{ fontWeight: 650 }}>{scriviQuando(d.creato)}</b></div>
+            {lavorato && (
+              <div className="field cron-lavorato">
+                <span>Tempo lavorato</span>
+                <span>
+                  <b style={{ fontWeight: 650 }}>{lavorato.testo}</b>
+                  {lavorato.quota !== undefined && <span className="lv-barra" aria-hidden="true"><i className={lavorato.quota > 1 ? 'oltre' : undefined} style={{ width: `${Math.min(100, lavorato.quota * 100)}%` }} /></span>}
+                  {inLavoro && <small className="lv-live">in lavorazione adesso</small>}
+                </span>
+              </div>
+            )}
             {d.inCorsoTs && d.stato !== 'parcheggiato' && (
               <div className="field"><span>In corso dal</span><b style={{ fontWeight: 650 }}>{scriviQuando(d.inCorsoTs)}</b></div>
             )}

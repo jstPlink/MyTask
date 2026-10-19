@@ -3,8 +3,9 @@
  * «Ho finito di lavorare»), poi le routine del giorno e le «Prime attività»: le cose da fare in ordine di priorità
  * (`vistaOggi`: scadute o in scadenza oggi e, a seguire, le più prioritarie senza data, fino a cinque in tutto).
  *
- * - Sto lavorando: il cronometro parte sul primo task della lista (`iniziaLavoro`). Il task su cui corre è evidenziato e mostra
- *   il suo tempo. Spuntando la casella lo si completa e il cronometro passa da solo al successivo; ⏸ lo ferma, ▶ riprende.
+ * - Sto lavorando: il cronometro parte sul primo task della lista (`iniziaLavoro`), che prima dell'avvio ha un contorno
+ *   tratteggiato. Il task su cui corre è evidenziato; la scheda del cronometro mostra il tempo lavorato, quello sul previsto e una barra.
+ *   I task già iniziati mostrano nella riga grigia il tempo lavorato sul totale previsto. Spuntando la casella lo si completa e il cronometro passa da solo al successivo; ⏸ lo ferma, ▶ riprende.
  * - Tocco su una riga: menu con «Lavora su questo» (sposta il cronometro lì), «Non ora» (per il task in corso: passa al
  *   successivo senza completarlo) e «Apri» (la scheda della nota).
  * - Le attività dello stesso progetto sono riunite sotto la testata del progetto, il numero è la posizione in classifica.
@@ -25,7 +26,7 @@ import { segnaRoutine } from '../lib/actions.ts';
 import { finisciSessione, iniziaLavoro, mettiInPausa, nonOra, passaA, riprendi, tempoDi } from '../lib/sessione.ts';
 import { Fab, Sezione, GruppoProgetto, Icona, Row, Top } from '../ui/kit.tsx';
 import { useLayer, useNav } from '../ui/nav.tsx';
-import { clsx, nomeTempo } from '../lib/util.ts';
+import { avanzamentoTempo, clsx, durataLavoro, nomeTempo } from '../lib/util.ts';
 
 /** Schermata Oggi (vedi l'intestazione del file). */
 export function Oggi() {
@@ -57,8 +58,10 @@ export function Oggi() {
     const i = e.item;
     const pezzi: string[] = [];
     if (sessione.stato !== 'ferma' && sessione.taskId === i.id) pezzi.push(lavoro ? 'in lavorazione' : 'in pausa');
+    const ms = tempoDi(i, adesso);
+    if (ms >= 60_000) pezzi.push(avanzamentoTempo(ms, i.sforzoMin).testo);
     if (e.padre) pezzi.push('prossimo passo');
-    if (i.sforzoMin) pezzi.push(`${nomeTempo(i.sforzoMin)} ${percentuale(margine)}`);
+    if (i.sforzoMin && ms < 60_000) pezzi.push(`${nomeTempo(i.sforzoMin)} ${percentuale(margine)}`);
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return pezzi.join(' · ');
   };
@@ -73,20 +76,29 @@ export function Oggi() {
     return e.item.rigida ? <span className="hard rigida">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
   };
 
-  // «Sto lavorando» oppure il cronometro della sessione aperta.
+  // «Sto lavorando» oppure la scheda del cronometro della sessione aperta: tempo lavorato, tempo sul previsto e barra.
+  const avanzamento = task ? avanzamentoTempo(tempoTask, task.sforzoMin) : undefined;
   const lavora = sessione.stato === 'ferma' ? (
     <button className="avvia" onClick={() => iniziaLavoro()}>
-      <span aria-hidden="true">▶</span>
-      <div>Sto lavorando<small>Parte dal primo task della lista</small></div>
+      <span aria-hidden="true">▶</span>Sto lavorando
     </button>
   ) : (
-    <>
-      <div className={clsx('crono', !lavoro && 'pausa')}>
-        <div className="tt"><b>{formatoCronometro(tempoTask)}</b><small>{lavoro ? '' : 'In pausa · '}{task?.titolo ?? 'Attività'}</small></div>
-        <button className="pl" onClick={() => (lavoro ? mettiInPausa() : riprendi())} aria-label={lavoro ? 'Metti in pausa' : 'Riprendi'}>{lavoro ? '⏸' : '▶'}</button>
+    <div className={clsx('lavoro', !lavoro && 'pausa')}>
+      <div className="lv-top">
+        <div className="lv-tt">
+          <div className="lv-stato">{lavoro ? 'In lavorazione' : 'In pausa'}</div>
+          <div className="lv-tempo">{formatoCronometro(tempoTask)}{task?.sforzoMin ? <span className="lv-su">su {durataLavoro(task.sforzoMin * 60_000)}</span> : null}</div>
+          <div className="lv-titolo">{task?.titolo ?? 'Attività'}</div>
+        </div>
+        <button className="lv-pl" onClick={() => (lavoro ? mettiInPausa() : riprendi())} aria-label={lavoro ? 'Metti in pausa' : 'Riprendi'}>{lavoro ? '⏸' : '▶'}</button>
       </div>
-      <button className="fine-lavoro" onClick={() => finisciSessione()}>Ho finito di lavorare</button>
-    </>
+      {avanzamento?.quota !== undefined && (
+        <div className="lv-barra" role="img" aria-label={`Tempo lavorato: ${avanzamento.testo}`}>
+          <i className={avanzamento.quota > 1 ? 'oltre' : undefined} style={{ width: `${Math.min(100, avanzamento.quota * 100)}%` }} />
+        </div>
+      )}
+      <button className="lv-fine" onClick={() => finisciSessione()}>Ho finito di lavorare</button>
+    </div>
   );
 
   // Routine del giorno come chip da spuntare.
@@ -114,7 +126,7 @@ export function Oggi() {
       right={destra(e)}
       level={barLevel(e.punteggio)}
       voce={e.item}
-      classe={sessione.stato !== 'ferma' && sessione.taskId === e.item.id ? 'cur' : undefined}
+      classe={sessione.stato !== 'ferma' ? (sessione.taskId === e.item.id ? 'cur' : undefined) : v.fare[0] === e ? 'prima' : undefined}
       selected={nav.openId === e.item.id}
       onOpen={() => setMenu(e.item)}
     />

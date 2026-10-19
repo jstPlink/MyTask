@@ -21,8 +21,8 @@ test('widget: righe nell\'ordine di priorità, con posizione e tempo già lavora
 });
 
 test('widget: la sessione «Sto lavorando» mostra il task, il tempo accumulato e l\'inizio del tratto', () => {
-  const a = mk({ titolo: 'Garage', lavoratoMs: 60_000 });
-  assert.deepEqual(lavoroWidget([a], { stato: 'lavoro', taskId: a.id, inizio: 5000, aggiornato: 1 }), { stato: 'lavoro', id: a.id, t: 'Garage', base: 60_000, ref: 5000 });
+  const a = mk({ titolo: 'Garage', lavoratoMs: 60_000, sforzoMin: 80 });
+  assert.deepEqual(lavoroWidget([a], { stato: 'lavoro', taskId: a.id, inizio: 5000, aggiornato: 1 }), { stato: 'lavoro', id: a.id, t: 'Garage', base: 60_000, ref: 5000, p: 80 });
   assert.equal(lavoroWidget([a], { stato: 'pausa', taskId: a.id, aggiornato: 1 })?.stato, 'pausa');
   assert.equal(lavoroWidget([a], { stato: 'ferma', aggiornato: 1 }), null);
   assert.equal(lavoroWidget([], { stato: 'lavoro', taskId: 'x', inizio: 1, aggiornato: 1 }), null, 'task sparito');

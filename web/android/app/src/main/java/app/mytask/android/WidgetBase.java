@@ -48,16 +48,22 @@ public abstract class WidgetBase extends AppWidgetProvider {
         boolean pausa = "pausa".equals(l.optString("stato"));
         long trascorso = WidgetDati.trascorso(l, System.currentTimeMillis());
         v.setChronometer(R.id.crono, SystemClock.elapsedRealtime() - trascorso, null, !pausa);
-        v.setTextViewText(R.id.crono_titolo, (pausa ? "In pausa · " : "") + l.optString("t"));
+        long previsto = l.optLong("p", 0); // tempo previsto in minuti (0 = nessuna stima)
+        v.setTextViewText(R.id.crono_titolo, (pausa ? "In pausa · " : "") + l.optString("t") + (previsto > 0 ? " · su " + durata(previsto) : ""));
         v.setTextViewText(R.id.crono_pausa, pausa ? "▶" : "⏸");
         v.setInt(R.id.crono_barra, "setBackgroundResource", pausa ? (s ? R.drawable.crono_pausa_bg_s : R.drawable.crono_pausa_bg_c) : (s ? R.drawable.crono_bg_s : R.drawable.crono_bg_c));
-        v.setInt(R.id.crono_pausa, "setBackgroundResource", pausa ? R.drawable.pl_bg_ambra : (s ? R.drawable.piu_bg_s : R.drawable.pl_bg_bianco));
-        v.setTextColor(R.id.crono_pausa, pausa ? 0xFFFFFFFF : (s ? 0xFF0E0F12 : 0xFF111115));
-        int testo = pausa ? (s ? 0xFFF3F3F6 : 0xFF111115) : (s ? 0xFFF3F3F6 : 0xFFF1F0EC);
+        v.setInt(R.id.crono_pausa, "setBackgroundResource", pausa ? R.drawable.pl_bg_ambra : (s ? R.drawable.piu_bg_s : R.drawable.piu_bg_c));
+        v.setTextColor(R.id.crono_pausa, pausa || !s ? 0xFFFFFFFF : 0xFF0E0F12);
+        int testo = s ? 0xFFF3F3F6 : 0xFF111115;
         v.setTextColor(R.id.crono, pausa ? (s ? 0xFFF0B866 : 0xFFB7791F) : testo);
-        v.setTextColor(R.id.crono_titolo, pausa ? (s ? 0xFFD8C9A8 : 0xFF65656E) : 0xFFBDBDC4);
+        v.setTextColor(R.id.crono_titolo, s ? 0xFFA5A5B0 : 0xFF65656E);
         v.setOnClickPendingIntent(R.id.crono_pausa, comando(c, 42 + k, pausa ? "riprendi" : "pausa"));
         v.setOnClickPendingIntent(R.id.crono_fine, comando(c, 44 + k, "fine"));
+    }
+
+    /** Minuti in forma breve: «42 min», «1 h 20 min». */
+    private static String durata(long minuti) {
+        return minuti >= 60 ? (minuti / 60) + " h" + (minuti % 60 != 0 ? " " + (minuti % 60) + " min" : "") : minuti + " min";
     }
 
     private RemoteViews costruisci(Context c, int id) {

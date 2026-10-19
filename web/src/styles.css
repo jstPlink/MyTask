@@ -380,18 +380,29 @@ a { color: var(--accent); }
 /* barra laterale web: nuova nota e ricerca in cima */
 .sb-top { display: grid; gap: 10px; margin-bottom: 16px; }
 /* «Sto lavorando» (Oggi): pulsante di avvio, cronometro della sessione e riga del task in lavorazione */
-.avvia { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--accent); color: var(--on-accent); border-radius: 18px; padding: 14px 16px; font-weight: 800; font-size: 16px; margin: 6px 0 10px; text-align: left; }
-.avvia > span { font-size: 20px; }
-.avvia small { display: block; font-weight: 500; opacity: .85; font-size: 12px; }
-.crono { display: flex; align-items: center; gap: 12px; background: var(--ink); color: var(--bg); border-radius: 18px; padding: 12px 14px; margin: 6px 0 4px; }
-.crono .tt { flex: 1; min-width: 0; }
-.crono b { display: block; font: 800 26px/1.1 ui-monospace, Consolas, monospace; }
-.crono small { display: block; opacity: .75; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.crono .pl { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); color: var(--ink); font-size: 16px; font-weight: 800; flex: none; display: grid; place-items: center; text-align: center; }
-.crono.pausa { background: var(--amber-soft); color: var(--ink); border: 1.5px solid var(--amber); }
-.crono.pausa b { color: var(--amber); }
-.crono.pausa .pl { background: var(--amber); color: #fff; }
-.fine-lavoro { display: block; margin: 0 0 10px auto; padding: 6px 12px; border-radius: 999px; background: var(--surface2); font-size: 12.5px; font-weight: 700; }
+.avvia { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--accent); color: var(--on-accent); border-radius: 18px; padding: 15px 18px; font-weight: 800; font-size: 17px; margin: 6px 0 10px; text-align: left; box-shadow: var(--shadow); }
+.avvia > span { font-size: 18px; }
+.lavoro { background: var(--surface); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, var(--line)); border-radius: 20px; padding: 14px 16px 10px; margin: 6px 0 10px; box-shadow: var(--shadow); }
+.lavoro.pausa { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 9%, var(--surface)); }
+.lv-top { display: flex; align-items: center; gap: 12px; }
+.lv-tt { flex: 1; min-width: 0; }
+.lv-stato { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.lavoro.pausa .lv-stato { color: var(--amber); }
+.lv-tempo { font: 800 30px/1.15 ui-monospace, Consolas, monospace; color: var(--ink); font-variant-numeric: tabular-nums; }
+.lv-su { font: 600 13px system-ui, sans-serif; color: var(--mid); margin-left: 8px; }
+.lv-titolo { font-weight: 650; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lv-pl { width: 50px; height: 50px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 18px; font-weight: 800; flex: none; display: grid; place-items: center; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,.18); }
+.lavoro.pausa .lv-pl { background: var(--amber); color: #fff; }
+.lv-barra { display: block; height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin: 12px 0 2px; }
+.lv-barra i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.lavoro.pausa .lv-barra i { background: var(--amber); }
+.lv-barra i.oltre { background: var(--warn); }
+.lv-fine { display: block; margin: 8px 0 0 auto; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--mid); }
+.lv-fine:hover { background: var(--surface2); color: var(--ink); }
+.cron-lavorato > span:last-child { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 150px; }
+.cron-lavorato .lv-barra { width: 150px; margin: 0; }
+.lv-live { color: var(--accent); font-size: 11.5px; font-weight: 700; }
+.row.prima { outline: 1.5px dashed color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: -1px; border-radius: 10px; }
 .row.cur { background: var(--accent-soft); box-shadow: -4px 0 0 var(--accent); border-radius: 0 10px 10px 0; }
 .tm { font: 700 13px ui-monospace, Consolas, monospace; color: var(--accent); }
 

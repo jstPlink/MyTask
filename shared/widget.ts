@@ -39,13 +39,15 @@ export interface LavoroWidget {
   base: number;
   /** Inizio del tratto che sta correndo (millisecondi). */
   ref: number;
+  /** Tempo previsto per il task in minuti (la sua stima), se c'è: il widget mostra «su 1 h 20 min». */
+  p?: number;
 }
 
 /** La sessione da mostrare nel widget, o null se non si sta lavorando (o il task non esiste più). */
 export function lavoroWidget(items: Item[], s: Sessione): LavoroWidget | null {
   if (s.stato === 'ferma' || !s.taskId) return null;
   const item = items.find((i) => i.id === s.taskId && !i.eliminato);
-  return item ? { stato: s.stato, id: item.id, t: item.titolo, base: item.lavoratoMs ?? 0, ref: s.inizio ?? 0 } : null;
+  return item ? { stato: s.stato, id: item.id, t: item.titolo, base: item.lavoratoMs ?? 0, ref: s.inizio ?? 0, p: item.sforzoMin || undefined } : null;
 }
 
 /** Una nota nell'archivio del widget: serve alla nota veloce per mostrare le note con parole simili. */

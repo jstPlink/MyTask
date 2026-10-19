@@ -50,7 +50,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="monospace"
-                    android:textColor="#F1F0EC"
+                    android:textColor="#F3F3F6"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
@@ -60,7 +60,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="#BDBDC4"
+                    android:textColor="#A5A5B0"
                     android:textSize="11sp" />
             </LinearLayout>
 
