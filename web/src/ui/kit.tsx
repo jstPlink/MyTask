@@ -280,18 +280,20 @@ export function Empty({ children }: { children: ReactNode }) {
   return <div className="empty">{children}</div>;
 }
 
-const TAB_NOMI: { id: Tab; nome: string }[] = [
-  { id: 'oggi', nome: 'Priorità' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Intrattenimento' }, { id: 'curiosita', nome: 'Curiosità' }, { id: 'routine', nome: 'Routine' },
+/** Nomi delle cinque schede; `breve` è il nome che sta nella barra del telefono, dove «Intrattenimento» non entra. */
+const TAB_NOMI: { id: Tab; nome: string; breve?: string }[] = [
+  { id: 'oggi', nome: 'Priorità' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Intrattenimento', breve: 'Intratten.' }, { id: 'curiosita', nome: 'Curiosità' }, { id: 'routine', nome: 'Routine' },
 ];
 
-/** Barra delle cinque schede in basso (telefono). Nessuna scheda risulta attiva mentre è aperta una schermata sopra la pila. */
+/** Barra delle cinque schede in basso (solo telefono, con le icone: sul sito la barra laterale è senza). Nessuna scheda risulta attiva mentre è aperta una schermata sopra la pila. */
 export function TabBar() {
   const { tab, setTab, stack } = useNav();
   return (
     <nav className="tabs" aria-label="Sezioni">
       {TAB_NOMI.map((t) => (
-        <button key={t.id} className={clsx(tab === t.id && stack.length === 0 && 'on')} onClick={() => setTab(t.id)} aria-current={tab === t.id && stack.length === 0 ? 'page' : undefined}>
-          {t.nome}
+        <button key={t.id} className={clsx(tab === t.id && stack.length === 0 && 'on')} onClick={() => setTab(t.id)} aria-label={t.nome} aria-current={tab === t.id && stack.length === 0 ? 'page' : undefined}>
+          <span className="ic"><Icona nome={t.id} size={22} /></span>
+          <span className="tab-nome">{t.breve ?? t.nome}</span>
         </button>
       ))}
     </nav>
