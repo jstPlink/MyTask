@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.66.4
+- **Versione documento:** 0.66.5
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -179,7 +179,7 @@ Un'unica tabella **Elemento** (`Item` in `shared/types.ts`) con un campo `tipo`.
 
 | Campo | Note |
 |---|---|
-| `tipo` | azione, progetto, esperienza, routine, film, serie, anime, gioco, libro, ricetta, curiosita, gamedesign (idea di videogioco); `nota` = non assegnata (Inbox); `persona` solo nei dati vecchi |
+| `tipo` | azione, progetto, esperienza, routine, film, serie, anime, gioco, libro, ricetta, curiosita, gamedesign (idea di videogioco); `nota` = non assegnata (Inbox); `persona` solo nei dati vecchi (eliminate all'avvio) |
 | `stato` | `da_fare`, `in_corso`, `fatto`, `saltato` (conta come fatta), `parcheggiato` (= archiviata). **«Scaduto» non è uno stato**: si calcola da data e stato |
 | `creato`, `aggiornato` | millisecondi; `aggiornato` decide chi vince nella sincronizzazione |
 | `eliminato` | cancellazione logica: la voce resta, così la cancellazione arriva agli altri dispositivi |
@@ -523,6 +523,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-19 | 0.66.2 | Scheda della nota: nei progetti tolti il campo «Tempo stimato» (dipende dai passi) e il blocco «Checklist» (i passi stanno sotto la barra dell'importanza, con «Passi · X su Y»); un'attività collegata a un progetto non chiede più l'importanza (vale quella del progetto: `withInheritance` usa sempre la sua, e scegliendo il progetto il valore proprio si toglie); il progetto di un'attività si sceglie con la tendina dell'app (`Scelta`, scorrevole, nomi lunghi accorciati) invece del select del browser, che sul sito aveva testo bianco su sfondo bianco; le opzioni di tutti i select hanno ora sfondo e colore del tema |
 | 2026-10-19 | 0.66.3 | Pausa: tolto il quadrato arancione (icone SVG nell'app, glifi di testo nel widget); slider dell'importanza più fluido (passi di 0,01, salvataggio al rilascio) |
 | 2026-10-19 | 0.66.4 | **Nuovo margine delle stime**: con segno, parte da +15% e dopo ogni attività si sposta del 35% della differenza tra reale e stimato (stime corte → sale, rosso; stime abbondanti → scende anche sotto zero, verde), mostrato in rosso/verde nell'animazione di completamento, nelle righe, nella scheda e nel selettore del tempo (`margineDopo`, `tempoAtteso`, `Margine`); sito: tolto il contatore da Priorità, aggiunto il totale a Intrattenimento, le vecchie note «Persona» non si contano più in Account |
+| 2026-10-19 | 0.66.5 | Le note di tipo «Persona» rimaste dalla vecchia importazione vengono eliminate (cancellazione logica all'avvio, `eliminaPersone` in `shared/migrazioni.ts`; arriva anche al server e agli altri dispositivi, il NAS tiene la copia di sicurezza giornaliera) |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

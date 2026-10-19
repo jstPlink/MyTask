@@ -43,3 +43,11 @@ export function inboxNonAssegnata(i: Item): Item | undefined {
   if (!i.inbox || i.tipo !== 'azione' || i.aggiornato !== i.creato || i.eliminato) return undefined;
   return { ...i, tipo: 'nota' };
 }
+
+/**
+ * Le persone non esistono più nell'app: le note di tipo `persona` rimaste dalla vecchia importazione (contatti) vengono
+ * eliminate con una cancellazione logica, che arriva anche agli altri dispositivi e al server.
+ */
+export function eliminaPersone(i: Item): Item | undefined {
+  return i.tipo === 'persona' && !i.eliminato ? { ...i, eliminato: true } : undefined;
+}
