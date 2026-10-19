@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { barLevel, componentiPunteggio, dueDate } from '../../../shared/priority.ts';
-import { avanzamento, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
+import { avanzamento, classificaPriorita, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
 import { useAdesso, useItems, useSessione } from '../lib/hooks.ts';
 import { tempoDi } from '../lib/sessione.ts';
 import { STATI_NOTA, cambiaStato, nuovaVoce, ordinaPassi, statoVisto } from '../lib/actions.ts';
@@ -118,6 +118,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const salvataLavoro = tutte.find((i) => i.id === d.id);
   const lavoratoMs = salvataLavoro ? tempoDi(salvataLavoro, adesso) : 0;
   const lavorato = lavoratoMs >= 1000 ? avanzamentoTempo(lavoratoMs, d.sforzoMin) : undefined;
+  const classifica = useMemo(() => classificaPriorita(tutte, oggi), [tutte, oggi]); // posizione unica, uguale in tutte le schermate
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
   // Blocco della priorità in cima: chiuso di base, ricorda l'ultima scelta (solo su questo dispositivo).
@@ -291,8 +292,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               ))}
             </div>
             <div ref={ordPassi.cont} className="riordinabile">
-              {ordPassi.ordinati(passi).map((c, n) => (
-                <Row key={c.id} voce={c} titolo={c.titolo} tipo={c.tipo} maniglia rank={n + 1}
+              {ordPassi.ordinati(passi).map((c) => (
+                <Row key={c.id} voce={c} titolo={c.titolo} tipo={c.tipo} maniglia rank={classifica.get(c.id)}
                   level={barLevel(punteggioEffettivo(c, tutte, oggi))}
                   meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : undefined].filter(Boolean).join(' · ') || undefined}
                   classe={ordPassi.preso === c.id ? 'sollevata' : undefined}

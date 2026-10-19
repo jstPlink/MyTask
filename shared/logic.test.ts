@@ -5,7 +5,7 @@ import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.
 import { score, daysOverdue, barLevel, battitoBpm } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
-import { stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
+import { classificaPriorita, posizionePriorita, stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
 import { suggerisciStasera } from './stasera.ts';
 import { listaGameDesign, punteggioGameDesign } from './gamedesign.ts';
 
@@ -99,6 +99,37 @@ test('Stima del progetto: somma dei passi ancora da fare, senza quelli chiusi o 
   const senza = mk({ padreId: p.id });
   assert.equal(stimaProgetto(p, [p, a, b, fatto, senza]), 120);
   assert.equal(stimaProgetto(p, [p, senza]), 0);
+});
+
+test('Classifica unica: la stessa posizione in Oggi, in Attività, nel progetto e nella scheda', () => {
+  const p = mk({ tipo: 'progetto', titolo: 'Bagno', importanza: 2 });
+  const a = mk({ titolo: 'Passo A', padreId: p.id });
+  const b = mk({ titolo: 'Passo B', padreId: p.id });
+  const x = mk({ titolo: 'Libera alta', importanza: 5 });
+  const y = mk({ titolo: 'Libera bassa', importanza: 1 });
+  const tutte = [p, a, b, x, y];
+  const classifica = classificaPriorita(tutte, OGGI, NOW);
+  // la classifica segue la lista delle attività, passi dei progetti compresi
+  assert.deepEqual(listaAzioni(tutte, OGGI, NOW).map((e) => classifica.get(e.item.id)), [1, 2, 3, 4]);
+  // il progetto ha la posizione del suo passo più avanti
+  assert.equal(classifica.get(p.id), classifica.get(a.id));
+  // Oggi mostra le stesse posizioni (non un conteggio proprio)
+  for (const e of vistaOggi(tutte, OGGI, NOW).fare) assert.equal(classifica.get(e.item.id), classificaPriorita(tutte, OGGI, NOW).get(e.item.id));
+  // la scheda della nota dice lo stesso numero
+  assert.equal(posizionePriorita(tutte, a, OGGI, NOW).pos, classifica.get(a.id));
+  assert.equal(posizionePriorita(tutte, p, OGGI, NOW).pos, classifica.get(p.id));
+  assert.equal(posizionePriorita(tutte, x, OGGI, NOW).tot, 4);
+});
+
+test('Priorità: le 5 note con la posizione migliore in assoluto, anche con scadenza futura, e i numeri partono da 1', () => {
+  const futura = mk({ titolo: 'Futura', importanza: 5, fine: addDays(OGGI, 3), rigida: true });
+  const libere = [1, 2, 3, 4, 5, 6].map((k) => mk({ titolo: `Libera ${k}`, importanza: 2 }));
+  const tutte = [...libere, futura];
+  const classifica = classificaPriorita(tutte, OGGI, NOW);
+  const fare = vistaOggi(tutte, OGGI, NOW).fare;
+  assert.equal(fare.length, 5);
+  assert.equal(fare[0].item.titolo, 'Futura', 'la nota con scadenza futura è la prima');
+  assert.deepEqual(fare.map((e) => classifica.get(e.item.id)), [1, 2, 3, 4, 5]);
 });
 
 test('Oggi: prossimi 7 giorni e voci parcheggiate', () => {

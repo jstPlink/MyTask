@@ -12,12 +12,12 @@ test('stima: senza storico il margine è quello di partenza e non c\'è una stim
   assert.equal(stimaPer('Pagare il bollo', []), undefined);
 });
 
-test('stima: il margine parte da +15% e si sposta del 35% della differenza tra reale e stimato', () => {
-  assert.equal(MARGINE_INIZIALE, 0.15);
-  // stima 60, reale 30: differenza −50% → il margine scende di 17,5 punti (da +15% a −2,5%, cioè in verde)
-  assert.ok(Math.abs(margineAtteso([fatta('Uno', 60, 30)]) - (-0.025)) < 1e-9);
-  // stima 60, reale 90: differenza +50% → sale di 17,5 punti (da +15% a +32,5%, in rosso)
-  assert.ok(Math.abs(margineAtteso([fatta('Due', 60, 90)]) - 0.325) < 1e-9);
+test('stima: il margine parte da 0% e si sposta del 35% della differenza tra reale e stimato', () => {
+  assert.equal(MARGINE_INIZIALE, 0);
+  // stima 60, reale 30: differenza −50% → il margine scende di 17,5 punti (da 0% a −17,5%, cioè in verde)
+  assert.ok(Math.abs(margineAtteso([fatta('Uno', 60, 30)]) - (-0.175)) < 1e-9);
+  // stima 60, reale 90: differenza +50% → sale di 17,5 punti (a +17,5%, in rosso)
+  assert.ok(Math.abs(margineAtteso([fatta('Due', 60, 90)]) - 0.175) < 1e-9);
   assert.equal(margineAtteso([fatta('Tre', 60, 60)]), MARGINE_INIZIALE);
 });
 
@@ -29,10 +29,13 @@ test('stima: stime troppo abbondanti portano il margine sotto zero, stime troppo
   assert.ok(margineAtteso(abbondanti) >= MARGINE_MIN && margineAtteso(corte) <= MARGINE_MAX);
 });
 
-test('stima: conta l’ordine di completamento (l’ultima attività pesa di più)', () => {
-  const prima = { ...fatta('A', 60, 120), completatoTs: 1 };
-  const dopo = { ...fatta('B', 60, 30), completatoTs: 2 };
-  assert.ok(margineAtteso([prima, dopo]) !== margineAtteso([{ ...prima, completatoTs: 3 }, dopo]));
+test('stima: con il margine al limite conta l’ordine di completamento', () => {
+  const corte = [1, 2, 3, 4, 5].map((k) => ({ ...fatta(`Corta ${k}`, 30, 90), completatoTs: k }));
+  const abbondante = fatta('Abbondante', 60, 6);
+  const dopo = margineAtteso([...corte, { ...abbondante, completatoTs: 10 }]);
+  const prima = margineAtteso([...corte, { ...abbondante, completatoTs: 0 }]);
+  assert.ok(dopo < prima, 'se l’attività abbondante è l’ultima il margine è sceso dal massimo');
+  assert.equal(prima, MARGINE_MAX);
 });
 
 test('stima: percentuale con segno e tempo atteso', () => {

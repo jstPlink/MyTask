@@ -102,21 +102,55 @@ export function candidatiOggi(items: Item[], today: string, now: number): Entry[
   return out;
 }
 
-/** Ordine di priorità, uguale ovunque: prima il punteggio, a parità la nota più vecchia (poi l'id, per essere stabili). */
-export const perPriorita = (a: Entry, b: Entry) => b.punteggio - a.punteggio || a.item.creato - b.item.creato || a.item.id.localeCompare(b.item.id);
 
-/** Posizione di ogni nota nella classifica di priorità (1 = la prima): quella che si legge in Oggi e nella scheda della nota. */
-export function classificaPriorita(items: Item[], today: string, now: number = Date.now()): Map<string, number> {
-  return new Map(candidatiOggi(items, today, now).sort(perPriorita).map((e, n) => [e.item.id, n + 1] as [string, number]));
+/**
+ * La classifica di priorità, una sola per tutte le note e i progetti: ogni attività aperta (passi dei progetti compresi, una per una) col
+ * suo punteggio, dalla più alla meno prioritaria. A parità di punteggio vince il gruppo (progetto o nota) creato prima e dentro un
+ * progetto i passi restano nell'ordine scelto. La posizione che si legge in Priorità, Attività, nel progetto, nella scheda e nel widget
+ * è sempre questa, qualunque schermata sia aperta.
+ */
+export function elencoPriorita(items: Item[], today: string, now: number = Date.now()): Entry[] {
+  const tutte = live(items);
+  const cache = new Map<string, Item[]>();
+  const ordinePasso = new Map<string, number>();
+  const progetti = new Map<string, Item>();
+  for (const p of tutte.filter((x) => x.tipo === 'progetto')) {
+    progetti.set(p.id, p);
+    figli(tutte, p.id).forEach((c, n) => ordinePasso.set(c.id, n));
+  }
+  const gruppo = (e: Entry) => e.padre?.creato ?? e.item.creato;
+  return tutte
+    .filter((i) => i.tipo === 'azione' && !i.inbox && isOpen(i) && !parcheggiata(i))
+    .map((i): Entry => {
+      const padre = i.padreId ? progetti.get(i.padreId) : undefined;
+      return { item: i, padre, punteggio: punteggioEffettivo(i, tutte, today, now, cache) };
+    })
+    .sort((a, b) => b.punteggio - a.punteggio || gruppo(a) - gruppo(b) || (ordinePasso.get(a.item.id) ?? 0) - (ordinePasso.get(b.item.id) ?? 0) || a.item.id.localeCompare(b.item.id));
 }
 
-/** Posizione di una nota (anche non ancora salvata o con modifiche in corso) tra quelle da fare, con lo stesso ordine di Oggi. */
+/**
+ * Posizione di ogni nota nella classifica unica (1 = la prima): per le attività e i passi quella della nota; per un progetto quella del suo
+ * passo più avanti. Chi non compare nella classifica (esperienze, curiosità, Inbox, progetti senza passi) non ha una posizione.
+ */
+export function classificaPriorita(items: Item[], today: string, now: number = Date.now()): Map<string, number> {
+  const mappa = new Map<string, number>();
+  elencoPriorita(items, today, now).forEach((e, n) => {
+    mappa.set(e.item.id, n + 1);
+    if (e.padre && !mappa.has(e.padre.id)) mappa.set(e.padre.id, n + 1);
+  });
+  return mappa;
+}
+
+/** Posizione di una nota (anche non ancora salvata o con modifiche in corso) nella classifica unica; `tot` sono le voci in classifica. */
 export function posizionePriorita(items: Item[], nota: Item, today: string, now: number = Date.now()): { pos: number; tot: number } {
-  const altre = candidatiOggi(items.filter((i) => i.id !== nota.id), today, now);
-  const padre = nota.padreId ? items.find((p) => p.id === nota.padreId && p.tipo === 'progetto') : undefined;
-  const mia: Entry = { item: nota, padre, punteggio: punteggioEffettivo(nota, [...items.filter((i) => i.id !== nota.id), nota], today, now) };
-  const tutte = [...altre, mia].sort(perPriorita);
-  return { pos: tutte.findIndex((e) => e.item.id === nota.id) + 1, tot: tutte.length };
+  const con = items.some((i) => i.id === nota.id) ? items.map((i) => (i.id === nota.id ? nota : i)) : [...items, nota];
+  const elenco = elencoPriorita(con, today, now);
+  const mappa = classificaPriorita(con, today, now);
+  const pos = mappa.get(nota.id);
+  if (pos !== undefined) return { pos, tot: elenco.length };
+  // voce che non è in classifica (un progetto senza passi): si colloca per punteggio
+  const mio = score(nota, today, now);
+  return { pos: elenco.filter((e) => e.punteggio > mio).length + 1, tot: elenco.length + 1 };
 }
 
 export interface VistaOggi {
@@ -139,28 +173,25 @@ export function curiositaDaSmaltire(items: Item[], max: number = MAX_CURIOSITA_O
     .slice(0, max);
 }
 
-/** Quante note mostra Oggi al massimo: le scadute o in scadenza oggi compaiono tutte (anche se più di 5), le senza data riempiono fino a 5. */
+/** Quante note mostra Priorità al massimo: le 5 con la posizione migliore; le scadute o in scadenza oggi compaiono sempre, anche se fuori dalle prime 5. */
 const MAX_OGGI = 5;
 
 /**
- * Cosa compare in Oggi: le routine del giorno, le note "da fare" (scadute o in scadenza oggi, poi le senza data più prioritarie, in corso
- * prima a parità, fino a `MAX_OGGI`; le esperienze senza data non compaiono mai), le scadenze dei prossimi 7 giorni e il numero di note in Inbox.
+ * Cosa compare in Priorità: le routine del giorno, le 5 note con la posizione migliore nella classifica unica (anche con una scadenza futura;
+ * un progetto con il suo prossimo passo; le esperienze solo se scadute o in scadenza oggi), più le scadute e quelle di oggi che restassero fuori,
+ * le scadenze dei prossimi 7 giorni e il numero di note in Inbox. Il numero che ogni nota porta è la sua posizione nella classifica unica.
  */
 export function vistaOggi(items: Item[], today: string, now: number = Date.now()): VistaOggi {
   const cand = candidatiOggi(items, today, now);
   const due = (e: Entry) => dueDate(e.item);
-  const perPunteggio = (a: Entry, b: Entry) => b.punteggio - a.punteggio;
+  const classifica = classificaPriorita(items, today, now);
+  const posizione = (e: Entry) => classifica.get(e.item.id) ?? Number.MAX_SAFE_INTEGER;
+  const perClassifica = (a: Entry, b: Entry) => b.punteggio - a.punteggio || posizione(a) - posizione(b) || a.item.id.localeCompare(b.item.id);
+  const dovuta = (e: Entry) => { const d = due(e); return d !== undefined && diffDays(d, today) <= 0; };
 
-  const dovute = cand.filter((e) => { const d = due(e); return d !== undefined && diffDays(d, today) <= 0; }).sort(perPunteggio);
-  const inCorsoPrima = (a: Entry, b: Entry) => Number(b.item.stato === 'in_corso') - Number(a.item.stato === 'in_corso') || b.punteggio - a.punteggio;
-  const senzaData = cand
-    .filter((e) => due(e) === undefined && e.item.tipo !== 'esperienza')
-    .sort(inCorsoPrima);
-  const fare = [...dovute];
-  for (const e of senzaData) {
-    if (fare.length >= Math.max(MAX_OGGI, dovute.length)) break;
-    fare.push(e);
-  }
+  const migliori = cand.filter((e) => e.item.tipo !== 'esperienza' || dovuta(e)).sort(perClassifica).slice(0, MAX_OGGI);
+  const presenti = new Set(migliori.map((e) => e.item.id));
+  const fare = [...migliori, ...cand.filter((e) => dovuta(e) && !presenti.has(e.item.id))].sort(perClassifica);
 
   const limite = addDays(today, 7);
   const prossimi = live(items)
@@ -178,19 +209,9 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
   };
 }
 
-/** Tutte le attività aperte (comprese le scadute), per priorità; a parità, i passi di uno stesso progetto restano nell'ordine del progetto. */
+/** Tutte le attività aperte (comprese le scadute), nell'ordine della classifica unica di priorità (`elencoPriorita`). */
 export function listaAzioni(items: Item[], today: string, now: number = Date.now()): Entry[] {
-  const tutte = live(items);
-  const cache = new Map<string, Item[]>();
-  const ordinePasso = new Map<string, number>();
-  for (const p of tutte.filter((x) => x.tipo === 'progetto')) figli(tutte, p.id).forEach((c, n) => ordinePasso.set(c.id, n));
-  return tutte
-    .filter((i) => i.tipo === 'azione' && !i.inbox && isOpen(i) && !parcheggiata(i))
-    .map((i) => {
-      const padre = i.padreId ? tutte.find((p) => p.id === i.padreId && p.tipo === 'progetto') : undefined;
-      return { item: i, padre, punteggio: punteggioEffettivo(i, tutte, today, now, cache) };
-    })
-    .sort((a, b) => b.punteggio - a.punteggio || (ordinePasso.get(a.item.id) ?? 0) - (ordinePasso.get(b.item.id) ?? 0));
+  return elencoPriorita(items, today, now);
 }
 
 /** Raggruppa le voci per progetto: il gruppo sta dove sta la sua voce più prioritaria; le attività senza progetto restano singole. */

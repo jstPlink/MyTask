@@ -3,7 +3,7 @@
 import type { Item } from './types.ts';
 import { barLevel, battitoBpm, isClosed, urgency } from './priority.ts';
 import type { Sessione } from './sessione.ts';
-import { live, vistaOggi } from './views.ts';
+import { classificaPriorita, live, vistaOggi } from './views.ts';
 import { chiaveTitolo } from './testo.ts';
 import { NOMI_TIPO } from './types.ts';
 
@@ -12,7 +12,7 @@ export interface RigaWidget {
   id: string;
   /** Titolo. */
   t: string;
-  /** Posizione in classifica (1 = la prima da fare). */
+  /** Posizione nella classifica unica di priorità (1 = la prima da fare), uguale a quella dell'app; assente se la voce non è in classifica. */
   r?: number;
   /** Millisecondi già lavorati sul task con il cronometro: il widget li usa come punto di partenza se lo avvia lui. */
   w?: number;
@@ -26,8 +26,9 @@ export interface RigaWidget {
 
 /** Le cose da fare oggi per il widget: la lista semplice di Oggi (`vistaOggi`), con posizione in classifica, priorità e battito. */
 export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[] {
-  return vistaOggi(items, oggi).fare.slice(0, max).map((e, n) => ({
-    id: e.item.id, t: e.item.titolo, r: n + 1, l: barLevel(e.punteggio), b: battitoBpm(urgency(e.item, oggi)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined,
+  const classifica = classificaPriorita(items, oggi); // la stessa posizione che si legge nell'app
+  return vistaOggi(items, oggi).fare.slice(0, max).map((e) => ({
+    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: barLevel(e.punteggio), b: battitoBpm(urgency(e.item, oggi)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined,
   }));
 }
 

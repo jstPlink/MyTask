@@ -1,12 +1,12 @@
-// Stima dei tempi con margine (editor della nota). Il margine è il **tempo da aggiungere** alle tue stime, con segno: parte da +15%
+// Stima dei tempi con margine (editor della nota). Il margine è il **tempo da aggiungere** alle tue stime, con segno: parte da 0%
 // e dopo ogni attività completata con tempo stimato e tempo reale (`durataRealeMin`, misurato dall'app) si sposta del 35% della
 // differenza tra reale e stimato (in proporzione alla stima). Stime troppo corte lo fanno salire (positivo, da aggiungere);
 // stime troppo abbondanti lo fanno scendere, anche sotto zero (negativo: stai stimando più del necessario).
 import type { Item } from './types.ts';
 import { chiaveTitolo } from './testo.ts';
 
-/** Margine di partenza: +15% da aggiungere alle stime. */
-export const MARGINE_INIZIALE = 0.15;
+/** Margine di partenza: 0% (nessun dato, nessuna correzione). */
+export const MARGINE_INIZIALE = 0;
 /** Ogni attività misurata sposta il margine del 35% della differenza tra tempo reale e stimato (in proporzione alla stima). */
 export const PASSO_MARGINE = 0.35;
 /** Il margine resta tra −50% e +150%. */
@@ -50,7 +50,7 @@ export const scostamento = (stimaMin: number, realeMin: number) => (realeMin - s
 export const margineDopo = (margine: number, stimaMin: number, realeMin: number) =>
   Math.min(MARGINE_MAX, Math.max(MARGINE_MIN, margine + PASSO_MARGINE * scostamento(stimaMin, realeMin)));
 
-/** Margine atteso: parte da +15% e segue, nell'ordine di completamento, le attività misurate con una stima. */
+/** Margine atteso: parte da 0% e segue, nell'ordine di completamento, le attività misurate con una stima. */
 export function margineAtteso(items: Item[]): number {
   return misurate(items)
     .filter((i) => !!i.sforzoMin)
@@ -72,6 +72,9 @@ export function stimaPer(titolo: string, items: Item[]): Stima | undefined {
   const minuti = Math.max(5, Math.round(mediana / 5) * 5);
   return { minuti, margine: margineAtteso(items), fonte: 'simili', campioni: simili.length };
 }
+
+/** Quante attività con stima e tempo reale hanno già contribuito al margine. */
+export const stimeMisurate = (items: Item[]) => misurate(items).filter((i) => !!i.sforzoMin).length;
 
 /** Margine con segno: «+15%», «−20%», «0%». */
 export const percentuale = (margine: number) => {

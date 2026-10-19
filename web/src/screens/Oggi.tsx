@@ -1,13 +1,13 @@
 /**
  * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima il pulsante «Sto lavorando» (o, a sessione aperta, il cronometro con pausa e
  * «Ho finito di lavorare»), poi le routine del giorno e le «Prime attività»: le cose da fare in ordine di priorità
- * (`vistaOggi`: scadute o in scadenza oggi e, a seguire, le più prioritarie senza data, fino a cinque in tutto).
+ * (`vistaOggi`: le 5 con la posizione migliore nella classifica unica, anche con scadenza futura, più le scadute o in scadenza oggi che restassero fuori).
  *
  * - Sto lavorando: il cronometro parte sul primo task della lista (`iniziaLavoro`), che prima dell'avvio ha un contorno
  *   tratteggiato. Il task su cui corre è evidenziato; la scheda del cronometro mostra il tempo lavorato, quello sul previsto e una barra.
  *   I task già iniziati mostrano nella riga grigia il tempo lavorato sul totale previsto. Spuntando la casella lo si completa e il cronometro passa da solo al successivo; ⏸ lo ferma, ▶ riprende.
- * - Tocco su una riga: menu con «Lavora su questo» (sposta il cronometro lì), «Non ora» (per il task in corso: passa al
- *   successivo senza completarlo) e «Apri» (la scheda della nota).
+ * - Tocco su una riga: apre sempre la scheda della nota (niente menu): il cronometro sceglie da solo la nota, parte dalla prima e
+ *   passa alla successiva quando si completa.
  * - Le attività dello stesso progetto sono riunite sotto la testata del progetto, il numero è la posizione in classifica.
  * - «Curiosità»: dopo le attività, al massimo cinque curiosità (le più interessanti, a parità le più vecchie), senza posizione
  *   in classifica; la casella le segna come approfondite e toccando la riga si apre la nota.
@@ -18,17 +18,17 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { formatLong, formatShortYear } from '../../../shared/dates.ts';
 import { barLevel, dueDate, daysOverdue, urgency } from '../../../shared/priority.ts';
-import { raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
+import { classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { formatoCronometro } from '../../../shared/sessione.ts';
-import { margineAtteso } from '../../../shared/stima.ts';
 import { useAdesso, useItems, useOggi, useSessione, useSyncStatus } from '../lib/hooks.ts';
 import { segnaRoutine } from '../lib/actions.ts';
-import { finisciSessione, iniziaLavoro, mettiInPausa, nonOra, passaA, riprendi, tempoDi } from '../lib/sessione.ts';
+import { finisciSessione, iniziaLavoro, mettiInPausa, riprendi, tempoDi } from '../lib/sessione.ts';
 import { Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
-import { useLayer, useNav } from '../ui/nav.tsx';
-import { avanzamentoTempo, clsx, durataLavoro, nomeTempo } from '../lib/util.ts';
+import { useNav } from '../ui/nav.tsx';
+import { margineAtteso, percentuale, stimeMisurate, tempoAtteso } from '../../../shared/stima.ts';
+import { avanzamentoTempo, clsx, durataLavoro, nomeGiorniOre, nomeTempo } from '../lib/util.ts';
 
 /** Schermata Oggi (vedi l'intestazione del file). */
 export function Oggi() {
@@ -41,21 +41,13 @@ export function Oggi() {
   const adesso = useAdesso(lavoro);
   const v = useMemo(() => vistaOggi(items, oggi), [items, oggi]);
   const margine = useMemo(() => margineAtteso(items), [items]);
-  const [menu, setMenu] = useState<Item | null>(null);
+  const nMisurate = useMemo(() => stimeMisurate(items), [items]);
+  const classifica = useMemo(() => classificaPriorita(items, oggi), [items, oggi]); // la posizione è quella unica, uguale in ogni schermata
 
   const task = sessione.taskId ? items.find((i) => i.id === sessione.taskId) : undefined;
   const tempoTask = task ? tempoDi(task, adesso) : 0;
 
-  // Menu di una riga: è un livello della pila «Indietro» e si chiude anche con Esc.
-  useLayer('menuriga', !!menu, () => setMenu(null));
-  useEffect(() => {
-    if (!menu) return;
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setMenu(null); } };
-    window.addEventListener('keydown', esc, true);
-    return () => window.removeEventListener('keydown', esc, true);
-  }, [menu]);
-
-  // Riga grigia sotto il titolo: prossimo passo di un progetto, tempo stimato con margine, ricorrenza.
+  // Riga grigia sotto il titolo: prossimo passo di un progetto, tempo stimato, ricorrenza.
   const meta = (e: Entry) => {
     const i = e.item;
     const pezzi: ReactNode[] = [];
@@ -63,7 +55,7 @@ export function Oggi() {
     const corrente = sessione.stato !== 'ferma' && sessione.taskId === i.id;
     if (ms >= 60_000 && !corrente) pezzi.push(avanzamentoTempo(ms, i.sforzoMin).testo); // sulla nota in lavorazione lo dice la barra sotto la riga
     if (e.padre) pezzi.push('prossimo passo');
-    if (i.sforzoMin && (ms < 60_000 || corrente)) pezzi.push(<>{nomeTempo(i.sforzoMin)} <Margine valore={margine} /></>);
+    if (i.sforzoMin && (ms < 60_000 || corrente)) pezzi.push(nomeTempo(i.sforzoMin));
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return unisciMeta(pezzi);
   };
@@ -136,7 +128,7 @@ export function Oggi() {
     const quota = e.item.sforzoMin ? tempoDi(e.item, adesso) / (e.item.sforzoMin * 60_000) : 0;
     return (
     <Row
-      rank={v.fare.indexOf(e) + 1}
+      rank={classifica.get(e.item.id)}
       urgenza={urgency(e.item, oggi)}
       key={e.item.id}
       titolo={e.item.titolo} tipo={e.item.tipo}
@@ -147,12 +139,39 @@ export function Oggi() {
       classe={corrente ? (!lavoro ? 'pausa-lav' : quota > 1 ? 'oltre-lav' : undefined) : undefined}
       sotto={sottoRiga(e)} aperto={corrente}
       selected={nav.openId === e.item.id}
-      onOpen={() => setMenu(e.item)}
+      onOpen={() => nav.push({ k: 'item', id: e.item.id })}
     />
     );
   };
+  // Al posto del conteggio (sempre 5) il tempo necessario a finire le voci mostrate: somma delle stime, con quante ne sono prive.
+  // Accanto, il valore corretto col margine («2 h → 1 h 29 min»), colorato come il margine; a 0% resta solo il totale.
+  const tempoNecessario = (voci: { sforzoMin?: number }[]) => {
+    const minuti = voci.reduce((s, x) => s + (x.sforzoMin ?? 0), 0);
+    if (minuti <= 0) return undefined;
+    const senza = voci.filter((x) => !x.sforzoMin).length;
+    const nome = (m: number) => (m >= 1440 ? nomeGiorniOre(m) : durataLavoro(m * 60_000));
+    const conto = tempoAtteso(minuti, margine);
+    const diverso = Math.round(margine * 100) !== 0 && conto !== minuti;
+    return (
+      <span className="sz-tempi">
+        <span>{nome(minuti)}</span>
+        {diverso && <><i aria-hidden="true">→</i><span className={clsx('sz-conto', margine > 0 ? 'mg-su' : 'mg-giu')} title="Tempo in conto, col margine delle tue stime">{nome(conto)}</span></>}
+        {senza ? <span className="sz-senza">· {senza} senza stima</span> : null}
+      </span>
+    );
+  };
+  // Blocco sotto il timer: solo la correzione alle tue stime (parte da 0%): rosso se stimi troppo poco, verde se stimi più del necessario.
+  const accuratezza = (
+    <div className="acc" aria-label={`Correzione alle tue stime ${percentuale(margine)}`}>
+      <div>
+        <div className="acc-t">Correzione alle tue stime</div>
+        <div className="acc-s">{Math.round(margine * 100) > 0 ? 'Stimi meno del necessario' : Math.round(margine * 100) < 0 ? 'Stimi più del necessario' : nMisurate > 0 ? 'Stime centrate' : 'Ancora nessun dato'}</div>
+      </div>
+      <Margine valore={margine} />
+    </div>
+  );
   const prime = (
-    <Sezione titolo="Attività" dettaglio={v.fare.length || undefined}>
+    <Sezione titolo="Attività" dettaglio={tempoNecessario(v.fare.map((e) => e.item))}>
       {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Intrattenimento».</div>}
       {raggruppaPerProgetto(v.fare, items).map((g) => g.progetto
         ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
@@ -162,7 +181,7 @@ export function Oggi() {
 
   // Curiosità da smaltire: poche, sotto le attività, senza numero di priorità (hanno un interesse, non un'importanza).
   const curiosita = v.curiosita.length > 0 && (
-    <Sezione titolo="Curiosità" dettaglio={v.curiosita.length}>
+    <Sezione titolo="Curiosità" dettaglio={tempoNecessario(v.curiosita)}>
       {v.curiosita.map((c) => (
         <Row
           key={c.id}
@@ -189,23 +208,6 @@ export function Oggi() {
     </div>
   );
 
-  // Menu della riga toccata: foglio dal basso sul telefono, finestra al centro sul sito.
-  const inSessione = menu && sessione.stato !== 'ferma' && sessione.taskId === menu.id;
-  const menuRiga = menu && (
-    <>
-      <div className="dim" onClick={() => setMenu(null)} />
-      <div className="sheet" role="dialog" aria-label={`«${menu.titolo}»`}>
-        <div className="grip" />
-        <div className="t1" style={{ fontWeight: 800, marginBottom: 8 }}>{menu.titolo}</div>
-        <div className="btns" style={{ flexDirection: 'column' }}>
-          {!inSessione && <button className="btn solid" onClick={() => { passaA(menu.id); setMenu(null); }}>Lavora su questo</button>}
-          {inSessione && <button className="btn" onClick={() => { nonOra(); setMenu(null); }}>Non ora (passa al successivo)</button>}
-          <button className={clsx('btn', inSessione && 'solid')} onClick={() => { const id = menu.id; setMenu(null); nav.push({ k: 'item', id }); }}>Apri</button>
-        </div>
-      </div>
-    </>
-  );
-
   // Sito largo: titolo con il riepilogo, una sola colonna centrata.
   if (nav.wide) {
     return (
@@ -213,10 +215,9 @@ export function Oggi() {
         <Top title="Priorità" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} attività, ${v.curiosita.length} curiosità`} />
         <div className="scroll wide-dash">
           <div className="dash">
-            <div>{lavora}{routine}{prime}{curiosita}</div>
+            <div>{lavora}{accuratezza}{routine}{prime}{curiosita}</div>
           </div>
         </div>
-        {menuRiga}
       </>
     );
   }
@@ -244,12 +245,12 @@ export function Oggi() {
       />
       <div className="scroll">
         {lavora}
+        {accuratezza}
         {routine}
         {prime}
         {curiosita}
         {stato}
       </div>
-      {menuRiga}
       <Fab />
     </>
   );
