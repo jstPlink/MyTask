@@ -216,6 +216,13 @@ a { color: var(--accent); }
 .scelta-freccia { color: var(--soft); font-size: 12px; }
 .scelta-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 210px; margin: 0; padding: 6px; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
 .scelta-menu li { margin: 0; }
+/* tendine lunghe (per esempio l'elenco dei progetti): scorrono e non sforano, i nomi lunghi si accorciano */
+.scelta-menu { max-height: min(340px, 56vh); overflow-y: auto; min-width: 230px; max-width: min(360px, 86vw); }
+.scelta-menu button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.scelta-btn b { max-width: min(240px, 52vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* i menu a tendina del browser (select) restano leggibili sul sito anche con il tema scuro */
+select option, select optgroup { background: var(--surface); color: var(--ink); }
+.passi-t { font-weight: 700; padding: 14px 0 0; }
 .scelta-menu button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border-radius: 10px; font-size: 14.5px; }
 .scelta-menu button:hover { background: var(--surface2); }
 .scelta-menu button.on { background: var(--accent-soft); color: var(--accent); font-weight: 650; }

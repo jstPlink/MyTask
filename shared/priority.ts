@@ -119,7 +119,7 @@ export function withInheritance(child: Item, parent: Item | undefined): Item {
   if (!parent) return child;
   return {
     ...child,
-    importanza: child.importanza ?? parent.importanza,
+    importanza: parent.importanza ?? child.importanza, // l'importanza di un passo è quella del progetto
     fine: child.fine ?? (child.inizio ? undefined : parent.fine),
     rigida: child.rigida ?? parent.rigida,
   };

@@ -306,7 +306,7 @@ export function Fab() {
   return <button className="fab" onClick={() => nav.openCapture(true)} aria-label="Cattura rapida">+</button>;
 }
 
-interface VoceScelta<T extends string> { id: T; nome: string; icona: ReactNode }
+interface VoceScelta<T extends string> { id: T; nome: string; icona: ReactNode | null }
 
 /**
  * Tendina con icona per ogni voce, al posto del select del browser. Il menu aperto è un livello della pila:

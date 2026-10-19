@@ -264,11 +264,9 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {IS_DATATO(t) && (
           <Gruppo titolo={NOMI_TIPO[t]}>
             {t === 'azione' && (
-              <Field label="Progetto">
-                <select value={d.padreId ?? ''} onChange={(e) => up({ padreId: e.target.value || undefined })}>
-                  <option value="">Nessuno</option>{progetti.map((p) => <option key={p.id} value={p.id}>{p.titolo}</option>)}
-                </select>
-              </Field>
+              <Scelta label="Progetto" valore={d.padreId ?? ''}
+                onChange={(v) => up({ padreId: v || undefined, ...(v ? { importanza: undefined } : {}) })} /* con un progetto l'importanza è la sua */
+                voci={[{ id: '', nome: 'Nessuno', icona: null }, ...progetti.map((p) => ({ id: p.id, nome: p.titolo, icona: <BadgeTipo tipo="progetto" /> }))]} />
             )}
             <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: e.target.value ? d.rigida : undefined, oraInizio: e.target.value ? d.oraInizio : undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>
             {d.inizio && (
@@ -276,12 +274,41 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                 <button type="button" role="checkbox" aria-checked={!!d.rigida} aria-label="Scadenza fissa" className={clsx('cb sq', d.rigida && 'done')} onClick={() => up({ rigida: d.rigida ? undefined : true })} />
               </Field>
             )}
-            {IS_AZIONE(t) && <ImportanzaDoppia label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} />}
+            {IS_AZIONE(t) && !(t === 'azione' && d.padreId) && <ImportanzaDoppia label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} />}
+            {/* Progetto: i passi (voci figlie) riordinabili; l'ordine è la priorità, il primo passo aperto è il prossimo da fare */}
+            {t === 'progetto' && (
+              <div className="passi-progetto">
+                {avanz && avanz.totale > 0 && <div className="t2 passi-t">Passi · {avanz.fatti} su {avanz.totale}</div>}
+            {avanz && avanz.totale > 0 && <Tacche fatti={avanz.fatti} totale={avanz.totale} />}
+            <div ref={ordChecklist.cont} className="riordinabile">
+              {ordChecklist.ordinati(checklist).map((c) => (
+                <div key={c.id} className={clsx('row', ordChecklist.preso === c.id && 'sollevata')} {...ordChecklist.presa(c.id)}>
+                  <span className="maniglia" data-grip aria-hidden="true"><i /></span>
+                  <div className={clsx('grow t1 light', c.fatto && 'struck')}>{c.testo}</div>
+                  <button className="chip" aria-label="Togli la voce" onClick={() => setCheck(checklist.filter((x) => x.id !== c.id))}>✕</button>
+                  <button className={clsx('cb', c.fatto && 'done')} aria-label={`Segna «${c.testo}»`} onClick={() => setCheck(checklist.map((x) => x.id === c.id ? { ...x, fatto: !x.fatto } : x))} />
+                </div>
+              ))}
+            </div>
+            <div ref={ordPassi.cont} className="riordinabile">
+              {ordPassi.ordinati(passi).map((c, n) => (
+                <Row key={c.id} voce={c} titolo={c.titolo} tipo={c.tipo} maniglia rank={n + 1}
+                  level={barLevel(punteggioEffettivo(c, tutte, oggi))}
+                  meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : undefined].filter(Boolean).join(' · ') || undefined}
+                  classe={ordPassi.preso === c.id ? 'sollevata' : undefined}
+                  extra={ordPassi.presa(c.id)}
+                  onOpen={() => nav.push({ k: 'item', id: c.id })} />
+              ))}
+            </div>
+            {(passi.length > 1 || checklist.length > 1) && <div className="t2" style={{ padding: '6px 0 4px' }}>L'ordine è la priorità: il primo passo aperto è il prossimo da fare. Tieni premuta una riga, o trascinala dal bordo sinistro, per spostarla.</div>}
+            <AggiungiRiga placeholder="Aggiungi un passo" onAdd={(txt) => setCheck([...checklist, { id: newId(), testo: txt, fatto: false }])} />
+              </div>
+            )}
             {t === 'esperienza' && <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}
-            {IS_AZIONE(t) && (
+            {t === 'azione' && (
               <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} margine={margine} onProgetto={t === 'azione' ? () => cambiaTipo('progetto') : undefined} />
             )}
-            {IS_AZIONE(t) && (d.sforzoMin || suggerita) && (
+            {t === 'azione' && (d.sforzoMin || suggerita) && (
               <div className="t2" style={{ padding: '6px 0 10px' }}>
                 {d.sforzoMin ? (
                   <>Errore atteso <b>{percentuale(margine)}</b>: tra {nomeTempo(intervallo(d.sforzoMin, margine)[0])} e {nomeTempo(intervallo(d.sforzoMin, margine)[1])}.</>
@@ -424,35 +451,6 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             </Field>
             <Field label="Obiettivo minimo"><input value={d.obiettivo ?? ''} placeholder="es. Leggere 10 minuti" onChange={(e) => up({ obiettivo: e.target.value || undefined })} /></Field>
             <Field label="Promemoria alle"><input type="time" value={d.oraPromemoria ?? ''} onChange={(e) => up({ oraPromemoria: e.target.value || undefined })} /></Field>
-          </Gruppo>
-        )}
-
-        {/* Progetto: checklist e passi (voci figlie) riordinabili; l'ordine è la priorità, il primo passo aperto è il prossimo da fare */}
-        {t === 'progetto' && (
-          <Gruppo titolo={`Checklist${avanz && avanz.totale ? ` · ${avanz.fatti} su ${avanz.totale}` : ''}`}>
-            {avanz && avanz.totale > 0 && <Tacche fatti={avanz.fatti} totale={avanz.totale} />}
-            <div ref={ordChecklist.cont} className="riordinabile">
-              {ordChecklist.ordinati(checklist).map((c) => (
-                <div key={c.id} className={clsx('row', ordChecklist.preso === c.id && 'sollevata')} {...ordChecklist.presa(c.id)}>
-                  <span className="maniglia" data-grip aria-hidden="true"><i /></span>
-                  <div className={clsx('grow t1 light', c.fatto && 'struck')}>{c.testo}</div>
-                  <button className="chip" aria-label="Togli la voce" onClick={() => setCheck(checklist.filter((x) => x.id !== c.id))}>✕</button>
-                  <button className={clsx('cb', c.fatto && 'done')} aria-label={`Segna «${c.testo}»`} onClick={() => setCheck(checklist.map((x) => x.id === c.id ? { ...x, fatto: !x.fatto } : x))} />
-                </div>
-              ))}
-            </div>
-            <div ref={ordPassi.cont} className="riordinabile">
-              {ordPassi.ordinati(passi).map((c, n) => (
-                <Row key={c.id} voce={c} titolo={c.titolo} tipo={c.tipo} maniglia rank={n + 1}
-                  level={barLevel(punteggioEffettivo(c, tutte, oggi))}
-                  meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : undefined].filter(Boolean).join(' · ') || undefined}
-                  classe={ordPassi.preso === c.id ? 'sollevata' : undefined}
-                  extra={ordPassi.presa(c.id)}
-                  onOpen={() => nav.push({ k: 'item', id: c.id })} />
-              ))}
-            </div>
-            {(passi.length > 1 || checklist.length > 1) && <div className="t2" style={{ padding: '6px 0 4px' }}>L'ordine è la priorità: il primo passo aperto è il prossimo da fare. Tieni premuta una riga, o trascinala dal bordo sinistro, per spostarla.</div>}
-            <AggiungiRiga placeholder="Aggiungi un passo" onAdd={(txt) => setCheck([...checklist, { id: newId(), testo: txt, fatto: false }])} />
           </Gruppo>
         )}
 
