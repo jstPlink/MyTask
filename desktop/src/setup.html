@@ -10,6 +10,8 @@
   main { width:min(420px,92vw); background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:28px; }
   .logo { width:48px; height:48px; border-radius:12px; background:var(--accent); display:grid; place-items:center; margin-bottom:14px; }
   h1 { font-size:22px; margin:0 0 4px; } p { margin:0 0 16px; color:var(--mid); }
+  .srv { display:flex; gap:8px; }
+  select { flex:none; font:inherit; color:inherit; background:var(--bg); border:1.5px solid var(--line); border-radius:12px; padding:12px 10px; }
   input { width:100%; font:inherit; color:inherit; background:var(--bg); border:1.5px solid var(--line); border-radius:12px; padding:12px 14px; }
   input:focus { outline:2px solid var(--accent); border-color:transparent; }
   button { width:100%; margin-top:12px; font:inherit; font-weight:700; border:0; border-radius:12px; padding:12px; background:var(--accent); color:var(--on); cursor:pointer; }
@@ -20,11 +22,14 @@
   <h1>MyTask</h1>
   <p>Scrivi l'indirizzo del tuo server MyTask (quello che usi nel browser).</p>
   <div class="err" id="err" hidden></div>
-  <form id="f"><input id="s" type="text" inputmode="url" placeholder="mytask.tuodominio.it" autofocus autocomplete="off"><button type="submit">Collega</button></form>
+  <form id="f"><div class="srv"><select id="p" aria-label="Protocollo"><option value="https">https://</option><option value="http">http://</option></select><input id="s" type="text" inputmode="url" placeholder="mytask.tuodominio.it" autofocus autocomplete="off" spellcheck="false"></div><button type="submit">Collega</button></form>
 </main>
 <script>
-  const q = new URLSearchParams(location.search);
-  document.getElementById('s').value = q.get('server') || '';
+  const q = new URLSearchParams(location.search), sel = document.getElementById('p'), inp = document.getElementById('s');
+  // https:// è già nel menu: se si scrive o incolla un indirizzo completo, lo schema passa nel menu
+  function separa(t) { const m = /^(https?):\/\/(.*)$/i.exec(t.trim()); return { schema: m ? m[1].toLowerCase() : sel.value, resto: (m ? m[2] : t.trim()).replace(/^\/+|\/+$/g, '') }; }
+  const iniz = separa(q.get('server') || ''); sel.value = iniz.schema; inp.value = iniz.resto;
+  inp.addEventListener('input', () => { if (/^https?:\/\//i.test(inp.value.trim())) { const p = separa(inp.value); sel.value = p.schema; inp.value = p.resto; } });
   if (q.get('errore')) { const e = document.getElementById('err'); e.textContent = q.get('errore'); e.hidden = false; }
-  document.getElementById('f').addEventListener('submit', (ev) => { ev.preventDefault(); window.mytaskDesktop.impostaServer(document.getElementById('s').value); });
+  document.getElementById('f').addEventListener('submit', (ev) => { ev.preventDefault(); const p = separa(inp.value); if (p.resto) window.mytaskDesktop.impostaServer(p.schema + '://' + p.resto); });
 </script></body></html>

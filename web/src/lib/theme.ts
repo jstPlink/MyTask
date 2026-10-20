@@ -9,7 +9,7 @@ export type Colore = 'verde' | 'petrolio' | 'indaco';
 export interface Aspetto { tema: Tema; colore: Colore }
 
 const KEY = 'mytask.aspetto';
-let corrente: Aspetto = { tema: 'sistema', colore: 'verde' };
+let corrente: Aspetto = { tema: 'chiaro', colore: 'verde' };
 const listeners = new Set<() => void>();
 
 /** Legge l'aspetto salvato (valori sconosciuti tornano ai predefiniti). */
@@ -19,12 +19,12 @@ function leggiAspetto(): Aspetto {
     if (raw) {
       const p = JSON.parse(raw) as Partial<Aspetto>;
       return {
-        tema: p.tema === 'chiaro' || p.tema === 'scuro' ? p.tema : 'sistema',
+        tema: p.tema === 'sistema' || p.tema === 'chiaro' || p.tema === 'scuro' ? p.tema : 'chiaro',
         colore: p.colore === 'petrolio' || p.colore === 'indaco' ? p.colore : 'verde',
       };
     }
   } catch { /* spazio di archiviazione non disponibile */ }
-  return { tema: 'sistema', colore: 'verde' };
+  return { tema: 'chiaro', colore: 'verde' };
 }
 
 /** Colore della barra del browser (meta theme-color) per ogni colore d'accento. */

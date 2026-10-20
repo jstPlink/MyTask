@@ -15,7 +15,7 @@ const PARAMETRI: { id: keyof PesiPunteggio; nome: string; descr: string }[] = [
 
 /**
  * Altro › Pesi della priorità (etichettata «Sperimentale»): cursori per il peso di urgenza, importanza, poco sforzo, età e scadenza fissa
- * nel punteggio delle attività. I pesi sono riportati a somma 100%, valgono solo su questo dispositivo e cambiano subito liste e widget;
+ * nel punteggio delle attività. I pesi sono riportati a somma 100%, si sincronizzano con gli altri dispositivi e cambiano subito liste e widget;
  * sotto, l'anteprima delle prime sei attività con il nuovo ordine.
  */
 export function PesiPriorita() {
@@ -33,7 +33,7 @@ export function PesiPriorita() {
       <div className="scroll">
         <div className="sper-box">
           <b>Per sperimentare</b>
-          <span>Cambia quanto conta ogni parametro nel punteggio di un&apos;attività. I pesi si riportano a somma 100%, valgono solo su questo dispositivo e cambiano subito liste e widget. Il punteggio resta tra 0 e 100.</span>
+          <span>Cambia quanto conta ogni parametro nel punteggio di un&apos;attività. I pesi si riportano a somma 100%, si sincronizzano con gli altri dispositivi e cambiano subito liste e widget. Il punteggio resta tra 0 e 100.</span>
         </div>
         <Sec a="Parametri" />
         {PARAMETRI.map((p) => (
