@@ -89,3 +89,24 @@ export function notaInCorso(items: Item[]): Item | undefined {
 export function altreInCorso(items: Item[], id: string): Item[] {
   return items.filter((i) => i.id !== id && !i.eliminato && i.stato === 'in_corso' && (i.tipo === 'azione' || i.tipo === 'curiosita'));
 }
+
+/** Ogni quanti minuti il telefono può ricordare che il timer sta scorrendo (la scelta in Altro › Notifica del timer). */
+export const INTERVALLI_PROMEMORIA_MIN = [1, 2, 5, 10, 15, 30];
+export const INTERVALLO_PROMEMORIA_PREDEFINITO_MIN = 5;
+
+/**
+ * Gli istanti (millisecondi) delle prossime notifiche periodiche del timer: solo mentre il cronometro corre, uno ogni `ogniMin`
+ * minuti dall'inizio del tratto in corso (ripartono da zero a ogni pausa o ripresa), fino a `orizzonteMs` da `ora` e al massimo
+ * `max`. Il telefono le pianifica tutte insieme: oltre l'orizzonte se ne pianificano altre quando l'app si riapre.
+ */
+export function istantiPromemoriaTimer(s: Sessione, ogniMin: number, ora: number, orizzonteMs = 3 * 3_600_000, max = 60): number[] {
+  if (s.stato !== 'lavoro' || !s.inizio || !(ogniMin > 0)) return [];
+  const passo = ogniMin * 60_000;
+  const out: number[] = [];
+  for (let k = Math.floor((ora - s.inizio) / passo) + 1; out.length < max; k++) {
+    const t = s.inizio + k * passo;
+    if (t - ora > orizzonteMs) break;
+    if (t - ora >= 5000) out.push(t); // un istante troppo vicino sarebbe già passato quando il sistema lo riceve
+  }
+  return out;
+}

@@ -22,14 +22,28 @@ export interface RigaWidget {
   b?: number;
   /** 1 se il task è «in corso»: la casella del widget è mezza gialla come nell'app. */
   c?: 1;
+  /** Tempo previsto in minuti (la stima della nota), se c'è. */
+  p?: number;
+  /** «c» se è una curiosità (senza posizione in classifica, in una sezione sua); assente per le attività. */
+  k?: 'c';
+  /** Interesse 1-5 di una curiosità, per il pallino verde che si riempie con l'interesse. */
+  i?: number;
 }
 
-/** Le cose da fare oggi per il widget: la lista semplice di Oggi (`vistaOggi`), con posizione in classifica, priorità e battito. */
+/**
+ * Le cose da fare oggi per il widget, come in Priorità: prima le attività (`vistaOggi().fare`, con posizione in classifica,
+ * priorità e battito), poi le curiosità (`k: 'c'`, senza posizione). Nessuna è tagliata: il widget scorre.
+ */
 export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[] {
   const classifica = classificaPriorita(items, oggi); // la stessa posizione che si legge nell'app
-  return vistaOggi(items, oggi).fare.slice(0, max).map((e) => ({
-    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi, classifica.get(e.item.id)), b: battitoBpm(intensitaBattito(e.item, oggi, livelloPriorita(e.item, oggi, classifica.get(e.item.id))), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined,
+  const v = vistaOggi(items, oggi);
+  const attivita: RigaWidget[] = v.fare.slice(0, max).map((e) => ({
+    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi, classifica.get(e.item.id)), b: battitoBpm(intensitaBattito(e.item, oggi, livelloPriorita(e.item, oggi, classifica.get(e.item.id))), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, p: e.item.sforzoMin || undefined,
   }));
+  const curiosita: RigaWidget[] = v.curiosita.map((i) => ({
+    id: i.id, t: i.titolo, l: 1, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, p: i.sforzoMin || undefined, k: 'c', i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))),
+  }));
+  return [...attivita, ...curiosita];
 }
 
 /** La sessione «Inizia» come la vede il widget: il cronometro mostra `base` più, se corre (`lavoro`), il tempo da `ref`. */

@@ -78,7 +78,12 @@ export function Oggi() {
   const quotaBlocco = notaBlocco?.sforzoMin ? Math.min(1, tempoBlocco / (notaBlocco.sforzoMin * 60_000)) : undefined;
   const premi = () => { if (!notaBlocco) return; if (lavoro) mettiInPausa(); else if (sessione.stato === 'pausa') riprendi(); else iniziaLavoro(notaBlocco.id); };
   const lavora = !notaBlocco ? (
-    <div className="blocco vuoto"><span className="blk-e">Nessuna nota in corso</span></div>
+    // Senza nota in corso il blocco ha la stessa altezza di quando c'è: le stesse parti, nascoste (`fantasma`), tengono lo spazio.
+    <div className="blocco vuoto">
+      <div className="blk-hd"><span className="blk-e">Nessuna nota in corso</span><span className="blk-dx fantasma" aria-hidden="true"><span className="blk-pl" /></span></div>
+      <div className="blk-nota fantasma" aria-hidden="true"><span className="blk-rk" /><span className="blk-t"><b>&nbsp;</b><small>&nbsp;</small></span><span className="cb" /></div>
+      <div className="blk-sotto fantasma" aria-hidden="true"><div className="blk-tt"><b>&nbsp;</b></div><div className="blk-barra" /></div>
+    </div>
   ) : (
     <div className={clsx('blocco', lavoro && 'corre')}>
       <div className="blk-hd">

@@ -26,7 +26,7 @@ import { StatoMenu } from './ui/StatoMenu.tsx';
 import { CompletamentoSheet } from './ui/CompletamentoSheet.tsx';
 import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
 import { ControlloSessione } from './ui/ControlloSessione.tsx';
-import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, Stasera } from './screens/Secondarie.tsx';
+import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, NotificaTimer, Stasera } from './screens/Secondarie.tsx';
 
 // Radice dell'interfaccia: sceglie tra accesso, layout stretto (telefono: una schermata + barra delle schede) e
 // layout largo (computer: barra laterale e voce aperta in finestra), e gestisce la navigazione.
@@ -48,6 +48,7 @@ function Schermata({ s }: { s: Screen }) {
     case 'archivio': return <Archivio />;
     case 'daparte': return <DaParte />;
     case 'aspetto': return <Aspetto />;
+    case 'timer': return <NotificaTimer />;
     case 'stasera': return <Stasera />;
     case 'account': return <Account />;
     case 'pesi': return <PesiPriorita />;

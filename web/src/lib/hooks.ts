@@ -9,12 +9,15 @@ import { getStatoSync, subscribeSync } from './sync.ts';
 import { getToast, subscribeToast } from './toast.ts';
 import { getAspetto, subscribeAspetto } from './theme.ts';
 import { getSessione, subscribeSessione } from './sessione.ts';
+import { getPromemoriaTimer, subscribePromemoriaTimer } from './promemoriaTimer.ts';
 
 export const useItems = (): Item[] => useSyncExternalStore(subscribe, getItems);
 export const useAuth = () => useSyncExternalStore(subscribeAuth, getAuth);
 export const useSyncStatus = () => useSyncExternalStore(subscribeSync, getStatoSync);
 export const useToast = () => useSyncExternalStore(subscribeToast, getToast);
 export const useAspetto = () => useSyncExternalStore(subscribeAspetto, getAspetto);
+/** Impostazione della notifica periodica del timer (solo telefono). */
+export const usePromemoriaTimer = () => useSyncExternalStore(subscribePromemoriaTimer, getPromemoriaTimer);
 /** La sessione di lavoro («Inizia»). */
 export const useSessione = () => useSyncExternalStore(subscribeSessione, getSessione);
 

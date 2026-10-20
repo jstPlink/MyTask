@@ -9,13 +9,16 @@ import android.text.style.StrikethroughSpan;
 import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
+import java.util.ArrayList;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Servizio che fornisce al ListView del widget le righe della lista di oggi (lette da WidgetDati). Ogni riga ha: pallino
- * con la posizione in classifica colorato per priorità, titolo con l'orario sotto, checkbox quadrato. Le righe fatte
- * (spuntate dal widget, non ancora applicate dall'app) sono sbarrate e senza battito.
+ * Servizio che fornisce al ListView del widget le righe della lista di oggi (lette da WidgetDati): l'intestazione
+ * «Attività» con le attività, poi «Curiosità» con le curiosità, tutte, e la lista scorre. Ogni riga ha: pallino con la
+ * posizione in classifica colorato per priorità (non per le curiosità), titolo con la stima sotto, tempo già lavorato e
+ * checkbox quadrato. Le righe fatte (spuntate dal widget, non ancora applicate dall'app) sono sbarrate e senza battito.
  */
 public class WidgetService extends RemoteViewsService {
 
@@ -29,6 +32,10 @@ public class WidgetService extends RemoteViewsService {
         private final Context c;
         private final boolean s;
         private JSONArray righe = new JSONArray();
+        /** Le voci della lista: intestazioni di sezione (con «h») e righe, nell'ordine in cui compaiono. */
+        private final List<JSONObject> voci = new ArrayList<>();
+        /** La nota del blocco del cronometro: il suo tempo sta già lì, non accanto alla casella. */
+        private String idBlocco = "";
 
         Fabbrica(Context c, boolean scuro) {
             this.c = c;
@@ -36,13 +43,50 @@ public class WidgetService extends RemoteViewsService {
         }
 
         @Override public void onCreate() { }
-        @Override public void onDataSetChanged() { righe = WidgetDati.righe(c); }
+        @Override public void onDataSetChanged() {
+            righe = WidgetDati.righe(c);
+            JSONObject blocco = WidgetDati.notaBlocco(c);
+            idBlocco = blocco == null ? "" : blocco.optString("id");
+            voci.clear();
+            aggiungi("Attività", false);
+            aggiungi("Curiosità", true);
+        }
+
+        /** Intestazione (con il tempo necessario a finire le voci) e righe di una sezione; se non ha voci non compare. */
+        private void aggiungi(String nome, boolean curiosita) {
+            List<JSONObject> sezione = new ArrayList<>();
+            long minuti = 0;
+            for (int i = 0; i < righe.length(); i++) {
+                JSONObject o = righe.optJSONObject(i);
+                if (o == null || "c".equals(o.optString("k")) != curiosita) continue;
+                sezione.add(o);
+                minuti += o.optLong("p", 0);
+            }
+            if (sezione.isEmpty()) return;
+            try {
+                voci.add(new JSONObject().put("h", nome).put("m", minuti));
+            } catch (Exception ignored) {
+            }
+            voci.addAll(sezione);
+        }
+
         @Override public void onDestroy() { }
-        @Override public int getCount() { return righe.length(); }
+        @Override public int getCount() { return voci.size(); }
         @Override public RemoteViews getLoadingView() { return null; }
-        @Override public int getViewTypeCount() { return 1; }
+        @Override public int getViewTypeCount() { return 2; }
         @Override public long getItemId(int i) { return i; }
         @Override public boolean hasStableIds() { return false; }
+
+        /** Intestazione di sezione: nome e tempo necessario (somma delle stime). */
+        private RemoteViews sezione(JSONObject o) {
+            RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.riga_sezione);
+            v.setTextViewText(R.id.sez_nome, o.optString("h"));
+            v.setTextColor(R.id.sez_nome, colore("#65656E", "#A5A5B0"));
+            long m = o.optLong("m", 0);
+            v.setTextViewText(R.id.sez_tempo, m > 0 ? WidgetDati.durata(m) : "");
+            v.setTextColor(R.id.sez_tempo, colore("#2F7D5B", "#6FCF9B"));
+            return v;
+        }
 
         /** Colore #RRGGBB per il tema del widget (stessi colori dell'app web). */
         private int colore(String chiaro, String scuro) {
@@ -51,8 +95,9 @@ public class WidgetService extends RemoteViewsService {
 
         @Override
         public RemoteViews getViewAt(int pos) {
+            JSONObject o = pos < voci.size() ? voci.get(pos) : null;
+            if (o != null && o.has("h")) return sezione(o);
             RemoteViews v = new RemoteViews(c.getPackageName(), s ? R.layout.riga_scuro : R.layout.riga_chiaro);
-            JSONObject o = righe.optJSONObject(pos);
             if (o == null) return v;
             boolean fatto = o.optInt("f", 0) == 1;
             String id = o.optString("id");
@@ -64,11 +109,18 @@ public class WidgetService extends RemoteViewsService {
             boolean inCorso = !fatto && (o.optInt("c", 0) == 1 || inLavoro);
             v.setInt(R.id.riga, "setBackgroundColor", Color.TRANSPARENT);
 
-            // orario del piano sotto il titolo
-            String ora = o.optString("o", "");
-            v.setViewVisibility(R.id.sub, ora.isEmpty() ? View.GONE : View.VISIBLE);
-            v.setTextViewText(R.id.sub, ora);
-            v.setTextColor(R.id.sub, fatto ? colore("#919199", "#72737D") : colore("#2F7D5B", "#6FCF9B"));
+            // stima sotto il titolo
+            long previsto = o.optLong("p", 0);
+            v.setViewVisibility(R.id.sub, previsto > 0 ? View.VISIBLE : View.GONE);
+            v.setTextViewText(R.id.sub, WidgetDati.durata(previsto));
+            v.setTextColor(R.id.sub, colore("#65656E", "#A5A5B0"));
+
+            // tempo già lavorato accanto alla casella (non per la nota del blocco in alto, che ha il suo timer)
+            long lavorato = o.optLong("w", 0);
+            boolean mostraTempo = lavorato >= 1000 && !id.equals(idBlocco) && !fatto;
+            v.setViewVisibility(R.id.tempo, mostraTempo ? View.VISIBLE : View.GONE);
+            v.setTextViewText(R.id.tempo, WidgetDati.cronometro(lavorato));
+            v.setTextColor(R.id.tempo, colore("#65656E", "#A5A5B0"));
 
             // pallino della posizione: fermo (TextView «rank») oppure pulsante (ViewFlipper «rank_flip»)
             int rank = o.optInt("r", 0);
@@ -110,6 +162,17 @@ public class WidgetService extends RemoteViewsService {
                     v.setInt(R.id.rank, "setBackgroundResource", pieno);
                     v.setTextColor(R.id.rank, tinta);
                 }
+            } else if ("c".equals(o.optString("k"))) {
+                // curiosità: pallino verde con l'interesse (1-5), che si riempie con l'interesse; fermo, senza battito
+                int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
+                int[] pieniC = {R.drawable.rank_int_c_1, R.drawable.rank_int_c_2, R.drawable.rank_int_c_3, R.drawable.rank_int_c_4, R.drawable.rank_int_c_5};
+                int[] pieniS = {R.drawable.rank_int_s_1, R.drawable.rank_int_s_2, R.drawable.rank_int_s_3, R.drawable.rank_int_s_4, R.drawable.rank_int_s_5};
+                v.setViewVisibility(R.id.rankbox, View.VISIBLE);
+                v.setViewVisibility(R.id.rank_flip, View.GONE);
+                v.setViewVisibility(R.id.rank, View.VISIBLE);
+                v.setTextViewText(R.id.rank, String.valueOf(interesse));
+                v.setInt(R.id.rank, "setBackgroundResource", (s ? pieniS : pieniC)[interesse - 1]);
+                v.setTextColor(R.id.rank, interesse >= 3 ? Color.parseColor(s ? "#0E0F12" : "#F1F0EC") : Color.parseColor(s ? "#6FCF9B" : "#2F7D5B"));
             } else {
                 v.setViewVisibility(R.id.rankbox, View.GONE);
             }

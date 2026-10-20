@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Riga della lista di oggi nel widget: pallino della posizione (fermo in "rank", oppure "rank_flip" che alterna i quadri
-     di rank_frame ogni 150 ms per il battito), titolo con orario sotto, checkbox. Colori di testo di base; il resto lo imposta WidgetService. -->
+     di rank_frame ogni 150 ms per il battito), titolo con la stima sotto, tempo già lavorato e checkbox. Colori di testo di base; il resto lo imposta WidgetService. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/riga"
     android:layout_width="match_parent"
@@ -60,6 +60,17 @@
             android:textSize="11.5sp"
             android:textStyle="bold" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tempo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:fontFamily="monospace"
+        android:textColor="#A5A5B0"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
     <ImageView
         android:id="@+id/cb"

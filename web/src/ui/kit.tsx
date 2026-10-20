@@ -9,7 +9,7 @@ import { stimaProgetto } from '../../../shared/views.ts';
 import { percentuale } from '../../../shared/stima.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
 import { GlifoTipo } from './Icone.tsx';
-import { avanzaStato, statoVisto } from '../lib/actions.ts';
+import { statoVisto } from '../lib/actions.ts';
 import { apriStatoMenu } from '../lib/statoMenu.ts';
 import type { Item, Stato, Tipo } from '../../../shared/types.ts';
 import { battito } from '../lib/battito.ts';
@@ -88,31 +88,21 @@ export function ClasseCasella(s: Stato): string {
   return v === 'in_corso' ? 'prog' : v === 'fatto' ? 'done' : v === 'parcheggiato' ? 'arch' : '';
 }
 
-// dopo questo tempo di dito fermo sulla casella si apre il menu degli stati
-const PRESSIONE_LUNGA_MS = 450;
-
 /**
- * Casella a quattro stati di una nota: un tocco porta allo stato successivo, la pressione lunga (con una vibrazione breve)
- * o il tasto destro aprono il menu con tutti gli stati. Dopo una pressione lunga il clic che segue il rilascio viene ignorato.
+ * Casella a quattro stati di una nota: un tocco (o il tasto destro) apre subito il foglio con tutti gli stati, come una pressione
+ * lunga; lo stato non cambia da solo, così non si sbaglia toccando di fretta.
  */
 function CasellaStato({ voce }: { voce: Item }) {
-  const timer = useRef<number | undefined>(undefined);
-  const lungo = useRef(false);
-  const ferma = () => { window.clearTimeout(timer.current); timer.current = undefined; };
   const stato = statoVisto(voce.stato);
   const nome = { da_fare: 'da fare', in_corso: 'in corso', fatto: 'fatta', parcheggiato: 'archiviata' }[stato as 'da_fare'] ?? '';
   return (
     <span
       className={clsx('cb', ClasseCasella(voce.stato))}
       role="button"
-      aria-label={`«${voce.titolo}»: ${nome}. Tocca per cambiare, tieni premuto per scegliere`}
+      aria-label={`«${voce.titolo}»: ${nome}. Tocca per scegliere lo stato`}
       style={{ cursor: 'pointer', touchAction: 'manipulation' }}
-      onPointerDown={() => { lungo.current = false; ferma(); timer.current = window.setTimeout(() => { lungo.current = true; navigator.vibrate?.(12); apriStatoMenu(voce); }, PRESSIONE_LUNGA_MS); }}
-      onPointerUp={ferma}
-      onPointerLeave={ferma}
-      onPointerCancel={ferma}
-      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); ferma(); lungo.current = true; apriStatoMenu(voce); }}
-      onClick={(e) => { e.stopPropagation(); if (lungo.current) { lungo.current = false; return; } avanzaStato(voce); }}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); apriStatoMenu(voce); }}
+      onClick={(e) => { e.stopPropagation(); navigator.vibrate?.(12); apriStatoMenu(voce); }}
     />
   );
 }

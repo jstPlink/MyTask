@@ -28,6 +28,20 @@ test('widget: un task «in corso» è segnalato per la casella mezza gialla', ()
   assert.equal(r.find((x) => x.t === 'Da fare')?.c, undefined);
 });
 
+test('widget: dopo le attività ci sono le curiosità, senza posizione, con la stima', () => {
+  const a = mk({ titolo: 'Attività', importanza: 5, fine: OGGI, sforzoMin: 80 });
+  const cs = Array.from({ length: 6 }, (_, i) => mk({ tipo: 'curiosita', titolo: `Curiosità ${i}`, interesse: 5 - (i % 3) as 3 | 4 | 5, sforzoMin: i === 0 ? 25 : undefined }));
+  const r = righeWidget([a, ...cs], OGGI);
+  assert.equal(r[0].t, 'Attività');
+  assert.equal(r[0].p, 80);
+  assert.equal(r[0].k, undefined);
+  const c = r.filter((x) => x.k === 'c');
+  assert.equal(c.length, 5, 'tutte e cinque le curiosità, nessuna tagliata');
+  assert.ok(c.every((x) => x.r === undefined));
+  assert.ok(c.every((x) => x.i !== undefined && x.i >= 1 && x.i <= 5), 'ogni curiosità ha il suo interesse per il pallino');
+  assert.equal(r.indexOf(c[0]), 1, 'le curiosità vengono dopo le attività');
+});
+
 test('widget: la sessione «Inizia» mostra il task, il tempo accumulato e l\'inizio del tratto', () => {
   const a = mk({ titolo: 'Garage', lavoratoMs: 60_000, sforzoMin: 80 });
   assert.deepEqual(lavoroWidget([a], { stato: 'lavoro', taskId: a.id, inizio: 5000, aggiornato: 1 }), { stato: 'lavoro', id: a.id, t: 'Garage', base: 60_000, ref: 5000, p: 80 });

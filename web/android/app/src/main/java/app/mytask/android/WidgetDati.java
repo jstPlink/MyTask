@@ -11,8 +11,9 @@ import org.json.JSONObject;
 /**
  * Archivio locale (SharedPreferences «mytask_widget») condiviso tra app e widget. Il widget non legge i dati dell'app
  * e non usa la rete: conserva solo cinque valori testuali in JSON.
- *  - «righe»: la lista di oggi, scritta dall'app (WidgetPlugin.aggiorna); per riga: id, titolo «t», posizione «r»,
- *    livello di priorità «l», battiti al minuto «b», millisecondi già lavorati «w», stato fatto «f».
+ *  - «righe»: la lista di oggi, scritta dall'app (WidgetPlugin.aggiorna): prima le attività, poi le curiosità («k»="c",
+ *    senza posizione); per riga: id, titolo «t», posizione «r», livello di priorità «l», battiti al minuto «b»,
+ *    millisecondi già lavorati «w», minuti previsti «p», «in corso» «c», stato fatto «f».
  *  - «lavoro»: la sessione «Inizia» ({stato:"lavoro"|"pausa", id, t, base, ref}); il tempo del task è «base»
  *    (millisecondi già accumulati) più, se corre, il tempo trascorso da «ref» (momento di inizio del tratto). L'app lo scrive
  *    (WidgetPlugin.aggiorna) e il widget lo cambia da solo quando si tocca Inizia, pausa, Fine o la casella del task.
@@ -66,6 +67,36 @@ final class WidgetDati {
     static long trascorso(JSONObject l, long adesso) {
         long base = l.optLong("base", 0);
         return "lavoro".equals(l.optString("stato")) ? base + Math.max(0, adesso - l.optLong("ref", adesso)) : base;
+    }
+
+    /**
+     * La nota del blocco del cronometro, come in Priorità: quella su cui corre la sessione (anche in pausa), altrimenti
+     * la prima nota «in corso» non spuntata della lista. Torna la sua riga (con eventuale posizione, priorità e stima)
+     * oppure, se la riga non c'è più, i soli dati della sessione; null se non c'è nessuna nota in corso.
+     */
+    static JSONObject notaBlocco(Context c) {
+        try {
+            JSONObject l = lavoro(c);
+            JSONArray r = righe(c);
+            for (int i = 0; i < r.length(); i++) {
+                JSONObject o = r.getJSONObject(i);
+                if (l != null ? o.optString("id").equals(l.optString("id")) : (o.optInt("c", 0) == 1 && o.optInt("f", 0) != 1)) return o;
+            }
+            if (l != null) return new JSONObject().put("id", l.optString("id")).put("t", l.optString("t")).put("l", 1).put("p", l.optLong("p", 0)).put("w", l.optLong("base", 0));
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    /** Minuti in forma breve: «42 min», «1 h 20 min». */
+    static String durata(long minuti) {
+        return minuti >= 60 ? (minuti / 60) + " h" + (minuti % 60 != 0 ? " " + (minuti % 60) + " min" : "") : minuti + " min";
+    }
+
+    /** Millisecondi come cronometro: «00:42:10». */
+    static String cronometro(long ms) {
+        long s = Math.max(0, ms) / 1000;
+        return String.format(java.util.Locale.ROOT, "%02d:%02d:%02d", s / 3600, s % 3600 / 60, s % 60);
     }
 
     private static JSONObject azioneSessione(String tipo, String id, long ts) throws Exception {

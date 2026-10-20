@@ -11,9 +11,9 @@ import android.widget.RemoteViews;
 import org.json.JSONObject;
 
 /**
- * Widget «Oggi» della schermata Home, 4x3 e ridimensionabile: in cima il pulsante «Inizia» (o, a sessione aperta, il
- * cronometro con «Fine» e pausa), sotto la lista delle cose da fare di oggi in ordine di priorità e, in basso a destra, il
- * pulsante + che apre la nota veloce (NotaRapidaActivity). Le sottoclassi
+ * Widget «Oggi» della schermata Home, 4x3 e ridimensionabile: in cima il blocco del cronometro (come in Priorità: stato, timer grande, ▶/⏸ e ■, barra), sotto la
+ * lista scorrevole delle attività di oggi in ordine di priorità e delle curiosità e, in basso a destra, il pulsante + che apre
+ * la nota veloce (NotaRapidaActivity). Le sottoclassi
  * MyTaskWidgetChiaro e MyTaskWidgetScuro scelgono solo l'aspetto (layout widget_chiaro o widget_scuro).
  * Le righe arrivano da WidgetService; i tocchi sulle righe passano da AzioneActivity.
  */
@@ -35,35 +35,40 @@ public abstract class WidgetBase extends AppWidgetProvider {
     }
 
     /**
-     * Intestazione: senza sessione il pulsante «Inizia»; con la sessione la barra con il cronometro nativo
-     * (Chronometer, avanza da solo), il titolo del task, «Fine» e il pulsante pausa/riprendi (giallo se in pausa).
+     * Blocco del cronometro, sempre della stessa altezza: senza nota in corso solo «Nessuna nota in corso» (timer, tasti e barra invisibili al loro posto); con una nota «In corso», il timer
+     * grande (Chronometer nativo, avanza da solo; grigio se fermo, verde se corre), il tasto ▶/⏸ e ■ (▶/⏸ solo con una nota in
+     * corso; ■ solo a sessione aperta) e la barra del tempo sul previsto, senza scritte. Il bordo è verde mentre corre.
+     * La barra si ridisegna a ogni aggiornamento del widget.
      */
     private void intestazione(Context c, RemoteViews v, boolean s, int k) {
         JSONObject l = WidgetDati.lavoro(c);
-        boolean attiva = l != null;
-        v.setViewVisibility(R.id.avvia, attiva ? android.view.View.GONE : android.view.View.VISIBLE);
-        v.setViewVisibility(R.id.crono_barra, attiva ? android.view.View.VISIBLE : android.view.View.GONE);
-        v.setOnClickPendingIntent(R.id.avvia, comando(c, 40 + k, "avvia"));
-        if (!attiva) return;
-        boolean pausa = "pausa".equals(l.optString("stato"));
-        long trascorso = WidgetDati.trascorso(l, System.currentTimeMillis());
-        v.setChronometer(R.id.crono, SystemClock.elapsedRealtime() - trascorso, null, !pausa);
-        long previsto = l.optLong("p", 0); // tempo previsto in minuti (0 = nessuna stima)
-        v.setTextViewText(R.id.crono_titolo, (pausa ? "In pausa · " : "") + l.optString("t") + (previsto > 0 ? " · su " + durata(previsto) : ""));
-        v.setTextViewText(R.id.crono_pausa, pausa ? "▶︎" : "❚❚"); // glifi di testo (non emoji): prendono il colore del testo, senza il quadrato arancione
-        v.setInt(R.id.crono_barra, "setBackgroundResource", pausa ? (s ? R.drawable.crono_pausa_bg_s : R.drawable.crono_pausa_bg_c) : (s ? R.drawable.crono_bg_s : R.drawable.crono_bg_c));
-        v.setInt(R.id.crono_pausa, "setBackgroundResource", pausa ? R.drawable.pl_bg_ambra : (s ? R.drawable.piu_bg_s : R.drawable.piu_bg_c));
-        v.setTextColor(R.id.crono_pausa, pausa || !s ? 0xFFFFFFFF : 0xFF0E0F12);
-        int testo = s ? 0xFFF3F3F6 : 0xFF111115;
-        v.setTextColor(R.id.crono, pausa ? (s ? 0xFFF0B866 : 0xFFB7791F) : testo);
-        v.setTextColor(R.id.crono_titolo, s ? 0xFFA5A5B0 : 0xFF65656E);
-        v.setOnClickPendingIntent(R.id.crono_pausa, comando(c, 42 + k, pausa ? "riprendi" : "pausa"));
-        v.setOnClickPendingIntent(R.id.crono_fine, comando(c, 44 + k, "fine"));
-    }
+        JSONObject nota = WidgetDati.notaBlocco(c);
+        boolean ce = nota != null;
+        boolean corre = ce && l != null && "lavoro".equals(l.optString("stato"));
+        boolean pausa = ce && l != null && "pausa".equals(l.optString("stato"));
+        int sfondo = !ce ? (s ? R.drawable.blocco_vuoto_s : R.drawable.blocco_vuoto_c) : corre ? (s ? R.drawable.blocco_corre_s : R.drawable.blocco_corre_c) : (s ? R.drawable.blocco_fermo_s : R.drawable.blocco_fermo_c);
+        v.setInt(R.id.blocco, "setBackgroundResource", sfondo);
+        v.setTextViewText(R.id.blk_e, c.getString(ce ? R.string.widget_in_corso : R.string.widget_nessuna));
+        int verde = s ? 0xFF6FCF9B : 0xFF2F7D5B;
+        int grigio = s ? 0xFF72737D : 0xFF919199;
+        v.setTextColor(R.id.blk_e, corre ? verde : grigio);
+        v.setTextColor(R.id.blk_tm, corre ? verde : grigio);
+        // senza nota in corso si vede solo lo stato, ma timer, tasto e barra restano invisibili al loro posto: il blocco ha sempre la stessa altezza
+        int mostra = ce ? android.view.View.VISIBLE : android.view.View.INVISIBLE;
+        v.setViewVisibility(R.id.blk_pl, mostra);
+        v.setViewVisibility(R.id.blk_tm, mostra);
+        v.setViewVisibility(R.id.blk_barra, mostra);
+        v.setViewVisibility(R.id.blk_st, l != null ? android.view.View.VISIBLE : android.view.View.GONE);
 
-    /** Minuti in forma breve: «42 min», «1 h 20 min». */
-    private static String durata(long minuti) {
-        return minuti >= 60 ? (minuti / 60) + " h" + (minuti % 60 != 0 ? " " + (minuti % 60) + " min" : "") : minuti + " min";
+        long trascorso = !ce ? 0 : l != null ? WidgetDati.trascorso(l, System.currentTimeMillis()) : nota.optLong("w", 0);
+        long previsto = ce ? nota.optLong("p", 0) : 0; // minuti (0 = nessuna stima)
+        v.setChronometer(R.id.blk_tm, SystemClock.elapsedRealtime() - trascorso, null, corre);
+        v.setProgressBar(R.id.blk_barra, 1000, previsto > 0 ? (int) Math.min(1000, trascorso * 1000 / (previsto * 60_000)) : 0, false);
+        v.setOnClickPendingIntent(R.id.blk_sx, comando(c, 44 + k, "apri"));
+        if (!ce) return;
+        v.setTextViewText(R.id.blk_pl, corre ? "❚❚" : "▶︎"); // glifi di testo (non emoji): prendono il colore del testo
+        v.setOnClickPendingIntent(R.id.blk_pl, comando(c, 42 + k, corre ? "pausa" : pausa ? "riprendi" : "avvia"));
+        v.setOnClickPendingIntent(R.id.blk_st, comando(c, 46 + k, "fine"));
     }
 
     private RemoteViews costruisci(Context c, int id) {

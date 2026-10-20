@@ -9,7 +9,7 @@ import { formatShortYear, monthKey, monthLabel, today } from '../../../shared/da
 import { daParte, archivio, dataChiusura, inbox } from '../../../shared/views.ts';
 import { riapri } from '../../../shared/recurrence.ts';
 import { COMPAGNIE, ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE, suggerisciStasera, type Compagnia } from '../../../shared/stasera.ts';
-import { useAspetto, useAuth, useItems, useSyncStatus } from '../lib/hooks.ts';
+import { useAspetto, useAuth, useItems, usePromemoriaTimer, useSyncStatus } from '../lib/hooks.ts';
 import { saveItem, setAuth } from '../lib/store.ts';
 import { chiaveTitolo } from '../../../shared/testo.ts';
 import { apiBase, logout } from '../lib/api.ts';
@@ -18,6 +18,8 @@ import { aggiornaApp } from '../lib/aggiornamento.ts';
 import { sync } from '../lib/sync.ts';
 import { isNative } from '../lib/native.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
+import { impostaPromemoriaTimer } from '../lib/promemoriaTimer.ts';
+import { INTERVALLI_PROMEMORIA_MIN } from '../../../shared/sessione.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { Back, Chips, Empty, Field, Row, Sec, Seg, Top } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
@@ -30,6 +32,7 @@ export function Altro() {
   const nav = useNav();
   const items = useItems();
   const a = useAspetto();
+  const pt = usePromemoriaTimer();
   const nInbox = useMemo(() => inbox(items).length, [items]);
   const nArch = useMemo(() => archivio(items).length, [items]);
   const nParte = useMemo(() => daParte(items).length, [items]);
@@ -48,6 +51,7 @@ export function Altro() {
         {voce('Intelligenza artificiale', 'Gemini e Groq', { k: 'ia' })}
         <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Regole della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
+        {isNative() && voce('Notifica del timer', pt.attivo ? `ogni ${pt.ogniMinuti} min` : 'disattivata', { k: 'timer' })}
         {voce('Account e sincronizzazione', undefined, { k: 'account' })}
         <div className="t2" style={{ textAlign: 'center', marginTop: 24 }}>MyTask · versione {VERSIONE}</div>
       </div>
@@ -173,6 +177,35 @@ export function Aspetto() {
           <div className="btns"><span className="btn solid">Salva</span><span className="btn">Annulla</span></div>
         </div>
         <div className="t2" style={{ marginTop: 12 }}>Il tema si applica subito e resta salvato sul dispositivo, anche offline.</div>
+      </div>
+    </>
+  );
+}
+
+// ------------------------------------------------------------------ Notifica del timer
+
+/**
+ * Notifica periodica del timer (solo app Android): mentre una nota è in corso e il cronometro scorre, ogni N minuti il telefono
+ * manda una notifica sonora per ricordare che il tempo sta passando. Si sceglie se tenerla attiva e ogni quanti minuti.
+ */
+export function NotificaTimer() {
+  const pt = usePromemoriaTimer();
+  return (
+    <>
+      <Back label="Altro" />
+      <Top title="Notifica del timer" sub="Impostazioni" />
+      <div className="scroll">
+        <Sec a="Notifica periodica" />
+        <Seg<'si' | 'no'> voci={[{ id: 'si', nome: 'Attiva' }, { id: 'no', nome: 'Disattivata' }]} attivo={pt.attivo ? 'si' : 'no'} onChange={(v) => impostaPromemoriaTimer({ attivo: v === 'si' })} />
+        <div className="t2">Mentre una nota è in corso e il timer scorre, il telefono suona per ricordarti che il tempo sta passando. Si ferma con la pausa o quando chiudi la sessione.</div>
+        <Sec a="Ogni quanto" />
+        {INTERVALLI_PROMEMORIA_MIN.map((m) => (
+          <button key={m} className={clsx('opt', pt.ogniMinuti === m && 'sel')} onClick={() => impostaPromemoriaTimer({ ogniMinuti: m })} aria-pressed={pt.ogniMinuti === m} disabled={!pt.attivo} style={pt.attivo ? undefined : { opacity: 0.5 }}>
+            <span className="grow t1">{m === 1 ? 'Ogni minuto' : `Ogni ${m} minuti`}</span>
+            {pt.ogniMinuti === m && <span className="ok">✓</span>}
+          </button>
+        ))}
+        <div className="t2" style={{ marginTop: 12 }}>La notifica mostra la nota e il tempo trascorso. Il telefono ne prepara in anticipo fino a tre ore: se il timer corre più a lungo, le altre si preparano quando riapri l'app. Serve il permesso delle notifiche.</div>
       </div>
     </>
   );

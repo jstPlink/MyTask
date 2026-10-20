@@ -6,10 +6,17 @@ import type { Item } from '../../../shared/types.ts';
 import { pianificaNotifiche } from '../../../shared/pianifica.ts';
 import { debounce } from './util.ts';
 import { getItems, subscribe } from './store.ts';
-import { getSessione, scadenzaControllo, subscribeSessione } from './sessione.ts';
+import { getSessione, scadenzaControllo, subscribeSessione, tempoDi } from './sessione.ts';
+import { formatoCronometro, istantiPromemoriaTimer } from '../../../shared/sessione.ts';
+import { getPromemoriaTimer, subscribePromemoriaTimer } from './promemoriaTimer.ts';
 
 /** Identificativo della notifica «Stai ancora lavorando?» (la sessione ne ha una sola alla volta). */
 const ID_CONTROLLO_SESSIONE = 990001;
+
+/** Primo identificativo delle notifiche periodiche del timer (uno per istante pianificato). */
+const ID_TIMER = 995000;
+/** Canale delle notifiche del timer: importanza alta, quindi con suono. */
+const CANALE_TIMER = 'timer';
 
 /** True dentro l'app Android (Capacitor), false nel browser. */
 export const isNative = (): boolean => Capacitor.isNativePlatform();
@@ -41,7 +48,7 @@ async function chiediPermessoNotificheNative(): Promise<PermessoNotifiche> {
 /**
  * Riprogramma tutte le notifiche del sistema in base ai dati correnti: cancella quelle in attesa e ne pianifica di nuove
  * (promemoria delle voci e, se si sta lavorando, il controllo
- * «Stai ancora lavorando?» dopo 45 minuti senza conferme). I calcoli sono in shared/pianifica.ts e shared/sessione.ts.
+ * «Stai ancora lavorando?» dopo 45 minuti senza conferme e la notifica periodica del timer). I calcoli sono in shared/pianifica.ts e shared/sessione.ts.
  */
 async function aggiornaNotificheNative(items: Item[]): Promise<void> {
   if ((await permessoNotificheNative()) !== 'granted') return;
@@ -54,10 +61,23 @@ async function aggiornaNotificheNative(items: Item[]): Promise<void> {
     const controllo = scadenza && scadenza > Date.now()
       ? [{ id: ID_CONTROLLO_SESSIONE, title: 'Stai ancora lavorando?', body: titolo ? `«${titolo}»: apri MyTask per confermare` : 'Apri MyTask per confermare', schedule: { at: new Date(scadenza), allowWhileIdle: true }, smallIcon: 'ic_stat_mytask' }]
       : [];
-    if (lista.length || controllo.length) {
+    // notifiche periodiche del timer: mentre una nota è in corso e il cronometro scorre, una ogni N minuti, con suono
+    const imp = getPromemoriaTimer();
+    const sessione = getSessione();
+    const voce = getItems().find((i) => i.id === sessione.taskId);
+    const periodiche = !imp.attivo || !voce ? [] : istantiPromemoriaTimer(sessione, imp.ogniMinuti, Date.now()).map((t, k) => ({
+      id: ID_TIMER + k,
+      title: 'Il timer sta scorrendo',
+      body: `«${voce.titolo}» · ${formatoCronometro(tempoDi(voce, t))}`,
+      schedule: { at: new Date(t), allowWhileIdle: true },
+      smallIcon: 'ic_stat_mytask',
+      channelId: CANALE_TIMER,
+    }));
+    if (lista.length || controllo.length || periodiche.length) {
       await LocalNotifications.schedule({
         notifications: [
           ...controllo,
+          ...periodiche,
           ...lista.map((n) => ({
             id: n.id,
             title: n.titolo,
@@ -81,6 +101,8 @@ export function avviaNotificheNative() {
   const aggiorna = debounce(() => { void aggiornaNotificheNative(getItems()); }, 2000);
   subscribe(aggiorna);
   subscribeSessione(aggiorna);
+  subscribePromemoriaTimer(aggiorna);
+  void LocalNotifications.createChannel({ id: CANALE_TIMER, name: 'Timer in corso', description: 'Un avviso sonoro ogni tanto mentre il timer scorre', importance: 4, visibility: 1, vibration: true }).catch(() => undefined);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') aggiorna(); });
   // la prima volta chiede il permesso (una sola volta: poi resta la scelta dell'utente)
   void (async () => {

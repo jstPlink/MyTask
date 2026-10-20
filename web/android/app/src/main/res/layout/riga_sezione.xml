@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Intestazione di sezione della lista del widget (Attività, Curiosità): nome a sinistra e tempo necessario a destra.
+     I colori li imposta WidgetService secondo il tema. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="2dp">
+
+    <TextView
+        android:id="@+id/sez_nome"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:letterSpacing="0.05"
+        android:textAllCaps="true"
+        android:textSize="11.5sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/sez_tempo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="true"
+        android:textSize="11.5sp"
+        android:textStyle="bold" />
+</LinearLayout>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pallino dell'interesse di una curiosità (3 su 5): verde che si riempie con l'interesse, come nell'app. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#856FCF9B" />
+    <stroke android:width="2dp" android:color="#B66FCF9B" />
+</shape>

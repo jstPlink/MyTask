@@ -535,7 +535,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .sz-t { margin: 0; padding: 9px var(--sz-p); background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 750; letter-spacing: -.005em; }
 /* Blocco del cronometro in Priorità: senza nota in corso solo lo stato; con la nota in corso la nota e la barra del tempo sempre visibili; mentre corre, timer grande accanto al tasto */
 .blocco { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 10px 12px 12px 16px; margin: 0 0 10px; transition: border-color .3s, box-shadow .3s; }
-.blocco.vuoto { border: 1.5px dashed var(--soft); padding: 12px 16px; }
+.blocco.vuoto { border: 1.5px dashed var(--soft); }
+.blocco .fantasma { visibility: hidden; }
 .blocco.corre { border-color: var(--accent); box-shadow: var(--shadow); }
 .blk-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
 .blk-e { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }

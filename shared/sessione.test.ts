@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { SESSIONE_FERMA, formatoCronometro, minutiMisurati, altreInCorso, notaInCorso, msTrattoInCorso, prossimoTask, sessioneValida, tempoLavorato, type Sessione } from './sessione.ts';
+import { SESSIONE_FERMA, formatoCronometro, istantiPromemoriaTimer, minutiMisurati, altreInCorso, notaInCorso, msTrattoInCorso, prossimoTask, sessioneValida, tempoLavorato, type Sessione } from './sessione.ts';
 
 const item = (id: string, lavoratoMs?: number): Item => ({ id, tipo: 'azione', titolo: id, stato: 'da_fare', creato: 1, aggiornato: 1, lavoratoMs });
 
@@ -64,4 +64,20 @@ test('sessione: una sola nota in corso, le altre tornano da fare', () => {
   const film = { ...base, id: 'f', tipo: 'film' as const, stato: 'in_corso' as const };
   assert.deepEqual(altreInCorso([a, b, film], 'b').map((x) => x.id), ['a']);
   assert.deepEqual(altreInCorso([a], 'a'), []);
+});
+
+test('sessione: le notifiche periodiche del timer cadono ogni N minuti dall\'inizio del tratto, solo mentre corre', () => {
+  const inizio = 1_000_000;
+  const s: Sessione = { stato: 'lavoro', taskId: 'a', inizio, aggiornato: 1 };
+  const m = 60_000;
+  // appena iniziato: 5, 10, 15 minuti…
+  assert.deepEqual(istantiPromemoriaTimer(s, 5, inizio, 16 * m), [inizio + 5 * m, inizio + 10 * m, inizio + 15 * m]);
+  // a 7 minuti dall'inizio la prossima è a 10, non a 12
+  assert.deepEqual(istantiPromemoriaTimer(s, 5, inizio + 7 * m, 10 * m), [inizio + 10 * m, inizio + 15 * m]);
+  // un istante a meno di 5 secondi da adesso si salta
+  assert.equal(istantiPromemoriaTimer(s, 5, inizio + 5 * m - 1000, 6 * m)[0], inizio + 10 * m);
+  assert.equal(istantiPromemoriaTimer(s, 1, inizio, 24 * 3_600_000, 10).length, 10, 'al massimo `max` notifiche');
+  assert.deepEqual(istantiPromemoriaTimer({ stato: 'pausa', taskId: 'a', aggiornato: 1 }, 5, inizio), [], 'in pausa niente');
+  assert.deepEqual(istantiPromemoriaTimer(SESSIONE_FERMA, 5, inizio), []);
+  assert.deepEqual(istantiPromemoriaTimer(s, 0, inizio), []);
 });
