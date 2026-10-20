@@ -7,7 +7,7 @@ import { today } from '../../../shared/dates.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { vistaOggi } from '../../../shared/views.ts';
 import {
-  INTERVALLO_CONTROLLO_MS, SESSIONE_FERMA, msTrattoInCorso, prossimoTask, sessioneValida, tempoLavorato, type Sessione,
+  INTERVALLO_CONTROLLO_MS, SESSIONE_FERMA, altreInCorso, notaInCorso, msTrattoInCorso, prossimoTask, sessioneValida, tempoLavorato, type Sessione,
 } from '../../../shared/sessione.ts';
 import type { Item, ImpostazioniSync } from '../../../shared/types.ts';
 import { getItem, getItems, saveItem, subscribe } from './store.ts';
@@ -48,10 +48,34 @@ export function elencoLavoro(): Item[] {
 }
 const idElenco = () => elencoLavoro().map((i) => i.id);
 
-/** Porta il task «in corso» (se era da fare) e ne ricorda il momento. */
+/** Una sola nota «in corso» alla volta: le altre tornano «da fare» (il tempo già lavorato resta nella nota). */
+export function lasciaInCorsoSolo(id: string, now = Date.now()) {
+  const nuova = getItem(id);
+  if (!nuova || (nuova.tipo !== 'azione' && nuova.tipo !== 'curiosita')) return;
+  for (const o of altreInCorso(getItems(), id)) saveItem({ ...o, stato: 'da_fare', inCorsoTs: undefined, aggiornato: now });
+}
+
+/** Porta il task «in corso» (se era da fare), ne ricorda il momento e riporta «da fare» le altre note in corso. */
 function segnaInCorso(id: string, now: number) {
   const item = getItem(id);
   if (item && item.stato === 'da_fare') saveItem({ ...item, stato: 'in_corso', inCorsoTs: now, aggiornato: now });
+  lasciaInCorsoSolo(id, now);
+}
+
+/** Una nota diventa «in corso» mentre c'è una sessione: il cronometro passa a lei (restando in pausa se era in pausa). */
+export function seguiNotaInCorso(id: string, now = Date.now()) {
+  if (corrente.stato === 'ferma' || corrente.taskId === id) return;
+  chiudiTratto(corrente, now);
+  imposta(corrente.stato === 'lavoro'
+    ? { stato: 'lavoro', taskId: id, inizio: now, controllo: now }
+    : { stato: 'pausa', taskId: id, controllo: corrente.controllo }, now);
+}
+
+/** La nota del cronometro smette di essere «in corso» (tolta a mano): la sessione si chiude. */
+export function fermaSessioneSe(id: string, now = Date.now()) {
+  if (corrente.stato === 'ferma' || corrente.taskId !== id) return;
+  chiudiTratto(corrente, now);
+  imposta({ stato: 'ferma' }, now);
 }
 
 /** Somma `ms` al tempo lavorato di un task. */
@@ -66,12 +90,16 @@ function chiudiTratto(s: Sessione, now: number) {
   accumula(s.taskId, msTrattoInCorso(s, now), now);
 }
 
-/** «Inizia»: il cronometro parte sul primo task della lista di Oggi (o su `id`, se dato), senza cambiarne lo stato: può correre anche su una curiosità. */
+/**
+ * «Inizia»: il cronometro parte sulla nota «in corso» (o su `id`, se dato); se nessuna nota è in corso parte dalla prima della lista
+ * di Oggi, che passa «in corso». Una curiosità in corso può avere il cronometro senza cambiare stato.
+ */
 export function iniziaLavoro(id?: string, now = Date.now()) {
   if (corrente.stato !== 'ferma') return;
-  const scelto = id ?? idElenco()[0];
+  const scelto = id ?? notaInCorso(getItems())?.id ?? idElenco()[0];
   if (!scelto) { mostraToast('Nessuna attività da fare'); return; }
   imposta({ stato: 'lavoro', taskId: scelto, inizio: now, controllo: now }, now);
+  segnaInCorso(scelto, now);
 }
 
 /** Ferma il cronometro (telefonata, pranzo) tenendo aperta la sessione. */

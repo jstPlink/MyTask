@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { SESSIONE_FERMA, formatoCronometro, minutiMisurati, msTrattoInCorso, prossimoTask, sessioneValida, tempoLavorato, type Sessione } from './sessione.ts';
+import { SESSIONE_FERMA, formatoCronometro, minutiMisurati, altreInCorso, notaInCorso, msTrattoInCorso, prossimoTask, sessioneValida, tempoLavorato, type Sessione } from './sessione.ts';
 
 const item = (id: string, lavoratoMs?: number): Item => ({ id, tipo: 'azione', titolo: id, stato: 'da_fare', creato: 1, aggiornato: 1, lavoratoMs });
 
@@ -44,4 +44,24 @@ test('sessione: si accettano solo stati coerenti (da disco o dal server)', () =>
   const ok = sessioneValida({ stato: 'lavoro', taskId: 'a', inizio: 10, controllo: 12, aggiornato: 13 });
   assert.deepEqual(ok, { stato: 'lavoro', taskId: 'a', inizio: 10, controllo: 12, aggiornato: 13 });
   assert.equal(sessioneValida({ stato: 'pausa', taskId: 'a', inizio: 10, aggiornato: 1 })?.inizio, undefined, 'in pausa l\'inizio non si tiene');
+});
+
+test('sessione: il cronometro parte dalla nota in corso, la più recente se sono più di una', () => {
+  const base = { tipo: 'azione' as const, titolo: 'T', creato: 1, aggiornato: 1 };
+  const prima = { ...base, id: 'a', stato: 'da_fare' as const };
+  const vecchia = { ...base, id: 'b', stato: 'in_corso' as const, inCorsoTs: 100 };
+  const recente = { ...base, id: 'c', stato: 'in_corso' as const, inCorsoTs: 200 };
+  assert.equal(notaInCorso([prima, vecchia, recente])?.id, 'c');
+  assert.equal(notaInCorso([prima]), undefined);
+  assert.equal(notaInCorso([{ ...recente, eliminato: true }, prima]), undefined);
+  assert.equal(notaInCorso([{ ...recente, tipo: 'film' as const }]), undefined);
+});
+
+test('sessione: una sola nota in corso, le altre tornano da fare', () => {
+  const base = { tipo: 'azione' as const, titolo: 'T', creato: 1, aggiornato: 1 };
+  const a = { ...base, id: 'a', stato: 'in_corso' as const };
+  const b = { ...base, id: 'b', stato: 'in_corso' as const };
+  const film = { ...base, id: 'f', tipo: 'film' as const, stato: 'in_corso' as const };
+  assert.deepEqual(altreInCorso([a, b, film], 'b').map((x) => x.id), ['a']);
+  assert.deepEqual(altreInCorso([a], 'a'), []);
 });

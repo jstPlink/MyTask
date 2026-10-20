@@ -83,12 +83,18 @@ final class WidgetDati {
         aggiornaWidget(c);
     }
 
-    /** «Inizia»: il cronometro parte sul primo task della lista non ancora spuntato. */
+    /** «Inizia»: il cronometro parte sulla nota «in corso» della lista (campo «c»); se non ce n'è, sul primo task non ancora spuntato. */
     static void avvia(Context c) {
         try {
             if (lavoro(c) != null) return;
             JSONArray r = righe(c);
+            int scelta = -1;
+            for (int i = 0; i < r.length() && scelta < 0; i++) {
+                JSONObject o = r.getJSONObject(i);
+                if (o.optInt("f", 0) != 1 && o.optInt("c", 0) == 1) scelta = i;
+            }
             for (int i = 0; i < r.length(); i++) {
+                if (scelta >= 0 && i != scelta) continue;
                 JSONObject o = r.getJSONObject(i);
                 if (o.optInt("f", 0) == 1) continue;
                 long ora = System.currentTimeMillis();

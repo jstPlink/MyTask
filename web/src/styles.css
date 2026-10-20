@@ -533,6 +533,30 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .sezione { --sz-p: 18px; margin: 16px calc(var(--sz-p) * -1) 0; }
 .sezione:first-child { margin-top: 8px; }
 .sz-t { margin: 0; padding: 9px var(--sz-p); background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 750; letter-spacing: -.005em; }
+/* Blocco del cronometro in Priorità: senza nota in corso solo lo stato; con la nota in corso la nota e la barra del tempo sempre visibili; mentre corre, timer grande accanto al tasto */
+.blocco { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 10px 12px 12px 16px; margin: 0 0 10px; transition: border-color .3s, box-shadow .3s; }
+.blocco.vuoto { border: 1.5px dashed var(--soft); padding: 12px 16px; }
+.blocco.corre { border-color: var(--accent); box-shadow: var(--shadow); }
+.blk-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
+.blk-e { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+.blocco.corre .blk-e { color: var(--accent); }
+.blk-dx { display: flex; align-items: center; gap: 10px; }
+.blk-tm { font: 800 30px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; color: var(--accent); animation: blk-entra .4s ease-out; }
+@keyframes blk-entra { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+.blk-pl { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; }
+.blk-nota { width: 100%; margin-top: 6px; border-radius: 14px; padding: 9px 12px; display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--line); text-align: left; animation: blk-entra .45s ease-out; }
+.blk-rk { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 800; font-size: 11px; }
+.blk-rk.p3 { --c: var(--warn); --cs: var(--warn-soft); } .blk-rk.p2 { --c: var(--amber); --cs: var(--amber-soft); } .blk-rk.p1 { --c: var(--soft); --cs: var(--surface2); }
+.blk-t { flex: 1; min-width: 0; } .blk-t b { display: block; font-size: 13.5px; } .blk-t small { display: block; font-size: 11px; color: var(--mid); }
+.blk-nota .cb { width: 21px; height: 21px; border-radius: 6px; margin-left: auto; }
+.blk-sotto { margin: 9px 2px 0; }
+.blk-tt { display: flex; justify-content: space-between; align-items: baseline; font: 800 12.5px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+.blk-tt b { color: var(--accent); } .blk-tt em { font-style: normal; color: var(--mid); }
+.blk-barra { height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--accent) 22%, transparent); overflow: hidden; }
+.blk-barra i { display: block; height: 100%; border-radius: 3px; background: var(--accent); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+/* tempo già lavorato accanto alla casella delle note non attive */
+.dx-riga { display: inline-flex; align-items: center; gap: 8px; }
+.tempo-riga { font: 700 12px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; color: var(--mid); animation: blk-entra .4s ease-out; }
 .acc { display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 11px 14px; margin: 0 0 8px; }
 .acc-t { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--soft); font-weight: 700; }
 .acc-s { font-size: 11.5px; color: var(--mid); margin-top: 2px; }

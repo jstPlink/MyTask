@@ -74,3 +74,18 @@ export function prossimoTask(elenco: string[], corrente: string | undefined, esc
   const i = corrente ? elenco.indexOf(corrente) : -1;
   return elenco.slice(i + 1).find(ok) ?? elenco.find(ok);
 }
+
+/**
+ * La nota «in corso» su cui deve partire il cronometro: attività o curiosità segnata «in corso» (se ce n'è più di una, l'ultima
+ * segnata). Senza una nota in corso non c'è niente su cui avviare il cronometro.
+ */
+export function notaInCorso(items: Item[]): Item | undefined {
+  return items
+    .filter((i) => !i.eliminato && i.stato === 'in_corso' && (i.tipo === 'azione' || i.tipo === 'curiosita'))
+    .sort((a, b) => (b.inCorsoTs ?? 0) - (a.inCorsoTs ?? 0) || b.aggiornato - a.aggiornato || a.id.localeCompare(b.id))[0];
+}
+
+/** Le note «in corso» da riportare «da fare» quando `id` diventa la nota in corso: ce n'è una sola alla volta (attività o curiosità). */
+export function altreInCorso(items: Item[], id: string): Item[] {
+  return items.filter((i) => i.id !== id && !i.eliminato && i.stato === 'in_corso' && (i.tipo === 'azione' || i.tipo === 'curiosita'));
+}

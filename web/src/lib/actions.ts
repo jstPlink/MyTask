@@ -8,7 +8,7 @@ import { isOpen } from '../../../shared/priority.ts';
 import { avanzamento, figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
 import { margineAtteso } from '../../../shared/stima.ts';
-import { dopoCompletamento, elencoIdPrima, tempoDi } from './sessione.ts';
+import { dopoCompletamento, elencoIdPrima, fermaSessioneSe, lasciaInCorsoSolo, seguiNotaInCorso, tempoDi } from './sessione.ts';
 import { minutiMisurati } from '../../../shared/sessione.ts';
 import { mostraCompletamento } from './completamento.ts';
 import { mostraToast } from './toast.ts';
@@ -120,6 +120,9 @@ export function cambiaStato(item: Item, nuovo: Stato) {
     inCorsoTs: nuovo === 'in_corso' ? ora : nuovo === 'da_fare' ? undefined : base.inCorsoTs,
     aggiornato: ora,
   });
+  // una sola nota «in corso»: le altre tornano da fare e il cronometro (se c'è) passa alla nuova; se si toglie quella del cronometro, si ferma
+  if (nuovo === 'in_corso') { lasciaInCorsoSolo(item.id, ora); seguiNotaInCorso(item.id, ora); }
+  else if (statoVisto(item.stato) === 'in_corso') fermaSessioneSe(item.id, ora);
   if (item.tipo === 'progetto') {
     const era = statoVisto(item.stato);
     for (const c of figli(getItems(), item.id)) {

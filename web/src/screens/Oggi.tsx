@@ -1,13 +1,12 @@
 /**
- * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima il pulsante «Inizia» (o, a sessione aperta, il cronometro con pausa e
- * «Ho finito di lavorare»), poi le routine del giorno e le «Prime attività»: le cose da fare in ordine di priorità
+ * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima il blocco del cronometro, poi
+ * le routine del giorno e le «Prime attività»: le cose da fare in ordine di priorità
  * (`vistaOggi`: le 5 con la posizione migliore nella classifica unica, anche con scadenza futura, più le scadute o in scadenza oggi che restassero fuori).
  *
- * - Inizia: il cronometro parte sul primo task della lista (`iniziaLavoro`), che prima dell'avvio ha un contorno
- *   tratteggiato. Il task su cui corre è evidenziato; la scheda del cronometro mostra il tempo lavorato, quello sul previsto e una barra.
- *   I task già iniziati mostrano nella riga grigia il tempo lavorato sul totale previsto. Spuntando la casella lo si completa e il cronometro passa da solo al successivo; ⏸ lo ferma, ▶ riprende.
- * - Tocco su una riga: apre sempre la scheda della nota (niente menu): il cronometro sceglie da solo la nota, parte dalla prima e
- *   passa alla successiva quando si completa.
+ * - Blocco del cronometro: senza nota in corso solo «Nessuna nota in corso»; con una nota in corso (una sola alla volta) la nota, la barra del
+ *   tempo sempre visibile e, mentre il cronometro corre, il timer grande accanto al tasto ▶/⏸ (`iniziaLavoro`, `mettiInPausa`, `riprendi`).
+ *   Le altre note mostrano il tempo già lavorato accanto alla casella. Spuntando la casella di una nota la si completa e il cronometro passa al successivo.
+ * - Tocco su una riga: apre sempre la scheda della nota (niente menu).
  * - Le attività dello stesso progetto sono riunite sotto la testata del progetto, il numero è la posizione in classifica.
  * - «Curiosità»: dopo le attività, al massimo cinque curiosità (le più interessanti, a parità le più vecchie), senza posizione
  *   in classifica; la casella le segna come approfondite e toccando la riga si apre la nota.
@@ -21,10 +20,10 @@ import { livelloPriorita, dueDate, daysOverdue, intensitaBattito } from '../../.
 import { classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
-import { formatoCronometro } from '../../../shared/sessione.ts';
+import { formatoCronometro, notaInCorso } from '../../../shared/sessione.ts';
 import { useAdesso, useItems, useOggi, useSessione, useSyncStatus } from '../lib/hooks.ts';
 import { segnaRoutine, statoVisto } from '../lib/actions.ts';
-import { finisciSessione, iniziaLavoro, mettiInPausa, riprendi, tempoDi } from '../lib/sessione.ts';
+import { iniziaLavoro, mettiInPausa, riprendi, tempoDi } from '../lib/sessione.ts';
 import { Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { margineAtteso, percentuale, stimeMisurate, tempoAtteso } from '../../../shared/stima.ts';
@@ -45,65 +44,61 @@ export function Oggi() {
   const classifica = useMemo(() => classificaPriorita(items, oggi), [items, oggi]); // la posizione è quella unica, uguale in ogni schermata
 
   const task = sessione.taskId ? items.find((i) => i.id === sessione.taskId) : undefined;
-  const tempoTask = task ? tempoDi(task, adesso) : 0;
+
+  // La nota del blocco in alto: quella su cui corre il cronometro, altrimenti l'unica nota «in corso».
+  const notaBlocco = sessione.stato !== 'ferma' ? task : notaInCorso(items);
 
   // Riga grigia sotto il titolo: prossimo passo di un progetto, tempo stimato, ricorrenza.
   const meta = (e: Entry) => {
     const i = e.item;
     const pezzi: ReactNode[] = [];
-    const ms = tempoDi(i, adesso);
-    const corrente = sessione.stato !== 'ferma' && sessione.taskId === i.id;
-    if (ms >= 60_000 && !corrente) pezzi.push(avanzamentoTempo(ms, i.sforzoMin).testo); // sulla nota in lavorazione lo dice la barra sotto la riga
     if (e.padre) pezzi.push('prossimo passo');
-    if (i.sforzoMin && (ms < 60_000 || corrente)) pezzi.push(nomeTempo(i.sforzoMin));
+    if (i.sforzoMin) pezzi.push(nomeTempo(i.sforzoMin));
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return unisciMeta(pezzi);
   };
-  // Parte destra della riga: la scadenza (o «ieri» / «N gg fa» se scaduta, in arancio).
+  // Parte destra della riga: la scadenza (o «ieri» / «N gg fa» se scaduta, in arancio) e, accanto alla casella, il tempo già lavorato
+  // sulla nota (non su quella attiva, che ha il suo blocco in alto).
   const destra = (e: Entry) => {
+    const ms = tempoDi(e.item, adesso);
+    const tempo = notaBlocco?.id !== e.item.id && ms >= 1000 ? <span className="tempo-riga">{formatoCronometro(ms)}</span> : null;
     const d = dueDate(e.item);
-    if (!d) return null;
-    const ritardo = daysOverdue(e.item, oggi);
-    if (d === oggi) return null;
-    if (ritardo > 0) return <span className="hard">{ritardo === 1 ? 'ieri' : `${ritardo} gg fa`}</span>;
-    return e.item.rigida ? <span className="hard rigida">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
+    let data: ReactNode = null;
+    if (d && d !== oggi) {
+      const ritardo = daysOverdue(e.item, oggi);
+      data = ritardo > 0 ? <span className="hard">{ritardo === 1 ? 'ieri' : `${ritardo} gg fa`}</span> : e.item.rigida ? <span className="hard rigida">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
+    }
+    return data || tempo ? <span className="dx-riga">{data}{tempo}</span> : null;
   };
 
-  // «Inizia» oppure la scheda del cronometro della sessione aperta: tempo lavorato, tempo sul previsto e barra.
-  const avanzamento = task ? avanzamentoTempo(tempoTask, task.sforzoMin) : undefined;
-  // «Inizia»: se nessuna nota (attività o curiosità) è «in corso», al tocco compare una scheda che spiega come segnarne una
-  // (le caselle pulsano). Si chiude da sola appena una nota passa «in corso» o con «Parti dalla prima».
-  const haInCorso = v.fare.some((e) => statoVisto(e.item.stato) === 'in_corso') || items.some((i) => !i.eliminato && i.tipo === 'curiosita' && statoVisto(i.stato) === 'in_corso');
-  const [invito, setInvito] = useState(false);
-  const nessunaInCorso = invito && sessione.stato === 'ferma' && !haInCorso;
-  const lavora = sessione.stato === 'ferma' ? (nessunaInCorso ? (
-    <div className="lavoro vuoto">
-      <div className="lv-tempo">0:00</div>
-      <div className="lv-vuoto-t">Nessuna nota in corso</div>
-      <p className="lv-vuoto-d">Il cronometro lavora sulle note «in corso». Tocca la casella di una nota qui sotto per segnarla.</p>
-      <button className="lv-vuoto-b" onClick={() => { setInvito(false); iniziaLavoro(); }}>Parti dalla prima</button>
-      <button className="lv-fine" onClick={() => setInvito(false)}>Chiudi</button>
-    </div>
+  // Blocco del cronometro: senza nota in corso solo lo stato; con una nota in corso compaiono la nota e, sotto, la barra del tempo
+  // (sempre visibile); mentre il cronometro corre, il timer grande scorre accanto al tasto.
+  const tempoBlocco = notaBlocco ? tempoDi(notaBlocco, adesso) : 0;
+  const rankBlocco = notaBlocco ? classifica.get(notaBlocco.id) : undefined;
+  const quotaBlocco = notaBlocco?.sforzoMin ? Math.min(1, tempoBlocco / (notaBlocco.sforzoMin * 60_000)) : undefined;
+  const premi = () => { if (!notaBlocco) return; if (lavoro) mettiInPausa(); else if (sessione.stato === 'pausa') riprendi(); else iniziaLavoro(notaBlocco.id); };
+  const lavora = !notaBlocco ? (
+    <div className="blocco vuoto"><span className="blk-e">Nessuna nota in corso</span></div>
   ) : (
-    <button className="avvia" onClick={() => { if (haInCorso) iniziaLavoro(); else setInvito(true); }}>
-      <span aria-hidden="true">▶</span>Inizia
-    </button>
-  )) : (
-    <div className={clsx('lavoro', !lavoro && 'pausa')}>
-      <div className="lv-top">
-        <div className="lv-tt">
-          <div className="lv-stato">{lavoro ? 'In lavorazione' : 'In pausa'}</div>
-          <div className="lv-tempo">{formatoCronometro(tempoTask)}{task?.sforzoMin ? <span className="lv-su">su {durataLavoro(task.sforzoMin * 60_000)}</span> : null}</div>
-          <div className="lv-titolo">{task?.titolo ?? 'Attività'}</div>
-        </div>
-        <button className="lv-pl" onClick={() => (lavoro ? mettiInPausa() : riprendi())} aria-label={lavoro ? 'Metti in pausa' : 'Riprendi'}><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">{lavoro ? <path d="M7 4.5h3.6v15H7zM13.4 4.5H17v15h-3.4z" /> : <path d="M8 5l11 7-11 7z" />}</svg></button>
+    <div className={clsx('blocco', lavoro && 'corre')}>
+      <div className="blk-hd">
+        <span className="blk-e">In corso</span>
+        <span className="blk-dx">
+          {lavoro && <span className="blk-tm">{formatoCronometro(tempoBlocco)}</span>}
+          <button className="blk-pl" onClick={premi} aria-label={lavoro ? 'Metti in pausa' : 'Avvia il cronometro'}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">{lavoro ? <path d="M7 4.5h3.6v15H7zM13.4 4.5H17v15h-3.4z" /> : <path d="M8 5l11 7-11 7z" />}</svg>
+          </button>
+        </span>
       </div>
-      {avanzamento?.quota !== undefined && (
-        <div className="lv-barra" role="img" aria-label={`Tempo lavorato: ${avanzamento.testo}`}>
-          <i className={avanzamento.quota > 1 ? 'oltre' : undefined} style={{ width: `${Math.min(100, avanzamento.quota * 100)}%` }} />
-        </div>
-      )}
-      <button className="lv-fine" onClick={() => finisciSessione()}>Ho finito di lavorare</button>
+      <button className="blk-nota" onClick={() => nav.push({ k: 'item', id: notaBlocco.id })}>
+        {rankBlocco !== undefined && <span className={clsx('blk-rk', `p${livelloPriorita(notaBlocco, oggi, rankBlocco)}`)}>{rankBlocco}</span>}
+        <span className="blk-t"><b>{notaBlocco.titolo}</b>{notaBlocco.sforzoMin ? <small>{durataLavoro(notaBlocco.sforzoMin * 60_000)} previsti</small> : null}</span>
+        <span className="cb prog" aria-hidden="true" />
+      </button>
+      <div className="blk-sotto" role="img" aria-label={`Tempo lavorato: ${avanzamentoTempo(tempoBlocco, notaBlocco.sforzoMin).testo}`}>
+        <div className="blk-tt"><b>{formatoCronometro(tempoBlocco)}</b>{notaBlocco.sforzoMin ? <em>{durataLavoro(notaBlocco.sforzoMin * 60_000)}</em> : null}</div>
+        {quotaBlocco !== undefined && <div className="blk-barra"><i style={{ width: `${quotaBlocco * 100}%` }} /></div>}
+      </div>
     </div>
   );
 
@@ -122,24 +117,7 @@ export function Oggi() {
   );
 
   // Le prime attività, con quelle di uno stesso progetto riunite sotto la testata (toccandola si apre il progetto).
-  // Sotto la riga della nota in lavorazione: tempo lavorato a sinistra e previsto a destra sopra una barra sottile.
-  // La barra resta nella riga anche dopo (chiusa) per le note già iniziate, così si chiude con un'animazione.
-  const sottoRiga = (e: Entry) => {
-    const i = e.item;
-    const ms = tempoDi(i, adesso);
-    if (ms <= 0 && !(sessione.stato !== 'ferma' && sessione.taskId === i.id)) return undefined;
-    const quota = i.sforzoMin ? ms / (i.sforzoMin * 60_000) : undefined;
-    return (
-      <div role="img" aria-label={`Tempo lavorato: ${avanzamentoTempo(ms, i.sforzoMin).testo}`}>
-        <div className="sr-tempi"><b>{formatoCronometro(ms)}</b>{i.sforzoMin ? <em>{durataLavoro(i.sforzoMin * 60_000)}</em> : null}</div>
-        {quota !== undefined && <span className="sr-barra"><i style={{ width: `${Math.min(100, quota * 100)}%` }} /></span>}
-      </div>
-    );
-  };
-  const riga = (e: Entry) => {
-    const corrente = sessione.stato !== 'ferma' && sessione.taskId === e.item.id;
-    const quota = e.item.sforzoMin ? tempoDi(e.item, adesso) / (e.item.sforzoMin * 60_000) : 0;
-    return (
+  const riga = (e: Entry) => (
     <Row
       rank={classifica.get(e.item.id)}
       urgenza={intensitaBattito(e.item, oggi, livelloPriorita(e.item, oggi, classifica.get(e.item.id)))}
@@ -149,13 +127,10 @@ export function Oggi() {
       right={destra(e)}
       level={livelloPriorita(e.item, oggi, classifica.get(e.item.id))}
       voce={e.item}
-      classe={clsx(corrente ? (!lavoro ? 'pausa-lav' : quota > 1 ? 'oltre-lav' : undefined) : undefined, nessunaInCorso && statoVisto(e.item.stato) === 'da_fare' && 'invita')}
-      sotto={sottoRiga(e)} aperto={corrente}
       selected={nav.openId === e.item.id}
       onOpen={() => nav.push({ k: 'item', id: e.item.id })}
     />
-    );
-  };
+  );
   // Al posto del conteggio (sempre 5) il tempo necessario a finire le voci mostrate: somma delle stime, con quante ne sono prive.
   // Accanto, il valore corretto col margine («2 h → 1 h 29 min»), colorato come il margine; a 0% resta solo il totale.
   const tempoNecessario = (voci: { sforzoMin?: number }[]) => {
@@ -203,7 +178,6 @@ export function Oggi() {
           interesse={c.interesse ?? 3}
           check="square"
           centrato
-          classe={nessunaInCorso && statoVisto(c.stato) === 'da_fare' ? 'invita' : undefined}
           voce={c}
           selected={nav.openId === c.id}
           onOpen={() => nav.push({ k: 'item', id: c.id })}
