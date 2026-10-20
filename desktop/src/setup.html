@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>MyTask</title>
+<style>
+  :root { color-scheme: light dark; --bg:#F1F0EC; --surface:#fff; --ink:#111115; --mid:#65656E; --line:#DDDAD4; --accent:#2F7D5B; --warn:#D1430B; --on:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0E0F12; --surface:#1D1F23; --ink:#F3F3F6; --mid:#A5A5B0; --line:#2F3138; --accent:#6FCF9B; --warn:#FF9466; --on:#0E0F12; } }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,"Segoe UI",sans-serif; }
+  main { width:min(420px,92vw); background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:28px; }
+  .logo { width:48px; height:48px; border-radius:12px; background:var(--accent); display:grid; place-items:center; margin-bottom:14px; }
+  h1 { font-size:22px; margin:0 0 4px; } p { margin:0 0 16px; color:var(--mid); }
+  input { width:100%; font:inherit; color:inherit; background:var(--bg); border:1.5px solid var(--line); border-radius:12px; padding:12px 14px; }
+  input:focus { outline:2px solid var(--accent); border-color:transparent; }
+  button { width:100%; margin-top:12px; font:inherit; font-weight:700; border:0; border-radius:12px; padding:12px; background:var(--accent); color:var(--on); cursor:pointer; }
+  .err { color:var(--warn); margin:0 0 12px; }
+</style></head><body>
+<main>
+  <div class="logo"><svg width="28" height="28" viewBox="0 0 512 512"><path d="M142 270l74 74 156-168" fill="none" stroke="#fff" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <h1>MyTask</h1>
+  <p>Scrivi l'indirizzo del tuo server MyTask (quello che usi nel browser).</p>
+  <div class="err" id="err" hidden></div>
+  <form id="f"><input id="s" type="text" inputmode="url" placeholder="mytask.tuodominio.it" autofocus autocomplete="off"><button type="submit">Collega</button></form>
+</main>
+<script>
+  const q = new URLSearchParams(location.search);
+  document.getElementById('s').value = q.get('server') || '';
+  if (q.get('errore')) { const e = document.getElementById('err'); e.textContent = q.get('errore'); e.hidden = false; }
+  document.getElementById('f').addEventListener('submit', (ev) => { ev.preventDefault(); window.mytaskDesktop.impostaServer(document.getElementById('s').value); });
+</script></body></html>

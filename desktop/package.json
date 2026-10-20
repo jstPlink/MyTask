@@ -1,0 +1,24 @@
+{
+  "name": "mytask-desktop",
+  "version": "0.0.0",
+  "private": true,
+  "description": "MyTask per computer: finestra dedicata che si collega al tuo server MyTask",
+  "main": "src/main.js",
+  "author": "jstPlink",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "app.mytask.desktop",
+    "productName": "MyTask",
+    "directories": { "output": "dist" },
+    "files": ["src/**/*", "build/icon.png", "package.json"],
+    "win": { "target": "nsis", "icon": "build/icon.png", "artifactName": "MyTask-Setup.${ext}" },
+    "nsis": { "oneClick": true, "perMachine": false, "deleteAppDataOnUninstall": false, "shortcutName": "MyTask" }
+  }
+}

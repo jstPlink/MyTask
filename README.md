@@ -104,6 +104,10 @@ solo a poter aggiornare l'app senza disinstallarla. Se vuoi una chiave tua, aggi
 
 Sviluppo: `cd web && npm run build && npx cap sync android`, poi `web/android` si apre con Android Studio.
 
+## App per computer (Windows)
+
+Da *Altro > Account > Scarica MyTask per Windows* (o da https://github.com/jstPlink/MyTask/releases/latest, file `MyTask-Setup.exe`) si scarica l'installer: apri il file, al primo avvio scrivi l'indirizzo del server. È una finestra dedicata che mostra il sito del tuo server. L'installer non è firmato, quindi Windows può mostrare un avviso (Maggiori informazioni > Esegui comunque). Sviluppo: `cd desktop && npm ci && npm start`; installer: `npm run dist`.
+
 ## Come è fatta
 
 - `shared/`: logica comune (priorità, piano della giornata, stime, ricorrenze, routine, liste), scritta in TypeScript e provata con i test.

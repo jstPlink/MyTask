@@ -15,6 +15,7 @@ import { chiaveTitolo } from '../../../shared/testo.ts';
 import { apiBase, logout } from '../lib/api.ts';
 import { VERSIONE } from '../version.ts';
 import { sync } from '../lib/sync.ts';
+import { isNative } from '../lib/native.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { Back, Chips, Empty, Field, Row, Sec, Seg, Top } from '../ui/kit.tsx';
@@ -46,7 +47,6 @@ export function Altro() {
         {voce('Intelligenza artificiale', 'Gemini e Groq', { k: 'ia' })}
         <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Pesi della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
-        <div className="field"><span>Calendario</span><span className="muted">non collegato</span></div>
         {voce('Account e sincronizzazione', undefined, { k: 'account' })}
         <div className="t2" style={{ textAlign: 'center', marginTop: 24 }}>MyTask · versione {VERSIONE}</div>
       </div>
@@ -273,6 +273,7 @@ export function Account() {
         <Field label="Versione del server"><span>{versioneServer ?? '—'}{versioneServer && versioneServer !== VERSIONE ? ' (diversa)' : ''}</span></Field>
         <div className="btns col" style={{ marginTop: 18 }}>
           <button className="btn solid" onClick={() => { void sync(); mostraToast('Sincronizzazione avviata'); }}>Sincronizza ora</button>
+          {!isNative() && !/Electron/i.test(navigator.userAgent) && <a className="btn" href={INSTALLER_WINDOWS} download>Scarica MyTask per Windows</a>}
           <button className="btn danger" onClick={async () => { if (window.confirm('Uscire? I dati restano su questo dispositivo.')) { await logout(); await setAuth({ email: auth.email }); } }}>Esci</button>
         </div>
         <div className="t2" style={{ marginTop: 16 }}>Oggi è {today()}. Il database sul NAS fa una copia di sicurezza ogni giorno.</div>
@@ -280,6 +281,9 @@ export function Account() {
     </>
   );
 }
+
+/** Ultimo installer per computer (Windows), pubblicato da GitHub Actions insieme all'APK. */
+const INSTALLER_WINDOWS = 'https://github.com/jstPlink/MyTask/releases/latest/download/MyTask-Setup.exe';
 
 /** Versione del server, letta da /api/health (undefined se offline o se il server è vecchio). */
 function useVersioneServer(): string | undefined {

@@ -89,12 +89,12 @@ function Azioni({ filtro }: { filtro: Filtro }) {
   const classifica = useMemo(() => classificaPriorita(items, oggi), [items, oggi]);
   const lista = useMemo(() => (filtro ? completa.filter((e) => filtro.has(e.item.id)) : completa), [completa, filtro]);
   const gruppi = useMemo(() => raggruppaPerProgetto(lista, items), [lista, items]);
-  // accanto al conteggio, quanto tempo (in giorni e ore) serve per completare tutte le attività mostrate (somma dei tempi stimati, passi dei progetti compresi)
+  // a destra del titolo, quanto tempo (in giorni e ore) serve per completare tutte le attività mostrate (somma dei tempi stimati, passi dei progetti compresi)
   const dettaglio = useMemo(() => {
     const minuti = lista.reduce((s, e) => s + (e.item.sforzoMin ?? 0), 0);
     const senza = lista.filter((e) => !e.item.sforzoMin).length;
-    if (minuti <= 0) return lista.length;
-    return `${lista.length} · ${nomeGiorniOre(minuti)}${senza ? `, ${senza} senza stima` : ''}`;
+    if (minuti <= 0) return undefined; // il numero delle attività è già nell'intestazione della scheda
+    return `${nomeGiorniOre(minuti)}${senza ? `, ${senza} senza stima` : ''}`;
   }, [lista]);
   const riga = ({ item, punteggio }: (typeof lista)[number]) => {
     const d = dueDate(item);
