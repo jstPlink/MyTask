@@ -63,7 +63,7 @@ export function Sidebar() {
 
   return (
     <aside className="side" aria-label="Navigazione">
-      <div className="sb-brand"><i aria-hidden="true" />MyTask</div>
+      <div className="sb-brand"><img src="/icon.svg" alt="" aria-hidden="true" />MyTask</div>
 
       <div className="sb-top">
         <CampoNuovaNota />

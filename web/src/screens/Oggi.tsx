@@ -227,7 +227,7 @@ export function Oggi() {
     return (
       <>
         <Top title="Priorità" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} attività, ${v.curiosita.length} curiosità`} />
-        <div className="fisso">{lavora}{accuratezza}</div>
+        <div className="fisso senza-ombra">{lavora}{accuratezza}</div>
         <div className="scroll wide-dash">
           <div className="dash">
             <div>{routine}{prime}{curiosita}</div>
