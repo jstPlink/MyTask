@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { diffDays, formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
-import { livelloPriorita, dueDate, getRegole } from '../../../shared/priority.ts';
+import { livelloPriorita, dueDate, componentiPunteggio, score } from '../../../shared/priority.ts';
 import { avanzamento, classificaPriorita, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
 import { useAdesso, useItems, useSessione } from '../lib/hooks.ts';
 import { tempoDi } from '../lib/sessione.ts';
@@ -166,9 +166,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     return posizionePriorita(tutte, withTemp(d), oggi);
   }, [tutte, oggi, d, puntegg]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const regoleAtt = getRegole();
-  const giorniScad = due ? diffDays(due, oggi) : undefined;
-  const livello = puntegg !== undefined ? livelloPriorita(withTemp(d), oggi, posizione.pos) : 1;
+  const comp = componentiPunteggio(withTemp(d), oggi); // le tre componenti del punteggio (scadenza, importanza, tempo stimato), 0-100
+  const livello = puntegg !== undefined ? livelloPriorita(withTemp(d), oggi) : 1;
 
   /** La voce con importanza e scadenza prese dal progetto, se non le ha proprie. */
   function withTemp(x: Item): Item {
@@ -239,12 +238,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <div className="prio-corpo" id="prio-dettagli" aria-hidden={!prioAperta} inert={!prioAperta}>
               <div className="prio-corpo-in">
             <div className="prio-parti">
-              {([['Importanza', (d.importanza ?? 3) >= regoleAtt.rossoImportanza ? 3 : (d.importanza ?? 3) >= regoleAtt.ambraImportanza ? 2 : 1], ['Scadenza', giorniScad === undefined ? 0 : giorniScad <= regoleAtt.rossoGiorni ? 3 : giorniScad <= regoleAtt.ambraGiorni ? 2 : 1], ['Posizione', posizione.pos <= regoleAtt.rossoPosizioni ? 3 : posizione.pos <= regoleAtt.ambraPosizioni ? 2 : 1]] as const).map(([nome, v]) => (
-                <div key={nome} className="prio-riga"><span>{nome}</span><div className="prio-bar" aria-hidden="true"><i style={{ width: `${v * 33.4}%` }} /></div></div>
+              {([['Data di scadenza', comp.scadenza], ['Importanza', comp.importanza], ['Tempo stimato', comp.tempo]] as const).map(([nome, v]) => (
+                <div key={nome} className="prio-riga"><span>{nome}</span><div className="prio-bar" aria-hidden="true"><i style={{ width: `${v}%` }} /></div></div>
               ))}
             </div>
             <div className="prio-dati">
-              <span className={clsx(d.rigida && 'hard')}>{due ? `${d.rigida ? 'Scadenza fissa' : 'Scadenza'} ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
+              <span>{due ? `Scadenza ${relativeDays(due, oggi)}` : 'Senza scadenza'}</span>
+              <span>Punteggio {score(withTemp(d), oggi)} su 100</span>
               <span>Importanza {['', 'molto bassa', 'bassa', 'media', 'alta', 'molto alta'][Math.round(d.importanza ?? 3)]}</span>
               {d.sforzoMin ? <span>{nomeTempo(d.sforzoMin)} <Margine valore={margine} /></span> : null}
             </div>
@@ -272,12 +272,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                 onChange={(v) => up({ padreId: v || undefined, ...(v ? { importanza: undefined } : {}) })} /* con un progetto l'importanza è la sua */
                 voci={[{ id: '', nome: 'Nessuno', icona: null }, ...progetti.map((p) => ({ id: p.id, nome: p.titolo, icona: <BadgeTipo tipo="progetto" /> }))]} />
             )}
-            <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: e.target.value ? d.rigida : undefined, oraInizio: e.target.value ? d.oraInizio : undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>
-            {d.inizio && (
-              <Field label="Scadenza fissa">
-                <button type="button" role="checkbox" aria-checked={!!d.rigida} aria-label="Scadenza fissa" className={clsx('cb sq', d.rigida && 'done')} onClick={() => up({ rigida: d.rigida ? undefined : true })} />
-              </Field>
-            )}
+            <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: undefined, oraInizio: e.target.value ? d.oraInizio : undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>
             {IS_AZIONE(t) && !(t === 'azione' && d.padreId) && <ImportanzaDoppia label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} />}
             {/* Progetto: i passi (voci figlie) riordinabili; l'ordine è la priorità, il primo passo aperto è il prossimo da fare */}
             {t === 'progetto' && (
@@ -297,7 +292,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <div ref={ordPassi.cont} className="riordinabile">
               {ordPassi.ordinati(passi).map((c) => (
                 <Row key={c.id} voce={c} titolo={c.titolo} tipo={c.tipo} maniglia rank={classifica.get(c.id)}
-                  level={livelloPriorita(withTemp(c), oggi, classifica.get(c.id))}
+                  level={livelloPriorita(withTemp(c), oggi)}
                   meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : undefined].filter(Boolean).join(' · ') || undefined}
                   classe={ordPassi.preso === c.id ? 'sollevata' : undefined}
                   extra={ordPassi.presa(c.id)}

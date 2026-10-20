@@ -66,7 +66,7 @@ export function Oggi() {
     let data: ReactNode = null;
     if (d && d !== oggi) {
       const ritardo = daysOverdue(e.item, oggi);
-      data = ritardo > 0 ? <span className="hard">{ritardo === 1 ? 'ieri' : `${ritardo} gg fa`}</span> : e.item.rigida ? <span className="hard rigida">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
+      data = ritardo > 0 ? <span className="hard">{ritardo === 1 ? 'ieri' : `${ritardo} gg fa`}</span> : formatShortYear(d, oggi);
     }
     return data || tempo ? <span className="dx-riga">{data}{tempo}</span> : null;
   };
@@ -96,7 +96,7 @@ export function Oggi() {
         </span>
       </div>
       <button className="blk-nota" onClick={() => nav.push({ k: 'item', id: notaBlocco.id })}>
-        {rankBlocco !== undefined && <span className={clsx('blk-rk', `p${livelloPriorita(notaBlocco, oggi, rankBlocco)}`)}>{rankBlocco}</span>}
+        {rankBlocco !== undefined && <span className={clsx('blk-rk', `p${livelloPriorita(notaBlocco, oggi)}`)}>{rankBlocco}</span>}
         <span className="blk-t"><b>{notaBlocco.titolo}</b>{notaBlocco.sforzoMin ? <small>{durataLavoro(notaBlocco.sforzoMin * 60_000)} previsti</small> : null}</span>
         <span className="cb prog" aria-hidden="true" />
       </button>
@@ -125,12 +125,12 @@ export function Oggi() {
   const riga = (e: Entry) => (
     <Row
       rank={classifica.get(e.item.id)}
-      urgenza={intensitaBattito(e.item, oggi, livelloPriorita(e.item, oggi, classifica.get(e.item.id)))}
+      urgenza={intensitaBattito(e.item, oggi)}
       key={e.item.id}
       titolo={e.item.titolo} tipo={e.item.tipo}
       meta={meta(e)}
       right={destra(e)}
-      level={livelloPriorita(e.item, oggi, classifica.get(e.item.id))}
+      level={livelloPriorita(e.item, oggi)}
       voce={e.item}
       selected={nav.openId === e.item.id}
       onOpen={() => nav.push({ k: 'item', id: e.item.id })}

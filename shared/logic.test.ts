@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
 import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.ts';
-import { chiavePriorita, daysOverdue, livelloPriorita, battitoBpm, intensitaBattito, impostaRegole } from './priority.ts';
+import { chiavePriorita, daysOverdue, livelloPriorita, battitoBpm, intensitaBattito, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
 import { classificaPriorita, posizionePriorita, stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
@@ -22,26 +22,34 @@ test('date: differenze, mesi e settimane', () => {
   assert.equal(formatShort('2026-10-21'), '21 ott');
 });
 
-test('priorità: la scadenza rigida vale di più di quella flessibile', () => {
-  const flessibile = mk({ fine: addDays(OGGI, 5), importanza: 3 });
-  const rigida = mk({ fine: addDays(OGGI, 5), importanza: 3, rigida: true });
-  assert.ok(chiavePriorita(rigida, OGGI, NOW) > chiavePriorita(flessibile, OGGI, NOW));
+test('punteggio: somma pesata di scadenza, importanza e tempo stimato (50 / 40 / 10)', () => {
+  assert.equal(score(mk({ importanza: 3, fine: OGGI, sforzoMin: 15 }), OGGI), 80); // 50 + 20 + 10
+  assert.equal(score(mk({ importanza: 1 }), OGGI), 3); // senza data, importanza minima, tempo non indicato (30 → 3)
+  assert.equal(score(mk({ importanza: 5, sforzoMin: 120 }), OGGI), 40);
+  assert.equal(score(mk({ importanza: 3, fine: OGGI }), OGGI), 73);
+});
+
+test('punteggio: i pesi si portano a somma 1 e cambiano il risultato', () => {
+  assert.deepEqual(normalizzaPesi({ scadenza: 2, importanza: 1, tempo: 1 }), { scadenza: 0.5, importanza: 0.25, tempo: 0.25 });
+  assert.deepEqual(normalizzaPesi({ scadenza: 0, importanza: 0, tempo: 0 }), PESI_PREDEFINITI, 'tutti a zero: tornano quelli di base');
+  const x = mk({ importanza: 5, fine: addDays(OGGI, 10), sforzoMin: 120 });
+  impostaPesi({ scadenza: 1, importanza: 0, tempo: 0 });
+  assert.equal(score(x, OGGI), 35); // solo la scadenza (entro 30 giorni)
+  impostaPesi({ scadenza: 0, importanza: 1, tempo: 0 });
+  assert.equal(score(x, OGGI), 100); // solo l'importanza
+  impostaPesi(undefined);
 });
 
 test('priorità: importanza alta senza data batte importanza bassa', () => {
   assert.ok(chiavePriorita(mk({ importanza: 5 }), OGGI, NOW) > chiavePriorita(mk({ importanza: 1 }), OGGI, NOW));
 });
 
-test('livello del pallino: contano importanza impostata, urgenza e posizione', () => {
-  assert.equal(livelloPriorita(mk({ importanza: 4.5 }), OGGI), 3);
-  assert.equal(livelloPriorita(mk({ importanza: 4 }), OGGI), 2);
-  assert.equal(livelloPriorita(mk({ importanza: 2, fine: OGGI }), OGGI), 3);
-  assert.equal(livelloPriorita(mk({ importanza: 2, fine: addDays(OGGI, 5) }), OGGI), 3);
-  assert.equal(livelloPriorita(mk({ importanza: 2, fine: addDays(OGGI, 6) }), OGGI), 2);
-  assert.equal(livelloPriorita(mk({ importanza: 2 }), OGGI, 2), 3);
-  assert.equal(livelloPriorita(mk({ importanza: 2 }), OGGI, 8), 2);
-  assert.equal(livelloPriorita(mk({ importanza: 3 }), OGGI), 2);
-  assert.equal(livelloPriorita(mk({ importanza: 2 }), OGGI, 30), 1);
+test('livello del pallino: dal punteggio, da 60 rosso, da 35 ambra', () => {
+  assert.equal(livelloPriorita(mk({ importanza: 3, fine: OGGI }), OGGI), 3); // 73
+  assert.equal(livelloPriorita(mk({ importanza: 5 }), OGGI), 2); // 43
+  assert.equal(livelloPriorita(mk({ importanza: 2, fine: addDays(OGGI, 5) }), OGGI), 2); // 43
+  assert.equal(livelloPriorita(mk({ importanza: 3 }), OGGI), 1); // 23
+  assert.equal(livelloPriorita(mk({ importanza: 1 }), OGGI), 1); // 3
 });
 
 test('scaduta: solo se la data è passata e la voce è aperta', () => {
@@ -131,7 +139,7 @@ test('Classifica unica: la stessa posizione in Oggi, in Attività, nel progetto 
 });
 
 test('Priorità: le 5 note con la posizione migliore in assoluto, anche con scadenza futura, e i numeri partono da 1', () => {
-  const futura = mk({ titolo: 'Futura', importanza: 5, fine: addDays(OGGI, 3), rigida: true });
+  const futura = mk({ titolo: 'Futura', importanza: 5, fine: addDays(OGGI, 3) });
   const libere = [1, 2, 3, 4, 5, 6].map((k) => mk({ titolo: `Libera ${k}`, importanza: 2 }));
   const tutte = [...libere, futura];
   const classifica = classificaPriorita(tutte, OGGI, NOW);
@@ -259,29 +267,22 @@ test('game design: la lista è in ordine di priorità e salta archiviate e bozze
   assert.deepEqual(listaGameDesign([b, c, d, a]).map((e) => e.item.titolo), ['A', 'B']);
 });
 
-test('ordine: prima i rossi, poi gli ambra; dentro il colore secondo la regola scelta', () => {
-  impostaRegole(undefined);
-  const rossaImp = mk({ importanza: 5 });
-  const rossaScad = mk({ importanza: 1, fine: addDays(OGGI, 2) });
-  const ambra = mk({ importanza: 4, fine: addDays(OGGI, 7) });
+test('ordine: segue il punteggio della formula e cambia con i pesi', () => {
+  impostaPesi(undefined);
+  const scadeOggi = mk({ importanza: 3, fine: OGGI }); // 73
+  const importante = mk({ importanza: 5 }); // 43
   const k = (i: Item) => chiavePriorita(i, OGGI, NOW);
-  assert.ok(k(rossaImp) > k(ambra) && k(rossaScad) > k(ambra)); // nessun giallo sopra un rosso
-  assert.ok(k(rossaScad) > k(rossaImp)); // di base conta la scadenza più vicina
-  impostaRegole({ ordine: 'importanza' });
-  assert.ok(k(rossaImp) > k(rossaScad));
-  impostaRegole(undefined);
+  assert.ok(k(scadeOggi) > k(importante));
+  impostaPesi({ scadenza: 0, importanza: 1, tempo: 0 });
+  assert.ok(k(importante) > k(scadeOggi));
+  impostaPesi(undefined);
 });
 
-test('battito allineato a colore e soglie', () => {
-  impostaRegole(undefined);
-  const i = (g: number | undefined, imp = 3) => mk({ importanza: imp, fine: g === undefined ? undefined : addDays(OGGI, g) });
-  const lv = (x: Item) => livelloPriorita(x, OGGI);
-  const b = (x: Item) => intensitaBattito(x, OGGI, lv(x));
-  assert.equal(b(i(undefined, 2)), 0); // grigia: ferma
-  assert.equal(b(i(undefined, 3)), 25); // ambra senza data: piano
-  assert.equal(b(i(undefined, 5)), 55); // rossa per importanza: batte anche senza scadenza
-  assert.equal(b(i(0)), 100);
-  assert.equal(b(i(5)), 60); // soglia del rosso
-  assert.equal(b(i(7)), 35); // soglia dell'ambra
-  assert.ok(b(i(3)) > b(i(6)));
+test('battito legato alla formula: il grigio è fermo, ambra e rosso battono con il punteggio', () => {
+  impostaPesi(undefined);
+  const b = (x: Item) => intensitaBattito(x, OGGI);
+  assert.equal(b(mk({ importanza: 3 })), 0); // 23: grigia, ferma
+  assert.equal(b(mk({ importanza: 5 })), 43); // ambra
+  assert.equal(b(mk({ importanza: 3, fine: OGGI })), 73); // rossa
+  assert.ok(battitoBpm(b(mk({ importanza: 3, fine: OGGI }))) > battitoBpm(b(mk({ importanza: 5 }))));
 });

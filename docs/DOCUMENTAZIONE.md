@@ -39,7 +39,7 @@ Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da v
 | **Curiosità** | Cose da approfondire |
 | **Routine** | Abitudini quotidiane o settimanali |
 | **Inbox** | Note catturate al volo, ancora da smistare |
-| **Altro** | Archiviate, Completato, Intelligenza artificiale, Regole della priorità, Aspetto, Account |
+| **Altro** | Archiviate, Completato, Intelligenza artificiale, Bilanciatore della priorità, Aspetto, Account |
 
 ### 2.1 Telefono (colonna singola)
 
@@ -85,7 +85,7 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sotto i
 
 ### 2.4 Componenti comuni delle liste
 
-- **Riga** (`Row` in `web/src/ui/kit.tsx`): da sinistra a destra l'orario (solo nel piano di Oggi), il **pallino numerato della priorità**, il titolo con sotto la riga grigia che comincia con l'icona del tipo di nota, la scadenza e, all'estrema destra, la **casella di stato**. Il numero nel pallino è la posizione in classifica (1 = la prima da fare); il pallino ha il contorno nel colore del livello (arancio-rosso alta, ambra media, grigio bassa) e **batte** a ritmo di cuore, più veloce quanto più la scadenza è vicina: da 11 bpm (scadenza oltre 30 giorni) a 88 bpm (oggi o scaduta), calando di 2 punti percentuali a ogni posto in classifica, con i tratti legati alle soglie delle regole (6.1), fermo senza scadenza; il colpo dura sempre 0,45 s e con «Riduci animazioni» il pallino resta fermo (`battitoBpm` in `shared/priority.ts`, `web/src/lib/battito.ts`).
+- **Riga** (`Row` in `web/src/ui/kit.tsx`): da sinistra a destra l'orario (solo nel piano di Oggi), il **pallino numerato della priorità**, il titolo con sotto la riga grigia che comincia con l'icona del tipo di nota, la scadenza e, all'estrema destra, la **casella di stato**. Il numero nel pallino è la posizione in classifica (1 = la prima da fare); il pallino ha il contorno nel colore del livello (arancio-rosso alta, ambra media, grigio bassa) e **batte** a ritmo di cuore, più veloce quanto più sale il **punteggio della formula** (6.1): da circa 28 bpm (35 punti) a 88 bpm (100 punti), calando di 2 punti percentuali a ogni posto in classifica, fermo sotto i 35 punti (grigio); il colpo dura sempre 0,45 s e con «Riduci animazioni» il pallino resta fermo (`battitoBpm` in `shared/priority.ts`, `web/src/lib/battito.ts`).
 - **Casella di stato:** quadrato stondato neutro, uguale per tutte le note (anche passi di progetto e checklist). Con la nota (`voce`) ha quattro stati: un tocco (o il tasto destro) apre subito il foglio con tutti gli stati, come una pressione lunga: lo stato non cambia da solo, per evitare errori. «In corso» è mezza casella gialla, «archiviata» è tratteggiata. Le righe di routine e quelle senza nota restano a due stati. Una scadenza fissa mostra un lucchetto invece del pallino rotondo di scadenza.
 - **Interesse** (1-5): nelle liste di Intrattenimento, Curiosità ed Esperienze è un pallino verde col numero, più pieno quanto più è alto; nella scheda è una barra verde (stessa forma dell'importanza).
 - **Sezione** (`Sezione`): fascia con titolo grande in grassetto, chiusa sopra e sotto da una linea sottile, con il conteggio a destra e le righe libere sotto, senza contenitori. Usata in Oggi, Attività, Intrattenimento, Curiosità e Routine.
@@ -141,7 +141,7 @@ Le abitudini non sono task: non scadono e non finiscono (sezione 6.7). Una sezio
 ### 3.7 Altro e impostazioni
 
 - **Intelligenza artificiale** (`IA`, `Chat`): sezione 6.12.
-- **Regole della priorità** (`PesiPriorita`, etichetta «Sperimentale»): sei barre (importanza, giorni di scadenza e posizioni per il rosso e per l'ambra), il selettore dell'ordine dentro lo stesso colore e l'anteprima delle prime sei attività; si sincronizzano e cambiano subito liste, colori, battito e widget (6.1).
+- **Bilanciatore della priorità** (`PesiPriorita`, etichetta «Sperimentale»): tre cursori, **data di scadenza**, **importanza** e **tempo stimato** (pesi riportati a somma 100%, di base 50/40/10), il pulsante «Ripristina i pesi di base» e l'anteprima delle prime 15 attività con il loro punteggio; si sincronizzano (chiave `bilanciatore`) e cambiano subito ordine, colori, battito e widget (6.1).
 - **Aspetto:** sezione 2.3.
 - **Account:** email, ultima sincronizzazione (lo stato compare solo se si è offline, si sta sincronizzando o ci sono modifiche da inviare: non c'è più «Tutto sincronizzato»), riepilogo delle voci locali (totale con aperte / completate / archiviate, conteggio per tipo e possibili doppioni, cioè voci dello stesso tipo e titolo a parità di progetto; il totale comprende tutto, anche completate, archiviate e passi dei progetti), versione dell'app e del server (con avviso se diverse), «Sincronizza ora», esci. Non ci sono esportazione e importazione JSON.
 - La versione compare anche nella schermata di accesso e in Altro.
@@ -155,7 +155,7 @@ Il «+» del telefono apre «Cosa ti è venuto in mente?» (sul sito si scrive d
 La scheda (`ItemDetail`) salva da sola dopo 500 ms e all'uscita; non salva senza titolo. Dall'alto:
 
 1. **Stato** (solo per voci già salvate, non routine né note non assegnate): selettore a quattro segmenti **Da fare, In corso, Fatta, Archiviata** (sezione 6.2).
-2. **Blocco della priorità** (collassabile, ricorda l'ultima scelta in `mytask.prio.aperta`; chiuso di base): la **posizione** in classifica («3ª da fare su 28», senza punteggio) con il livello (alta/media/bassa) e il contorno nel colore del livello; aperto, cinque barre con il peso di urgenza, importanza, poco sforzo, età e scadenza fissa, e una riga con scadenza, importanza a parole e tempo con margine.
+2. **Blocco della priorità** (collassabile, ricorda l'ultima scelta in `mytask.prio.aperta`; chiuso di base): la **posizione** in classifica («3ª da fare su 28») con il livello (alta/media/bassa) e il contorno nel colore del livello; aperto, tre barre con il valore di data di scadenza, importanza e tempo stimato (0-100), e una riga con il punteggio su 100, la scadenza, l'importanza a parole e il tempo con margine.
 3. **Titolo**, **Tipo** e, per l'intrattenimento, **Sezione** (due tendine che si chiudono a vicenda con la pila). I tipi scelti sono Attività, Progetto, Esperienza, Routine, Intrattenimento (Film, Serie, Anime, Gioco, Libro), Ricetta, Curiosità, Game design. La tendina si espande per mostrare tutte le voci, senza scorrimento. Una nota **non assegnata** ha solo titolo, note, link e immagini: scegliendo un tipo lascia l'Inbox.
 4. **Campi per tipo:**
    - **Attività** e **Progetto**: un solo gruppo con Progetto (solo per le attività: tendina dell'app con icona, leggibile anche sul sito e scorrevole se i progetti sono molti; «Nessuno» se non collegata), Data, **Scadenza fissa** (appena c'è una data), Importanza (slider continuo da 1 a 5 a cuneo grigio→rosso, anche 3,4; **non si chiede per un'attività collegata a un progetto**: vale quella del progetto, e scegliendo il progetto il valore proprio si toglie), **Tempo stimato** (solo per le attività: in un progetto dipende dai passi, quindi il campo non c'è; si sceglie con le rotelle, vedi sotto) con margine e suggerimento «Usa», promemoria (7 giorni, 3 giorni, 1 giorno prima, il giorno stesso, alle 9:00) e «Ripeti».
@@ -191,7 +191,7 @@ Un'unica tabella **Elemento** (`Item` in `shared/types.ts`) con un campo `tipo`.
 | `inbox` | catturata ma non ancora smistata; si toglie scegliendo un tipo |
 | `note`, `link[]`, `immagini[]` | link ammessi anche a file su Seafile; immagini come testo `data:` ridotte |
 | `inizio`, `fine`, `oraInizio`, `oraFine` | date YYYY-MM-DD e orari HH:MM; la scadenza è `fine`, altrimenti `inizio`; se c'è un'ora la nota è un impegno con orario fisso nel piano |
-| `rigida` | scadenza fissa (non spostabile; in interfaccia «scadenza fissa») |
+| `rigida` | non più usata: la «scadenza fissa» è stata tolta dalla priorità (resta nei dati vecchi, senza effetto) |
 | `ricorrenza`, `promemoria[]`, `insisti` | ricorrenza ogni N giorni/settimane/mesi/anni; promemoria a N giorni dalla scadenza; insistenza ogni N minuti |
 | `importanza` (1-5, anche decimali), `sforzoMin`, `durataRealeMin` | attività e progetti; tempo stimato in minuti (anche per curiosità e game design); tempo reale misurato per affinare la stima |
 | `difficolta` (1-5) | game design: 1 = facile, 5 = molto difficile |
@@ -212,17 +212,20 @@ Un'unica tabella **Elemento** (`Item` in `shared/types.ts`) con un campo `tipo`.
 
 ### 6.1 Priorità (`shared/priority.ts`)
 
-**Nessun punteggio da 0 a 100** (tolto dalla 0.67.2): colore del pallino, ordine e battito nascono dalle **regole** di Altro › Regole della priorità (`RegolePriorita` in `shared/priority.ts`, sincronizzate tra i dispositivi con la chiave `regole`, `web/src/lib/pesi.ts`). I tre segnali, vale il più alto:
+Un **punteggio da 0 a 100** (la formula, `score`) decide **ordine, colore e battito** del pallino. È la somma di tre componenti, ognuna da 0 a 100 e moltiplicata per il suo peso; i pesi si regolano in **Altro › Bilanciatore della priorità** (`PesiPunteggio`, sincronizzati tra i dispositivi con la chiave `bilanciatore`, `web/src/lib/pesi.ts`), si riportano a somma 1 e di base sono **50% data di scadenza, 40% importanza, 10% tempo stimato**:
 
-- **Importanza** impostata (da 1 a 5, di base 3; si imposta a doppio livello con `ImportanzaDoppia`: un grado e poi lo slider a cuneo che rifinisce dentro il grado, per esempio 4,20; un passo di progetto eredita quella del progetto).
-- **Scadenza:** giorni alla data (scaduta e oggi comprese); senza data non conta.
-- **Posizione** nella classifica unica.
+- **Data di scadenza** (`urgency`): scaduta o oggi 100, entro 3 giorni 80, entro 7 giorni 60, entro 30 giorni 35, oltre 15; senza data 0. (La «scadenza fissa» non esiste più.)
+- **Importanza** impostata (da 1 a 5, di base 3, riportata su 0-100; si imposta a doppio livello con `ImportanzaDoppia`: un grado e poi lo slider a cuneo che rifinisce dentro il grado, per esempio 4,20; un passo di progetto eredita quella del progetto).
+- **Tempo stimato:** premia le attività brevi (fino a 15 min 100, fino a 30 min 60, fino a 60 min 30, oltre 0; senza stima 30).
 
-Colore (`livelloPriorita`): **rosso** se importanza ≥ 4,5, scadenza entro 5 giorni o tra le prime 3; **ambra** se importanza ≥ 3, scadenza entro 7 giorni o tra le prime 10; **grigio** il resto. Sono i valori di base: in Regole della priorità ci sono sei barre (importanza, giorni e posizioni per il rosso e per l'ambra; l'ambra non è mai più severa del rosso) e un selettore dell'ordine.
+Esempi con i pesi di base: scade oggi, importanza 3, 15 minuti → 80; scade oggi, importanza 3, senza stima → 73; importanza 5 senza data → 43; importanza 3 senza data → 23.
 
-Ordine (`chiavePriorita`, una chiave di confronto, non un punteggio): prima tutte le rosse, poi le ambra, poi le grigie (calcolate senza la posizione, che nasce dall'ordine e può solo alzare il colore); dentro lo stesso colore, a scelta **la scadenza più vicina** (di base; a parità l'importanza più alta) oppure **l'importanza più alta** (a parità la scadenza); poi scadenza fissa, attività brevi, note più vecchie. Così nessuna nota gialla sta sopra una rossa.
+**Colore** (`livelloPriorita`, `livelloDaPunteggio`): **rosso** da 60 punti, **ambra** da 35, **grigio** sotto. Non conta più la posizione in classifica: il colore nasce solo dalla formula.
 
-**Battito del pallino** (`intensitaBattito`): segue il colore. Le note grigie non battono; **tutte le rosse battono** (almeno circa 43 bpm, anche senza scadenza) e le ambra piano (circa 22 bpm); più la scadenza è vicina più sale: 88 bpm oggi o scaduta, 11 a 30 giorni (scala 10-80 aumentata del 10%). In più il battito **cala di 2 punti percentuali per ogni posto** in classifica (al massimo del 30%). Cambia con le barre.
+**Ordine** (`chiavePriorita`, una chiave di confronto): prima il punteggio; a parità la scadenza più vicina, l'importanza più alta e la nota più vecchia.
+
+**Battito del pallino** (`intensitaBattito`, `battitoBpm`): legato alla formula. Il grigio (sotto 35 punti) non batte; ambra e rosso battono con il punteggio stesso, quindi più la formula sale più il pallino va veloce (circa 28 bpm a 35 punti, 88 bpm a 100; scala 10-80 aumentata del 10%). In più il battito **cala di 2 punti percentuali per ogni posto** in classifica (al massimo del 30%). Cambia con i cursori del bilanciatore.
+
 
 **Posizione in classifica** (`elencoPriorita`, `classificaPriorita`, `posizionePriorita` in `shared/views.ts`): **una sola classifica per tutte le note e i progetti**, calcolata sempre sull'insieme completo e mai sulle voci della schermata aperta. Contiene ogni attività aperta (i passi dei progetti uno per uno), per punteggio; a parità vince il gruppo (progetto o nota) creato prima e dentro un progetto restano i passi nell'ordine scelto. Un progetto ha la posizione del suo passo più avanti; esperienze, curiosità, Inbox e progetti senza passi non hanno posizione. Il numero di una nota è lo stesso in Priorità, Attività, nella lista dei passi del progetto, nella scheda e nel widget.
 
@@ -543,6 +546,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-20 | 0.68.4 | **Blocco del cronometro nuovo in Priorità** (mockup 57-58): stato in alto a sinistra, «Nessuna nota in corso» pulito, nota in corso con barra sempre visibile e timer grande accanto al tasto mentre corre, pausa che lascia la barra; **una sola nota «in corso»** (le altre tornano da fare, il cronometro segue la nuova nota; `altreInCorso`, `lasciaInCorsoSolo`, `seguiNotaInCorso`); il **tempo già lavorato** compare accanto alla casella delle altre note (testo); tolta la barra sotto le righe, l'invito «Inizia» e «Ho finito di lavorare» dalla scheda; il widget avvia il cronometro dalla nota «in corso» (campo `c`). Vale anche per sito e app per computer, che mostrano il sito del server |
 | 2026-10-20 | 0.68.5 | Documentazione: cosa fare se il debug wireless non si collega (cavo USB o APK copiato sul telefono); nessun cambiamento al codice |
 | 2026-10-20 | 0.69.0 | **Widget con il blocco del cronometro semplificato** (mockup 59-60): senza nota in corso solo «Nessuna nota in corso»; con una nota «In corso», timer grande, tasti ▶/⏸ e ■ e barra senza scritte, al posto di «Inizia» e «Fine»; sotto la lista scorrevole con tutte le attività e tutte e cinque le curiosità (sezioni con intestazione e tempo necessario), stima sotto il titolo e tempo già lavorato accanto alla casella. Il blocco dell'app e del sito resta quello di prima. Un tocco sulla casella di una nota apre subito il foglio degli stati (niente cambio di stato automatico); il blocco del cronometro ha sempre la stessa altezza, con o senza nota in corso, nel widget, nell'app, nel sito e sul computer; nel widget le curiosità hanno il pallino dell'interesse. **Notifica periodica del timer** sul telefono (Altro › Notifica del timer: attiva e ogni 1-30 minuti, predefinito 5): una notifica sonora mentre il cronometro scorre |
+| 2026-10-20 | 0.70.0 | **Priorità di nuovo con una formula** : punteggio 0-100 = somma pesata di **data di scadenza, importanza e tempo stimato** (di base 50/40/10) con i cursori in Altro › **Bilanciatore della priorità**; colore (da 60 rosso, da 35 ambra) e battito del pallino nascono dal punteggio, l'ordine segue il punteggio; tolti la **scadenza fissa** (campo, lucchetto, casella nella scheda) e le soglie per posizione; il blocco della priorità nella scheda mostra le tre componenti e il punteggio |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

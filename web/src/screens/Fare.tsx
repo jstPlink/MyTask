@@ -106,10 +106,10 @@ function Azioni({ filtro }: { filtro: Filtro }) {
         key={item.id}
         titolo={item.titolo} tipo={item.tipo}
         meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : unisciMeta([item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? nomeTempo(item.sforzoMin) : undefined])}
-        right={d ? (item.rigida || scaduta ? <span className={clsx('hard', item.rigida && 'rigida')}>{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
-        level={item.stato === 'parcheggiato' ? 1 : livelloPriorita(item, oggi, classifica.get(item.id))}
+        right={d ? (scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
+        level={item.stato === 'parcheggiato' ? 1 : livelloPriorita(item, oggi)}
         rank={classifica.get(item.id)}
-        urgenza={item.stato === 'parcheggiato' ? 0 : intensitaBattito(item, oggi, livelloPriorita(item, oggi, classifica.get(item.id)))}
+        urgenza={item.stato === 'parcheggiato' ? 0 : intensitaBattito(item, oggi)}
         light={item.stato === 'parcheggiato'}
         voce={item}
         selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}
@@ -153,8 +153,8 @@ function Progetti({ filtro }: { filtro: Filtro }) {
       return (
         <Row key={c.id} titolo={c.titolo} tipo={c.tipo} done={chiuso} light={chiuso} struck={chiuso}
           meta={chiuso ? undefined : c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
-          right={d && !chiuso ? (c.rigida || isOverdue(c, oggi) ? <span className={clsx('hard', c.rigida && 'rigida')}>{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
-          level={chiuso ? undefined : livelloPriorita(withInheritance(c, p.progetto), oggi, classifica.get(c.id))}
+          right={d && !chiuso ? (isOverdue(c, oggi) ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
+          level={chiuso ? undefined : livelloPriorita(withInheritance(c, p.progetto), oggi)}
           voce={c}
           selected={nav.openId === c.id} onOpen={() => nav.push({ k: 'item', id: c.id })} />
       );
@@ -226,7 +226,7 @@ function RigheEsperienze({ titolo, filtro }: { titolo?: boolean; filtro?: Filtro
     <Row key={i.id} titolo={i.titolo} tipo={i.tipo} meta={[i.oraInizio, ordine !== 'luogo' ? i.zona : undefined, km !== undefined ? `a ${km < 10 ? km.toFixed(1).replace('.', ',') : Math.round(km)} km` : undefined].filter(Boolean).join(' · ') || undefined} interesse={i.interesse ?? 3}
       light={!dueDate(i)}
       right={dueDate(i)
-        ? (i.rigida ? <span className="hard rigida">{formatShortYear(dueDate(i)!, oggi)}</span> : formatShortYear(dueDate(i)!, oggi))
+        ? formatShortYear(dueDate(i)!, oggi)
         : <a href={i.linkMaps ?? mapsUrl(i.titolo, i.zona)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>Maps ›</a>}
       voce={i} selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
   );

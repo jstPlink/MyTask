@@ -65,7 +65,7 @@ export interface Item {
   fine?: string;
   oraInizio?: string;
   oraFine?: string;
-  /** La scadenza non è spostabile: nel punteggio di priorità conta come parametro a parte (`fissa`). */
+  /** Non più usata (la «scadenza fissa» è stata tolta dalla priorità): resta nei dati vecchi, senza effetto. */
   rigida?: boolean;
   ricorrenza?: Ricorrenza;
   promemoria?: Promemoria[];

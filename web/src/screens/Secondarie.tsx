@@ -49,7 +49,7 @@ export function Altro() {
         {voce('Completato', nArch, { k: 'archivio' })}
         <Sec a="App" />
         {voce('Intelligenza artificiale', 'Gemini e Groq', { k: 'ia' })}
-        <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Regole della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
+        <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Bilanciatore della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
         {isNative() && voce('Notifica del timer', pt.attivo ? `ogni ${pt.ogniMinuti} min` : 'disattivata', { k: 'timer' })}
         {voce('Account e sincronizzazione', undefined, { k: 'account' })}

@@ -1,6 +1,6 @@
-// Priorità delle azioni e dei progetti: scadenze, colore del pallino e ordine di Oggi e delle liste.
-// Colore e ordine nascono dalle regole di Altro › «Regole della priorità» (importanza, scadenza, posizione). Funzioni pure,
-// tranne le regole attive, che sono uno stato del modulo.
+// Priorità delle azioni e dei progetti: scadenze e punteggio da 0 a 100 che decide ordine, colore e battito del pallino.
+// Il punteggio unisce tre componenti (scadenza, importanza, tempo stimato) con pesi regolabili da Altro › «Bilanciatore della priorità».
+// Funzioni pure, tranne i pesi attivi, che sono uno stato del modulo.
 import type { Item } from './types.ts';
 import { diffDays } from './dates.ts';
 
@@ -46,116 +46,107 @@ export function battitoBpm(intensita: number, posizione?: number): number {
 }
 
 /**
- * Regole della priorità (impostazioni, sperimentali). Non c'è più nessun punteggio da 0 a 100: il colore del pallino e l'ordine
- * nascono da tre segnali, vale il più alto: l'importanza impostata, la scadenza e la posizione nella classifica.
- * - rosso: importanza almeno `rossoImportanza`, scadenza entro `rossoGiorni` giorni (scaduta e oggi comprese) o tra le prime `rossoPosizioni`;
- * - ambra: stesso discorso con le soglie `ambra…`; grigio: il resto.
- * - ordine: prima tutte le rosse, poi le ambra, poi le grigie; dentro lo stesso colore va avanti chi ha `ordine` = la scadenza più
- *   vicina (a parità l'importanza più alta) oppure l'importanza più alta (a parità la scadenza più vicina).
+ * Urgenza della scadenza da 0 a 100 secondo la distanza della data: scaduta o oggi 100, entro 3 giorni 80, entro 7 giorni 60,
+ * entro 30 giorni 35, oltre 15; senza data 0.
  */
-export interface RegolePriorita {
-  rossoImportanza: number; rossoGiorni: number; rossoPosizioni: number;
-  ambraImportanza: number; ambraGiorni: number; ambraPosizioni: number;
-  ordine: 'scadenza' | 'importanza';
+export function urgency(i: Item, today: string): number {
+  const due = dueDate(i);
+  if (!due) return 0;
+  const days = diffDays(due, today);
+  if (days <= 0) return 100;
+  if (days <= 3) return 80;
+  if (days <= 7) return 60;
+  if (days <= 30) return 35;
+  return 15;
 }
 
-export const REGOLE_PREDEFINITE: RegolePriorita = { rossoImportanza: 4.5, rossoGiorni: 5, rossoPosizioni: 3, ambraImportanza: 3, ambraGiorni: 7, ambraPosizioni: 10, ordine: 'scadenza' };
+/** Le tre componenti del punteggio, ognuna da 0 a 100 prima di applicare il suo peso. */
+export interface ComponentiPunteggio { scadenza: number; importanza: number; tempo: number }
 
-/** Regole in uso da tutto il calcolo delle priorità (liste, Oggi, widget). */
-let regoleAttive: RegolePriorita = { ...REGOLE_PREDEFINITE };
-
-const tra = (n: number, min: number, max: number, def: number) => (Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : def);
-
-/** Riporta ogni valore nel suo intervallo (e l'ambra mai più severa del rosso). */
-export function normalizzaRegole(r: Partial<RegolePriorita>): RegolePriorita {
-  const d = REGOLE_PREDEFINITE;
-  const rossoImportanza = tra(r.rossoImportanza as number, 1, 5, d.rossoImportanza);
-  const rossoGiorni = Math.round(tra(r.rossoGiorni as number, -1, 30, d.rossoGiorni));
-  const rossoPosizioni = Math.round(tra(r.rossoPosizioni as number, 0, 20, d.rossoPosizioni));
+/**
+ * Le componenti del punteggio:
+ * - scadenza: l'urgenza della data (`urgency`), 0 senza data;
+ * - importanza: da 1 a 5 (di base 3) riportata su 0-100;
+ * - tempo stimato: premia le attività brevi (fino a 15 min 100, fino a 30 min 60, fino a 60 min 30, oltre 0; senza stima 30).
+ */
+export function componentiPunteggio(i: Item, today: string): ComponentiPunteggio {
   return {
-    rossoImportanza, rossoGiorni, rossoPosizioni,
-    ambraImportanza: Math.min(rossoImportanza, tra(r.ambraImportanza as number, 1, 5, d.ambraImportanza)),
-    ambraGiorni: Math.max(rossoGiorni, Math.round(tra(r.ambraGiorni as number, -1, 60, d.ambraGiorni))),
-    ambraPosizioni: Math.max(rossoPosizioni, Math.round(tra(r.ambraPosizioni as number, 0, 40, d.ambraPosizioni))),
-    ordine: r.ordine === 'importanza' ? 'importanza' : 'scadenza',
+    scadenza: urgency(i, today),
+    importanza: (((i.importanza ?? 3) - 1) / 4) * 100,
+    tempo: i.sforzoMin === undefined ? 30 : i.sforzoMin <= 15 ? 100 : i.sforzoMin <= 30 ? 60 : i.sforzoMin <= 60 ? 30 : 0,
   };
 }
 
-/** Le regole attualmente in uso. */
-export const getRegole = (): RegolePriorita => regoleAttive;
-/** Cambia le regole usate da tutto il calcolo delle priorità; senza argomento tornano quelle di base. */
-export function impostaRegole(r: Partial<RegolePriorita> | undefined) { regoleAttive = r ? normalizzaRegole(r) : { ...REGOLE_PREDEFINITE }; }
+/** Peso di ogni componente nel punteggio (somma 1). */
+export type PesiPunteggio = ComponentiPunteggio;
 
-/** Giorni alla scadenza (negativi se scaduta, Infinity senza data). */
-function giorniAllaScadenza(i: Item, today: string): number {
-  const due = dueDate(i);
-  return due ? diffDays(due, today) : Infinity;
+/** Pesi di base: scadenza 50%, importanza 40%, tempo stimato 10%. */
+export const PESI_PREDEFINITI: PesiPunteggio = { scadenza: 0.5, importanza: 0.4, tempo: 0.1 };
+
+/** Pesi in uso da tutto il calcolo delle priorità (liste, Priorità, widget). */
+let pesiAttivi: PesiPunteggio = { ...PESI_PREDEFINITI };
+
+/** Porta i pesi a somma 1 (così il punteggio resta tra 0 e 100); se sono tutti zero tornano quelli di base. */
+export function normalizzaPesi(p: Partial<PesiPunteggio>): PesiPunteggio {
+  const v = (n: unknown) => (typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : 0);
+  const somma = v(p.scadenza) + v(p.importanza) + v(p.tempo);
+  if (somma <= 0) return { ...PESI_PREDEFINITI };
+  return { scadenza: v(p.scadenza) / somma, importanza: v(p.importanza) / somma, tempo: v(p.tempo) / somma };
 }
 
-/** Colore senza la posizione: serve a ordinare (la posizione nasce dall'ordine, quindi non può entrarci). */
-function livelloBase(i: Item, today: string): 1 | 2 | 3 {
-  const r = regoleAttive;
-  const imp = i.importanza ?? 3;
-  const g = giorniAllaScadenza(i, today);
-  if (imp >= r.rossoImportanza || g <= r.rossoGiorni) return 3;
-  if (imp >= r.ambraImportanza || g <= r.ambraGiorni) return 2;
-  return 1;
+/** I pesi attualmente in uso. */
+export const getPesi = (): PesiPunteggio => pesiAttivi;
+/** Cambia i pesi usati da tutto il calcolo delle priorità; senza argomento tornano quelli di base. */
+export function impostaPesi(p: Partial<PesiPunteggio> | undefined) { pesiAttivi = p ? normalizzaPesi(p) : { ...PESI_PREDEFINITI }; }
+
+/** Punteggio 0-100 di un'azione o di un progetto: la somma delle tre componenti, ognuna per il suo peso (sezione 6.1 della documentazione). */
+export function score(i: Item, today: string): number {
+  const c = componentiPunteggio(i, today);
+  const w = pesiAttivi;
+  return Math.round(Math.min(100, Math.max(0, w.scadenza * c.scadenza + w.importanza * c.importanza + w.tempo * c.tempo)));
+}
+
+/** Livello 1-3 del pallino dal punteggio: da 60 in su alta (rosso), da 35 media (ambra), altrimenti bassa (grigio). */
+export function livelloDaPunteggio(punteggio: number): 1 | 2 | 3 {
+  return punteggio >= 60 ? 3 : punteggio >= 35 ? 2 : 1;
 }
 
 /**
- * Livello 1-3 del pallino di priorità (3 rosso, 2 ambra, 1 grigio): il più alto tra importanza, scadenza e posizione in classifica.
+ * Livello 1-3 del pallino di priorità (3 rosso, 2 ambra, 1 grigio), dal punteggio della formula.
  * Per un passo di progetto si passa la voce con l'ereditarietà già applicata (`withInheritance`).
  */
-export function livelloPriorita(i: Item, today: string, posizione?: number): 1 | 2 | 3 {
-  const r = regoleAttive;
-  const base = livelloBase(i, today);
-  if (posizione !== undefined) {
-    if (posizione <= r.rossoPosizioni) return 3;
-    if (posizione <= r.ambraPosizioni) return Math.max(base, 2) as 2 | 3;
-  }
-  return base;
+export function livelloPriorita(i: Item, today: string): 1 | 2 | 3 {
+  return livelloDaPunteggio(score(i, today));
 }
 
 /**
- * Chiave per ordinare le note (più alta = prima): colore, poi scadenza e importanza nell'ordine scelto, poi (a parità) la scadenza fissa,
- * le attività brevi e le note più vecchie. Non è un punteggio: serve solo al confronto.
+ * Chiave per ordinare le note (più alta = prima): il punteggio della formula, poi (a parità) la scadenza più vicina, l'importanza più alta
+ * e la nota più vecchia. Non è un punteggio da mostrare: serve solo al confronto.
  */
 export function chiavePriorita(i: Item, today: string, now: number = Date.now()): number {
-  const imp = Math.round((i.importanza ?? 3) * 100); // 100-500
-  const g = giorniAllaScadenza(i, today);
+  const due = dueDate(i);
+  const g = due ? diffDays(due, today) : Infinity;
   const scad = Number.isFinite(g) ? 2000 - (Math.min(1000, Math.max(-400, g)) + 400) : 0; // 600-2000, più alta se più vicina; 0 senza data
-  const rigida = i.rigida && Number.isFinite(g) ? 1 : 0;
-  const breve = i.sforzoMin === undefined ? 1 : i.sforzoMin <= 15 ? 3 : i.sforzoMin <= 30 ? 2 : i.sforzoMin <= 60 ? 1 : 0;
+  const imp = Math.round((i.importanza ?? 3) * 100); // 100-500
   const eta = Math.min(52, Math.floor(Math.max(0, now - i.creato) / (7 * 86400000)));
-  const sub = regoleAttive.ordine === 'scadenza'
-    ? (((scad * 2 + rigida) * 1000 + imp) * 10 + breve) * 100 + eta
-    : (((imp * 2 + rigida) * 2001 + scad) * 10 + breve) * 100 + eta;
-  return livelloBase(i, today) * 1e11 + sub;
+  return ((score(i, today) * 2001 + scad) * 1000 + imp) * 100 + eta;
 }
 
 /**
- * Intensità (0-100) che regola il battito del pallino, allineata a colore e soglie: il grigio non batte; il rosso batte sempre (almeno 55,
- * circa 43 bpm, anche senza scadenza) e l'ambra piano (almeno 25); più la scadenza è vicina più sale: oggi o scaduta 100, 60 alla soglia
- * del rosso, 35 a quella dell'ambra, 15 a 30 giorni. `livello` è quello del pallino (`livelloPriorita`, posizione compresa).
+ * Intensità (0-100) che regola il battito del pallino, legata alla formula: il grigio (punteggio sotto 35) non batte; ambra e rosso battono
+ * con il punteggio stesso, quindi più la formula sale più il pallino va veloce (circa 28 bpm a 35, 88 bpm a 100).
  */
-export function intensitaBattito(i: Item, today: string, livello: 1 | 2 | 3): number {
-  if (livello === 1) return 0;
-  const minimo = livello === 3 ? 55 : 25;
-  const g = giorniAllaScadenza(i, today);
-  if (!Number.isFinite(g)) return minimo;
-  const r = regoleAttive;
-  const tratto = (x: number, x0: number, x1: number, y0: number, y1: number) => (x1 <= x0 ? y1 : y0 + ((x - x0) / (x1 - x0)) * (y1 - y0));
-  const data = g <= 0 ? 100 : g <= r.rossoGiorni ? tratto(g, 0, r.rossoGiorni, 100, 60) : g <= r.ambraGiorni ? tratto(g, r.rossoGiorni, r.ambraGiorni, 60, 35) : g <= 30 ? tratto(g, r.ambraGiorni, 30, 35, 15) : 15;
-  return Math.max(minimo, data);
+export function intensitaBattito(i: Item, today: string): number {
+  const punteggio = score(i, today);
+  return livelloDaPunteggio(punteggio) === 1 ? 0 : punteggio;
 }
 
-/** Un passo di progetto eredita importanza, scadenza e scadenza fissa dal progetto se non le ha (una data d'inizio sua esclude la scadenza del progetto). */
+/** Un passo di progetto eredita importanza e scadenza dal progetto se non le ha (una data d'inizio sua esclude la scadenza del progetto). */
 export function withInheritance(child: Item, parent: Item | undefined): Item {
   if (!parent) return child;
   return {
     ...child,
     importanza: parent.importanza ?? child.importanza, // l'importanza di un passo è quella del progetto
     fine: child.fine ?? (child.inizio ? undefined : parent.fine),
-    rigida: child.rigida ?? parent.rigida,
   };
 }

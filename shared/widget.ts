@@ -38,7 +38,7 @@ export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[]
   const classifica = classificaPriorita(items, oggi); // la stessa posizione che si legge nell'app
   const v = vistaOggi(items, oggi);
   const attivita: RigaWidget[] = v.fare.slice(0, max).map((e) => ({
-    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi, classifica.get(e.item.id)), b: battitoBpm(intensitaBattito(e.item, oggi, livelloPriorita(e.item, oggi, classifica.get(e.item.id))), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, p: e.item.sforzoMin || undefined,
+    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi), b: battitoBpm(intensitaBattito(e.item, oggi), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, p: e.item.sforzoMin || undefined,
   }));
   const curiosita: RigaWidget[] = v.curiosita.map((i) => ({
     id: i.id, t: i.titolo, l: 1, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, p: i.sforzoMin || undefined, k: 'c', i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))),
