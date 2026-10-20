@@ -3,7 +3,7 @@
 import type { Item } from './types.ts';
 import { NOMI_TIPO } from './types.ts';
 import { MOOD, TIPOLOGIE } from './stasera.ts';
-import { dueDate, isOpen, score, barLevel } from './priority.ts';
+import { dueDate, isOpen, chiavePriorita, livelloPriorita } from './priority.ts';
 import { live } from './views.ts';
 
 /** Servizi IA ammessi: la chiave la inserisce l'utente e le richieste partono dal dispositivo (web/src/lib/ia.ts), non dal server di MyTask. */
@@ -74,8 +74,8 @@ export function riepilogoPerChat(items: Item[], oggi: string, now: number = Date
   const conta = new Map<string, number>();
   for (const i of viv.filter(isOpen)) conta.set(NOMI_TIPO[i.tipo], (conta.get(NOMI_TIPO[i.tipo]) ?? 0) + 1);
   const attivita = viv.filter((i) => (i.tipo === 'azione' || i.tipo === 'progetto') && isOpen(i) && !i.inbox)
-    .map((i) => ({ i, s: score(i, oggi, now) })).sort((a, b) => b.s - a.s).slice(0, 25)
-    .map(({ i, s }) => `- ${i.titolo.slice(0, 80)} (priorità ${['', 'bassa', 'media', 'alta'][barLevel(s)]}${dueDate(i) ? `, scade ${dueDate(i)}` : ''}${i.stato === 'in_corso' ? ', in corso' : ''})`);
+    .map((i) => ({ i, s: chiavePriorita(i, oggi, now) })).sort((a, b) => b.s - a.s).slice(0, 25)
+    .map(({ i, s }) => `- ${i.titolo.slice(0, 80)} (priorità ${['', 'bassa', 'media', 'alta'][livelloPriorita(i, oggi)]}${dueDate(i) ? `, scade ${dueDate(i)}` : ''}${i.stato === 'in_corso' ? ', in corso' : ''})`);
   const altre = (tipo: Item['tipo'], n: number) => viv.filter((i) => i.tipo === tipo && isOpen(i)).slice(0, n).map((i) => `- ${i.titolo.slice(0, 60)}${i.zona ? ` (${i.zona})` : ''}`);
   const parti = [
     `Data di oggi: ${oggi}.`,

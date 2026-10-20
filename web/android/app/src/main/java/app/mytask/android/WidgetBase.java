@@ -11,7 +11,7 @@ import android.widget.RemoteViews;
 import org.json.JSONObject;
 
 /**
- * Widget «Oggi» della schermata Home, 4x3 e ridimensionabile: in cima il pulsante «Sto lavorando» (o, a sessione aperta, il
+ * Widget «Oggi» della schermata Home, 4x3 e ridimensionabile: in cima il pulsante «Inizia» (o, a sessione aperta, il
  * cronometro con «Fine» e pausa), sotto la lista delle cose da fare di oggi in ordine di priorità e, in basso a destra, il
  * pulsante + che apre la nota veloce (NotaRapidaActivity). Le sottoclassi
  * MyTaskWidgetChiaro e MyTaskWidgetScuro scelgono solo l'aspetto (layout widget_chiaro o widget_scuro).
@@ -35,7 +35,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
     }
 
     /**
-     * Intestazione: senza sessione il pulsante «Sto lavorando»; con la sessione la barra con il cronometro nativo
+     * Intestazione: senza sessione il pulsante «Inizia»; con la sessione la barra con il cronometro nativo
      * (Chronometer, avanza da solo), il titolo del task, «Fine» e il pulsante pausa/riprendi (giallo se in pausa).
      */
     private void intestazione(Context c, RemoteViews v, boolean s, int k) {

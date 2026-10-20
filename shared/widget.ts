@@ -1,7 +1,7 @@
-// Dati per il widget «Oggi» della schermata Home di Android: le righe della lista di oggi, la sessione «Sto lavorando» e un
+// Dati per il widget «Oggi» della schermata Home di Android: le righe della lista di oggi, la sessione «Inizia» e un
 // archivio compatto delle note. L'app li calcola e li invia al widget (plugin Widget); il widget non legge i dati dell'app né usa la rete.
 import type { Item } from './types.ts';
-import { barLevel, battitoBpm, isClosed, urgency } from './priority.ts';
+import { livelloPriorita, battitoBpm, isClosed, intensitaBattito } from './priority.ts';
 import type { Sessione } from './sessione.ts';
 import { classificaPriorita, live, vistaOggi } from './views.ts';
 import { chiaveTitolo } from './testo.ts';
@@ -28,11 +28,11 @@ export interface RigaWidget {
 export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[] {
   const classifica = classificaPriorita(items, oggi); // la stessa posizione che si legge nell'app
   return vistaOggi(items, oggi).fare.slice(0, max).map((e) => ({
-    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: barLevel(e.punteggio), b: battitoBpm(urgency(e.item, oggi)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined,
+    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi, classifica.get(e.item.id)), b: battitoBpm(intensitaBattito(e.item, oggi, livelloPriorita(e.item, oggi, classifica.get(e.item.id))), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined,
   }));
 }
 
-/** La sessione «Sto lavorando» come la vede il widget: il cronometro mostra `base` più, se corre (`lavoro`), il tempo da `ref`. */
+/** La sessione «Inizia» come la vede il widget: il cronometro mostra `base` più, se corre (`lavoro`), il tempo da `ref`. */
 export interface LavoroWidget {
   stato: 'lavoro' | 'pausa';
   id: string;

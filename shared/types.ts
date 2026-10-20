@@ -122,7 +122,7 @@ export interface Item {
   completatoTs?: number;
   /** Quando la nota è passata allo stato «in corso» (millisecondi). */
   inCorsoTs?: number;
-  /** Millisecondi realmente lavorati sul task con il cronometro «Sto lavorando» (shared/sessione.ts): diventano il tempo reale al completamento. */
+  /** Millisecondi realmente lavorati sul task con il cronometro «Inizia» (shared/sessione.ts): diventano il tempo reale al completamento. */
   lavoratoMs?: number;
   /** Quando si è cercata una descrizione su internet (millisecondi). */
   descrittoIl?: number;

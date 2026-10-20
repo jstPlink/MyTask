@@ -10,6 +10,7 @@ import { avviaPromemoria } from './lib/reminders.ts';
 import { avviaNotificheNative, isNative } from './lib/native.ts';
 import { avviaWidget } from './lib/widget.ts';
 import { avviaSessione } from './lib/sessione.ts';
+import { avviaAggiornamento } from './lib/aggiornamento.ts';
 import { avviaHaptic } from './lib/haptic.ts';
 import { avviaPesi } from './lib/pesi.ts';
 import { sistemaPersoneEChecklist } from './lib/migrazioni.ts';
@@ -38,6 +39,7 @@ async function avvia() {
     // sito: promemoria con l'API Notification (finché la pagina è aperta) e service worker per l'uso offline e l'installazione
     avviaPromemoria();
     registerSW({ immediate: true });
+    avviaAggiornamento();
   }
 }
 

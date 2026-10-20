@@ -16,7 +16,7 @@ public class WidgetPlugin extends Plugin {
 
     /**
      * Salva la lista di oggi (`righe`, testo JSON) e, se presente, l'archivio compatto delle note per la ricerca delle
-     * note simili (`archivio`) e, se presente, la sessione «Sto lavorando» (`lavoro`, testo JSON; vuoto = nessuna sessione),
+     * note simili (`archivio`) e, se presente, la sessione «Inizia» (`lavoro`, testo JSON; vuoto = nessuna sessione),
      * poi chiede ai widget di ridisegnarsi.
      */
     @PluginMethod

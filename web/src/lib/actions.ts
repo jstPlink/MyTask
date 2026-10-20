@@ -36,7 +36,7 @@ function fotografaProgetto(progetto: Item, idTarget: string) {
 
 /**
  * Spunta una voce. Offre «Annulla» e, se era l'ultimo passo di un progetto, di chiudere il progetto.
- * Registra il tempo impiegato: quello del cronometro «Sto lavorando» (`lavoratoMs`); senza cronometro non si registra nessuna
+ * Registra il tempo impiegato: quello del cronometro «Inizia» (`lavoratoMs`); senza cronometro non si registra nessuna
  * durata. Se il cronometro correva su
  * questo task, passa al successivo della lista di Oggi. `ora` (di base adesso) è il momento del completamento: il widget
  * lo passa quando l'azione è stata fatta mentre l'app era chiusa.
@@ -50,7 +50,7 @@ export function completaVoce(item: Item, ora = Date.now()) {
   // passo di un progetto: si fotografa il progetto prima del segno di fatto, per l'animazione dell'avanzamento
   const progetto = padre?.tipo === 'progetto' && !item.ricorrenza ? padre : undefined;
   const fotoPrima = progetto ? fotografaProgetto(progetto, item.id) : undefined;
-  // il tempo impiegato non si chiede: arriva dal cronometro «Sto lavorando»
+  // il tempo impiegato non si chiede: arriva dal cronometro «Inizia»
   const lavoratoMs = tempoDi(item, ora);
   const misurabile = item.tipo === 'azione' && !item.ricorrenza;
   const durata = misurabile ? minutiMisurati(lavoratoMs) : undefined;
@@ -96,7 +96,7 @@ export function ordinaPassi(padreId: string, idsNuovi: string[]) {
 /** Gli stati che l'utente può scegliere (menu «Stato»): da fare, in corso, fatta, archiviata. */
 export const STATI_NOTA: { id: Stato; nome: string; descr: string }[] = [
   { id: 'da_fare', nome: 'Da fare', descr: 'Non ancora iniziata' },
-  { id: 'in_corso', nome: 'In corso', descr: 'Ci sto lavorando' },
+  { id: 'in_corso', nome: 'In corso', descr: 'Già iniziata' },
   { id: 'fatto', nome: 'Fatta', descr: 'Completata' },
   { id: 'parcheggiato', nome: 'Archiviata', descr: 'Messa da parte' },
 ];

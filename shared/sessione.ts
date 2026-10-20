@@ -1,4 +1,4 @@
-// Sessione di lavoro: il cronometro «Sto lavorando». Un solo cronometro alla volta, che corre su un task (`taskId`).
+// Sessione di lavoro: il cronometro «Inizia». Un solo cronometro alla volta, che corre su un task (`taskId`).
 // Si può mettere in pausa, spostare su un altro task o chiudere. Il tempo di ogni task si accumula in `Item.lavoratoMs`
 // (millisecondi realmente lavorati) e alla fine diventa il tempo reale che affina stima e margine d'errore.
 // Qui ci sono solo il modello e il calcolo del tempo (funzioni pure); le azioni sono in web/src/lib/sessione.ts.

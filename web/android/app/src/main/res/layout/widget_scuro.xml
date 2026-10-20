@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget Oggi (scuro): in cima il pulsante «Sto lavorando» oppure, a sessione aperta, la barra del cronometro
+<!-- Widget Oggi (scuro): in cima il pulsante «Inizia» oppure, a sessione aperta, la barra del cronometro
      (Chronometer nativo, avanza da solo) con «Fine» e pausa; sotto la lista delle righe (riga_*), il messaggio a lista vuota
      e il pulsante + per la nota veloce. Il padding in basso della lista lascia spazio al pulsante. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"

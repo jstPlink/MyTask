@@ -1,4 +1,4 @@
-// «Sto lavorando»: lo stato della sessione di lavoro (un cronometro che corre su un task alla volta) e le azioni per
+// «Inizia»: lo stato della sessione di lavoro (un cronometro che corre su un task alla volta) e le azioni per
 // avviarla, metterla in pausa, spostarla su un altro task o chiuderla. Il modello e i calcoli sono in shared/sessione.ts.
 // Lo stato sta sul dispositivo (localStorage) e viaggia nella sincronizzazione come «impostazione» (chiave `sessione`),
 // così telefono e sito vedono lo stesso cronometro: vince la modifica più recente. Il tempo di ogni task si accumula
@@ -66,13 +66,12 @@ function chiudiTratto(s: Sessione, now: number) {
   accumula(s.taskId, msTrattoInCorso(s, now), now);
 }
 
-/** «Sto lavorando»: il cronometro parte sul primo task della lista di Oggi (o su `id`, se dato). */
+/** «Inizia»: il cronometro parte sul primo task della lista di Oggi (o su `id`, se dato), senza cambiarne lo stato: può correre anche su una curiosità. */
 export function iniziaLavoro(id?: string, now = Date.now()) {
   if (corrente.stato !== 'ferma') return;
   const scelto = id ?? idElenco()[0];
   if (!scelto) { mostraToast('Nessuna attività da fare'); return; }
   imposta({ stato: 'lavoro', taskId: scelto, inizio: now, controllo: now }, now);
-  segnaInCorso(scelto, now);
 }
 
 /** Ferma il cronometro (telefonata, pranzo) tenendo aperta la sessione. */

@@ -1,5 +1,5 @@
 // Widget «Oggi» della schermata Home di Android. L'app scrive nel plugin nativo `Widget` la lista di oggi, la sessione
-// «Sto lavorando» e l'archivio per la ricerca; il widget accoda le azioni fatte dall'utente (note veloci per l'Inbox, voci
+// «Inizia» e l'archivio per la ricerca; il widget accoda le azioni fatte dall'utente (note veloci per l'Inbox, voci
 // spuntate, avvio/pausa/ripresa/fine della sessione) e l'app le applica, con l'orario in cui sono state fatte, appena si apre
 // o torna in primo piano. Nel browser non fa nulla.
 import { Capacitor, registerPlugin } from '@capacitor/core';

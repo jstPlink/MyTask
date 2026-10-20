@@ -20,8 +20,8 @@ function regola(css: string) {
 }
 
 /** Stile (animazione) del pallino per un'urgenza: il pallino si contrae a ritmo di battito, più veloce quanto più la scadenza è vicina. */
-export function battito(urgenza: number): CSSProperties | undefined {
-  const bpm = battitoBpm(urgenza);
+export function battito(urgenza: number, posizione?: number): CSSProperties | undefined {
+  const bpm = battitoBpm(urgenza, posizione);
   if (!bpm) return undefined;
   const per = 60 / bpm;
   const colpo = Math.min(COLPO_S, per * 0.7);

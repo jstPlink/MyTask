@@ -15,7 +15,7 @@ export const useAuth = () => useSyncExternalStore(subscribeAuth, getAuth);
 export const useSyncStatus = () => useSyncExternalStore(subscribeSync, getStatoSync);
 export const useToast = () => useSyncExternalStore(subscribeToast, getToast);
 export const useAspetto = () => useSyncExternalStore(subscribeAspetto, getAspetto);
-/** La sessione di lavoro («Sto lavorando»). */
+/** La sessione di lavoro («Inizia»). */
 export const useSessione = () => useSyncExternalStore(subscribeSessione, getSessione);
 
 /**

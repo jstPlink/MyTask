@@ -20,8 +20,8 @@ export function Curiosita() {
   return (
     <>
       <Top title="Curiosità" sub={`${lista.length} da approfondire`} right={<PulsanteAspetto />} />
+      {!nav.wide && <div className="fisso"><Cerca valore={q} onChange={setQ} placeholder="Cerca nelle curiosità" /></div>}
       <div className="scroll">
-        {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle curiosità" />}
         {lista.length === 0 && filtro && <Empty>Nessun risultato: prova con altre parole.</Empty>}
         {lista.length === 0 && !filtro && <Empty>Niente da approfondire. Scrivi una curiosità con il pulsante +: se è tra le più interessanti comparirà nella pagina principale.</Empty>}
         {lista.length > 0 && (

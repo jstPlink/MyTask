@@ -9,8 +9,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
-import { formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
-import { barLevel, componentiPunteggio, dueDate } from '../../../shared/priority.ts';
+import { diffDays, formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
+import { livelloPriorita, dueDate, getRegole } from '../../../shared/priority.ts';
 import { avanzamento, classificaPriorita, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
 import { useAdesso, useItems, useSessione } from '../lib/hooks.ts';
 import { tempoDi } from '../lib/sessione.ts';
@@ -111,7 +111,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     const mio = punteggioGameDesign(d);
     return `${Math.round(mio)} su 100 · ${altre.filter((e) => e.punteggio > mio).length + 1}ª su ${altre.length + 1}`;
   }, [tutte, d, t]);
-  // Tempo lavorato con il cronometro «Sto lavorando» (anche il tratto che sta correndo adesso) e quota sul tempo stimato
+  // Tempo lavorato con il cronometro «Inizia» (anche il tratto che sta correndo adesso) e quota sul tempo stimato
   const sessione = useSessione();
   const inLavoro = sessione.stato === 'lavoro' && sessione.taskId === d.id;
   const adesso = useAdesso(inLavoro);
@@ -160,12 +160,15 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   // Priorità: solo attività e progetti hanno un punteggio; un'attività di un progetto eredita importanza e scadenza dal progetto.
   const puntegg = IS_AZIONE(t) ? punteggioEffettivo(withTemp(d), tutte, oggi) : undefined;
   const due = dueDate(d);
-  const componenti = componentiPunteggio(withTemp(d), oggi);
   // Posizione in classifica tra le attività aperte (1 = la più prioritaria), la stessa dei numeri in Oggi e in Attività.
   const posizione = useMemo(() => {
     if (puntegg === undefined) return { pos: 1, tot: 1 };
     return posizionePriorita(tutte, withTemp(d), oggi);
   }, [tutte, oggi, d, puntegg]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const regoleAtt = getRegole();
+  const giorniScad = due ? diffDays(due, oggi) : undefined;
+  const livello = puntegg !== undefined ? livelloPriorita(withTemp(d), oggi, posizione.pos) : 1;
 
   /** La voce con importanza e scadenza prese dal progetto, se non le ha proprie. */
   function withTemp(x: Item): Item {
@@ -223,21 +226,21 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         )}
         {/* Blocco della priorità: posizione in classifica, livello e, se aperto, il peso di ciascun parametro */}
         {puntegg !== undefined && d.stato !== 'fatto' && (
-          <div className={clsx('prio', `p${barLevel(puntegg)}`, prioAperta && 'aperta')} aria-label={`Priorità ${['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}, ${posizione.pos}ª da fare su ${posizione.tot}`}>
+          <div className={clsx('prio', `p${livello}`, prioAperta && 'aperta')} aria-label={`Priorità ${['', 'bassa', 'media', 'alta'][livello]}, ${posizione.pos}ª da fare su ${posizione.tot}`}>
             <button type="button" className="prio-testa" aria-expanded={prioAperta} aria-controls="prio-dettagli" onClick={alternaPrio}>
               <span className="prio-n">{posizione.pos}</span>
               <div className="prio-t">
                 <b>{posizione.pos}ª da fare</b>
                 <span>su {posizione.tot}</span>
               </div>
-              <span className="prio-lvl">Priorità {['', 'bassa', 'media', 'alta'][barLevel(puntegg)]}</span>
+              <span className="prio-lvl">Priorità {['', 'bassa', 'media', 'alta'][livello]}</span>
               <span className="prio-chev" aria-hidden="true">▾</span>
             </button>
             <div className="prio-corpo" id="prio-dettagli" aria-hidden={!prioAperta} inert={!prioAperta}>
               <div className="prio-corpo-in">
             <div className="prio-parti">
-              {([['Urgenza', componenti.urgenza], ['Importanza', componenti.importanza], ['Poco sforzo', componenti.sforzo], ['Età', componenti.eta], ['Scad. fissa', componenti.fissa]] as const).map(([nome, v]) => (
-                <div key={nome} className="prio-riga"><span>{nome}</span><div className="prio-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, Math.max(0, v))}%` }} /></div></div>
+              {([['Importanza', (d.importanza ?? 3) >= regoleAtt.rossoImportanza ? 3 : (d.importanza ?? 3) >= regoleAtt.ambraImportanza ? 2 : 1], ['Scadenza', giorniScad === undefined ? 0 : giorniScad <= regoleAtt.rossoGiorni ? 3 : giorniScad <= regoleAtt.ambraGiorni ? 2 : 1], ['Posizione', posizione.pos <= regoleAtt.rossoPosizioni ? 3 : posizione.pos <= regoleAtt.ambraPosizioni ? 2 : 1]] as const).map(([nome, v]) => (
+                <div key={nome} className="prio-riga"><span>{nome}</span><div className="prio-bar" aria-hidden="true"><i style={{ width: `${v * 33.4}%` }} /></div></div>
               ))}
             </div>
             <div className="prio-dati">
@@ -294,7 +297,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <div ref={ordPassi.cont} className="riordinabile">
               {ordPassi.ordinati(passi).map((c) => (
                 <Row key={c.id} voce={c} titolo={c.titolo} tipo={c.tipo} maniglia rank={classifica.get(c.id)}
-                  level={barLevel(punteggioEffettivo(c, tutte, oggi))}
+                  level={livelloPriorita(withTemp(c), oggi, classifica.get(c.id))}
                   meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, dueDate(c) ? formatShortYear(dueDate(c)!, oggi) : undefined].filter(Boolean).join(' · ') || undefined}
                   classe={ordPassi.preso === c.id ? 'sollevata' : undefined}
                   extra={ordPassi.presa(c.id)}

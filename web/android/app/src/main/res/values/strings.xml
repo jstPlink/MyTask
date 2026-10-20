@@ -5,7 +5,7 @@
     <string name="package_name">app.mytask.android</string>
     <string name="custom_url_scheme">app.mytask.android</string>
     <string name="widget_scrivi">Scrivi una nota…</string>
-    <string name="widget_avvia">▶  Sto lavorando</string>
+    <string name="widget_avvia">▶  Inizia</string>
     <string name="widget_fine">Fine</string>
     <string name="widget_vuoto">Tutto fatto per oggi</string>
     <string name="widget_spunta">Segna come fatta</string>

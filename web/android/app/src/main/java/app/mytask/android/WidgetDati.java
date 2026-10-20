@@ -13,9 +13,9 @@ import org.json.JSONObject;
  * e non usa la rete: conserva solo cinque valori testuali in JSON.
  *  - «righe»: la lista di oggi, scritta dall'app (WidgetPlugin.aggiorna); per riga: id, titolo «t», posizione «r»,
  *    livello di priorità «l», battiti al minuto «b», millisecondi già lavorati «w», stato fatto «f».
- *  - «lavoro»: la sessione «Sto lavorando» ({stato:"lavoro"|"pausa", id, t, base, ref}); il tempo del task è «base»
+ *  - «lavoro»: la sessione «Inizia» ({stato:"lavoro"|"pausa", id, t, base, ref}); il tempo del task è «base»
  *    (millisecondi già accumulati) più, se corre, il tempo trascorso da «ref» (momento di inizio del tratto). L'app lo scrive
- *    (WidgetPlugin.aggiorna) e il widget lo cambia da solo quando si tocca Sto lavorando, pausa, Fine o la casella del task.
+ *    (WidgetPlugin.aggiorna) e il widget lo cambia da solo quando si tocca Inizia, pausa, Fine o la casella del task.
  *  - «archivio»: note compatte per la ricerca delle note simili nella nota veloce.
  *  - «coda»: le azioni fatte dall'utente sul widget, in attesa dell'app: {tipo:"nota", testo, ts}, {tipo:"fatto", id, ts} e,
  *    per la sessione, {tipo:"avvia", id, ts}, {tipo:"pausa", ts}, {tipo:"riprendi", ts}, {tipo:"fine", ts}.
@@ -46,7 +46,7 @@ final class WidgetDati {
         }
     }
 
-    /** La sessione «Sto lavorando» come la vede il widget, o null se non si sta lavorando. */
+    /** La sessione «Inizia» come la vede il widget, o null se non si sta lavorando. */
     static JSONObject lavoro(Context c) {
         try {
             String s = prefs(c).getString("lavoro", "");
@@ -83,7 +83,7 @@ final class WidgetDati {
         aggiornaWidget(c);
     }
 
-    /** «Sto lavorando»: il cronometro parte sul primo task della lista non ancora spuntato. */
+    /** «Inizia»: il cronometro parte sul primo task della lista non ancora spuntato. */
     static void avvia(Context c) {
         try {
             if (lavoro(c) != null) return;
@@ -218,7 +218,7 @@ final class WidgetDati {
 
     /**
      * Dice ai due widget (chiaro e scuro) che qualcosa è cambiato: WidgetService rilegge le righe e il provider ridisegna
-     * l'intestazione (pulsante «Sto lavorando» o cronometro).
+     * l'intestazione (pulsante «Inizia» o cronometro).
      */
     static void aggiornaWidget(Context c) {
         AppWidgetManager m = AppWidgetManager.getInstance(c);

@@ -125,7 +125,7 @@ export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, m
   const body = (
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
-      {rank !== undefined && <span className="rank" style={urgenza ? battito(urgenza) : undefined} aria-label={`Posizione ${rank}`}>{rank}</span>}
+      {rank !== undefined && <span className="rank" style={urgenza ? battito(urgenza, rank) : undefined} aria-label={`Posizione ${rank}`}>{rank}</span>}
       {interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
       <div className="grow">
         <div className="line">

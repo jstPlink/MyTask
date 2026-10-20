@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
 import type { Item } from '../../../shared/types.ts';
-import { barLevel, dueDate, isOverdue, score, urgency, withInheritance } from '../../../shared/priority.ts';
+import { livelloPriorita, dueDate, isOverdue, chiavePriorita, intensitaBattito, withInheritance } from '../../../shared/priority.ts';
 import { cercaVoci, classificaPriorita, figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto } from '../../../shared/views.ts';
 import { listaGameDesign } from '../../../shared/gamedesign.ts';
 import { ordinaPerTe } from '../../../shared/esperienze.ts';
@@ -44,9 +44,11 @@ export function Fare() {
   return (
     <>
       <Top title="Attività" sub={`${nAttivita} attività · ${nProgetti} ${nProgetti === 1 ? 'progetto' : 'progetti'} · ${nEsperienze} ${nEsperienze === 1 ? 'esperienza' : 'esperienze'}`} right={<PulsanteAspetto />} />
-      <div className="scroll">
+      <div className="fisso">
         <Seg nav compatto voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
         {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle attività" />}
+      </div>
+      <div className="scroll">
         {nav.fareSub === 'azioni' && <Azioni filtro={filtro} />}
         {nav.fareSub === 'progetti' && <Progetti filtro={filtro} />}
         {nav.fareSub === 'esperienze' && <Esperienze filtro={filtro} />}
@@ -105,9 +107,9 @@ function Azioni({ filtro }: { filtro: Filtro }) {
         titolo={item.titolo} tipo={item.tipo}
         meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : unisciMeta([item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? nomeTempo(item.sforzoMin) : undefined])}
         right={d ? (item.rigida || scaduta ? <span className={clsx('hard', item.rigida && 'rigida')}>{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
-        level={item.stato === 'parcheggiato' ? 1 : barLevel(punteggio)}
+        level={item.stato === 'parcheggiato' ? 1 : livelloPriorita(item, oggi, classifica.get(item.id))}
         rank={classifica.get(item.id)}
-        urgenza={urgency(item, oggi)}
+        urgenza={item.stato === 'parcheggiato' ? 0 : intensitaBattito(item, oggi, livelloPriorita(item, oggi, classifica.get(item.id)))}
         light={item.stato === 'parcheggiato'}
         voce={item}
         selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}
@@ -135,6 +137,7 @@ function Progetti({ filtro }: { filtro: Filtro }) {
   const items = useItems();
   const oggi = useOggi();
   const completa = useMemo(() => listaProgetti(items, oggi), [items, oggi]);
+  const classifica = useMemo(() => classificaPriorita(items, oggi), [items, oggi]);
   // con una ricerca restano i progetti che corrispondono o che hanno un passo che corrisponde
   const lista = useMemo(
     () => (filtro ? completa.filter((p) => filtro.has(p.progetto.id) || figli(items, p.progetto.id).some((c) => filtro.has(c.id))) : completa),
@@ -143,7 +146,7 @@ function Progetti({ filtro }: { filtro: Filtro }) {
   if (lista.length === 0) return <Empty>{filtro ? NESSUN_RISULTATO : 'Nessun progetto attivo.'}</Empty>;
   const gruppo = (p: (typeof lista)[number]) => {
     const passi = figli(items, p.progetto.id).filter((c) => c.stato !== 'parcheggiato');
-    const aperti = passi.filter((c) => c.stato !== 'fatto' && c.stato !== 'saltato').sort((a, b) => score(withInheritance(b, p.progetto), oggi) - score(withInheritance(a, p.progetto), oggi));
+    const aperti = passi.filter((c) => c.stato !== 'fatto' && c.stato !== 'saltato').sort((a, b) => chiavePriorita(withInheritance(b, p.progetto), oggi) - chiavePriorita(withInheritance(a, p.progetto), oggi));
     const chiusi = passi.filter((c) => c.stato === 'fatto' || c.stato === 'saltato');
     const riga = (c: (typeof passi)[number], chiuso: boolean) => {
       const d = dueDate(c);
@@ -151,7 +154,7 @@ function Progetti({ filtro }: { filtro: Filtro }) {
         <Row key={c.id} titolo={c.titolo} tipo={c.tipo} done={chiuso} light={chiuso} struck={chiuso}
           meta={chiuso ? undefined : c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
           right={d && !chiuso ? (c.rigida || isOverdue(c, oggi) ? <span className={clsx('hard', c.rigida && 'rigida')}>{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
-          level={chiuso ? undefined : barLevel(score(withInheritance(c, p.progetto), oggi))}
+          level={chiuso ? undefined : livelloPriorita(withInheritance(c, p.progetto), oggi, classifica.get(c.id))}
           voce={c}
           selected={nav.openId === c.id} onOpen={() => nav.push({ k: 'item', id: c.id })} />
       );

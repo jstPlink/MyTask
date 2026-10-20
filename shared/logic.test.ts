@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
 import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.ts';
-import { score, daysOverdue, barLevel, battitoBpm } from './priority.ts';
+import { chiavePriorita, daysOverdue, livelloPriorita, battitoBpm, intensitaBattito, impostaRegole } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
 import { classificaPriorita, posizionePriorita, stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
@@ -25,14 +25,23 @@ test('date: differenze, mesi e settimane', () => {
 test('priorità: la scadenza rigida vale di più di quella flessibile', () => {
   const flessibile = mk({ fine: addDays(OGGI, 5), importanza: 3 });
   const rigida = mk({ fine: addDays(OGGI, 5), importanza: 3, rigida: true });
-  assert.ok(score(rigida, OGGI, NOW) > score(flessibile, OGGI, NOW));
+  assert.ok(chiavePriorita(rigida, OGGI, NOW) > chiavePriorita(flessibile, OGGI, NOW));
 });
 
 test('priorità: importanza alta senza data batte importanza bassa', () => {
-  assert.ok(score(mk({ importanza: 5 }), OGGI, NOW) > score(mk({ importanza: 1 }), OGGI, NOW));
-  assert.equal(barLevel(80), 3);
-  assert.equal(barLevel(40), 2);
-  assert.equal(barLevel(10), 1);
+  assert.ok(chiavePriorita(mk({ importanza: 5 }), OGGI, NOW) > chiavePriorita(mk({ importanza: 1 }), OGGI, NOW));
+});
+
+test('livello del pallino: contano importanza impostata, urgenza e posizione', () => {
+  assert.equal(livelloPriorita(mk({ importanza: 4.5 }), OGGI), 3);
+  assert.equal(livelloPriorita(mk({ importanza: 4 }), OGGI), 2);
+  assert.equal(livelloPriorita(mk({ importanza: 2, fine: OGGI }), OGGI), 3);
+  assert.equal(livelloPriorita(mk({ importanza: 2, fine: addDays(OGGI, 5) }), OGGI), 3);
+  assert.equal(livelloPriorita(mk({ importanza: 2, fine: addDays(OGGI, 6) }), OGGI), 2);
+  assert.equal(livelloPriorita(mk({ importanza: 2 }), OGGI, 2), 3);
+  assert.equal(livelloPriorita(mk({ importanza: 2 }), OGGI, 8), 2);
+  assert.equal(livelloPriorita(mk({ importanza: 3 }), OGGI), 2);
+  assert.equal(livelloPriorita(mk({ importanza: 2 }), OGGI, 30), 1);
 });
 
 test('scaduta: solo se la data è passata e la voce è aperta', () => {
@@ -216,12 +225,15 @@ test('cattura: trova le note con le stesse parole anche in forme diverse', () =>
   assert.deepEqual(cercaSimili([a, b, c], ''), []);
 });
 
-test('battito del pallino: fermo senza scadenza, da 10 a 80 bpm secondo l urgenza', () => {
+test('battito del pallino: fermo senza intensità, da 11 a 88 bpm (+10%), cala di poco con la posizione', () => {
   assert.equal(battitoBpm(0), 0);
-  assert.equal(battitoBpm(15), 10);
-  assert.equal(battitoBpm(100), 80);
+  assert.equal(battitoBpm(15), 11);
+  assert.equal(battitoBpm(100), 88);
   assert.ok(battitoBpm(60) > battitoBpm(35) && battitoBpm(35) > battitoBpm(15));
-  assert.equal(battitoBpm(130), 80);
+  assert.equal(battitoBpm(130), 88);
+  assert.equal(battitoBpm(100, 1), 88);
+  assert.equal(battitoBpm(100, 6), Math.round(88 * 0.9)); // 5 posti sotto: -10%
+  assert.equal(battitoBpm(100, 100), Math.round(88 * 0.7)); // il calo si ferma al 30%
 });
 
 test('game design: pesa più l\'interesse, poi il tempo, infine la difficoltà', () => {
@@ -245,4 +257,31 @@ test('game design: la lista è in ordine di priorità e salta archiviate e bozze
   const c = mk({ tipo: 'gamedesign', titolo: 'C', interesse: 5, stato: 'parcheggiato' });
   const d = mk({ tipo: 'gamedesign', titolo: 'D', interesse: 5, inbox: true });
   assert.deepEqual(listaGameDesign([b, c, d, a]).map((e) => e.item.titolo), ['A', 'B']);
+});
+
+test('ordine: prima i rossi, poi gli ambra; dentro il colore secondo la regola scelta', () => {
+  impostaRegole(undefined);
+  const rossaImp = mk({ importanza: 5 });
+  const rossaScad = mk({ importanza: 1, fine: addDays(OGGI, 2) });
+  const ambra = mk({ importanza: 4, fine: addDays(OGGI, 7) });
+  const k = (i: Item) => chiavePriorita(i, OGGI, NOW);
+  assert.ok(k(rossaImp) > k(ambra) && k(rossaScad) > k(ambra)); // nessun giallo sopra un rosso
+  assert.ok(k(rossaScad) > k(rossaImp)); // di base conta la scadenza più vicina
+  impostaRegole({ ordine: 'importanza' });
+  assert.ok(k(rossaImp) > k(rossaScad));
+  impostaRegole(undefined);
+});
+
+test('battito allineato a colore e soglie', () => {
+  impostaRegole(undefined);
+  const i = (g: number | undefined, imp = 3) => mk({ importanza: imp, fine: g === undefined ? undefined : addDays(OGGI, g) });
+  const lv = (x: Item) => livelloPriorita(x, OGGI);
+  const b = (x: Item) => intensitaBattito(x, OGGI, lv(x));
+  assert.equal(b(i(undefined, 2)), 0); // grigia: ferma
+  assert.equal(b(i(undefined, 3)), 25); // ambra senza data: piano
+  assert.equal(b(i(undefined, 5)), 55); // rossa per importanza: batte anche senza scadenza
+  assert.equal(b(i(0)), 100);
+  assert.equal(b(i(5)), 60); // soglia del rosso
+  assert.equal(b(i(7)), 35); // soglia dell'ambra
+  assert.ok(b(i(3)) > b(i(6)));
 });

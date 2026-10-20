@@ -57,7 +57,7 @@ public class WidgetService extends RemoteViewsService {
             boolean fatto = o.optInt("f", 0) == 1;
             String id = o.optString("id");
 
-            // «in corso»: lo dice lo stato della nota oppure il cronometro «Sto lavorando» (anche se l'app non ha ancora aggiornato la nota).
+            // «in corso»: lo dice lo stato della nota oppure il cronometro «Inizia» (anche se l'app non ha ancora aggiornato la nota).
             // La riga non cambia stile: cambia solo la casella (mezza gialla, come nell'app).
             JSONObject lavoro = WidgetDati.lavoro(c);
             boolean inLavoro = lavoro != null && id.equals(lavoro.optString("id"));

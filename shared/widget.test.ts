@@ -28,7 +28,7 @@ test('widget: un task «in corso» è segnalato per la casella mezza gialla', ()
   assert.equal(r.find((x) => x.t === 'Da fare')?.c, undefined);
 });
 
-test('widget: la sessione «Sto lavorando» mostra il task, il tempo accumulato e l\'inizio del tratto', () => {
+test('widget: la sessione «Inizia» mostra il task, il tempo accumulato e l\'inizio del tratto', () => {
   const a = mk({ titolo: 'Garage', lavoratoMs: 60_000, sforzoMin: 80 });
   assert.deepEqual(lavoroWidget([a], { stato: 'lavoro', taskId: a.id, inizio: 5000, aggiornato: 1 }), { stato: 'lavoro', id: a.id, t: 'Garage', base: 60_000, ref: 5000, p: 80 });
   assert.equal(lavoroWidget([a], { stato: 'pausa', taskId: a.id, aggiornato: 1 })?.stato, 'pausa');

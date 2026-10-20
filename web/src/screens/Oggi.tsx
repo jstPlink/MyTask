@@ -1,9 +1,9 @@
 /**
- * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima il pulsante «Sto lavorando» (o, a sessione aperta, il cronometro con pausa e
+ * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima il pulsante «Inizia» (o, a sessione aperta, il cronometro con pausa e
  * «Ho finito di lavorare»), poi le routine del giorno e le «Prime attività»: le cose da fare in ordine di priorità
  * (`vistaOggi`: le 5 con la posizione migliore nella classifica unica, anche con scadenza futura, più le scadute o in scadenza oggi che restassero fuori).
  *
- * - Sto lavorando: il cronometro parte sul primo task della lista (`iniziaLavoro`), che prima dell'avvio ha un contorno
+ * - Inizia: il cronometro parte sul primo task della lista (`iniziaLavoro`), che prima dell'avvio ha un contorno
  *   tratteggiato. Il task su cui corre è evidenziato; la scheda del cronometro mostra il tempo lavorato, quello sul previsto e una barra.
  *   I task già iniziati mostrano nella riga grigia il tempo lavorato sul totale previsto. Spuntando la casella lo si completa e il cronometro passa da solo al successivo; ⏸ lo ferma, ▶ riprende.
  * - Tocco su una riga: apre sempre la scheda della nota (niente menu): il cronometro sceglie da solo la nota, parte dalla prima e
@@ -17,13 +17,13 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { formatLong, formatShortYear } from '../../../shared/dates.ts';
-import { barLevel, dueDate, daysOverdue, urgency } from '../../../shared/priority.ts';
+import { livelloPriorita, dueDate, daysOverdue, intensitaBattito } from '../../../shared/priority.ts';
 import { classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { formatoCronometro } from '../../../shared/sessione.ts';
 import { useAdesso, useItems, useOggi, useSessione, useSyncStatus } from '../lib/hooks.ts';
-import { segnaRoutine } from '../lib/actions.ts';
+import { segnaRoutine, statoVisto } from '../lib/actions.ts';
 import { finisciSessione, iniziaLavoro, mettiInPausa, riprendi, tempoDi } from '../lib/sessione.ts';
 import { Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
@@ -69,13 +69,26 @@ export function Oggi() {
     return e.item.rigida ? <span className="hard rigida">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi);
   };
 
-  // «Sto lavorando» oppure la scheda del cronometro della sessione aperta: tempo lavorato, tempo sul previsto e barra.
+  // «Inizia» oppure la scheda del cronometro della sessione aperta: tempo lavorato, tempo sul previsto e barra.
   const avanzamento = task ? avanzamentoTempo(tempoTask, task.sforzoMin) : undefined;
-  const lavora = sessione.stato === 'ferma' ? (
-    <button className="avvia" onClick={() => iniziaLavoro()}>
-      <span aria-hidden="true">▶</span>Sto lavorando
-    </button>
+  // «Inizia»: se nessuna nota (attività o curiosità) è «in corso», al tocco compare una scheda che spiega come segnarne una
+  // (le caselle pulsano). Si chiude da sola appena una nota passa «in corso» o con «Parti dalla prima».
+  const haInCorso = v.fare.some((e) => statoVisto(e.item.stato) === 'in_corso') || items.some((i) => !i.eliminato && i.tipo === 'curiosita' && statoVisto(i.stato) === 'in_corso');
+  const [invito, setInvito] = useState(false);
+  const nessunaInCorso = invito && sessione.stato === 'ferma' && !haInCorso;
+  const lavora = sessione.stato === 'ferma' ? (nessunaInCorso ? (
+    <div className="lavoro vuoto">
+      <div className="lv-tempo">0:00</div>
+      <div className="lv-vuoto-t">Nessuna nota in corso</div>
+      <p className="lv-vuoto-d">Il cronometro lavora sulle note «in corso». Tocca la casella di una nota qui sotto per segnarla.</p>
+      <button className="lv-vuoto-b" onClick={() => { setInvito(false); iniziaLavoro(); }}>Parti dalla prima</button>
+      <button className="lv-fine" onClick={() => setInvito(false)}>Chiudi</button>
+    </div>
   ) : (
+    <button className="avvia" onClick={() => { if (haInCorso) iniziaLavoro(); else setInvito(true); }}>
+      <span aria-hidden="true">▶</span>Inizia
+    </button>
+  )) : (
     <div className={clsx('lavoro', !lavoro && 'pausa')}>
       <div className="lv-top">
         <div className="lv-tt">
@@ -129,14 +142,14 @@ export function Oggi() {
     return (
     <Row
       rank={classifica.get(e.item.id)}
-      urgenza={urgency(e.item, oggi)}
+      urgenza={intensitaBattito(e.item, oggi, livelloPriorita(e.item, oggi, classifica.get(e.item.id)))}
       key={e.item.id}
       titolo={e.item.titolo} tipo={e.item.tipo}
       meta={meta(e)}
       right={destra(e)}
-      level={barLevel(e.punteggio)}
+      level={livelloPriorita(e.item, oggi, classifica.get(e.item.id))}
       voce={e.item}
-      classe={corrente ? (!lavoro ? 'pausa-lav' : quota > 1 ? 'oltre-lav' : undefined) : undefined}
+      classe={clsx(corrente ? (!lavoro ? 'pausa-lav' : quota > 1 ? 'oltre-lav' : undefined) : undefined, nessunaInCorso && statoVisto(e.item.stato) === 'da_fare' && 'invita')}
       sotto={sottoRiga(e)} aperto={corrente}
       selected={nav.openId === e.item.id}
       onOpen={() => nav.push({ k: 'item', id: e.item.id })}
@@ -190,6 +203,7 @@ export function Oggi() {
           interesse={c.interesse ?? 3}
           check="square"
           centrato
+          classe={nessunaInCorso && statoVisto(c.stato) === 'da_fare' ? 'invita' : undefined}
           voce={c}
           selected={nav.openId === c.id}
           onOpen={() => nav.push({ k: 'item', id: c.id })}
@@ -213,9 +227,10 @@ export function Oggi() {
     return (
       <>
         <Top title="Priorità" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} attività, ${v.curiosita.length} curiosità`} />
+        <div className="fisso">{lavora}{accuratezza}</div>
         <div className="scroll wide-dash">
           <div className="dash">
-            <div>{lavora}{accuratezza}{routine}{prime}{curiosita}</div>
+            <div>{routine}{prime}{curiosita}</div>
           </div>
         </div>
       </>
@@ -243,9 +258,8 @@ export function Oggi() {
           </div>
         }
       />
+      <div className="fisso">{lavora}{accuratezza}</div>
       <div className="scroll">
-        {lavora}
-        {accuratezza}
         {routine}
         {prime}
         {curiosita}

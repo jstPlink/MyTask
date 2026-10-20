@@ -5,7 +5,7 @@ import type { Item } from './types.ts';
 import { chiaveTitolo } from './testo.ts';
 import { addDays, diffDays } from './dates.ts';
 import {
-  dueDate, isClosed, isOpen, score, withInheritance,
+  dueDate, isClosed, isOpen, chiavePriorita, withInheritance,
 } from './priority.ts';
 import { routineDueToday } from './routine.ts';
 
@@ -64,15 +64,15 @@ const TIPI_LISTA_AZIONE = new Set(['azione', 'progetto', 'esperienza']);
  */
 export function punteggioEffettivo(i: Item, items: Item[], today: string, now: number = Date.now(), cache?: Map<string, Item[]>): number {
   const padre = i.padreId ? items.find((p) => p.id === i.padreId && p.tipo === 'progetto' && !p.eliminato) : undefined;
-  if (!padre) return score(i, today, now);
+  if (!padre) return chiavePriorita(i, today, now);
   let passi = cache?.get(padre.id);
   if (!passi) {
     passi = figli(items, padre.id).filter((c) => isOpen(c) && !parcheggiata(c));
     cache?.set(padre.id, passi);
   }
   const k = passi.findIndex((c) => c.id === i.id);
-  if (k < 0) return score(withInheritance(i, padre), today, now);
-  return Math.max(...passi.slice(k).map((c) => score(withInheritance(c, padre), today, now)));
+  if (k < 0) return chiavePriorita(withInheritance(i, padre), today, now);
+  return Math.max(...passi.slice(k).map((c) => chiavePriorita(withInheritance(c, padre), today, now)));
 }
 
 /**
@@ -93,11 +93,11 @@ export function candidatiOggi(items: Item[], today: string, now: number): Entry[
         const eff = withInheritance(next, i);
         out.push({ item: eff, padre: i, punteggio: punteggioEffettivo(next, tutte, today, now, cache) });
       } else if (figli(tutte, i.id).length === 0) {
-        out.push({ item: i, punteggio: score(i, today, now) });
+        out.push({ item: i, punteggio: chiavePriorita(i, today, now) });
       }
       continue;
     }
-    out.push({ item: i, punteggio: score(i, today, now) });
+    out.push({ item: i, punteggio: chiavePriorita(i, today, now) });
   }
   return out;
 }
@@ -149,7 +149,7 @@ export function posizionePriorita(items: Item[], nota: Item, today: string, now:
   const pos = mappa.get(nota.id);
   if (pos !== undefined) return { pos, tot: elenco.length };
   // voce che non è in classifica (un progetto senza passi): si colloca per punteggio
-  const mio = score(nota, today, now);
+  const mio = chiavePriorita(nota, today, now);
   return { pos: elenco.filter((e) => e.punteggio > mio).length + 1, tot: elenco.length + 1 };
 }
 
@@ -191,13 +191,17 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
 
   const migliori = cand.filter((e) => e.item.tipo !== 'esperienza' || dovuta(e)).sort(perClassifica).slice(0, MAX_OGGI);
   const presenti = new Set(migliori.map((e) => e.item.id));
-  const fare = [...migliori, ...cand.filter((e) => dovuta(e) && !presenti.has(e.item.id))].sort(perClassifica);
+  const dovute = [...migliori, ...cand.filter((e) => dovuta(e) && !presenti.has(e.item.id))].sort(perClassifica);
+  // le note messe «in corso» che non sono già in lista si aggiungono in coda, così restano sotto mano
+  const inLista = new Set(dovute.map((e) => e.item.id));
+  const inCorso = cand.filter((e) => e.item.stato === 'in_corso' && !inLista.has(e.item.id)).sort(perClassifica);
+  const fare = [...dovute, ...inCorso];
 
   const limite = addDays(today, 7);
   const prossimi = live(items)
     .filter((i) => isOpen(i) && !parcheggiata(i) && !i.inbox && i.tipo !== 'persona' && i.tipo !== 'routine')
     .filter((i) => { const d = dueDate(i); return d !== undefined && d > today && d <= limite; })
-    .map((i) => ({ item: i, punteggio: score(i, today, now) }))
+    .map((i) => ({ item: i, punteggio: chiavePriorita(i, today, now) }))
     .sort((a, b) => (dueDate(a.item) ?? '').localeCompare(dueDate(b.item) ?? ''));
 
   return {
@@ -243,7 +247,7 @@ export function listaProgetti(items: Item[], today: string, now: number = Date.n
   return tutte
     .filter((i) => i.tipo === 'progetto' && isOpen(i) && !parcheggiata(i))
     .map((p) => ({ progetto: p, ...avanzamento(p, tutte), prossimo: prossimoPasso(p, tutte) }))
-    .sort((a, b) => score(b.progetto, today, now) - score(a.progetto, today, now));
+    .sort((a, b) => chiavePriorita(b.progetto, today, now) - chiavePriorita(a.progetto, today, now));
 }
 
 /** Esperienze aperte: con una data (in ordine di data) e senza data (raggruppate per luogo, `zona`, con «Altro» in fondo). */

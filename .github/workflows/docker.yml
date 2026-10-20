@@ -158,10 +158,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mytask-windows
-          path: desktop/dist/MyTask-Setup.exe
+          path: desktop/dist/MyTask-v${{ steps.v.outputs.version }}.exe
 
       - name: Aggiunge l'installer alla release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: v${{ steps.v.outputs.version }}
-        run: gh release upload "$TAG" desktop/dist/MyTask-Setup.exe --clobber
+        run: gh release upload "$TAG" desktop/dist/MyTask-v${{ steps.v.outputs.version }}.exe --clobber

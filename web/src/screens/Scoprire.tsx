@@ -40,9 +40,11 @@ export function Scoprire() {
   return (
     <>
       <Top title="Intrattenimento" sub={`${lista.length} da fare`} right={<PulsanteAspetto />} />
-      <div className="scroll">
+      <div className="fisso">
         <Seg nav uguali voci={SUB} attivo={sub} onChange={(s) => { nav.setScoprireSub(s); setScelte([]); }} />
         {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca in intrattenimento" />}
+      </div>
+      <div className="scroll">
         {video && piattaforme.length > 0 && <ChipsMulti voci={piattaforme} scelte={scelte} onChange={setScelte} />}
         {video && !filtro && (
           <Sezione titolo="Stasera">
