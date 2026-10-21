@@ -19,6 +19,7 @@ import { sync } from '../lib/sync.ts';
 import { isNative } from '../lib/native.ts';
 import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
 import { impostaPromemoriaTimer } from '../lib/promemoriaTimer.ts';
+import { chiediPermessoSito, permessoSito, type PermessoSito } from '../lib/notificaTimerSito.ts';
 import { INTERVALLI_PROMEMORIA_MIN } from '../../../shared/sessione.ts';
 import { mostraToast } from '../lib/toast.ts';
 import { Back, Chips, Empty, Field, Row, Sec, Seg, Top } from '../ui/kit.tsx';
@@ -51,7 +52,7 @@ export function Altro() {
         {voce('Intelligenza artificiale', 'Gemini e Groq', { k: 'ia' })}
         <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Bilanciatore della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
         {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
-        {isNative() && voce('Notifica del timer', pt.attivo ? `ogni ${pt.ogniMinuti} min` : 'disattivata', { k: 'timer' })}
+        {voce('Notifica del timer', pt.attivo ? `ogni ${pt.ogniMinuti} min` : 'disattivata', { k: 'timer' })}
         {voce('Account e sincronizzazione', undefined, { k: 'account' })}
         <div className="t2" style={{ textAlign: 'center', marginTop: 24 }}>MyTask · versione {VERSIONE}</div>
       </div>
@@ -185,11 +186,13 @@ export function Aspetto() {
 // ------------------------------------------------------------------ Notifica del timer
 
 /**
- * Notifica periodica del timer (solo app Android): mentre una nota è in corso e il cronometro scorre, ogni N minuti il telefono
- * manda una notifica sonora per ricordare che il tempo sta passando. Si sceglie se tenerla attiva e ogni quanti minuti.
+ * Notifica periodica del timer (telefono, sito e app per computer): mentre una nota è in corso e il cronometro scorre, ogni N minuti il
+ * dispositivo manda una notifica per ricordare che il tempo sta passando. Si sceglie se tenerla attiva e ogni quanti minuti (per dispositivo).
  */
 export function NotificaTimer() {
   const pt = usePromemoriaTimer();
+  const nativo = isNative();
+  const [permesso, setPermesso] = useState<PermessoSito>(permessoSito());
   return (
     <>
       <Back label="Altro" />
@@ -197,7 +200,14 @@ export function NotificaTimer() {
       <div className="scroll">
         <Sec a="Notifica periodica" />
         <Seg<'si' | 'no'> voci={[{ id: 'si', nome: 'Attiva' }, { id: 'no', nome: 'Disattivata' }]} attivo={pt.attivo ? 'si' : 'no'} onChange={(v) => impostaPromemoriaTimer({ attivo: v === 'si' })} />
-        <div className="t2">Mentre una nota è in corso e il timer scorre, il telefono suona per ricordarti che il tempo sta passando. Si ferma con la pausa o quando chiudi la sessione.</div>
+        <div className="t2">Mentre una nota è in corso e il timer scorre, {nativo ? 'il telefono suona' : 'questo dispositivo ti avvisa'} per ricordarti che il tempo sta passando. Si ferma con la pausa o quando chiudi la sessione.</div>
+        {!nativo && permesso !== 'granted' && (
+          permesso === 'non_supportate'
+            ? <div className="t2" style={{ marginTop: 8 }}>Questo browser non supporta le notifiche.</div>
+            : permesso === 'denied'
+              ? <div className="t2" style={{ marginTop: 8 }}>Le notifiche sono bloccate: riattivale dalle impostazioni del sito o dell'app, poi riapri questa pagina.</div>
+              : <button className="btn" style={{ marginTop: 10 }} onClick={() => { void chiediPermessoSito().then(setPermesso); }}>Consenti le notifiche</button>
+        )}
         <Sec a="Ogni quanto" />
         {INTERVALLI_PROMEMORIA_MIN.map((m) => (
           <button key={m} className={clsx('opt', pt.ogniMinuti === m && 'sel')} onClick={() => impostaPromemoriaTimer({ ogniMinuti: m })} aria-pressed={pt.ogniMinuti === m} disabled={!pt.attivo} style={pt.attivo ? undefined : { opacity: 0.5 }}>
@@ -205,7 +215,7 @@ export function NotificaTimer() {
             {pt.ogniMinuti === m && <span className="ok">✓</span>}
           </button>
         ))}
-        <div className="t2" style={{ marginTop: 12 }}>La notifica mostra la nota e il tempo trascorso. Il telefono ne prepara in anticipo fino a tre ore: se il timer corre più a lungo, le altre si preparano quando riapri l'app. Serve il permesso delle notifiche.</div>
+        <div className="t2" style={{ marginTop: 12 }}>La notifica mostra la nota e il tempo trascorso. L'impostazione vale solo per questo dispositivo. {nativo ? 'Il telefono ne prepara in anticipo fino a tre ore: se il timer corre più a lungo, le altre si preparano quando riapri l’app. Serve il permesso delle notifiche.' : 'Sul sito e sull’app per computer le notifiche arrivano finché la pagina o la finestra è aperta.'}</div>
       </div>
     </>
   );

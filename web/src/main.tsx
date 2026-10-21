@@ -7,6 +7,7 @@ import { initStore, subscribe } from './lib/store.ts';
 import { avviaSync } from './lib/sync.ts';
 import { avviaTema } from './lib/theme.ts';
 import { avviaPromemoria } from './lib/reminders.ts';
+import { avviaNotificaTimerSito } from './lib/notificaTimerSito.ts';
 import { avviaNotificheNative, isNative } from './lib/native.ts';
 import { avviaWidget } from './lib/widget.ts';
 import { avviaSessione } from './lib/sessione.ts';
@@ -38,6 +39,7 @@ async function avvia() {
   } else {
     // sito: promemoria con l'API Notification (finché la pagina è aperta) e service worker per l'uso offline e l'installazione
     avviaPromemoria();
+    avviaNotificaTimerSito();
     registerSW({ immediate: true });
     avviaAggiornamento();
   }
