@@ -45,7 +45,7 @@ interface RowProps {
   titolo: string;
   meta?: ReactNode;
   right?: ReactNode;
-  /** Tipo della nota: la sua icona compare, piccola, nella riga grigia sotto il titolo. */
+  /** Tipo della nota: la sua icona compare, piccola, a sinistra del titolo. */
   tipo?: Tipo;
   /** Livello di priorità (1-3): spessore della barra colorata a sinistra. */
   level?: 1 | 2 | 3;
@@ -79,15 +79,12 @@ interface RowProps {
   onCheck?: () => void;
   /** Se c'è, la riga è un pulsante che apre la voce. */
   onOpen?: () => void;
-  /** Blocco sotto la riga, a tutta larghezza (la barra del tempo della nota in lavorazione); `aperto` lo mostra con un'animazione. */
-  sotto?: ReactNode;
-  aperto?: boolean;
 }
 
-/** Classe CSS della casella per uno stato: «in corso» col pallino verde che pulsa, «in pausa» gialla con le due lineette, «fatta» piena col segno, «archiviata» tratteggiata. */
+/** Classe CSS della casella per uno stato: «da fare» con un cerchio tratteggiato appena visibile, «in corso» col pallino verde che pulsa piano, «in pausa» col pallino giallo, «fatta» piena con un anello bianco (senza spunta), «archiviata» tratteggiata col cerchio tratteggiato. */
 export function ClasseCasella(s: Stato): string {
   const v = statoVisto(s);
-  return v === 'in_corso' ? 'viva' : v === 'in_pausa' ? 'pausa' : v === 'fatto' ? 'done' : v === 'parcheggiato' ? 'arch' : '';
+  return v === 'in_corso' ? 'viva' : v === 'in_pausa' ? 'pausa' : v === 'fatto' ? 'done' : v === 'parcheggiato' ? 'arch' : 'dafare';
 }
 
 /**
@@ -113,21 +110,14 @@ function CasellaStato({ voce }: { voce: Item }) {
  * Riga di lista: priorità a sinistra (barra), titolo con riga grigia sotto, parte destra libera e casella.
  * Con `voce` la casella gestisce da sola gli stati della nota; senza, è una casella semplice comandata da `done`/`onCheck`.
  */
-export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen, sotto: sottoDato, aperto: apertoDato }: RowProps) {
-  // Una nota «in corso» o «in pausa» mostra sotto la riga il tempo lavorato e la barra rispetto alla stima (gialla in pausa, rossa oltre la stima).
+export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+  // Una nota «in corso» o «in pausa» mostra al posto della riga grigia la barra del tempo (fissa; gialla in pausa, rossa oltre la stima) con «tempo lavorato / stima».
   const sessione = useSessione();
   const vs = voce ? statoVisto(voce.stato) : undefined;
   const conTempo = !!voce && (vs === 'in_corso' || vs === 'in_pausa');
   const adesso = useAdesso(conTempo && sessione.stato === 'lavoro' && sessione.taskId === voce?.id);
   const ms = conTempo ? tempoDi(voce, adesso) : 0;
   const quota = conTempo && voce.sforzoMin ? ms / (voce.sforzoMin * 60_000) : undefined;
-  const sotto = sottoDato ?? (conTempo ? (
-    <>
-      <div className="sr-tempi"><b>{formatoCronometro(ms)}</b>{voce.sforzoMin ? <em>su {durataLavoro(voce.sforzoMin * 60_000)}</em> : null}</div>
-      {quota !== undefined && <span className="sr-barra"><i style={{ width: `${Math.min(1, quota) * 100}%` }} /></span>}
-    </>
-  ) : undefined);
-  const aperto = apertoDato ?? conTempo;
   const body = (
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
@@ -135,9 +125,14 @@ export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, m
       {interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
       <div className="grow">
         <div className="line">
-          <div className={clsx('t1', (light || (voce && statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso' && statoVisto(voce.stato) !== 'in_pausa')) && 'light', (struck || (voce && statoVisto(voce.stato) === 'fatto')) && 'struck')}>{titolo}</div>
+          <div className={clsx('t1', (light || (voce && statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso' && statoVisto(voce.stato) !== 'in_pausa')) && 'light', (struck || (voce && statoVisto(voce.stato) === 'fatto')) && 'struck')}>{tipo && <GlifoTipo tipo={tipo} />}{titolo}</div>
         </div>
-        {(meta || tipo) && <div className="t2">{tipo && <GlifoTipo tipo={tipo} />}{meta}</div>}
+        {conTempo ? (
+          <div className="sr-riga">
+            {quota !== undefined && <span className="sr-barra"><i style={{ width: `${Math.min(1, quota) * 100}%` }} /></span>}
+            <span className="sr-tt"><b>{formatoCronometro(ms)}</b>{voce.sforzoMin ? ` / ${durataLavoro(voce.sforzoMin * 60_000)}` : ''}</span>
+          </div>
+        ) : meta && <div className="t2">{meta}</div>}
       </div>
       {right && <div className="right">{right}</div>}
       {check !== 'none' && voce && <CasellaStato voce={voce} />}
@@ -151,10 +146,9 @@ export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, m
           style={onCheck ? { cursor: 'pointer' } : undefined}
         />
       )}
-      {sotto && <div className="sotto-riga" aria-hidden={!aperto}>{sotto}</div>}
     </>
   );
-  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch', !!sotto && 'con-sotto', aperto && 'lav', vs === 'in_pausa' && 'pausa-lav', quota !== undefined && quota > 1 && 'oltre-lav', classe);
+  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch', conTempo && 'lav', vs === 'in_pausa' && 'pausa-lav', quota !== undefined && quota > 1 && 'oltre-lav', classe);
   return onOpen ? <button className={cls} onClick={onOpen} {...extra}>{body}</button> : <div className={cls} {...extra}>{body}</div>;
 }
 

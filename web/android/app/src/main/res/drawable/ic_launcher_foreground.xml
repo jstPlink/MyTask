@@ -4,25 +4,20 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- onde del battito -->
+    <!-- contorno tenue della casella -->
     <path
-        android:pathData="M54,54m-33,0a33,33 0,1 0,66 0a33,33 0,1 0,-66 0"
+        android:pathData="M42.5,22.5h23a20,20 0,0 1,20 20v23a20,20 0,0 1,-20 20h-23a20,20 0,0 1,-20 -20v-23a20,20 0,0 1,20 -20z"
         android:strokeColor="#FFFFFF"
-        android:strokeAlpha="0.16"
-        android:strokeWidth="2.5" />
+        android:strokeAlpha="0.22"
+        android:strokeWidth="2.4" />
+    <!-- casella bianca con la spunta verde -->
     <path
-        android:pathData="M54,54m-27,0a27,27 0,1 0,54 0a27,27 0,1 0,-54 0"
-        android:strokeColor="#FFFFFF"
-        android:strokeAlpha="0.32"
-        android:strokeWidth="3" />
-    <!-- pallino bianco con la spunta verde -->
-    <path
-        android:pathData="M54,54m-20,0a20,20 0,1 0,40 0a20,20 0,1 0,-40 0"
+        android:pathData="M44,32h20a12,12 0,0 1,12 12v20a12,12 0,0 1,-12 12h-20a12,12 0,0 1,-12 -12v-20a12,12 0,0 1,12 -12z"
         android:fillColor="#FFFFFF" />
     <path
-        android:pathData="M43.5,55 L51.5,63 L66,46"
-        android:strokeColor="#1D5A42"
-        android:strokeWidth="6.5"
+        android:pathData="M43,54.8 L50.9,62.6 L65.8,44.6"
+        android:strokeColor="#2F7D5B"
+        android:strokeWidth="8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
 </vector>

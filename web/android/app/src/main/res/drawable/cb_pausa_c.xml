@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Casella «in pausa»: contorno giallo e due lineette gialle al centro, come nell'app. -->
+<!-- Casella «in pausa»: contorno giallo e pallino giallo pieno al centro, come nell'app. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
@@ -8,10 +8,9 @@
             <corners android:radius="7dp" />
         </shape>
     </item>
-    <item android:gravity="center" android:width="3dp" android:height="9dp" android:left="-3dp">
-        <shape android:shape="rectangle"><solid android:color="#D9A400" /></shape>
-    </item>
-    <item android:gravity="center" android:width="3dp" android:height="9dp" android:left="3dp">
-        <shape android:shape="rectangle"><solid android:color="#D9A400" /></shape>
+    <item android:gravity="center" android:width="9dp" android:height="9dp">
+        <shape android:shape="oval">
+            <solid android:color="#D9A400" />
+        </shape>
     </item>
 </layer-list>

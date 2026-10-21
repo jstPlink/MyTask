@@ -58,7 +58,7 @@ a { color: var(--accent); }
 .row .grow { flex: 1; min-width: 0; }
 .cb { width: 23px; height: 23px; flex: none; border: 2px solid var(--soft); border-radius: 7px; margin-top: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--on-accent); }
 .cb.done { background: var(--accent); border-color: var(--accent); }
-.cb.done::after { content: "\2713"; font-weight: 700; }
+.cb.done::after { content: ""; box-sizing: border-box; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--on-accent); }
 .t1 { font-size: 15px; font-weight: 620; overflow-wrap: anywhere; }
 .t1.light { font-weight: 420; }
 .t1.struck { text-decoration: line-through; color: var(--mid); }
@@ -419,22 +419,20 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .lv-vuoto-d { margin: 2px 0 10px; color: var(--mid); font-size: 13px; }
 .lv-vuoto-b { display: inline-block; background: var(--giallo, var(--amber)); color: #111; font-weight: 700; border-radius: 12px; padding: 9px 14px; margin-bottom: 4px; }
 .row.invita .cb { animation: invita 1.4s ease-in-out infinite; }
-@keyframes invita { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--giallo, var(--amber)) 55%, transparent); } 50% { box-shadow: 0 0 0 7px transparent; } }
+@keyframes invita { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--giallo, var(--amber)) 55%, transparent); } 50% { box-shadow: 0 0 0 4px transparent; } }
 @media (prefers-reduced-motion: reduce) { .row.invita .cb { animation: none; border-color: var(--giallo, var(--amber)); } }
 .cron-lavorato > span:last-child { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 150px; }
 .cron-lavorato .lv-barra { width: 150px; margin: 0; }
 .lv-live { color: var(--accent); font-size: 11.5px; font-weight: 700; }
-/* Nota in lavorazione: la riga resta com'è, sotto compare la barra con il tempo lavorato (che si apre e si chiude piano). */
-.row.con-sotto { flex-wrap: wrap; --acc: var(--accent); }
-.row.con-sotto.pausa-lav { --acc: var(--giallo, var(--amber)); }
-.row.con-sotto.oltre-lav { --acc: var(--warn); }
-.sotto-riga { flex-basis: 100%; overflow: hidden; max-height: 0; opacity: 0; padding: 0; text-align: left; transition: max-height .55s ease, opacity .45s ease, padding .55s ease; }
-.row.lav .sotto-riga { max-height: 40px; opacity: 1; padding: 6px 0 1px; }
-.sr-tempi { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; font: 800 12.5px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
-.sr-tempi b { color: var(--acc); font: inherit; }
-.sr-tempi em { color: var(--mid); font: inherit; font-style: normal; }
-.sr-barra { display: block; height: 4px; border-radius: 2px; overflow: hidden; background: color-mix(in srgb, var(--acc) 22%, transparent); }
-.sr-barra i { display: block; height: 100%; border-radius: 2px; background: var(--acc); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+/* Nota in lavorazione: sotto il nome, al posto della riga grigia, la barra fissa con il tempo lavorato e la stima. */
+.row.lav { --acc: var(--accent); }
+.row.lav.pausa-lav { --acc: var(--giallo, var(--amber)); }
+.row.lav.oltre-lav { --acc: var(--warn); }
+.sr-riga { display: flex; align-items: center; gap: 9px; margin-top: 5px; }
+.sr-tt { font: 700 12px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; color: var(--mid); white-space: nowrap; }
+.sr-tt b { color: var(--acc); font: inherit; font-weight: 800; }
+.sr-barra { display: block; flex: none; width: 110px; height: 5px; border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--acc) 22%, transparent); }
+.sr-barra i { display: block; height: 100%; border-radius: 3px; background: var(--acc); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
 .tm { font: 700 13px ui-monospace, Consolas, monospace; color: var(--accent); }
 
 /* campo «nuova nota»: contorno grigio sempre visibile, verde e più spesso (con alone) mentre si scrive */
@@ -502,7 +500,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .avz-testo { position: relative; font-size: 15px; font-weight: 600; }
 .avz-passo .cb.done + .avz-testo { color: var(--mid); }
 .avz-target .cb { animation: avz-spunta 4.2s ease-out forwards; }
-.avz-target .cb::after { content: "\2713"; font-weight: 700; opacity: 0; animation: avz-segno 4.2s ease forwards; }
+.avz-target .cb::after { content: ""; box-sizing: border-box; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--on-accent); opacity: 0; animation: avz-segno 4.2s ease forwards; }
 .avz-target .avz-testo { animation: avz-grigio 4.2s ease forwards; }
 .avz-target .avz-testo::after { content: ""; position: absolute; left: 0; top: 55%; height: 2px; background: var(--mid); width: 0; animation: avz-sbarra 4.2s ease forwards; }
 @keyframes avz-dim { 0%, 4% { opacity: 0; } 12%, 80% { opacity: 1; } 92%, 100% { opacity: 0; } }
@@ -571,7 +569,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .shell .sz-corpo { padding: 0; }
 
 /* ---------- Riga: priorità a sinistra, titolo, scadenza, casella di stato all'estrema destra ---------- */
-.row .t2 .glifo-tipo { display: inline-block; vertical-align: -2px; margin-right: 5px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+.row .t1 .glifo-tipo { display: inline-block; vertical-align: -2px; margin-right: 7px; color: var(--mid); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .row .right { align-self: center; }
 .row .cb { align-self: center; }
 
@@ -591,12 +589,13 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* ---------- Stati di una nota: da fare, in corso (giallo, mezza casella), fatta, archiviata (tratteggiata) ---------- */
 .cb.viva { --c0: var(--accent); border-color: var(--accent); animation: pulso-cb 1.6s ease-in-out infinite; }
 .cb.viva::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.cb.dafare::after { content: ""; box-sizing: border-box; width: 8px; height: 8px; border-radius: 50%; border: 1.5px dashed color-mix(in srgb, var(--soft) 40%, transparent); }
 .cb.pausa { border-color: var(--giallo); }
-.cb.pausa::after { content: ""; box-sizing: content-box; width: 3px; height: 9px; border-left: 3px solid var(--giallo); border-right: 3px solid var(--giallo); }
+.cb.pausa::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--giallo); }
 @keyframes pulso-cb { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c0) 55%, transparent); } 50% { box-shadow: 0 0 0 7px transparent; } }
 @media (prefers-reduced-motion: reduce) { .cb.viva { animation: none; } }
 .cb.arch { border-style: dashed; background: transparent; color: var(--soft); }
-.cb.arch::after { content: "\25A4"; font-size: 12px; }
+.cb.arch::after { content: ""; box-sizing: border-box; width: 8px; height: 8px; border-radius: 50%; border: 1.6px dashed var(--soft); }
 .row.st-arch { opacity: .6; }
 .stato-voce { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 10px; border-radius: 12px; text-align: left; font-size: 15px; }
 .stato-voce b { display: block; font-weight: 650; }
