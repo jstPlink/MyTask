@@ -75,7 +75,7 @@ export function riepilogoPerChat(items: Item[], oggi: string, now: number = Date
   for (const i of viv.filter(isOpen)) conta.set(NOMI_TIPO[i.tipo], (conta.get(NOMI_TIPO[i.tipo]) ?? 0) + 1);
   const attivita = viv.filter((i) => (i.tipo === 'azione' || i.tipo === 'progetto') && isOpen(i) && !i.inbox)
     .map((i) => ({ i, s: chiavePriorita(i, oggi, now) })).sort((a, b) => b.s - a.s).slice(0, 25)
-    .map(({ i, s }) => `- ${i.titolo.slice(0, 80)} (priorità ${['', 'bassa', 'media', 'alta'][livelloPriorita(i, oggi)]}${dueDate(i) ? `, scade ${dueDate(i)}` : ''}${i.stato === 'in_corso' ? ', in corso' : ''})`);
+    .map(({ i, s }) => `- ${i.titolo.slice(0, 80)} (priorità ${['', 'bassa', 'media', 'alta'][livelloPriorita(i, oggi)]}${dueDate(i) ? `, scade ${dueDate(i)}` : ''}${i.stato === 'in_corso' ? ', in corso' : i.stato === 'in_pausa' ? ', in pausa' : ''})`);
   const altre = (tipo: Item['tipo'], n: number) => viv.filter((i) => i.tipo === tipo && isOpen(i)).slice(0, n).map((i) => `- ${i.titolo.slice(0, 60)}${i.zona ? ` (${i.zona})` : ''}`);
   const parti = [
     `Data di oggi: ${oggi}.`,

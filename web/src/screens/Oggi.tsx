@@ -61,7 +61,7 @@ export function Oggi() {
   // sulla nota (non su quella attiva, che ha il suo blocco in alto).
   const destra = (e: Entry) => {
     const ms = tempoDi(e.item, adesso);
-    const tempo = notaBlocco?.id !== e.item.id && ms >= 1000 ? <span className="tempo-riga">{formatoCronometro(ms)}</span> : null;
+    const tempo = notaBlocco?.id !== e.item.id && !['in_corso', 'in_pausa'].includes(e.item.stato) && ms >= 1000 ? <span className="tempo-riga">{formatoCronometro(ms)}</span> : null;
     const d = dueDate(e.item);
     let data: ReactNode = null;
     if (d && d !== oggi) {
@@ -98,7 +98,7 @@ export function Oggi() {
       <button className="blk-nota" onClick={() => nav.push({ k: 'item', id: notaBlocco.id })}>
         {rankBlocco !== undefined && <span className={clsx('blk-rk', `p${livelloPriorita(notaBlocco, oggi)}`)}>{rankBlocco}</span>}
         <span className="blk-t"><b>{notaBlocco.titolo}</b>{notaBlocco.sforzoMin ? <small>{durataLavoro(notaBlocco.sforzoMin * 60_000)} previsti</small> : null}</span>
-        <span className="cb prog" aria-hidden="true" />
+        <span className="cb viva" aria-hidden="true" />
       </button>
       <div className="blk-sotto" role="img" aria-label={`Tempo lavorato: ${avanzamentoTempo(tempoBlocco, notaBlocco.sforzoMin).testo}`}>
         <div className="blk-tt"><b>{formatoCronometro(tempoBlocco)}</b>{notaBlocco.sforzoMin ? <em>{durataLavoro(notaBlocco.sforzoMin * 60_000)}</em> : null}</div>

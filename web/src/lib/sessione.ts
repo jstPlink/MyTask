@@ -48,17 +48,17 @@ export function elencoLavoro(): Item[] {
 }
 const idElenco = () => elencoLavoro().map((i) => i.id);
 
-/** Una sola nota «in corso» alla volta: le altre tornano «da fare» (il tempo già lavorato resta nella nota). */
+/** Una sola nota «in corso» alla volta: le altre passano «in pausa» (il tempo già lavorato resta nella nota). */
 export function lasciaInCorsoSolo(id: string, now = Date.now()) {
   const nuova = getItem(id);
   if (!nuova || (nuova.tipo !== 'azione' && nuova.tipo !== 'curiosita')) return;
-  for (const o of altreInCorso(getItems(), id)) saveItem({ ...o, stato: 'da_fare', inCorsoTs: undefined, aggiornato: now });
+  for (const o of altreInCorso(getItems(), id)) saveItem({ ...o, stato: 'in_pausa', aggiornato: now });
 }
 
-/** Porta il task «in corso» (se era da fare), ne ricorda il momento e riporta «da fare» le altre note in corso. */
+/** Porta il task «in corso» (se era da fare o in pausa), ne ricorda il momento e mette «in pausa» le altre note in corso. */
 function segnaInCorso(id: string, now: number) {
   const item = getItem(id);
-  if (item && item.stato === 'da_fare') saveItem({ ...item, stato: 'in_corso', inCorsoTs: now, aggiornato: now });
+  if (item && (item.stato === 'da_fare' || item.stato === 'in_pausa')) saveItem({ ...item, stato: 'in_corso', inCorsoTs: now, aggiornato: now });
   lasciaInCorsoSolo(id, now);
 }
 

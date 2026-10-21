@@ -64,7 +64,7 @@ const LIVELLO: Record<Energia, number> = { bassa: 0, media: 1, alta: 2 };
  * A parità di punti, ordine alfabetico.
  */
 export function suggerisciStasera(items: Item[], f: FiltriStasera, max = 3): Suggerimento[] {
-  const candidati = items.filter((i) => !i.eliminato && !i.inbox && TIPI_VIDEO.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso'));
+  const candidati = items.filter((i) => !i.eliminato && !i.inbox && TIPI_VIDEO.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso' || i.stato === 'in_pausa'));
   const out: Suggerimento[] = [];
   for (const i of candidati) {
     if (f.piattaforma && i.piattaforma && i.piattaforma !== f.piattaforma) continue;

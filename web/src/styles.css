@@ -589,7 +589,12 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* margine d'errore sulla stima: coda tratteggiata del segmento (il segmento dura già stima + margine) */
 
 /* ---------- Stati di una nota: da fare, in corso (giallo, mezza casella), fatta, archiviata (tratteggiata) ---------- */
-.cb.prog { border-color: var(--giallo); background: linear-gradient(90deg, var(--giallo) 50%, transparent 50%); }
+.cb.viva { --c0: var(--accent); border-color: var(--accent); animation: pulso-cb 1.6s ease-in-out infinite; }
+.cb.viva::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.cb.pausa { border-color: var(--giallo); }
+.cb.pausa::after { content: ""; box-sizing: content-box; width: 3px; height: 9px; border-left: 3px solid var(--giallo); border-right: 3px solid var(--giallo); }
+@keyframes pulso-cb { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c0) 55%, transparent); } 50% { box-shadow: 0 0 0 7px transparent; } }
+@media (prefers-reduced-motion: reduce) { .cb.viva { animation: none; } }
 .cb.arch { border-style: dashed; background: transparent; color: var(--soft); }
 .cb.arch::after { content: "\25A4"; font-size: 12px; }
 .row.st-arch { opacity: .6; }
@@ -601,7 +606,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .stati-seg { display: flex; background: var(--surface2); border-radius: 14px; padding: 3px; gap: 2px; margin: 4px 0 12px; }
 .stati-seg button { flex: 1; padding: 9px 2px; border-radius: 11px; font-size: 12.5px; font-weight: 700; color: var(--mid); }
 .stati-seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
-.stati-seg button.on.prog { color: var(--giallo); }
+.stati-seg button.on.prog { color: var(--accent); }
+.stati-seg button.on.pausa-t { color: var(--giallo); }
 .stati-seg button.on.fatto { color: var(--accent); }
 
 /* Blocco priorità collassabile: la testata è il pulsante, la freccia ruota */

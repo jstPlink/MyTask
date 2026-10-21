@@ -192,9 +192,9 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
   const migliori = cand.filter((e) => e.item.tipo !== 'esperienza' || dovuta(e)).sort(perClassifica).slice(0, MAX_OGGI);
   const presenti = new Set(migliori.map((e) => e.item.id));
   const dovute = [...migliori, ...cand.filter((e) => dovuta(e) && !presenti.has(e.item.id))].sort(perClassifica);
-  // le note messe «in corso» che non sono già in lista si aggiungono in coda, così restano sotto mano
+  // le note «in corso» o «in pausa» che non sono già in lista si aggiungono in coda, così restano sotto mano
   const inLista = new Set(dovute.map((e) => e.item.id));
-  const inCorso = cand.filter((e) => e.item.stato === 'in_corso' && !inLista.has(e.item.id)).sort(perClassifica);
+  const inCorso = cand.filter((e) => (e.item.stato === 'in_corso' || e.item.stato === 'in_pausa') && !inLista.has(e.item.id)).sort(perClassifica);
   const fare = [...dovute, ...inCorso];
 
   const limite = addDays(today, 7);
@@ -277,12 +277,12 @@ export const passaPiattaforme = (i: Item, scelte: string[]): boolean =>
 
 /** Opere in lista (da fare o in corso) senza piattaforma, per sapere se proporre il filtro «Senza piattaforma». */
 export const opereSenzaPiattaforma = (items: Item[], tipi: Item['tipo'][]): number =>
-  live(items).filter((i) => tipi.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso') && !i.inbox && !i.piattaforma?.trim()).length;
+  live(items).filter((i) => tipi.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso' || i.stato === 'in_pausa') && !i.inbox && !i.piattaforma?.trim()).length;
 
 /** Opere da fare di questi tipi, filtrate (se serve) per una o più piattaforme scelte insieme. */
 export function collezione(items: Item[], tipi: Item['tipo'][], piattaforme: string[] = []): Item[] {
   return live(items)
-    .filter((i) => tipi.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso') && !i.inbox)
+    .filter((i) => tipi.includes(i.tipo) && (i.stato === 'da_fare' || i.stato === 'in_corso' || i.stato === 'in_pausa') && !i.inbox)
     .filter((i) => passaPiattaforme(i, piattaforme))
     .sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.titolo.localeCompare(b.titolo, 'it'));
 }

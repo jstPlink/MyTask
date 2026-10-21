@@ -218,7 +218,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           <div className="stati-seg" role="tablist" aria-label="Stato della nota">
             {STATI_NOTA.map((s) => (
               <button key={s.id} role="tab" aria-selected={statoVisto(d.stato) === s.id}
-                className={clsx(statoVisto(d.stato) === s.id && 'on', s.id === 'in_corso' && 'prog', s.id === 'fatto' && 'fatto')}
+                className={clsx(statoVisto(d.stato) === s.id && 'on', s.id === 'in_corso' && 'prog', s.id === 'in_pausa' && 'pausa-t', s.id === 'fatto' && 'fatto')}
                 onClick={() => { salva(d); cambiaStato(getItem(d.id) ?? d, s.id); }}>{s.nome}</button>
             ))}
           </div>

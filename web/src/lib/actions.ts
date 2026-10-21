@@ -93,10 +93,11 @@ export function ordinaPassi(padreId: string, idsNuovi: string[]) {
   nuovo.forEach((c, n) => { if (c.ordine !== n) saveItem({ ...c, ordine: n }); });
 }
 
-/** Gli stati che l'utente può scegliere (menu «Stato»): da fare, in corso, fatta, archiviata. */
+/** Gli stati che l'utente può scegliere (menu «Stato»): da fare, in corso, in pausa, fatta, archiviata. */
 export const STATI_NOTA: { id: Stato; nome: string; descr: string }[] = [
   { id: 'da_fare', nome: 'Da fare', descr: 'Non ancora iniziata' },
-  { id: 'in_corso', nome: 'In corso', descr: 'Già iniziata' },
+  { id: 'in_corso', nome: 'In corso', descr: 'Ci sto lavorando' },
+  { id: 'in_pausa', nome: 'In pausa', descr: 'Già iniziata, messa da parte' },
   { id: 'fatto', nome: 'Fatta', descr: 'Completata' },
   { id: 'parcheggiato', nome: 'Archiviata', descr: 'Messa da parte' },
 ];
@@ -120,7 +121,7 @@ export function cambiaStato(item: Item, nuovo: Stato) {
     inCorsoTs: nuovo === 'in_corso' ? ora : nuovo === 'da_fare' ? undefined : base.inCorsoTs,
     aggiornato: ora,
   });
-  // una sola nota «in corso»: le altre tornano da fare e il cronometro (se c'è) passa alla nuova; se si toglie quella del cronometro, si ferma
+  // una sola nota «in corso»: la precedente passa «in pausa» e il cronometro (se c'è) passa alla nuova; se si toglie quella del cronometro, si ferma
   if (nuovo === 'in_corso') { lasciaInCorsoSolo(item.id, ora); seguiNotaInCorso(item.id, ora); }
   else if (statoVisto(item.stato) === 'in_corso') fermaSessioneSe(item.id, ora);
   if (item.tipo === 'progetto') {
@@ -143,10 +144,10 @@ export function cambiaStato(item: Item, nuovo: Stato) {
   }
 }
 
-/** Un tocco sulla casella: da fare → in corso → fatta; una nota fatta o archiviata torna da fare. */
+/** Un tocco sulla casella: da fare (o in pausa) → in corso → fatta; una nota fatta o archiviata torna da fare. */
 export function avanzaStato(item: Item) {
   const s = statoVisto(item.stato);
-  cambiaStato(item, s === 'da_fare' ? 'in_corso' : s === 'in_corso' ? 'fatto' : 'da_fare');
+  cambiaStato(item, s === 'da_fare' || s === 'in_pausa' ? 'in_corso' : s === 'in_corso' ? 'fatto' : 'da_fare');
 }
 
 /** Segna (o toglie) la routine per oggi. */

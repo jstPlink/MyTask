@@ -105,7 +105,7 @@ function Azioni({ filtro }: { filtro: Filtro }) {
       <Row
         key={item.id}
         titolo={item.titolo} tipo={item.tipo}
-        meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : unisciMeta([item.stato === 'in_corso' ? 'In corso' : undefined, item.sforzoMin ? nomeTempo(item.sforzoMin) : undefined])}
+        meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : unisciMeta([item.stato === 'in_corso' ? 'In corso' : item.stato === 'in_pausa' ? 'In pausa' : undefined, item.sforzoMin ? nomeTempo(item.sforzoMin) : undefined])}
         right={d ? (scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
         level={item.stato === 'parcheggiato' ? 1 : livelloPriorita(item, oggi)}
         rank={classifica.get(item.id)}

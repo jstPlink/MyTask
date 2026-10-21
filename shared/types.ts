@@ -22,9 +22,10 @@ export const NOMI_TIPO: Record<Tipo, string> = {
 
 /**
  * Stato salvato di una voce. «Scaduto» non è uno stato: si calcola da data e stato (vedi `isOverdue`).
- * `saltato` è trattato come `fatto`; `parcheggiato` è la «Archiviata» mostrata all'utente.
+ * `saltato` è trattato come `fatto`; `parcheggiato` è la «Archiviata» mostrata all'utente; `in_pausa` è una nota già avviata
+ * e messa da parte (lo diventa da sola quando un'altra nota passa «in corso»).
  */
-export type Stato = 'da_fare' | 'in_corso' | 'fatto' | 'saltato' | 'parcheggiato';
+export type Stato = 'da_fare' | 'in_corso' | 'in_pausa' | 'fatto' | 'saltato' | 'parcheggiato';
 
 /** Momento della giornata di una routine. */
 export type Fascia = 'mattina' | 'pomeriggio' | 'sera' | 'prima_di_dormire';

@@ -57,7 +57,7 @@ export function Scoprire() {
         {lista.length > 0 && (
           <Sezione titolo={`${SUB.find((x) => x.id === sub)?.nome ?? ''} da fare`} dettaglio={lista.length}>
             {lista.map((i) => {
-          const meta = [i.stato === 'in_corso' ? 'In corso' : undefined, i.piattaforma, i.consigliatoDa ? `consigliato da ${i.consigliatoDa}` : undefined, i.genere, i.note?.split('\n')[0]].filter(Boolean).join(' · ');
+          const meta = [i.stato === 'in_corso' ? 'In corso' : i.stato === 'in_pausa' ? 'In pausa' : undefined, i.piattaforma, i.consigliatoDa ? `consigliato da ${i.consigliatoDa}` : undefined, i.genere, i.note?.split('\n')[0]].filter(Boolean).join(' · ');
           const interesse = i.interesse ?? 3;
           return (
             <Row
