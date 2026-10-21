@@ -28,6 +28,13 @@ test('widget: un task «in corso» è segnalato per la casella mezza gialla', ()
   assert.equal(r.find((x) => x.t === 'Da fare')?.c, undefined);
 });
 
+test('widget: un task «in pausa» è segnalato per la casella gialla con le lineette', () => {
+  const a = mk({ titolo: 'Messa da parte', importanza: 5, fine: OGGI, stato: 'in_pausa' });
+  const r = righeWidget([a], OGGI);
+  assert.equal(r.find((x) => x.t === 'Messa da parte')?.z, 1);
+  assert.equal(r.find((x) => x.t === 'Messa da parte')?.c, undefined);
+});
+
 test('widget: dopo le attività ci sono le curiosità, senza posizione, con la stima', () => {
   const a = mk({ titolo: 'Attività', importanza: 5, fine: OGGI, sforzoMin: 80 });
   const cs = Array.from({ length: 6 }, (_, i) => mk({ tipo: 'curiosita', titolo: `Curiosità ${i}`, interesse: 5 - (i % 3) as 3 | 4 | 5, sforzoMin: i === 0 ? 25 : undefined }));

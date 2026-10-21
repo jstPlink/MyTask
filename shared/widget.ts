@@ -20,8 +20,10 @@ export interface RigaWidget {
   l: 1 | 2 | 3;
   /** Battiti al minuto del pallino (come nell'app: più veloce quanto più la scadenza è vicina); assente se non batte. */
   b?: number;
-  /** 1 se il task è «in corso»: la casella del widget è mezza gialla come nell'app. */
+  /** 1 se il task è «in corso»: la casella del widget ha il pallino verde come nell'app. */
   c?: 1;
+  /** 1 se il task è «in pausa»: la casella del widget è gialla con le due lineette come nell'app. */
+  z?: 1;
   /** Tempo previsto in minuti (la stima della nota), se c'è. */
   p?: number;
   /** «c» se è una curiosità (senza posizione in classifica, in una sezione sua); assente per le attività. */
@@ -38,10 +40,10 @@ export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[]
   const classifica = classificaPriorita(items, oggi); // la stessa posizione che si legge nell'app
   const v = vistaOggi(items, oggi);
   const attivita: RigaWidget[] = v.fare.slice(0, max).map((e) => ({
-    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi), b: battitoBpm(intensitaBattito(e.item, oggi), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, p: e.item.sforzoMin || undefined,
+    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi), b: battitoBpm(intensitaBattito(e.item, oggi), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, z: e.item.stato === 'in_pausa' ? 1 : undefined, p: e.item.sforzoMin || undefined,
   }));
   const curiosita: RigaWidget[] = v.curiosita.map((i) => ({
-    id: i.id, t: i.titolo, l: 1, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, p: i.sforzoMin || undefined, k: 'c', i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))),
+    id: i.id, t: i.titolo, l: 1, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, z: i.stato === 'in_pausa' ? 1 : undefined, p: i.sforzoMin || undefined, k: 'c', i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))),
   }));
   return [...attivita, ...curiosita];
 }

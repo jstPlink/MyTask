@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Casella «in corso»: contorno giallo e metà sinistra piena, come nell'app. -->
+<!-- Casella «in corso»: contorno verde e pallino verde pieno al centro, come nell'app (nel widget il pallino non pulsa). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
             <size android:width="22dp" android:height="22dp" />
-            <stroke android:width="2dp" android:color="#F4C542" />
+            <stroke android:width="2dp" android:color="#6FCF9B" />
             <corners android:radius="7dp" />
         </shape>
     </item>
-    <item android:gravity="start" android:width="11dp" android:height="22dp">
-        <shape android:shape="rectangle">
-            <solid android:color="#F4C542" />
-            <corners android:topLeftRadius="7dp" android:bottomLeftRadius="7dp" />
+    <item android:gravity="center" android:width="9dp" android:height="9dp">
+        <shape android:shape="oval">
+            <solid android:color="#6FCF9B" />
         </shape>
     </item>
 </layer-list>

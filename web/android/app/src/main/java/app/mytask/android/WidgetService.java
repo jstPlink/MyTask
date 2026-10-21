@@ -182,14 +182,16 @@ public class WidgetService extends RemoteViewsService {
             v.setTextViewText(R.id.titolo, titolo);
             v.setTextColor(R.id.titolo, fatto ? colore("#65656E", "#A5A5B0") : colore("#111115", "#F3F3F6"));
 
+            // «in pausa»: nota avviata e messa da parte (campo «z»), a meno che il cronometro sia proprio su di lei
+            boolean inPausa = !fatto && !inCorso && o.optInt("z", 0) == 1;
             v.setImageViewResource(R.id.cb, fatto ? (s ? R.drawable.cb_fatto_s : R.drawable.cb_fatto_c)
                     : inCorso ? (s ? R.drawable.cb_corso_s : R.drawable.cb_corso_c)
+                    : inPausa ? (s ? R.drawable.cb_pausa_s : R.drawable.cb_pausa_c)
                     : (s ? R.drawable.cb_vuoto_s : R.drawable.cb_vuoto_c));
 
-            // intenti che completano il modello impostato da WidgetBase: checkbox = spunta, resto della riga = apre l'app
-            Intent spunta = new Intent().putExtra("azione", "fatto").putExtra("id", id);
+            // il tocco sulla casella non cambia stato: apre l'app come il resto della riga (lo stato si cambia nell'app)
             Intent apri = new Intent().putExtra("azione", "apri");
-            v.setOnClickFillInIntent(R.id.cb, spunta);
+            v.setOnClickFillInIntent(R.id.cb, apri);
             v.setOnClickFillInIntent(R.id.riga, apri);
             return v;
         }
