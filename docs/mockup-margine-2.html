@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: margine d'errore, altre varianti</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4;
+  --accent:#2F7D5B; --accent-soft:#E3F1EA; --warn:#D1430B; --warn-soft:#FDEBE2; --ok:#2F7D5B; --ok-soft:#E3F1EA; --on-accent:#fff; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 18px; max-width:760px; }
+button { font:inherit; color:inherit; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 14px; cursor:pointer; font-weight:700; margin-bottom:22px; }
+.griglia { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:26px; max-width:1200px; }
+.var h2 { font-size:15px; margin:0 0 2px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; min-height:58px; }
+.tel { width:100%; max-width:380px; background:var(--surface); border-radius:26px 26px 0 0; padding:14px 18px 20px; box-shadow:0 6px 24px rgba(0,0,0,.15); cursor:pointer; }
+.grip { width:40px; height:4px; border-radius:2px; background:var(--line); margin:0 auto 12px; }
+.fatto { display:flex; gap:10px; align-items:center; margin-bottom:12px; } .fatto b { font-size:17px; } .t2 { color:var(--mid); font-size:12.5px; }
+.ok { width:34px; height:34px; border-radius:50%; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; font-weight:800; flex:none; }
+.card { background:var(--bg); border:1px solid var(--line); border-radius:18px; padding:14px 16px; }
+.su { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--soft); font-weight:700; }
+.alto { color:var(--warn); } .basso { color:var(--ok); }
+.frase { margin-top:8px; font-size:12.5px; font-weight:700; min-height:18px; opacity:0; transition:opacity .5s; } .frase.on { opacity:1; }
+.num { font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.1; transition:color .3s; }
+.delta { font-size:12px; font-weight:800; padding:3px 9px; border-radius:999px; opacity:0; transition:opacity .4s; }
+.delta.alto { background:var(--warn-soft); } .delta.basso { background:var(--ok-soft); } .delta.on { opacity:1; }
+.riga { display:flex; align-items:center; gap:10px; margin-top:4px; }
+svg { display:block; width:100%; height:auto; overflow:visible; }
+/* D bilancia */
+#d-asse { transform-origin:150px 92px; transition:transform 1.6s cubic-bezier(.3,1.5,.5,1); }
+/* E gauge */
+#e-ago { transform-origin:150px 130px; transition:transform 1.5s cubic-bezier(.3,1.4,.5,1); }
+/* F tempo */
+.tr { position:relative; height:30px; border-radius:8px; background:var(--surface2); margin:10px 0 4px; overflow:hidden; display:flex; }
+.tr .base { background:var(--soft); width:60%; display:grid; place-items:center; color:#fff; font-size:12px; font-weight:700; }
+.tr .extra { background:repeating-linear-gradient(135deg,var(--warn) 0 5px,color-mix(in srgb,var(--warn) 55%,#fff) 5px 10px); width:0; transition:width 1.2s cubic-bezier(.3,.8,.2,1); position:relative; }
+.tr .extra b { position:absolute; inset:0; display:grid; place-items:center; color:#fff; font-size:11px; white-space:nowrap; }
+.conto { font-size:13px; color:var(--mid); margin-top:6px; } .conto b { color:var(--ink); }
+/* G storico */
+#g-linea { stroke-dasharray:var(--l); stroke-dashoffset:var(--l); }
+</style></head><body>
+<h1>Margine d'errore: altre quattro varianti (solo tema chiaro)</h1>
+<p class="sub">Stesso esempio: nota fatta in 55 min contro 60 stimati, margine da <b>+12%</b> a <b>+8%</b>. Clicca su un telefono per rivedere l'animazione. Rosso = stime troppo corte (aggiungi tempo), verde = stime abbondanti.</p>
+<button onclick="tutte()">▶ Riproduci tutte</button>
+<div class="griglia">
+
+<section class="var"><h2>D · La bilancia</h2>
+<p>Un'altalena: a sinistra «stime abbondanti» (verde), a destra «stime corte» (rosso). Il margine inclina la trave: l'asse parte inclinato verso il rosso (+12%) e rimbalza verso il centro (+8%).</p>
+<div class="tel"><div class="grip"></div><div class="fatto"><span class="ok">✓</span><div><b>Fatto in 55 min</b><div class="t2">Chiamare l'idraulico · stimati 1 h</div></div></div>
+<div class="card"><div class="su">Margine delle tue stime</div>
+<div class="riga"><span class="num" id="d-n">+12%</span><span class="delta" id="d-d">−4 punti</span></div>
+<svg viewBox="0 0 300 120"><polygon points="150,92 128,116 172,116" fill="var(--soft)"/>
+<g id="d-asse"><rect x="30" y="88" width="240" height="8" rx="4" fill="var(--ink)"/>
+<g id="d-sx"><rect x="34" y="62" width="64" height="26" rx="8" fill="var(--ok-soft)" stroke="var(--ok)"/><text x="66" y="79" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ok)">abbondanti</text></g>
+<g id="d-dx"><rect x="202" y="62" width="64" height="26" rx="8" fill="var(--warn-soft)" stroke="var(--warn)"/><text x="234" y="79" text-anchor="middle" font-size="10" font-weight="700" fill="var(--warn)">corte</text></g></g></svg>
+<div class="frase" id="d-fr"></div></div></div></section>
+
+<section class="var"><h2>E · Il contagiri</h2>
+<p>Un semicerchio con zona verde (stime abbondanti), grigia al centro e rossa (stime corte). La lancetta scatta sul vecchio valore e poi oscilla fino al nuovo, con un piccolo rimbalzo.</p>
+<div class="tel"><div class="grip"></div><div class="fatto"><span class="ok">✓</span><div><b>Fatto in 55 min</b><div class="t2">Chiamare l'idraulico · stimati 1 h</div></div></div>
+<div class="card"><div class="su">Margine delle tue stime</div>
+<svg viewBox="0 0 300 150"><path d="M30 130 A120 120 0 0 1 90 26" fill="none" stroke="var(--ok)" stroke-width="16" stroke-linecap="butt" opacity=".85"/>
+<path d="M90 26 A120 120 0 0 1 210 26" fill="none" stroke="var(--surface2)" stroke-width="16"/>
+<path d="M210 26 A120 120 0 0 1 270 130" fill="none" stroke="var(--warn)" stroke-width="16" opacity=".85"/>
+<text x="30" y="148" font-size="10" fill="var(--soft)" text-anchor="middle">−50%</text><text x="270" y="148" font-size="10" fill="var(--soft)" text-anchor="middle">+150%</text>
+<g id="e-ago"><line x1="150" y1="130" x2="150" y2="34" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/></g><circle cx="150" cy="130" r="9" fill="var(--ink)"/>
+<text id="e-n" x="150" y="112" text-anchor="middle" font-size="26" font-weight="800" fill="var(--warn)" style="font-variant-numeric:tabular-nums">+12%</text></svg>
+<div class="riga" style="justify-content:center"><span class="delta" id="e-d">−4 punti</span></div>
+<div class="frase" id="e-fr" style="text-align:center"></div></div></div></section>
+
+<section class="var"><h2>F · Il tempo in più</h2>
+<p>Traduce il margine in minuti concreti: una barra con la stima (1 h) e, accanto, la coda tratteggiata del tempo da aggiungere. La coda si accorcia da 7 a 5 minuti e la frase finale dice quanto mettere in conto.</p>
+<div class="tel"><div class="grip"></div><div class="fatto"><span class="ok">✓</span><div><b>Fatto in 55 min</b><div class="t2">Chiamare l'idraulico · stimati 1 h</div></div></div>
+<div class="card"><div class="su">Margine delle tue stime</div>
+<div class="riga"><span class="num" id="f-n">+12%</span><span class="delta" id="f-d">−4 punti</span></div>
+<div class="tr"><div class="base">Stima 1 h</div><div class="extra" id="f-x"><b id="f-xt">+7 min</b></div></div>
+<div class="conto" id="f-c">Per una stima di 1 h metti in conto <b id="f-t">1 h 7 min</b></div>
+<div class="frase" id="f-fr"></div></div></div></section>
+
+<section class="var"><h2>G · Il filo delle settimane</h2>
+<p>Una linea con il margine nelle ultime settimane (rosso sopra lo zero, verde sotto). La linea si disegna fino all'ultimo punto, la nota di oggi aggiunge un punto che pulsa e il numero si aggiorna: si vede la tendenza a migliorare.</p>
+<div class="tel"><div class="grip"></div><div class="fatto"><span class="ok">✓</span><div><b>Fatto in 55 min</b><div class="t2">Chiamare l'idraulico · stimati 1 h</div></div></div>
+<div class="card"><div class="su">Margine delle tue stime</div>
+<div class="riga"><span class="num" id="g-n">+12%</span><span class="delta" id="g-d">−4 punti</span></div>
+<svg viewBox="0 0 300 110"><rect x="0" y="55" width="300" height="55" fill="var(--ok-soft)" opacity=".6"/><rect x="0" y="0" width="300" height="55" fill="var(--warn-soft)" opacity=".6"/>
+<line x1="0" y1="55" x2="300" y2="55" stroke="var(--soft)" stroke-dasharray="3 4"/><text x="4" y="52" font-size="9" fill="var(--soft)">0%</text>
+<polyline id="g-linea" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="10,10 60,16 110,24 160,34 210,40 255,42"/>
+<circle id="g-ult" cx="255" cy="42" r="5" fill="var(--ink)" opacity="0"/>
+<circle id="g-nuovo" cx="290" cy="46" r="6" fill="var(--ok)" opacity="0"/><circle id="g-alone" cx="290" cy="46" r="6" fill="none" stroke="var(--ok)" stroke-width="2" opacity="0"/></svg>
+<div class="etic" style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--soft)"><span>5 settimane fa</span><span>oggi</span></div>
+<div class="frase" id="g-fr"></div></div></div></section>
+</div>
+<script>
+const DA = 12, A = 8, P = A - DA;
+const col = (v) => v > 0 ? 'alto' : v < 0 ? 'basso' : '';
+const pc = (v) => v > 0 ? '+' + v + '%' : v < 0 ? '−' + (-v) + '%' : '0%';
+const frase = (v) => v > 0 ? 'Conviene aggiungere tempo alle tue stime' : v < 0 ? 'Stai stimando più del necessario' : 'Le tue stime sono centrate';
+const $ = (id) => document.getElementById(id);
+const T = {}; const dopo = (k, fn, ms) => (T[k] = T[k] || []).push(setTimeout(fn, ms)); const stop = (k) => { (T[k] || []).forEach(clearTimeout); T[k] = []; };
+const colore = (v) => v > 0 ? 'var(--warn)' : v < 0 ? 'var(--ok)' : 'var(--ink)';
+const conta = (set, da, a, ms) => { const t0 = performance.now(); (function f(t) { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); set(Math.round(da + (a - da) * e)); if (k < 1) requestAnimationFrame(f); })(t0); };
+const num = (id) => (v) => { const n = $(id); n.textContent = pc(v); n.className = 'num ' + col(v); };
+const fine = (p, ms) => { dopo(p, () => $(p + '-d').classList.add('on'), ms); dopo(p, () => { const f = $(p + '-fr'); f.textContent = frase(A); f.className = 'frase on ' + col(A); }, ms + 300); };
+const reset = (p) => { stop(p); num(p + '-n')(DA); const d = $(p + '-d'); d.className = 'delta ' + col(P); const f = $(p + '-fr'); f.className = 'frase'; f.textContent = ''; };
+
+// D: la trave ruota di (valore/150)·18 gradi; positivo = si abbassa a destra
+function D_() { reset('d'); const as = $('d-asse'); const ang = (v) => Math.max(-14, Math.min(14, v * 1.1));
+  as.style.transition = 'none'; as.style.transform = `rotate(${ang(0)}deg)`; void as.offsetWidth;
+  dopo('d', () => { as.style.transition = 'transform 1.0s cubic-bezier(.3,1.2,.5,1)'; as.style.transform = `rotate(${ang(DA)}deg)`; }, 150);
+  dopo('d', () => { as.style.transition = 'transform 1.6s cubic-bezier(.3,1.6,.5,1)'; as.style.transform = `rotate(${ang(A)}deg)`; conta(num('d-n'), DA, A, 1400); }, 1500);
+  fine('d', 3000); }
+
+// E: lancetta da −90° (−50%) a +90° (+150%)
+function E_() { reset('e'); const ag = $('e-ago'), n = $('e-n'); const ang = (v) => ((v + 50) / 200) * 180 - 90;
+  const setN = (v) => { n.textContent = pc(v); n.setAttribute('fill', colore(v)); }; setN(DA);
+  ag.style.transition = 'none'; ag.style.transform = `rotate(${ang(-50)}deg)`; void ag.getBoundingClientRect();
+  dopo('e', () => { ag.style.transition = 'transform .9s cubic-bezier(.3,.8,.2,1)'; ag.style.transform = `rotate(${ang(DA)}deg)`; }, 150);
+  dopo('e', () => { ag.style.transition = 'transform 1.5s cubic-bezier(.3,1.5,.5,1)'; ag.style.transform = `rotate(${ang(A)}deg)`; conta(setN, DA, A, 1300); }, 1500);
+  fine('e', 3000); }
+
+// F: minuti da aggiungere = 60 · margine
+function F_() { reset('f'); const x = $('f-x'), xt = $('f-xt'), t = $('f-t');
+  const larg = (v) => (60 * v / 100) / 60 * 60; // % della barra totale: la base occupa il 60%
+  const min = (v) => Math.round(60 * v / 100); const tot = (v) => { const m = 60 + min(v); return m >= 60 ? `1 h ${m - 60} min` : `${m} min`; };
+  x.style.transition = 'none'; x.style.width = larg(DA) + '%'; xt.textContent = '+' + min(DA) + ' min'; t.textContent = tot(DA);
+  dopo('f', () => { x.style.transition = 'width 1.3s cubic-bezier(.3,.8,.2,1)'; x.style.width = larg(A) + '%';
+    conta((v) => { num('f-n')(v); xt.textContent = '+' + min(v) + ' min'; t.textContent = tot(v); }, DA, A, 1300); }, 900);
+  fine('f', 2600); }
+
+// G: la linea si disegna, poi il punto nuovo
+function G_() { reset('g'); const l = $('g-linea'), u = $('g-ult'), nw = $('g-nuovo'), al = $('g-alone'); const L = l.getTotalLength();
+  l.style.setProperty('--l', L); l.style.transition = 'none'; l.style.strokeDashoffset = L; u.style.opacity = 0; nw.style.opacity = 0; al.style.opacity = 0; al.style.transition = 'none'; al.setAttribute('r', 6);
+  void l.getBoundingClientRect();
+  dopo('g', () => { l.style.transition = 'stroke-dashoffset 1.4s ease-out'; l.style.strokeDashoffset = 0; u.style.transition = 'opacity .3s 1.2s'; u.style.opacity = 1; }, 150);
+  dopo('g', () => { nw.style.transition = 'opacity .3s'; nw.style.opacity = 1; conta(num('g-n'), DA, A, 900);
+    const seg = document.createElementNS('http://www.w3.org/2000/svg', 'line'); seg.setAttribute('x1', 255); seg.setAttribute('y1', 42); seg.setAttribute('x2', 290); seg.setAttribute('y2', 46); seg.setAttribute('stroke', 'var(--ok)'); seg.setAttribute('stroke-width', 3); seg.setAttribute('stroke-linecap', 'round'); seg.dataset.tmp = 1; $('g-linea').parentNode.appendChild(seg);
+    al.style.opacity = .9; al.style.transition = 'r .8s ease-out, opacity .8s'; al.setAttribute('r', 16); dopo('g', () => al.style.opacity = 0, 50); }, 1700);
+  fine('g', 3000); document.querySelectorAll('[data-tmp]').forEach((e) => e.remove()); }
+
+function tutte() { D_(); E_(); F_(); G_(); }
+document.querySelectorAll('.tel').forEach((t, i) => t.addEventListener('click', () => [D_, E_, F_, G_][i]()));
+tutte();
+</script></body></html>

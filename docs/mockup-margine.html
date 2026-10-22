@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: aggiornamento del margine d'errore</title>
+<style>
+:root { color-scheme: light; --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4;
+  --accent:#2F7D5B; --accent-soft:#E3F1EA; --warn:#D1430B; --warn-soft:#FDEBE2; --ok:#2F7D5B; --ok-soft:#E3F1EA; --on-accent:#fff; }
+:root[data-theme=dark] { color-scheme: dark; --bg:#0E0F12; --surface:#1D1F23; --surface2:#272930; --ink:#F3F3F6; --mid:#A5A5B0; --soft:#72737D; --line:#2F3138;
+  --accent:#6FCF9B; --accent-soft:#17332A; --warn:#FF9466; --warn-soft:#3A2218; --ok:#6FCF9B; --ok-soft:#17332A; --on-accent:#0E0F12; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 18px; max-width:760px; }
+.bar { display:flex; gap:8px; margin-bottom:22px; }
+button { font:inherit; color:inherit; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 14px; cursor:pointer; font-weight:700; }
+.griglia { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:26px; max-width:1200px; }
+.var h2 { font-size:15px; margin:0 0 2px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; min-height:54px; }
+.tel { width:100%; max-width:380px; background:var(--surface); border-radius:26px 26px 0 0; padding:14px 18px 20px; box-shadow:0 6px 24px rgba(0,0,0,.15); }
+.grip { width:40px; height:4px; border-radius:2px; background:var(--line); margin:0 auto 12px; }
+.fatto { display:flex; gap:10px; align-items:center; margin-bottom:12px; } .fatto b { font-size:17px; } .t2 { color:var(--mid); font-size:12.5px; }
+.ok { width:34px; height:34px; border-radius:50%; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; font-weight:800; flex:none; }
+.card { background:var(--bg); border:1px solid var(--line); border-radius:18px; padding:14px 16px; }
+.su { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--soft); font-weight:700; }
+.alto { color:var(--warn); } .basso { color:var(--ok); }
+.frase { margin-top:8px; font-size:12.5px; font-weight:700; }
+.num { font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; transition:color .3s; line-height:1.1; }
+.delta { font-size:12px; font-weight:800; padding:3px 9px; border-radius:999px; opacity:0; transition:opacity .4s; }
+.delta.alto { background:var(--warn-soft); } .delta.basso { background:var(--ok-soft); } .delta.on { opacity:1; }
+.riga { display:flex; align-items:center; gap:10px; margin-top:6px; }
+
+/* A: scala */
+.scala { position:relative; height:46px; margin:16px 6px 4px; }
+.scala .asse { position:absolute; left:0; right:0; top:22px; height:6px; border-radius:3px; background:linear-gradient(90deg,var(--ok-soft),var(--surface2) 25%,var(--warn-soft)); }
+.scala .zero { position:absolute; left:25%; top:14px; width:2px; height:22px; background:var(--soft); }
+.scala .zl { position:absolute; left:25%; top:38px; transform:translateX(-50%); font-size:10.5px; color:var(--soft); }
+.scala .ext { position:absolute; top:38px; font-size:10.5px; color:var(--soft); } .scala .ext.l { left:0; } .scala .ext.r { right:0; }
+.fantasma { position:absolute; top:17px; width:16px; height:16px; margin-left:-8px; border-radius:50%; border:2px dashed var(--soft); opacity:.8; }
+.pallino { position:absolute; top:15px; width:20px; height:20px; margin-left:-10px; border-radius:50%; background:var(--ink); box-shadow:0 0 0 4px color-mix(in srgb,var(--ink) 15%,transparent); }
+.scia { position:absolute; top:23px; height:4px; border-radius:2px; opacity:.85; }
+
+/* B: rullo */
+.rullo { display:flex; align-items:center; height:42px; overflow:hidden; font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; }
+.cifra { height:42px; overflow:hidden; } .cifra > div { transition:transform 1.1s cubic-bezier(.2,.8,.2,1); } .cifra span { display:block; height:42px; line-height:42px; text-align:center; }
+.freccia { font-size:22px; font-weight:800; margin-left:8px; opacity:0; transform:translateY(8px); transition:all .5s .9s; } .freccia.on { opacity:1; transform:none; }
+
+/* C: note e pesi */
+.note { display:flex; align-items:flex-end; gap:6px; height:96px; margin:10px 0 4px; position:relative; border-bottom:1px solid var(--line); }
+.nota { flex:1; border-radius:6px 6px 0 0; transition:height .9s cubic-bezier(.2,.8,.2,1), opacity .5s; position:relative; }
+.nota.nuova { transform:translateY(-110px); opacity:0; transition:transform .8s cubic-bezier(.3,1.3,.5,1), opacity .3s; outline:2px solid var(--ink); outline-offset:2px; }
+.nota.nuova.in { transform:none; opacity:1; }
+.etic { display:flex; justify-content:space-between; font-size:10.5px; color:var(--soft); margin-bottom:8px; }
+</style></head><body>
+<h1>Aggiornamento del margine d'errore</h1>
+<p class="sub">Esempio: la nota è stata fatta in 55 minuti contro 60 stimati (−8%). Il margine passa da <b>+12%</b> a <b>+8%</b> (media pesata, le note recenti contano di più). Tre idee per il blocco «Margine delle tue stime» del foglio di completamento. Le barre di stimato/reale in alto restano come oggi.</p>
+<div class="bar"><button onclick="tutte()">▶ Riproduci tutte</button><button onclick="tema()">Chiaro / scuro</button></div>
+<div class="griglia">
+
+<section class="var"><h2>A · La scala</h2>
+<p>Una scala da −50% a +150% con lo zero segnato. Il cerchio tratteggiato è il vecchio valore, il cerchio pieno scivola verso il nuovo lasciando una scia; il numero conta mentre si muove e cambia colore se attraversa lo zero.</p>
+<div class="tel"><div class="grip"></div><div class="fatto"><span class="ok">✓</span><div><b>Fatto in 55 min</b><div class="t2">Chiamare l'idraulico · stimati 1 h</div></div></div>
+<div class="card"><div class="su">Margine delle tue stime</div>
+<div class="riga"><span class="num" id="a-n">+12%</span><span class="delta" id="a-d">−4 punti</span></div>
+<div class="scala"><div class="asse"></div><div class="zero"></div><span class="zl">0%</span><span class="ext l">−50%</span><span class="ext r">+150%</span>
+<div class="scia" id="a-s"></div><div class="fantasma" id="a-f"></div><div class="pallino" id="a-p"></div></div>
+<div class="frase" id="a-fr"></div></div></div></section>
+
+<section class="var"><h2>B · Il contatore a rullo</h2>
+<p>Le cifre scorrono come un contachilometri dal vecchio al nuovo valore; compare una freccia nella direzione del cambiamento (↓ verde: stai stimando meglio) e il delta. Sobrio e rapido, ideale se si vuole poco movimento.</p>
+<div class="tel"><div class="grip"></div><div class="fatto"><span class="ok">✓</span><div><b>Fatto in 55 min</b><div class="t2">Chiamare l'idraulico · stimati 1 h</div></div></div>
+<div class="card"><div class="su">Margine delle tue stime</div>
+<div class="riga"><div class="rullo" id="b-r"></div><span class="freccia" id="b-f"></span><span class="delta" id="b-d">−4 punti</span></div>
+<div class="frase" id="b-fr"></div></div></div></section>
+
+<section class="var"><h2>C · Le tue ultime note</h2>
+<p>Mostra <i>perché</i> il margine cambia: una barra per ognuna delle ultime note completate (altezza = quanto pesa, colore = stima corta rossa / abbondante verde). La nota appena finita cade in fondo a destra, le vecchie si abbassano (pesano meno) e il numero si ricalcola.</p>
+<div class="tel"><div class="grip"></div><div class="fatto"><span class="ok">✓</span><div><b>Fatto in 55 min</b><div class="t2">Chiamare l'idraulico · stimati 1 h</div></div></div>
+<div class="card"><div class="su">Margine delle tue stime</div>
+<div class="riga"><span class="num" id="c-n">+12%</span><span class="delta" id="c-d">−4 punti</span></div>
+<div class="note" id="c-note"></div><div class="etic"><span>meno recenti</span><span>questa nota</span></div>
+<div class="frase" id="c-fr"></div></div></div></section>
+
+</div>
+<script>
+const DA = 12, A = 8, PUNTI = A - DA;
+const col = (v) => v > 0 ? 'alto' : v < 0 ? 'basso' : '';
+const pc = (v) => v > 0 ? '+' + v + '%' : v < 0 ? '−' + (-v) + '%' : '0%';
+const frase = (v) => v > 0 ? 'Conviene aggiungere tempo alle tue stime' : v < 0 ? 'Stai stimando più del necessario' : 'Le tue stime sono centrate';
+const $ = (id) => document.getElementById(id);
+const pos = (v) => ((v + 50) / 200) * 100;           // −50 → 0%, +150 → 100%
+const conta = (el, da, a, ms, fine) => { const t0 = performance.now(); (function f(t) { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3), v = Math.round(da + (a - da) * e);
+  el.textContent = pc(v); el.className = el.className.replace(/ ?(alto|basso)/g, '') + ' ' + col(v); if (k < 1) requestAnimationFrame(f); else fine && fine(); })(t0); };
+const timers = {}; const dopo = (k, fn, ms) => (timers[k] = (timers[k] || [])).push(setTimeout(fn, ms));
+const pulisci = (k) => (timers[k] || []).forEach(clearTimeout);
+
+function A_() { pulisci('a'); timers.a = [];
+  const p = $('a-p'), f = $('a-f'), s = $('a-s'), n = $('a-n'), d = $('a-d');
+  p.style.transition = 'none'; p.style.left = pos(DA) + '%'; f.style.left = pos(DA) + '%'; s.style.transition = 'none'; s.style.left = pos(DA) + '%'; s.style.width = '0'; s.style.background = 'var(--warn)';
+  n.textContent = pc(DA); n.className = 'num ' + col(DA); d.className = 'delta ' + col(PUNTI); $('a-fr').textContent = ''; $('a-fr').className = 'frase';
+  dopo('a', () => { p.style.transition = 'left 1.4s cubic-bezier(.3,.7,.2,1)'; p.style.left = pos(A) + '%';
+    s.style.transition = 'left 1.4s cubic-bezier(.3,.7,.2,1), width 1.4s cubic-bezier(.3,.7,.2,1)'; s.style.left = pos(A) + '%'; s.style.width = (pos(DA) - pos(A)) + '%'; s.style.background = 'var(--ok)';
+    conta(n, DA, A, 1400); }, 700);
+  dopo('a', () => d.classList.add('on'), 2200);
+  dopo('a', () => { $('a-fr').textContent = frase(A); $('a-fr').className = 'frase ' + col(A); }, 2500); }
+
+function B_() { pulisci('b'); timers.b = [];
+  const r = $('b-r'); r.innerHTML = ''; const f = $('b-f'), d = $('b-d');
+  const testo = (v) => pc(v); const da = testo(DA), a = testo(A);
+  // ogni carattere è una colonna di due righe: vecchio sopra, nuovo sotto; scorre di una riga se cambia
+  const L = Math.max(da.length, a.length); const pad = (t) => t.padStart(L, ' ');
+  const x = pad(da), y = pad(a); const cifre = [];
+  for (let i = 0; i < L; i++) { const c = document.createElement('div'); c.className = 'cifra'; const inner = document.createElement('div');
+    inner.innerHTML = '<span>' + (x[i] === ' ' ? '&nbsp;' : x[i]) + '</span><span>' + (y[i] === ' ' ? '&nbsp;' : y[i]) + '</span>'; c.appendChild(inner); r.appendChild(c); cifre.push([inner, x[i] !== y[i]]); }
+  r.style.color = DA > 0 ? 'var(--warn)' : 'var(--ok)'; r.style.transition = 'color .6s';
+  f.className = 'freccia ' + col(PUNTI); f.textContent = PUNTI < 0 ? '↓' : '↑'; d.className = 'delta ' + col(PUNTI); $('b-fr').textContent = ''; $('b-fr').className = 'frase';
+  cifre.forEach(([el]) => { el.style.transition = 'none'; el.style.transform = 'none'; });
+  dopo('b', () => { cifre.forEach(([el, cambia], i) => { if (cambia) { el.style.transition = 'transform 1.1s cubic-bezier(.2,.8,.2,1) ' + (i * 0.12) + 's'; el.style.transform = 'translateY(-42px)'; } });
+    r.style.color = A > 0 ? 'var(--warn)' : A < 0 ? 'var(--ok)' : 'var(--ink)'; f.classList.add('on'); }, 700);
+  dopo('b', () => d.classList.add('on'), 2200);
+  dopo('b', () => { $('b-fr').textContent = frase(A); $('b-fr').className = 'frase ' + col(A); }, 2500); }
+
+// scostamenti (%) delle ultime note, dalla meno recente alla più recente, e relativi pesi prima/dopo
+const NOTE = [{ s: 50, w: .35 }, { s: 50, w: .45 }, { s: 8, w: .55 }, { s: -11, w: .7 }, { s: -8, w: .85 }];
+function C_() { pulisci('c'); timers.c = [];
+  const box = $('c-note'); box.innerHTML = ''; const n = $('c-n'), d = $('c-d');
+  const altezza = (w) => (10 + w * 80) + 'px', colore = (s) => s > 0 ? 'var(--warn)' : 'var(--ok)';
+  const barre = NOTE.map((o) => { const b = document.createElement('div'); b.className = 'nota'; b.style.background = colore(o.s); b.style.height = altezza(o.w); box.appendChild(b); return b; });
+  const nuova = document.createElement('div'); nuova.className = 'nota nuova'; nuova.style.background = colore(-8); nuova.style.height = altezza(1); box.appendChild(nuova);
+  n.textContent = pc(DA); n.className = 'num ' + col(DA); d.className = 'delta ' + col(PUNTI); $('c-fr').textContent = ''; $('c-fr').className = 'frase';
+  dopo('c', () => nuova.classList.add('in'), 600);
+  dopo('c', () => { barre.forEach((b, i) => { b.style.height = altezza(NOTE[i].w * 0.75); b.style.opacity = .85; }); conta(n, DA, A, 1300); }, 1500);
+  dopo('c', () => d.classList.add('on'), 2900);
+  dopo('c', () => { $('c-fr').textContent = frase(A); $('c-fr').className = 'frase ' + col(A); }, 3200); }
+
+function tutte() { A_(); B_(); C_(); }
+function tema() { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark'; }
+document.querySelectorAll('.tel').forEach((t, i) => t.addEventListener('click', () => [A_, B_, C_][i]()));
+tutte();
+</script></body></html>

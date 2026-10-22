@@ -20,7 +20,7 @@ import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
-import { Back, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
+import { Back, ClasseCasella, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { AllegatiNote } from '../ui/AllegatiNote.tsx';
@@ -219,7 +219,9 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {STATI_NOTA.map((s) => (
               <button key={s.id} role="tab" aria-selected={statoVisto(d.stato) === s.id}
                 className={clsx(statoVisto(d.stato) === s.id && 'on', s.id === 'in_corso' && 'prog', s.id === 'in_pausa' && 'pausa-t', s.id === 'fatto' && 'fatto')}
-                onClick={() => { salva(d); cambiaStato(getItem(d.id) ?? d, s.id); }}>{s.nome}</button>
+                onClick={() => { salva(d); cambiaStato(getItem(d.id) ?? d, s.id); }}>
+                <span className={clsx('cb', ClasseCasella(s.id))} aria-hidden="true" />{s.nome}
+              </button>
             ))}
           </div>
         )}

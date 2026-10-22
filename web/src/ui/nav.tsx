@@ -15,7 +15,7 @@ export type Screen =
   | { k: 'item'; id?: string; nuovo?: Partial<Item> }
   | { k: 'altro' } | { k: 'inbox' } | { k: 'archivio' } | { k: 'daparte' }
   | { k: 'aspetto' } | { k: 'stasera' } | { k: 'account' } | { k: 'timer' }
-  | { k: 'pesi' } | { k: 'ia' } | { k: 'chat' };
+  | { k: 'pesi' };
 
 /** Valore del contesto di navigazione, fornito da App. */
 export interface Nav {

@@ -7,8 +7,8 @@ import { toggleOggi } from '../../../shared/routine.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { avanzamento, figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
-import { margineAtteso } from '../../../shared/stima.ts';
-import { dopoCompletamento, elencoIdPrima, fermaSessioneSe, lasciaInCorsoSolo, seguiNotaInCorso, tempoDi } from './sessione.ts';
+import { margineAtteso, storicoMargine } from '../../../shared/stima.ts';
+import { dopoCompletamento, fermaSessioneSe, lasciaInCorsoSolo, passaA, tempoDi } from './sessione.ts';
 import { minutiMisurati } from '../../../shared/sessione.ts';
 import { mostraCompletamento } from './completamento.ts';
 import { mostraToast } from './toast.ts';
@@ -55,12 +55,13 @@ export function completaVoce(item: Item, ora = Date.now()) {
   const misurabile = item.tipo === 'azione' && !item.ricorrenza;
   const durata = misurabile ? minutiMisurati(lavoratoMs) : undefined;
   const dopo = { ...completa(item, oggi, ora), ...(lavoratoMs > 0 ? { lavoratoMs: Math.round(lavoratoMs) } : {}), ...(durata ? { durataRealeMin: durata } : {}) };
-  dopoCompletamento(item.id, elencoIdPrima(), ora); // il cronometro passa al task successivo
+  dopoCompletamento(item.id, ora); // il cronometro si ferma: la prossima nota la sceglie l'utente
   const margineDa = margineAtteso(getItems());
+  const storico = storicoMargine(getItems(), ora).map((m) => Math.round(m * 100));
   saveItem(dopo);
   // con il tempo misurato e una stima si apre il foglio con il confronto e il margine d'errore aggiornato
   const confronto = durata && item.sforzoMin
-    ? () => mostraCompletamento({ titolo: item.titolo, stimaMin: item.sforzoMin!, realeMin: durata, margineDa: Math.round(margineDa * 100), margineA: Math.round(margineAtteso(getItems()) * 100) })
+    ? () => mostraCompletamento({ titolo: item.titolo, stimaMin: item.sforzoMin!, realeMin: durata, margineDa: Math.round(margineDa * 100), margineA: Math.round(margineAtteso(getItems()) * 100), storico })
     : undefined;
 
   if (progetto && fotoPrima) mostraAvanzamento({ ...fotoPrima, dopo: avanzamento(progetto, getItems()), alTermine: confronto });
@@ -121,8 +122,8 @@ export function cambiaStato(item: Item, nuovo: Stato) {
     inCorsoTs: nuovo === 'in_corso' ? ora : nuovo === 'da_fare' ? undefined : base.inCorsoTs,
     aggiornato: ora,
   });
-  // una sola nota «in corso»: la precedente passa «in pausa» e il cronometro (se c'è) passa alla nuova; se si toglie quella del cronometro, si ferma
-  if (nuovo === 'in_corso') { lasciaInCorsoSolo(item.id, ora); seguiNotaInCorso(item.id, ora); }
+  // una sola nota «in corso»: la precedente passa «in pausa» e il cronometro parte (o passa) sulla nuova; se si toglie quella del cronometro, si ferma
+  if (nuovo === 'in_corso') { lasciaInCorsoSolo(item.id, ora); passaA(item.id, ora); }
   else if (statoVisto(item.stato) === 'in_corso') fermaSessioneSe(item.id, ora);
   if (item.tipo === 'progetto') {
     const era = statoVisto(item.stato);

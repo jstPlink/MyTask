@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, margineAtteso, percentuale, stimaPer, tempoAtteso } from './stima.ts';
+import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, margineAtteso, percentuale, storicoMargine, stimaPer, tempoAtteso } from './stima.ts';
 
 let n = 0;
 const fatta = (titolo: string, sforzoMin: number | undefined, durataRealeMin: number | undefined): Item =>
@@ -12,12 +12,11 @@ test('stima: senza storico il margine è quello di partenza e non c\'è una stim
   assert.equal(stimaPer('Pagare il bollo', []), undefined);
 });
 
-test('stima: il margine parte da 0% e si sposta del 35% della differenza tra reale e stimato', () => {
+test('stima: il margine è lo scostamento medio, con segno', () => {
   assert.equal(MARGINE_INIZIALE, 0);
-  // stima 60, reale 30: differenza −50% → il margine scende di 17,5 punti (da 0% a −17,5%, cioè in verde)
-  assert.ok(Math.abs(margineAtteso([fatta('Uno', 60, 30)]) - (-0.175)) < 1e-9);
-  // stima 60, reale 90: differenza +50% → sale di 17,5 punti (a +17,5%, in rosso)
-  assert.ok(Math.abs(margineAtteso([fatta('Due', 60, 90)]) - 0.175) < 1e-9);
+  // stima 60, reale 30: −50% (verde); stima 60, reale 90: +50% (rosso); reale uguale: 0%
+  assert.ok(Math.abs(margineAtteso([fatta('Uno', 60, 30)]) - (-0.5)) < 1e-9);
+  assert.ok(Math.abs(margineAtteso([fatta('Due', 60, 90)]) - 0.5) < 1e-9);
   assert.equal(margineAtteso([fatta('Tre', 60, 60)]), MARGINE_INIZIALE);
 });
 
@@ -29,13 +28,26 @@ test('stima: stime troppo abbondanti portano il margine sotto zero, stime troppo
   assert.ok(margineAtteso(abbondanti) >= MARGINE_MIN && margineAtteso(corte) <= MARGINE_MAX);
 });
 
-test('stima: con il margine al limite conta l’ordine di completamento', () => {
-  const corte = [1, 2, 3, 4, 5].map((k) => ({ ...fatta(`Corta ${k}`, 30, 90), completatoTs: k }));
-  const abbondante = fatta('Abbondante', 60, 6);
-  const dopo = margineAtteso([...corte, { ...abbondante, completatoTs: 10 }]);
-  const prima = margineAtteso([...corte, { ...abbondante, completatoTs: 0 }]);
-  assert.ok(dopo < prima, 'se l’attività abbondante è l’ultima il margine è sceso dal massimo');
-  assert.equal(prima, MARGINE_MAX);
+test('stima: le attività recenti pesano di più (emivita)', () => {
+  const GG = 86_400_000;
+  const adesso = 100 * GG;
+  const vecchia = { ...fatta('Vecchia', 60, 90), completatoTs: adesso - EMIVITA_GIORNI * GG }; // +50%, peso 0,5
+  const recente = { ...fatta('Recente', 60, 54), completatoTs: adesso }; // −10%, peso 1
+  const m = margineAtteso([vecchia, recente], adesso);
+  assert.ok(Math.abs(m - (0.5 * 0.5 + 1 * -0.1) / 1.5) < 1e-9);
+  assert.ok(m < 0.25, 'meno della media semplice (+20%) perché la nota recente conta di più');
+  assert.ok(Math.abs(margineAtteso([vecchia, recente], adesso) - margineAtteso([recente, vecchia], adesso)) < 1e-12, 'non conta l ordine in lista');
+});
+
+test('stima: esempio con sei attività, emivita 21 giorni', () => {
+  const GG = 86_400_000;
+  const adesso = 100 * GG;
+  const dati: [number, number, number][] = [[30, 60, 90], [24, 30, 45], [18, 120, 130], [10, 45, 40], [4, 60, 55], [1, 30, 28]];
+  const items = dati.map(([giorni, st, re], k) => ({ ...fatta(`Es ${k}`, st, re), completatoTs: adesso - giorni * GG }));
+  let somma = 0, pesi = 0;
+  for (const [giorni, st, re] of dati) { const w = 0.5 ** (giorni / 21); somma += w * (re - st) / st; pesi += w; }
+  assert.ok(Math.abs(margineAtteso(items, adesso) - somma / pesi) < 1e-9);
+  assert.ok(margineAtteso(items, adesso) > 0.03 && margineAtteso(items, adesso) < 0.14);
 });
 
 test('stima: percentuale con segno e tempo atteso', () => {
@@ -59,4 +71,15 @@ test('stima: le attività non completate o senza tempo reale non contano', () =>
   const aperta: Item = { ...fatta('Pagare il bollo', 15, 20), stato: 'da_fare' };
   const senzaTempo = fatta('Pagare il bollo', 15, undefined);
   assert.equal(stimaPer('Pagare il bollo', [aperta, senzaTempo]), undefined);
+});
+
+test('stima: lo storico dà il margine di ogni settimana usando solo le note già completate', () => {
+  const GG = 86_400_000;
+  const adesso = 100 * GG;
+  const a = { ...fatta('Uno', 60, 90), completatoTs: adesso - 20 * GG }; // +50%
+  const b = { ...fatta('Due', 60, 54), completatoTs: adesso - 2 * GG }; // −10%
+  const s = storicoMargine([a, b], adesso);
+  assert.equal(s.length, 2, 'le settimane in cui non c era ancora nessuna nota si saltano');
+  assert.ok(Math.abs(s[0] - 0.5) < 1e-9 && Math.abs(s[1] - 0.5) < 1e-9, 'la seconda nota (2 giorni fa) non conta nelle settimane già chiuse');
+  assert.deepEqual(storicoMargine([], adesso), []);
 });

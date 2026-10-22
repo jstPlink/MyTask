@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.68.5
+- **Versione documento:** 0.79.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -27,7 +27,7 @@ Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da v
 2. **Veloce**: si apre su «Oggi»; un'idea si salva in pochi secondi.
 3. **Local-first**: funziona senza rete, sincronizza appena possibile.
 4. **I dati sono dell'utente**: database sul NAS, nessun upload di documenti (solo collegamenti a Seafile).
-5. **L'IA aiuta, non è obbligatoria**: ogni funzione si può fare a mano; le chiavi IA le mette l'utente e restano sul dispositivo.
+5. **Niente IA per ora**: tutte le funzioni si fanno a mano o con calcoli locali; i collegamenti a Gemini e Groq sono stati tolti dal codice (0.77.0) e potranno tornare in futuro.
 
 ## 2. Aree dell'app e navigazione
 
@@ -39,7 +39,7 @@ Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da v
 | **Curiosità** | Cose da approfondire |
 | **Routine** | Abitudini quotidiane o settimanali |
 | **Inbox** | Note catturate al volo, ancora da smistare |
-| **Altro** | Archiviate, Completato, Intelligenza artificiale, Bilanciatore della priorità, Aspetto, Account |
+| **Altro** | Archiviate, Completato, Bilanciatore della priorità, Aspetto, Account |
 
 ### 2.1 Telefono (colonna singola)
 
@@ -100,14 +100,14 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sotto i
 
 La scheda si chiama **Priorità** (nel codice resta `oggi`; il widget Android conserva il nome «Oggi»): non promette né un orario né di finire tutto in giornata, mostra solo le cose più prioritarie. Una lista semplice: in cima il pulsante **Inizia**, poi le routine del giorno, il gruppo **Attività** (le più prioritarie) e il gruppo **Curiosità**. Attività e curiosità restano in gruppi separati. Niente giorni da sfogliare né piano a orari.
 
-- **Blocco del cronometro** (6.16, mockup 57): in alto a sinistra solo lo stato. **Senza nota in corso** compare solo «Nessuna nota in corso» (scheda tratteggiata, niente timer né pulsante). **Con una nota in corso** (una sola alla volta, attività o curiosità) compaiono il pulsante ▶, la nota (pallino di priorità, titolo, tempo previsto, casella) e, **sempre visibile**, la barra del tempo lavorato sul previsto (timer a sinistra, previsto a destra). Premendo ▶ **il timer grande scorre accanto al tasto** (verde) e la barra si riempie; con ⏸ il timer grande scompare e la barra resta con il tempo trascorso. Il cronometro parte dalla nota in corso; se si segna «in corso» un'altra nota, la precedente torna «da fare» e il cronometro (se c'è) passa alla nuova. Le altre note mostrano **accanto alla casella il tempo già lavorato** (es. «00:42:10»). Nessun pulsante «Ho finito di lavorare»: vale la pausa.
+- **Blocco del cronometro** (6.16, mockup 57): in alto a sinistra solo lo stato. **Senza nota in corso** compare solo «Nessuna nota in corso» (scheda tratteggiata, niente timer né pulsante). **Con una nota in corso** (una sola alla volta, attività o curiosità) compaiono il pulsante ▶, la nota (pallino di priorità, titolo, tempo previsto, casella) e, **sempre visibile**, la barra del tempo lavorato sul previsto (timer a sinistra, previsto a destra). Premendo ▶ **il timer grande scorre accanto al tasto** (verde) e la barra si riempie; con ⏸ il timer grande scompare e la barra resta con il tempo trascorso. Il cronometro parte dalla nota in corso; segnando «in corso» una nota (anche dal selettore di stato) **il timer parte da solo** su di lei; se se ne segna «in corso» un'altra, la precedente passa «in pausa» e il timer passa alla nuova. Le altre note mostrano **accanto alla casella il tempo già lavorato** (es. «00:42:10»). Nessun pulsante «Ho finito di lavorare»: vale la pausa.
 - **Aggiornamento del sito/app per computer:** ogni 10 minuti, all'avvio e al ritorno sulla finestra il sito confronta la sua versione con `/api/health`; se il server è più nuovo compare l'avviso «Nuova versione X disponibile» con «Aggiorna» (toglie service worker e cache e ricarica, i dati locali restano), ripetuto in Altro › Account (`web/src/lib/aggiornamento.ts`; non nell'APK). L'installer per Windows si chiama `MyTask-v<versione>.exe` (GitHub non accetta spazi nei nomi) e si scarica da una riga di Account (solo sito web, mockup 30 variante B3).
 - **Note «in corso» in coda:** una nota segnata «in corso» che non è tra quelle scelte in automatico compare comunque in Priorità, in fondo alla lista (`vistaOggi`, dopo le altre, per posizione in classifica).
 - **Blocchi fissi** (classe `fisso`, fuori dall'area che scorre, con un filo e un'ombra morbida sotto: mockup 31 variante A): in Priorità la scheda del cronometro (o «Inizia») con «Correzione alle tue stime»; in Attività, Intrattenimento e Curiosità il selettore delle sotto-schede e la barra di ricerca.
 - **Nessuna nota «in corso»:** solo quando si tocca «Inizia» e né le attività né le curiosità hanno una nota «in corso» (non prima: non si sa su cosa lavorare finché non c'è il tempo), al posto del cronometro compare una scheda tratteggiata gialla («Nessuna nota in corso», spiega di toccare la casella di una nota; pulsanti «Parti dalla prima» e «Chiudi») e le caselle delle note da fare pulsano. Sparisce da sola appena una nota passa «in corso» (mockup 27, variante B).
 - **Attività** (le più prioritarie; `vistaOggi`, 6.8): le **5 note con la posizione migliore** nella classifica unica (anche con una scadenza futura, così i numeri partono da 1), più le scadute o in scadenza oggi che restassero fuori; quelle di uno stesso progetto stanno sotto la testata del progetto. Il numero nel pallino è la posizione in classifica; la riga non cambia mai stile: sotto il task su cui corre il cronometro **si apre una barra** (si anima in apertura e in chiusura, passando alla nota successiva) con a sinistra il timer che scorre e a destra il tempo previsto, nello stesso font monospazio, sopra un filo sottile a tutta larghezza che parte dal bordo del pallino di priorità (giallo se in pausa, arancione oltre il previsto); ogni altro task già iniziato mostra nella riga grigia il **tempo lavorato sul previsto** («42 min su 1 h 20 min»).
 - **Curiosità** (`curiositaDaSmaltire`, `vistaOggi().curiosita`): al massimo **cinque curiosità** (`MAX_CURIOSITA_OGGI`), le più interessanti e, a parità, quelle aggiornate da più tempo; le parcheggiate, le fatte e quelle in Inbox non compaiono. Stanno in un gruppo a parte, dopo «Attività», **senza numero di priorità** (hanno un interesse, non un'importanza, quindi non entrano nella classifica né nel widget né in «Inizia»): riga con il pallino verde dell'interesse, il tempo stimato e la prima riga della nota. La casella le segna come approfondite, il tocco apre la nota.
-- **Tocco su una riga:** apre sempre la scheda della nota, senza menu: non serve scegliere su quale nota lavorare, perché il cronometro parte dalla prima della lista e passa da solo alla successiva quando si completa una nota. La casella a destra completa il task.
+- **Tocco su una riga:** apre sempre la scheda della nota, senza menu: non serve scegliere su quale nota lavorare, perché il cronometro parte dalla nota «in corso» (o dalla prima della lista con «Inizia») e, quando la completi, si ferma e il posto resta vuoto finché non scegli tu la prossima. La casella a destra completa il task.
 - **Routine di oggi** (chip da spuntare) e, sul telefono, lo stato di sincronizzazione (solo se si è offline o ci sono modifiche in attesa).
 - **Telefono:** in cima Aspetto, Inbox (con contatore), Altro e «+». **Sito largo:** niente pulsanti tondi, il riepilogo sta nel titolo.
 
@@ -140,7 +140,6 @@ Le abitudini non sono task: non scadono e non finiscono (sezione 6.7). Una sezio
 
 ### 3.7 Altro e impostazioni
 
-- **Intelligenza artificiale** (`IA`, `Chat`): sezione 6.12.
 - **Bilanciatore della priorità** (`PesiPriorita`, etichetta «Sperimentale»): tre cursori, **data di scadenza**, **importanza** e **tempo stimato** (pesi riportati a somma 100%, di base 50/40/10), il pulsante «Ripristina i pesi di base» e l'anteprima delle prime 15 attività con il loro punteggio; si sincronizzano (chiave `bilanciatore`) e cambiano subito ordine, colori, battito e widget (6.1).
 - **Aspetto:** sezione 2.3.
 - **Account:** email, ultima sincronizzazione (lo stato compare solo se si è offline, si sta sincronizzando o ci sono modifiche da inviare: non c'è più «Tutto sincronizzato»), riepilogo delle voci locali (totale con aperte / completate / archiviate, conteggio per tipo e possibili doppioni, cioè voci dello stesso tipo e titolo a parità di progetto; il totale comprende tutto, anche completate, archiviate e passi dei progetti), versione dell'app e del server (con avviso se diverse), «Sincronizza ora», esci. Non ci sono esportazione e importazione JSON.
@@ -154,7 +153,7 @@ Il «+» del telefono apre «Cosa ti è venuto in mente?» (sul sito si scrive d
 
 La scheda (`ItemDetail`) salva da sola dopo 500 ms e all'uscita; non salva senza titolo. Dall'alto:
 
-1. **Stato** (solo per voci già salvate, non routine né note non assegnate): selettore a quattro segmenti **Da fare, In corso, Fatta, Archiviata** (sezione 6.2).
+1. **Stato** (solo per voci già salvate, non routine né note non assegnate): selettore a segmenti **Da fare, In corso, In pausa, Fatta, Archiviata**, ognuno con sopra la sua icona (la stessa casella delle righe) (sezione 6.2).
 2. **Blocco della priorità** (collassabile, ricorda l'ultima scelta in `mytask.prio.aperta`; chiuso di base): la **posizione** in classifica («3ª da fare su 28») con il livello (alta/media/bassa) e il contorno nel colore del livello; aperto, tre barre con il valore di data di scadenza, importanza e tempo stimato (0-100), e una riga con il punteggio su 100, la scadenza, l'importanza a parole e il tempo con margine.
 3. **Titolo**, **Tipo** e, per l'intrattenimento, **Sezione** (due tendine che si chiudono a vicenda con la pila). I tipi scelti sono Attività, Progetto, Esperienza, Routine, Intrattenimento (Film, Serie, Anime, Gioco, Libro), Ricetta, Curiosità, Game design. La tendina si espande per mostrare tutte le voci, senza scorrimento. Una nota **non assegnata** ha solo titolo, note, link e immagini: scegliendo un tipo lascia l'Inbox.
 4. **Campi per tipo:**
@@ -243,7 +242,7 @@ Cinque stati visibili: **Da fare** (`da_fare`), **In corso** (`in_corso`), **In 
 
 ### 6.5 Stima e tempo impiegato
 
-- **Margine** (`shared/stima.ts`): è il **tempo da aggiungere alle tue stime**, con segno. Parte da **0%** (nessun dato, nessuna correzione) e, dopo ogni attività completata con stima e tempo reale (nell'ordine di completamento), si sposta del **35% della differenza** tra reale e stimato in proporzione alla stima: stima 60 min, reale 30 → −50% × 35% = −17,5 punti (da 0% a −17,5%, verde); reale 90 → +17,5 punti (+17,5%, rosso). Resta tra −50% e +150%. Il tempo da mettere in conto è stima × (1 + margine).
+- **Margine** (`shared/stima.ts`): è il **tempo da aggiungere alle tue stime**, con segno. È la **media pesata** dello scostamento (reale − stimato, in proporzione alla stima) di **tutte** le attività completate con stima e tempo reale; il peso di ognuna si dimezza ogni **21 giorni** dal completamento (`EMIVITA_GIORNI`, curva esponenziale), quindi le note recenti contano di più. Esempio: stima 60 min e reale 90 → +50%; reale 30 → −50% (verde). Senza dati vale 0%. Resta tra −50% e +150%. Il tempo da mettere in conto è stima × (1 + margine). **Foglio di completamento** (`web/src/ui/CompletamentoSheet.tsx`, mockup `docs/mockup-margine-3.html` variante H1): sotto le barre di stimato e reale, il blocco «Margine delle tue stime» mostra il numero che passa dal vecchio al nuovo valore, una **barra del tempo** (la stima con accanto la coda tratteggiata del tempo da aggiungere, rossa; con margine negativo la stima si accorcia e la coda verde è il tempo risparmiato; la barra si anima dal vecchio al nuovo margine), la frase «Per una stima di X metti in conto Y» e la **linea delle ultime 5 settimane** (`storicoMargine`: il margine com'era a fine di ogni settimana, calcolato dalle note già completate, senza dati salvati in più) con il punto di oggi che pulsa.
 - **Stima per titoli simili:** per una nuova nota l'app cerca attività simili già fatte (somiglianza tra le parole del titolo, fino a 5), usa la mediana dei loro tempi reali e mostra il margine generale; nella scheda compare un suggerimento con «Usa».
 - **Tempo misurato dall'app:** non si chiede «Quanto ci hai messo?». Il tempo reale (`durataRealeMin`) è quello del cronometro «Inizia» (`lavoratoMs` della nota, almeno 30 secondi per contare come misura). Senza cronometro non si registra nessuna durata. Il messaggio dopo il completamento dice, ad esempio, «Fatto in 1 h 30 (stimati 2 ore)».
 
@@ -289,13 +288,9 @@ Per film, serie e anime, **senza IA**: punteggi euristici. I filtri sono Con chi
 
 Quando una voce di film, serie, anime, gioco o libro ha dati mancanti, l'app li cerca in background: **genere** (per film, serie e anime la tipologia dell'app; per giochi e libri il testo trovato), **mood** ed **energia** (ricavati dai generi con regole fisse), **durata** dei film, **pagine** dei libri e una breve **descrizione** (prime frasi di Wikipedia, messa nelle note se sono vuote). Fonti: Wikidata e Wikipedia (gratuite e senza chiave; va solo il titolo) e Open Library per le pagine. Non si sovrascrive mai ciò che l'utente ha scritto. Parte all'apertura, a ogni modifica, al ritorno della rete e ogni 30 minuti, una voce alla volta con una pausa (circa 1,6 s) e gestione del limite di richieste; `arricchitoIl` ricorda la ricerca (una voce non trovata si riprova dopo 30 giorni). Se il titolo corrisponde a un omonimo sbagliato i campi si correggono a mano.
 
-### 6.12 Intelligenza artificiale (`web/src/lib/ia.ts`, `shared/ia.ts`)
+### 6.12 Intelligenza artificiale (rimossa)
 
-Facoltativa e **scelta dall'utente**: in Altro › Intelligenza artificiale si inserisce la chiave di Gemini (Google AI Studio) e/o di Groq (console.groq.com) e, se serve, il modello (di base `gemini-2.0-flash` e `llama-3.3-70b-versatile`). «Salva e controlla» prova la chiave. Le chiavi stanno solo nel dispositivo (`localStorage`, `mytask.ia`, mai sincronizzate) e le chiamate partono dal dispositivo verso il servizio scelto, **senza passare dal server di MyTask** (che non ha funzioni IA).
-
-- **Chat:** con Gemini, Groq o entrambe (due risposte). Il pulsante «Condividi un riepilogo delle mie note» è spento di base: se acceso, alla richiesta si aggiunge un riepilogo compatto (conteggi, attività più prioritarie, esperienze, film e serie da vedere, senza note e testi lunghi). La conversazione non viene salvata.
-- **Autocompila le opere:** passa in rassegna film, serie, anime, giochi e libri senza tipologia, a gruppi di 15 titoli con una pausa tra le richieste (con «Ferma»), e compila la tipologia (solo valori noti all'app) e, per film, serie e anime, mood ed energia. Non cambia mai quello che c'è già; al servizio vanno solo titolo, tipo e piattaforma.
-- Le note sensibili (banca, salute, contratti) non partono mai da sole: l'autocompilazione invia solo titolo, tipo e piattaforma delle opere, la chat solo ciò che l'utente scrive più il riepilogo, se acceso.
+Dalla 0.77.0 l'app non ha più nessun collegamento all'IA (niente chiavi, chat o autocompilazione con Gemini e Groq). L'arricchimento di genere, durata e pagine (6.11) usa solo Wikidata e Open Library.
 
 ### 6.13 Promemoria e notifiche
 
@@ -327,12 +322,12 @@ Un solo cronometro alla volta, che corre su un task. Stati: **ferma**, **lavoro*
 
 - **Avvio:** «Inizia» (in Oggi o nel widget) parte sul primo task della lista, senza cambiarne lo stato (il cronometro può correre anche su una curiosità). Il task passa a «in corso» solo quando il cronometro si sposta su un altro (Non ora, completamento).
 - **Tempo lavorato e previsto:** per ogni task già avviato si vedono il tempo lavorato e, se c'è una stima, quanto ne è passato sul totale previsto (nella scheda del cronometro con una barra, nelle righe di Oggi, nella Cronologia della nota e nel widget). Il salvataggio automatico della scheda non sovrascrive mai il tempo lavorato aggiornato dal cronometro.
-- **Completare un task** (casella): se il cronometro correva su di lui, il tempo contato diventa il suo tempo reale e il cronometro **passa da solo al successivo** della lista (restando in pausa se era in pausa); se la lista è finita la sessione si chiude. Completare un altro task non sposta il cronometro.
+- **Completare un task** (casella): se il cronometro correva su di lui, il tempo contato diventa il suo tempo reale e la sessione si chiude e **nessuna altra nota diventa «in corso» da sola**: il blocco mostra «Nessuna nota in corso» finché non scegli la prossima. Completare un altro task non sposta il cronometro.
 - **Cambiare task:** «Lavora su questo» sposta il cronometro; il primo passa «in pausa» con il tempo accumulato. «Non ora» passa al successivo senza completare.
 - **Pausa e fine:** ⏸ ferma il cronometro (▶ riprende dallo stesso task); «Ho finito di lavorare» chiude la sessione senza completare nulla.
 - **Controllo periodico:** dopo 45 minuti senza conferme l'app chiede «Stai ancora lavorando?» (anche con una notifica locale su Android): «Sì», «Ho smesso 15 minuti fa» / «30 minuti fa» / «un'ora fa» (il tempo conta solo fino a quel momento e la sessione va in pausa) o «Ho finito di lavorare». Così una dimenticanza non rompe la misura.
 - **Notifica periodica del timer (telefono, sito e app per computer):** in Altro › **Notifica del timer** (`NotificaTimer`) si sceglie se tenerla attiva (predefinito: attiva) e ogni quanto: 1, 2, **5** (predefinito), 10, 15 o 30 minuti (`INTERVALLI_PROMEMORIA_MIN`). Mentre una nota è in corso e il cronometro scorre, il telefono manda una notifica sonora («Il timer sta scorrendo», con la nota e il tempo trascorso) a ogni intervallo dall'inizio del tratto in corso; con pausa, fine della sessione o impostazione disattivata si annullano. Sono notifiche locali programmate dal sistema (`istantiPromemoriaTimer` in `shared/sessione.ts`, con test; canale `timer` a importanza alta, quindi col suono): se ne preparano in anticipo fino a tre ore (al massimo 60) e si riprogrammano a ogni cambio di sessione, di impostazione e al ritorno nell'app. Se il timer parte dal widget con l'app chiusa, le notifiche partono quando l'app si riapre. L'impostazione resta sul dispositivo (`web/src/lib/promemoriaTimer.ts`). **Sito e app per computer** (0.75.0, `web/src/lib/notificaTimerSito.ts`): stessa impostazione e stessi intervalli, ma la notifica (API Notification, con la nota e il tempo trascorso) parte solo finché la pagina o la finestra è aperta: ogni 5 secondi si guarda se è scattato un nuovo intervallo dall'inizio del tratto in corso, e dopo una sospensione ne arriva una sola; un clic sulla notifica riporta la finestra in primo piano. Serve il permesso delle notifiche (nella pagina dell'impostazione c'è il pulsante per concederlo, e un avviso se è bloccato).
-- **Coerenza:** se il task su cui si lavora viene archiviato, eliminato o completato altrove, la sessione passa al successivo.
+- **Coerenza:** se il task su cui si lavora viene archiviato, eliminato o completato altrove, la sessione si chiude (senza passare ad altre note).
 - **Sincronizzazione:** lo stato della sessione viaggia come impostazione (`sessione`, vince la più recente), quindi telefono e sito vedono lo stesso cronometro; `lavoratoMs` viaggia con le voci.
 
 ## 7. Architettura
@@ -344,7 +339,7 @@ Un solo cronometro alla volta, che corre su un task. Stati: **ferma**, **lavoro*
 | Frontend | React + Vite, web app installabile (PWA) con archivio locale in IndexedDB e service worker |
 | App Android | Capacitor (PWA impacchettata in APK) con notifiche locali e widget «Oggi» |
 | Accesso | Email e password; HTTPS e accesso da fuori casa tramite **Cloudflare Tunnel** con un sottodominio dedicato |
-| IA | Nessuna sul server: Gemini e Groq con chiavi dell'utente, chiamati dal dispositivo (6.12) |
+| IA | Nessuna (collegamenti a Gemini e Groq tolti nella 0.77.0, 6.12) |
 | Documenti | Solo collegamenti a Seafile, incollati a mano |
 | Calendario | Dati pronti (inizio, fine, orario); modulo Google Calendar **non scritto** (richiederà consenso OAuth e un indirizzo HTTPS raggiungibile) |
 
@@ -377,7 +372,7 @@ Un solo cronometro alla volta, che corre su un task. Stati: **ferma**, **lavoro*
 - Due widget, **«MyTask · chiaro»** e **«MyTask · scuro»** (4×3, ridimensionabili, sfondo semi-trasparente, nessun aggiornamento periodico), che estendono `WidgetBase` e scelgono solo il layout.
 - In cima il **blocco del cronometro** del widget (mockup `60-widget-timer-semplice.html`; quello dell'app e del sito resta com'era, con la nota e la barra con i tempi): **senza nota in corso** solo la scheda tratteggiata «Nessuna nota in corso»: timer, tasti e barra non si vedono ma tengono il loro posto, così il blocco ha **sempre la stessa altezza** di quando c'è una nota (stessa regola nel blocco dell'app, del sito e del computer); **con una nota in corso** lo stato «In corso», il **timer grande** (`Chronometer` nativo che avanza da solo, senza consumare batteria; grigio se fermo, verde se corre), il tasto **▶/⏸** (avvia, riprende o mette in pausa), il tasto **■** (a sessione aperta: chiude la sessione senza completare nulla) e la **barra** del tempo sul previsto, senza scritte. Il bordo diventa verde mentre il cronometro corre. La barra non avanza da sola: si ridisegna a ogni aggiornamento del widget (a ogni modifica e ogni 5 minuti dall'app, e a ogni tocco sul widget). Toccando stato e timer si apre l'app.
 - Sotto, la **lista scorrevole** (`righeWidget` in `shared/widget.ts`, con test) con le sezioni **Attività** (in ordine di priorità, tutte quelle mostrate in Priorità) e **Curiosità** (tutte e cinque, senza posizione), ognuna con la sua intestazione e il tempo necessario: pallino con la posizione in classifica, colorato per priorità (per le curiosità il pallino verde dell'**interesse** 1-5, che si riempie con l'interesse, fermo), che **batte** come nell'app (un `ViewFlipper` a quadri: periodo 60000/bpm tra 450 e 2550 ms; le righe fatte non battono), titolo con la stima sotto, il **tempo già lavorato accanto alla casella** (non per la nota del blocco), checkbox quadrato; il task «in corso» (o quello su cui corre il cronometro) ha la **casella mezza gialla** (`cb_corso_*`); la riga non cambia sfondo. In basso a destra il pulsante **+** (56 dp) apre `NotaRapidaActivity`.
-- **Sessione dal widget:** i tocchi su ▶/⏸ del blocco e sulla casella del task in lavorazione (che passa il cronometro al successivo) cambiano subito lo stato del widget (`WidgetDati`, chiave «lavoro») e mettono in coda un'azione con il suo orario (`avvia`, `pausa`, `riprendi`, `fine`, `fatto`); l'app le riapplica in ordine, con quegli orari, appena si apre (`web/src/lib/widget.ts`), così il tempo misurato è corretto anche se l'app era chiusa.
+- **Sessione dal widget:** i tocchi su ▶/⏸ del blocco e sulla casella del task in lavorazione (che lo completa e chiude la sessione) cambiano subito lo stato del widget (`WidgetDati`, chiave «lavoro») e mettono in coda un'azione con il suo orario (`avvia`, `pausa`, `riprendi`, `fine`, `fatto`); l'app le riapplica in ordine, con quegli orari, appena si apre (`web/src/lib/widget.ts`), così il tempo misurato è corretto anche se l'app era chiusa.
 - **Caselle del widget:** come nell'app, «in corso» ha il pallino verde (fermo, il widget non può animare), «in pausa» (campo `z`) il pallino giallo e «fatta» l'anello bianco senza spunta. **Toccare la casella non cambia stato: apre l'app** (come il resto della riga); lo stato si cambia solo nell'app.
 - **Nota veloce:** barra sopra la tastiera nello stile dell'app (chiara o scura come il widget) che, mentre si scrive, mostra le note con parole simili (stessa logica di `cercaSimili`, su un archivio compatto); l'invio mette la nota in coda come «non assegnata» in Inbox senza aprire l'app.
 - **Dati:** il widget non usa la rete e non legge i dati dell'app. L'app (`web/src/lib/widget.ts`) invia la lista, la sessione di lavoro e l'archivio compatto (plugin `Widget`: `aggiorna`) a ogni modifica, ogni 5 minuti e al ritorno in primo piano; il widget li tiene in `WidgetDati` (SharedPreferences con tre chiavi JSON: righe, archivio, coda). Note e spunte vanno in una **coda locale** che l'app svuota (`coda`, atomica) e applica (nuova voce con `inbox`, `completa`) alla prima apertura; fino ad allora la riga spuntata appare sbarrata e la nota non è ancora nell'Inbox. Toccare una riga apre l'app; toccare il checkbox la segna come fatta (di nuovo per annullare, finché l'app non è stata aperta).
@@ -417,7 +412,7 @@ Risultato: 383 voci più 14 persone. Il file si prepara sul computer (`--json`),
 | Docker | Immagine costruita e verificata da GitHub Actions; l'app gira sul NAS dietro Cloudflare Tunnel |
 | App Android (Capacitor) | Costruita da GitHub Actions o in locale, installata sul telefono con debug wireless |
 | Widget «Oggi» | Fatti (chiaro e scuro, con nota veloce) |
-| IA con Gemini e Groq (chiavi, chat, autocompilazione) | Fatta; dipende dalle chiavi dell'utente |
+| IA con Gemini e Groq (chiavi, chat, autocompilazione) | Tolta dal codice e dall'interfaccia nella 0.77.0 |
 | Notifiche locali programmate nel telefono | Scritte e provate con i test del pianificatore; **da verificare sul telefono** |
 | Service worker (apertura senza rete) | Generato dalla build, **non verificato** in un browser reale |
 | Google Calendar | Solo i dati sono pronti; il modulo non è scritto |
@@ -426,7 +421,7 @@ Risultato: 383 voci più 14 persone. Il file si prepara sul computer (`--json`),
 
 - Verificare sul telefono le notifiche (scadenze, insistenza, routine) e il service worker.
 - Scorciatoie J e K per scorrere l'elenco e F per segnare fatto (layout largo).
-- Altre funzioni IA: stima dello sforzo, spezzare un'idea in passi, revisione settimanale.
+- Funzioni IA (chat, autocompilazione, stima dello sforzo, spezzare un'idea in passi, revisione settimanale): da rivalutare più avanti.
 - Collegamento a Google Calendar.
 - Decidere se mettere Cloudflare Access davanti al sito (richiede di gestire l'accesso dell'app Android).
 - Chiave di firma privata per l'APK, se si vuole.
@@ -555,6 +550,10 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-21 | 0.73.0 | **Riga con timer, stile D4:** l'icona del tipo passa a sinistra del titolo in tutte le righe; per le note «in corso» e «in pausa» sotto il nome compaiono una barra fissa e «tempo / stima» (niente più riga a tutta larghezza né etichetta «In corso / In pausa»); la scadenza resta a destra. Mockup delle varianti in `docs/mockup-riga-timer.html` e proposte per le icone degli stati in `docs/mockup-stati.html`. |
 | 2026-10-21 | 0.74.0 | **Nuove caselle di stato (N2, «dentro tondo»):** da fare con cerchio tratteggiato, in corso con pallino verde che pulsa meno, in pausa con solo il pallino giallo, fatta piena con anello bianco e senza spunta, archiviata con cerchio tratteggiato; aggiornate anche le caselle del widget. Insieme alle modifiche 0.72.0 (icona «Casella») e 0.73.0 (riga con timer D4). |
 | 2026-10-21 | 0.75.0 | **Notifica periodica del timer anche su sito e app per computer:** stessa impostazione «Notifica del timer» (ora visibile ovunque, ogni 1-30 minuti), notifica del browser con la nota e il tempo trascorso mentre il cronometro scorre, pulsante per concedere il permesso. |
+| 2026-10-22 | 0.76.0 | Icone di stato sopra ogni segmento del selettore «Stato» nella scheda della nota; segnare una nota «in corso» avvia anche il timer; completando (o archiviando) la nota attiva il timer si chiude e nessuna nota successiva diventa «in corso» da sola |
+| 2026-10-22 | 0.77.0 | **Tolti tutti i collegamenti all'IA** (per ora): eliminati `shared/ia.ts`, `web/src/lib/ia.ts`, le schermate IA e Chat, la voce «Intelligenza artificiale» in Altro e gli stili; l'arricchimento da Wikidata e Open Library resta |
+| 2026-10-22 | 0.78.0 | **Nuovo calcolo del margine d'errore:** media pesata degli scostamenti di tutte le note completate con peso che si dimezza ogni 21 giorni (prima: passo del 35% a ogni nota); test aggiornati |
+| 2026-10-22 | 0.79.0 | **Nuova animazione del margine d'errore** nel foglio di completamento (barra del tempo in più + linea delle ultime settimane, variante H1 del mockup); `storicoMargine` in `shared/stima.ts` con test |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

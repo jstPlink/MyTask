@@ -10,7 +10,6 @@ leggero da far girare in Docker sul NAS. La documentazione completa è in [docs/
 - **Cattura rapida:** una riga di testo (o la voce) diventa una nota non assegnata in Inbox, da smistare; mostra le note già esistenti con le stesse parole. Ricerca in tutte le voci.
 - **Stati e tempo:** ogni nota è da fare, in corso, fatta o archiviata; il tempo impiegato si misura da «in corso» a «fatta» e affina le stime.
 - **Notifiche e widget:** promemoria delle scadenze, insistenza e routine, anche ad app Android chiusa; widget «Oggi» (chiaro e scuro) con nota veloce.
-- **IA facoltativa:** chat e autocompilazione delle opere con Gemini o Groq, con le chiavi dell'utente (restano sul dispositivo).
 - Sul computer: barra laterale, dettaglio in finestra e scorciatoie da tastiera (N nuova nota, / ricerca, Esc chiude).
 
 ## Provarla sul computer

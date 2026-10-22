@@ -2,7 +2,7 @@
 // avviarla, metterla in pausa, spostarla su un altro task o chiuderla. Il modello e i calcoli sono in shared/sessione.ts.
 // Lo stato sta sul dispositivo (localStorage) e viaggia nella sincronizzazione come «impostazione» (chiave `sessione`),
 // così telefono e sito vedono lo stesso cronometro: vince la modifica più recente. Il tempo di ogni task si accumula
-// in `Item.lavoratoMs`; completare un task passa il cronometro al successivo della lista di Oggi.
+// in `Item.lavoratoMs`; completare un task chiude la sessione (la nota successiva la sceglie l'utente).
 import { today } from '../../../shared/dates.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { vistaOggi } from '../../../shared/views.ts';
@@ -162,40 +162,23 @@ export function scadenzaControllo(s: Sessione = corrente): number | undefined {
 export const tempoDi = (item: Item, now = Date.now()) => tempoLavorato(item, corrente, now);
 
 /**
- * Da chiamare quando un task viene completato (dopo averlo salvato come fatto): se era quello su cui correva il cronometro,
- * la sessione passa al successivo della lista (restando in pausa se era in pausa), oppure si chiude se la lista è finita.
- * `elencoPrima` è l'elenco di id di Oggi com'era prima del completamento (serve a trovare «il successivo»).
+ * Da chiamare quando un task viene completato (prima di salvarlo come fatto): se era quello su cui correva il cronometro,
+ * la sessione si chiude e non passa a nessuna nota: il posto resta vuoto finché l'utente non sceglie la prossima.
+ * Il tempo lavorato lo salva `completaVoce` insieme alla nota.
  */
-export function dopoCompletamento(id: string, elencoPrima: string[], now = Date.now()) {
+export function dopoCompletamento(id: string, now = Date.now()) {
   if (corrente.stato === 'ferma' || corrente.taskId !== id) return;
-  const adesso = idElenco().filter((x) => x !== id);
-  const prossimo = prossimoTask(elencoPrima, id, [id]) ?? adesso[0];
-  if (!prossimo) {
-    imposta({ stato: 'ferma' }, now);
-    mostraToast('Lista finita: sessione chiusa');
-    return;
-  }
-  imposta(corrente.stato === 'lavoro'
-    ? { stato: 'lavoro', taskId: prossimo, inizio: now, controllo: now }
-    : { stato: 'pausa', taskId: prossimo, controllo: corrente.controllo }, now);
-  segnaInCorso(prossimo, now);
+  imposta({ stato: 'ferma' }, now);
 }
 
-/** Id dell'elenco di Oggi prima di un'azione che lo cambia (per `dopoCompletamento`). */
-export const elencoIdPrima = idElenco;
-
-/** Se il task della sessione non è più aperto (archiviato, eliminato, completato altrove) passa al successivo o chiude la sessione. */
+/** Se il task della sessione non è più aperto (archiviato, eliminato, completato altrove) la sessione si chiude, senza passare ad altre note. */
 function allinea() {
   if (corrente.stato === 'ferma') return;
   const item = corrente.taskId ? getItem(corrente.taskId) : undefined;
   if (item && isOpen(item) && item.stato !== 'parcheggiato') return;
-  const prossimo = prossimoTask(idElenco(), corrente.taskId);
   const now = Date.now();
-  if (!prossimo) { imposta({ stato: 'ferma' }, now); return; }
-  imposta(corrente.stato === 'lavoro'
-    ? { stato: 'lavoro', taskId: prossimo, inizio: now, controllo: now }
-    : { stato: 'pausa', taskId: prossimo, controllo: corrente.controllo }, now);
-  segnaInCorso(prossimo, now);
+  if (item && item.stato === 'parcheggiato') chiudiTratto(corrente, now);
+  imposta({ stato: 'ferma' }, now);
 }
 
 /** Tiene la sessione coerente con i dati: se il task su cui si lavora sparisce dalla lista, passa al successivo. */

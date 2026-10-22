@@ -1,14 +1,15 @@
-// Stima dei tempi con margine (editor della nota). Il margine è il **tempo da aggiungere** alle tue stime, con segno: parte da 0%
-// e dopo ogni attività completata con tempo stimato e tempo reale (`durataRealeMin`, misurato dall'app) si sposta del 35% della
-// differenza tra reale e stimato (in proporzione alla stima). Stime troppo corte lo fanno salire (positivo, da aggiungere);
-// stime troppo abbondanti lo fanno scendere, anche sotto zero (negativo: stai stimando più del necessario).
+// Stima dei tempi con margine (editor della nota). Il margine è il **tempo da aggiungere** alle tue stime, con segno: è la media
+// pesata dello scostamento (reale − stimato, in proporzione alla stima) di tutte le attività completate con tempo stimato e tempo
+// reale (`durataRealeMin`, misurato dall'app). Il peso di ogni attività si dimezza ogni EMIVITA_GIORNI dal suo completamento,
+// quindi contano di più le più recenti. Stime troppo corte lo fanno salire (positivo, da aggiungere); stime troppo abbondanti
+// lo fanno scendere, anche sotto zero (negativo: stai stimando più del necessario).
 import type { Item } from './types.ts';
 import { chiaveTitolo } from './testo.ts';
 
 /** Margine di partenza: 0% (nessun dato, nessuna correzione). */
 export const MARGINE_INIZIALE = 0;
-/** Ogni attività misurata sposta il margine del 35% della differenza tra tempo reale e stimato (in proporzione alla stima). */
-export const PASSO_MARGINE = 0.35;
+/** Ogni quanti giorni dal completamento il peso di un'attività si dimezza. */
+export const EMIVITA_GIORNI = 21;
 /** Il margine resta tra −50% e +150%. */
 export const MARGINE_MIN = -0.5;
 export const MARGINE_MAX = 1.5;
@@ -46,16 +47,35 @@ const misurate = (items: Item[]) => items.filter((i) => !i.eliminato && i.tipo =
 /** Differenza di una singola attività in proporzione alla stima: (reale − stimato) / stimato. Positiva se la stima era troppo corta. */
 export const scostamento = (stimaMin: number, realeMin: number) => (realeMin - stimaMin) / stimaMin;
 
-/** Il margine dopo una attività: si sposta del 35% dello scostamento, restando tra il minimo e il massimo. */
-export const margineDopo = (margine: number, stimaMin: number, realeMin: number) =>
-  Math.min(MARGINE_MAX, Math.max(MARGINE_MIN, margine + PASSO_MARGINE * scostamento(stimaMin, realeMin)));
+/** Margine atteso: media pesata degli scostamenti delle attività misurate con una stima; le più recenti pesano di più. */
+export function margineAtteso(items: Item[], adesso = Date.now()): number {
+  let somma = 0;
+  let pesi = 0;
+  for (const i of misurate(items)) {
+    if (!i.sforzoMin) continue;
+    const giorni = Math.max(0, (adesso - (i.completatoTs ?? i.aggiornato)) / 86_400_000);
+    const peso = 0.5 ** (giorni / EMIVITA_GIORNI);
+    somma += peso * scostamento(i.sforzoMin, i.durataRealeMin!);
+    pesi += peso;
+  }
+  return pesi > 0 ? Math.min(MARGINE_MAX, Math.max(MARGINE_MIN, somma / pesi)) : MARGINE_INIZIALE;
+}
 
-/** Margine atteso: parte da 0% e segue, nell'ordine di completamento, le attività misurate con una stima. */
-export function margineAtteso(items: Item[]): number {
-  return misurate(items)
-    .filter((i) => !!i.sforzoMin)
-    .sort((a, b) => (a.completatoTs ?? a.aggiornato) - (b.completatoTs ?? b.aggiornato))
-    .reduce((m, i) => margineDopo(m, i.sforzoMin!, i.durataRealeMin!), MARGINE_INIZIALE);
+/**
+ * Il margine com'era alla fine di ognuna delle ultime `settimane` settimane (dalla più lontana alla più vicina), calcolato solo con
+ * le attività completate fino a quel momento. Le settimane in cui non c'era ancora nessun dato si saltano.
+ */
+export function storicoMargine(items: Item[], adesso = Date.now(), settimane = 5): number[] {
+  const SETTIMANA = 7 * 86_400_000;
+  const fatte = misurate(items).filter((i) => !!i.sforzoMin);
+  const fine = (i: Item) => i.completatoTs ?? i.aggiornato;
+  const out: number[] = [];
+  for (let k = settimane; k >= 1; k--) {
+    const t = adesso - k * SETTIMANA;
+    const fino = fatte.filter((i) => fine(i) <= t);
+    if (fino.length) out.push(margineAtteso(fino, t));
+  }
+  return out;
 }
 
 /** Stima per una nuova attività in base a quelle simili già fatte (mediana dei loro tempi reali). */

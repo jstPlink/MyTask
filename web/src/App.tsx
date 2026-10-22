@@ -19,8 +19,6 @@ import { ItemDetail } from './screens/ItemDetail.tsx';
 import { Capture } from './screens/Capture.tsx';
 import { Login } from './screens/Login.tsx';
 import { PesiPriorita } from './screens/PesiPriorita.tsx';
-import { IA } from './screens/IA.tsx';
-import { Chat } from './screens/Chat.tsx';
 import { RecensioneSheet } from './ui/Recensione.tsx';
 import { StatoMenu } from './ui/StatoMenu.tsx';
 import { CompletamentoSheet } from './ui/CompletamentoSheet.tsx';
@@ -52,8 +50,6 @@ function Schermata({ s }: { s: Screen }) {
     case 'stasera': return <Stasera />;
     case 'account': return <Account />;
     case 'pesi': return <PesiPriorita />;
-    case 'ia': return <IA />;
-    case 'chat': return <Chat />;
   }
 }
 

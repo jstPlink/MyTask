@@ -10,6 +10,8 @@ interface Completamento {
   /** Margine delle stime (con segno) prima e dopo questa nota, in percentuale (15 = +15%, −20 = stime abbondanti). */
   margineDa: number;
   margineA: number;
+  /** Il margine (in percentuale) alla fine delle ultime settimane, dalla più lontana alla più vicina. */
+  storico: number[];
 }
 
 /** Il foglio resta aperto il tempo dell'animazione più 2 secondi, poi si chiude da solo. */
