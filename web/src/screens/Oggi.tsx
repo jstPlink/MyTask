@@ -1,12 +1,11 @@
 /**
- * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima il blocco del cronometro, poi
- * le routine del giorno e le «Prime attività»: le cose da fare in ordine di priorità
- * (`vistaOggi`: le 5 con la posizione migliore nella classifica unica, anche con scadenza futura, più le scadute o in scadenza oggi che restassero fuori).
+ * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima solo la targhetta del margine di stima («Correzione alle tue
+ * stime»), poi l'elenco: le routine del giorno, le «Attività»
+ * (`vistaOggi`: le 5 con la posizione migliore nella classifica unica, anche con scadenza futura, più le scadute o in scadenza oggi
+ * che restassero fuori) e le «Curiosità». Non c'è più il blocco della nota in corso: quando una nota passa «in corso» la schermata
+ * a tutto schermo (`ui/InCorso.tsx`) riempie lo schermo.
  *
- * - Blocco del cronometro: senza nota in corso solo «Nessuna nota in corso»; con una nota in corso (una sola alla volta) la nota, la barra del
- *   tempo sempre visibile e, mentre il cronometro corre, il timer grande accanto al tasto ▶/⏸ (`iniziaLavoro`, `mettiInPausa`, `riprendi`).
- *   Le altre note mostrano il tempo già lavorato accanto alla casella. Spuntando la casella di una nota la si completa e il cronometro passa al successivo.
- * - Tocco su una riga: apre sempre la scheda della nota (niente menu).
+ * - Tocco su una riga: apre la scheda della nota; la casella apre il foglio degli stati.
  * - Le attività dello stesso progetto sono riunite sotto la testata del progetto, il numero è la posizione in classifica.
  * - «Curiosità»: dopo le attività, al massimo cinque curiosità (le più interessanti, a parità le più vecchie), senza posizione
  *   in classifica; la casella le segna come approfondite e toccando la riga si apre la nota.
@@ -20,14 +19,14 @@ import { livelloPriorita, dueDate, daysOverdue, intensitaBattito } from '../../.
 import { classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
-import { formatoCronometro, notaInCorso } from '../../../shared/sessione.ts';
-import { useAdesso, useItems, useOggi, useSessione, useSyncStatus } from '../lib/hooks.ts';
+import { formatoCronometro } from '../../../shared/sessione.ts';
+import { useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { segnaRoutine, statoVisto } from '../lib/actions.ts';
-import { iniziaLavoro, mettiInPausa, riprendi, tempoDi } from '../lib/sessione.ts';
+import { tempoDi } from '../lib/sessione.ts';
 import { Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { margineAtteso, percentuale, stimeMisurate, tempoAtteso } from '../../../shared/stima.ts';
-import { avanzamentoTempo, clsx, durataLavoro, nomeGiorniOre, nomeTempo } from '../lib/util.ts';
+import { clsx, durataLavoro, nomeGiorniOre, nomeTempo } from '../lib/util.ts';
 
 /** Schermata Oggi (vedi l'intestazione del file). */
 export function Oggi() {
@@ -35,18 +34,10 @@ export function Oggi() {
   const oggi = useOggi();
   const sync = useSyncStatus();
   const nav = useNav();
-  const sessione = useSessione();
-  const lavoro = sessione.stato === 'lavoro';
-  const adesso = useAdesso(lavoro);
   const v = useMemo(() => vistaOggi(items, oggi), [items, oggi]);
   const margine = useMemo(() => margineAtteso(items), [items]);
   const nMisurate = useMemo(() => stimeMisurate(items), [items]);
   const classifica = useMemo(() => classificaPriorita(items, oggi), [items, oggi]); // la posizione è quella unica, uguale in ogni schermata
-
-  const task = sessione.taskId ? items.find((i) => i.id === sessione.taskId) : undefined;
-
-  // La nota del blocco in alto: quella su cui corre il cronometro, altrimenti l'unica nota «in corso».
-  const notaBlocco = sessione.stato !== 'ferma' ? task : notaInCorso(items);
 
   // Riga grigia sotto il titolo: prossimo passo di un progetto, tempo stimato, ricorrenza.
   const meta = (e: Entry) => {
@@ -57,11 +48,10 @@ export function Oggi() {
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return unisciMeta(pezzi);
   };
-  // Parte destra della riga: la scadenza (o «ieri» / «N gg fa» se scaduta, in arancio) e, accanto alla casella, il tempo già lavorato
-  // sulla nota (non su quella attiva, che ha il suo blocco in alto).
+  // Parte destra della riga: la scadenza (o «ieri» / «N gg fa» se scaduta, in arancio) e, accanto alla casella, il tempo già lavorato.
   const destra = (e: Entry) => {
-    const ms = tempoDi(e.item, adesso);
-    const tempo = notaBlocco?.id !== e.item.id && !['in_corso', 'in_pausa'].includes(e.item.stato) && ms >= 1000 ? <span className="tempo-riga">{formatoCronometro(ms)}</span> : null;
+    const ms = tempoDi(e.item, Date.now());
+    const tempo = !['in_corso', 'in_pausa'].includes(e.item.stato) && ms >= 1000 ? <span className="tempo-riga">{formatoCronometro(ms)}</span> : null;
     const d = dueDate(e.item);
     let data: ReactNode = null;
     if (d && d !== oggi) {
@@ -70,42 +60,6 @@ export function Oggi() {
     }
     return data || tempo ? <span className="dx-riga">{data}{tempo}</span> : null;
   };
-
-  // Blocco del cronometro: senza nota in corso solo lo stato; con una nota in corso compaiono la nota e, sotto, la barra del tempo
-  // (sempre visibile); mentre il cronometro corre, il timer grande scorre accanto al tasto.
-  const tempoBlocco = notaBlocco ? tempoDi(notaBlocco, adesso) : 0;
-  const rankBlocco = notaBlocco ? classifica.get(notaBlocco.id) : undefined;
-  const quotaBlocco = notaBlocco?.sforzoMin ? Math.min(1, tempoBlocco / (notaBlocco.sforzoMin * 60_000)) : undefined;
-  const premi = () => { if (!notaBlocco) return; if (lavoro) mettiInPausa(); else if (sessione.stato === 'pausa') riprendi(); else iniziaLavoro(notaBlocco.id); };
-  const lavora = !notaBlocco ? (
-    // Senza nota in corso il blocco ha la stessa altezza di quando c'è: le stesse parti, nascoste (`fantasma`), tengono lo spazio.
-    <div className="blocco vuoto">
-      <div className="blk-hd"><span className="blk-e">Nessuna nota in corso</span><span className="blk-dx fantasma" aria-hidden="true"><span className="blk-pl" /></span></div>
-      <div className="blk-nota fantasma" aria-hidden="true"><span className="blk-rk" /><span className="blk-t"><b>&nbsp;</b><small>&nbsp;</small></span><span className="cb" /></div>
-      <div className="blk-sotto fantasma" aria-hidden="true"><div className="blk-tt"><b>&nbsp;</b></div><div className="blk-barra" /></div>
-    </div>
-  ) : (
-    <div className={clsx('blocco', lavoro && 'corre')}>
-      <div className="blk-hd">
-        <span className="blk-e">In corso</span>
-        <span className="blk-dx">
-          {lavoro && <span className="blk-tm">{formatoCronometro(tempoBlocco)}</span>}
-          <button className="blk-pl" onClick={premi} aria-label={lavoro ? 'Metti in pausa' : 'Avvia il cronometro'}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">{lavoro ? <path d="M7 4.5h3.6v15H7zM13.4 4.5H17v15h-3.4z" /> : <path d="M8 5l11 7-11 7z" />}</svg>
-          </button>
-        </span>
-      </div>
-      <button className="blk-nota" onClick={() => nav.push({ k: 'item', id: notaBlocco.id })}>
-        {rankBlocco !== undefined && <span className={clsx('blk-rk', `p${livelloPriorita(notaBlocco, oggi)}`)}>{rankBlocco}</span>}
-        <span className="blk-t"><b>{notaBlocco.titolo}</b>{notaBlocco.sforzoMin ? <small>{durataLavoro(notaBlocco.sforzoMin * 60_000)} previsti</small> : null}</span>
-        <span className="cb viva" aria-hidden="true" />
-      </button>
-      <div className="blk-sotto" role="img" aria-label={`Tempo lavorato: ${avanzamentoTempo(tempoBlocco, notaBlocco.sforzoMin).testo}`}>
-        <div className="blk-tt"><b>{formatoCronometro(tempoBlocco)}</b>{notaBlocco.sforzoMin ? <em>{durataLavoro(notaBlocco.sforzoMin * 60_000)}</em> : null}</div>
-        {quotaBlocco !== undefined && <div className="blk-barra"><i style={{ width: `${quotaBlocco * 100}%` }} /></div>}
-      </div>
-    </div>
-  );
 
   // Routine del giorno come chip da spuntare.
   const routineFatte = v.routine.filter((r) => fattaOggi(r, oggi)).length;
@@ -153,7 +107,7 @@ export function Oggi() {
       </span>
     );
   };
-  // Blocco sotto il timer: solo la correzione alle tue stime (parte da 0%): rosso se stimi troppo poco, verde se stimi più del necessario.
+  // Targhetta del margine di stima (parte da 0%): rosso se stimi troppo poco, verde se stimi più del necessario.
   const accuratezza = (
     <div className="acc" aria-label={`Correzione alle tue stime ${percentuale(margine)}`}>
       <div>
@@ -206,7 +160,7 @@ export function Oggi() {
     return (
       <>
         <Top title="Priorità" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} attività, ${v.curiosita.length} curiosità`} />
-        <div className="fisso senza-ombra">{lavora}{accuratezza}</div>
+        <div className="fisso senza-ombra">{accuratezza}</div>
         <div className="scroll wide-dash">
           <div className="dash">
             <div>{routine}{prime}{curiosita}</div>
@@ -216,7 +170,7 @@ export function Oggi() {
     );
   }
 
-  // Telefono: titolo con i pulsanti tondi, lavoro, contenuto e pulsante «+».
+  // Telefono: titolo con i pulsanti tondi, contenuto e pulsante «+».
   return (
     <>
       <Top
@@ -237,7 +191,7 @@ export function Oggi() {
           </div>
         }
       />
-      <div className="fisso">{lavora}{accuratezza}</div>
+      <div className="fisso">{accuratezza}</div>
       <div className="scroll">
         {routine}
         {prime}

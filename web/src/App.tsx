@@ -24,6 +24,9 @@ import { StatoMenu } from './ui/StatoMenu.tsx';
 import { CompletamentoSheet } from './ui/CompletamentoSheet.tsx';
 import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
 import { ControlloSessione } from './ui/ControlloSessione.tsx';
+import { InCorso } from './ui/InCorso.tsx';
+import { focusAperto } from './lib/focus.ts';
+import { EVENTO_PRIORITA, consumaRichiestaPriorita } from './lib/widget.ts';
 import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, NotificaTimer, Stasera } from './screens/Secondarie.tsx';
 
 // Radice dell'interfaccia: sceglie tra accesso, layout stretto (telefono: una schermata + barra delle schede) e
@@ -139,6 +142,7 @@ export function App() {
   useEffect(() => {
     if (!NATIVO) return;
     const ascolto = CapApp.addListener('backButton', () => {
+      if (focusAperto()) return; // con una nota «in corso» a tutto schermo si esce solo con Pausa o Fatta
       const cur = snapRef.current;
       if (hist.current.i > 0 || cur.layers.length || cur.stack.length) indietro();
       else void CapApp.exitApp();
@@ -184,6 +188,14 @@ export function App() {
     capture, layers, openLayer, closeLayer, captureText, openCapture, wide, xl, vai, openId, query, setQuery, nuova,
   }), [tab, setTab, vaTab, stack, push, pop, fareSub, setFareSub, scoprireSub, setScoprireSub, capture, layers, openLayer, closeLayer, captureText, openCapture, wide, xl, vai, openId, query, nuova]);
 
+  // un tocco sul widget della Home apre la pagina Priorità (anche se l'app era già aperta su un'altra schermata)
+  useEffect(() => {
+    const vaPriorita = () => { consumaRichiestaPriorita(); vaTab('oggi'); };
+    if (consumaRichiestaPriorita()) vaTab('oggi');
+    window.addEventListener(EVENTO_PRIORITA, vaPriorita);
+    return () => window.removeEventListener(EVENTO_PRIORITA, vaPriorita);
+  }, [vaTab]);
+
   // scorciatoie da tastiera (schermi larghi): N nuova nota, / cerca, Esc chiude
   useEffect(() => {
     if (!wide || !auth.token) return;
@@ -223,6 +235,7 @@ export function App() {
         <div className="app">
           {top ? <Schermata key={chiaveSchermata(stack, top)} s={top} /> : tabScreen}
           <TabBar />
+          <InCorso />
           {capture && <Capture />}
           <RecensioneSheet />
           <StatoMenu />
@@ -259,6 +272,7 @@ export function App() {
             </div>
           </>
         )}
+        <InCorso />
         {capture && <Capture />}
         <RecensioneSheet />
         <StatoMenu />

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: schermata «In corso» a tutto schermo</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4;
+  --accent:#2F7D5B; --accent-soft:#E3F1EA; --warn:#D1430B; --warn-soft:#FDEBE2; --giallo:#D9A400; --on-accent:#fff; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 70px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 14px; max-width:820px; }
+button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:inherit; }
+.scen { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+.scen button { background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-weight:700; text-align:center; }
+.scen button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.desc { color:var(--mid); font-size:13px; margin:8px 0 20px; max-width:820px; min-height:36px; }
+.griglia { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:30px; max-width:1500px; }
+.var h2 { font-size:15px; margin:0 0 2px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; min-height:56px; max-width:330px; }
+/* telefono */
+.tel { position:relative; width:300px; height:620px; background:#fff; border-radius:34px; border:7px solid #1b1b20; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }
+.stato { height:24px; display:flex; justify-content:space-between; align-items:center; padding:0 18px; font-size:11px; font-weight:700; color:var(--ink); }
+.sch { position:absolute; inset:24px 0 0 0; background:var(--bg); }
+.top { padding:10px 16px 6px; font-weight:800; font-size:17px; display:flex; align-items:center; gap:8px; } .top .ind { color:var(--soft); font-weight:400; }
+.scroll { padding:4px 16px; }
+.seg { display:flex; background:var(--surface2); border-radius:14px; padding:3px; gap:2px; margin:6px 0 12px; }
+.seg button { flex:1; padding:8px 0; border-radius:11px; font-size:11px; font-weight:700; color:var(--mid); text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.seg button.on { background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.18); }
+.seg .cb { width:18px; height:18px; border-radius:6px; border:2px solid var(--soft); display:flex; align-items:center; justify-content:center; }
+.cb.viva { border-color:var(--accent); } .cb.viva::after { content:""; width:7px; height:7px; border-radius:50%; background:var(--accent); }
+.cb.pausa { border-color:var(--giallo); } .cb.pausa::after { content:""; width:7px; height:7px; border-radius:50%; background:var(--giallo); }
+.cb.done { background:var(--accent); border-color:var(--accent); } .cb.done::after { content:""; width:7px; height:7px; border-radius:50%; border:2px solid #fff; box-sizing:border-box; }
+.scheda h3 { margin:6px 0 2px; font-size:20px; } .scheda .meta { color:var(--mid); font-size:12.5px; }
+.sugg { margin-top:14px; background:var(--surface); border:1px dashed var(--line); border-radius:14px; padding:12px; font-size:12.5px; color:var(--mid); }
+/* schermata focus */
+.focus { position:absolute; inset:24px 0 0 0; background:var(--surface); transform:translateY(105%); transition:transform .55s cubic-bezier(.2,.8,.2,1); display:flex; flex-direction:column; z-index:5; }
+.focus.on { transform:none; }
+.chip { white-space:nowrap; max-width:190px; overflow:hidden; text-overflow:ellipsis; display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); background:var(--accent-soft); padding:4px 10px; border-radius:999px; }
+.chip i { width:7px; height:7px; border-radius:50%; background:var(--accent); animation:pulsa 1.6s ease-in-out infinite; } @keyframes pulsa { 50% { opacity:.3; } }
+.sole { white-space:nowrap; display:inline-flex; align-items:center; gap:4px; font-size:10.5px; color:var(--soft); font-weight:600; }
+.riga-alto { display:flex; justify-content:space-between; align-items:center; padding:14px 16px 0; }
+.tm { font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight:700; letter-spacing:-.02em; }
+.barra { height:10px; background:var(--surface2); border-radius:5px; overflow:hidden; } .barra i { display:block; height:100%; background:var(--accent); border-radius:5px; transition:width 1s linear; } .barra.oltre i { background:var(--warn); }
+.prev { display:flex; justify-content:space-between; font-size:11.5px; color:var(--mid); margin-top:5px; } .prev .oltre { color:var(--warn); font-weight:700; }
+.az { display:flex; gap:10px; padding:12px 16px 20px; }
+.btn { flex:1; padding:15px 0; border-radius:18px; font-weight:800; font-size:15px; text-align:center; }
+.btn.sec { background:var(--surface2); } .btn.pri { background:var(--accent); color:#fff; flex:1.4; }
+.pass { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+.pass .q { width:20px; height:20px; border-radius:6px; border:2px solid var(--soft); flex:none; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.pass.fatto .q { background:var(--accent); border-color:var(--accent); } .pass.fatto .q::after { content:""; width:7px; height:7px; border-radius:50%; border:2px solid #fff; box-sizing:border-box; } .pass.fatto span { color:var(--soft); text-decoration:line-through; }
+.nota-txt { font-size:13px; color:var(--mid); line-height:1.5; margin:10px 0; }
+.link { display:inline-block; margin:2px 0; font-size:12.5px; color:var(--accent); font-weight:700; }
+/* v1 */
+.v1 .centro { flex:1; display:flex; flex-direction:column; justify-content:center; padding:0 22px; }
+.v1 .titolo { font-size:27px; font-weight:800; line-height:1.15; margin-bottom:22px; }
+.v1 .tm.grande { font-size:52px; margin-bottom:12px; }
+/* v2 */
+.v2 .centro { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 22px; text-align:center; }
+.v2 .titolo { font-size:21px; font-weight:800; line-height:1.2; margin-bottom:18px; }
+.anello { position:relative; width:206px; height:206px; } .anello svg { transform:rotate(-90deg); width:100%; height:100%; }
+.anello .in { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.anello .tm { font-size:32px; } .anello small { color:var(--mid); font-size:12px; margin-top:2px; }
+.v2 .az { justify-content:center; gap:22px; }
+.tondo { width:62px; height:62px; border-radius:50%; display:grid; place-items:center; font-size:22px; font-weight:800; background:var(--surface2); }
+.tondo.pri { background:var(--accent); color:#fff; width:72px; height:72px; }
+/* v3 */
+.v3 .testa { padding:10px 16px 12px; border-bottom:1px solid var(--line); }
+.v3 .titolo { font-size:16px; font-weight:800; line-height:1.2; margin:8px 0 8px; display:flex; justify-content:space-between; gap:8px; align-items:baseline; }
+.v3 .tm { font-size:16px; white-space:nowrap; }
+.v3 .corpo { flex:1; overflow:auto; padding:6px 16px; } .v3 .sez { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--soft); font-weight:800; margin:12px 0 2px; }
+/* v4 */
+.v4 .centro { flex:1; padding:12px 24px; overflow:auto; }
+.v4 .titolo { font-size:25px; font-weight:800; line-height:1.15; margin:16px 0 14px; }
+.v4 .nota-txt { font-size:15px; line-height:1.55; color:var(--ink); }
+.v4 .pie { display:flex; align-items:center; justify-content:space-between; padding:10px 22px 22px; gap:12px; }
+.v4 .tm { font-size:18px; } .v4 .piccolo { font-size:11px; color:var(--soft); }
+.tieni { position:relative; flex:none; width:150px; height:50px; border-radius:25px; background:var(--accent-soft); color:var(--accent); font-weight:800; overflow:hidden; display:grid; place-items:center; user-select:none; touch-action:none; }
+.tieni .riempi { position:absolute; inset:0; background:var(--accent); width:0; transition:width .15s linear; } .tieni.preme .riempi { width:100%; transition:width 1s linear; }
+.tieni span { position:relative; z-index:1; } .tieni.preme { color:#fff; }
+.pausa-t { font-weight:800; color:var(--mid); padding:12px 4px; }
+.fine { position:absolute; inset:0; background:var(--accent); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:22px; opacity:0; pointer-events:none; transition:opacity .4s; z-index:9; } .fine.on { opacity:1; }
+.nota-sotto { margin-top:34px; color:var(--mid); max-width:820px; font-size:13px; }
+.nota-sotto li { margin-bottom:4px; }
+</style></head><body>
+<h1>«In corso» a tutto schermo: quattro idee</h1>
+<p class="sub">Quando una nota passa «in corso» (dal selettore di stato, dalla casella o dal widget) si apre una schermata che mostra solo quella nota; il telefono resta sempre acceso. Si torna alla schermata normale solo con <b>Pausa</b> o <b>Fatta</b>. Prova: nella scheda tocca «In corso» (la schermata sale), poi «Pausa» o «Fatta» per tornare. Cambia scenario per vedere note diverse.</p>
+<div class="scen" id="scen"></div>
+<div class="desc" id="desc"></div>
+<div class="griglia" id="griglia"></div>
+<ul class="nota-sotto">
+<li><b>Schermo sempre acceso:</b> mentre la schermata è aperta la luce non si spegne (app Android: flag «keep screen on» della finestra; sito: Screen Wake Lock del browser). Si rilascia in pausa/fatta. In ogni schermata c'è la piccola icona «Schermo acceso».</li>
+<li><b>Tasto indietro:</b> da decidere. Proposta: nella schermata a tutto schermo non esce (serve evitare uscite per sbaglio); si esce solo con Pausa o Fatta. In alternativa chiede «Mettere in pausa?».</li>
+<li><b>Barra di stato e notifiche:</b> restano quelle del telefono (la schermata non è «kiosk»); la notifica periodica del timer continua come oggi.</li>
+</ul>
+<script>
+const SC = [
+ { n: 'Progetto con passi', d: 'Una nota di un progetto con passi da spuntare, note e un link: tutto il contesto serve mentre ci si lavora.', t: 'Preparare la dichiarazione dei redditi', prog: 'Tasse 2026', stima: 120, base: 42 * 60 + 10, note: 'Cercare le CU del 2025 nella cartella «Casa» e controllare le spese detraibili. Chiedere al commercialista se la ristrutturazione va nel quadro E.', link: 'Cartella Seafile · Tasse', passi: [['Raccogliere le CU', 1], ['Controllare le spese detraibili', 0], ['Compilare il quadro E', 0], ['Inviare al commercialista', 0]] },
+ { n: 'Nota breve', d: 'Una nota veloce da 15 minuti, senza passi: la schermata deve restare essenziale.', t: 'Chiamare l\'idraulico', prog: '', stima: 15, base: 4 * 60 + 30, note: 'Numero sul frigo. Chiedere se può passare giovedì mattina e il preventivo per il rubinetto del bagno.', link: '', passi: [] },
+ { n: 'Oltre il previsto', d: 'Una nota che ha superato la stima: la barra e il tempo diventano rossi, ma la schermata resta calma.', t: 'Scrivere la relazione trimestrale', prog: 'Lavoro', stima: 90, base: 110 * 60 + 5, note: 'Mancano le conclusioni e il grafico dei costi. Rileggere con calma prima dell\'invio.', link: 'Bozza su Seafile', passi: [['Dati del trimestre', 1], ['Grafico dei costi', 1], ['Conclusioni', 0]] },
+ { n: 'Curiosità senza stima', d: 'Una curiosità senza tempo previsto: niente barra, solo il tempo che passa.', t: 'Leggere il capitolo 4 di Design Patterns', prog: '', stima: 0, base: 18 * 60, note: 'Capire la differenza tra Strategy e State e annotare un esempio da usare in MyTask.', link: 'refactoring.guru/design-patterns', passi: [] },
+];
+let cur = 0, t0 = Date.now();
+const S = () => SC[cur];
+const fmt = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(x).padStart(2, '0'); };
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const secs = () => S().base + Math.floor((Date.now() - t0) / 1000);
+const sole = '<span class="sole"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>';
+const chip = (s) => '<span class="chip"><i></i>In corso' + (s.prog ? ' · ' + s.prog : '') + '</span>';
+const barra = (s) => { if (!s.stima) return '<div class="prev"><span>Nessun tempo previsto</span></div>'; const q = Math.min(1, secs() / (s.stima * 60)), o = secs() > s.stima * 60;
+  return '<div class="barra ' + (o ? 'oltre' : '') + '"><i data-q style="width:' + q * 100 + '%"></i></div><div class="prev"><span class="' + (o ? 'oltre' : '') + '" data-ov>' + (o ? 'Oltre il previsto' : 'lavorato') + '</span><span>previsto ' + nome(s.stima) + '</span></div>'; };
+const passiHtml = (s) => s.passi.map(([t, f]) => '<div class="pass ' + (f ? 'fatto' : '') + '" onclick="this.classList.toggle(\'fatto\')"><div class="q"></div><span>' + t + '</span></div>').join('');
+
+const V = [
+ { n: '1 · Solo la nota', d: 'Titolo grande, timer enorme e barra. Due pulsanti larghi in basso. È la più semplice e la più «zen»: niente altro da guardare.',
+   f: (s) => '<div class="riga-alto">' + chip(s) + sole + '</div><div class="centro"><div class="titolo">' + s.t + '</div><div class="tm grande" data-tm>' + fmt(secs()) + '</div>' + barra(s) + '</div><div class="az"><button class="btn sec" data-az="pausa">⏸ Pausa</button><button class="btn pri" data-az="fatta">✓ Fatta</button></div>', c: 'v1' },
+ { n: '2 · L\'anello', d: 'Il tempo lavorato dentro un anello che si riempie verso il previsto; due pulsanti tondi, grandi, comodi col pollice.',
+   f: (s) => { const q = s.stima ? Math.min(1, secs() / (s.stima * 60)) : 0, o = s.stima && secs() > s.stima * 60, C = 2 * Math.PI * 92;
+     return '<div class="riga-alto">' + chip(s) + sole + '</div><div class="centro"><div class="titolo">' + s.t + '</div><div class="anello"><svg viewBox="0 0 206 206"><circle cx="103" cy="103" r="92" fill="none" stroke="var(--surface2)" stroke-width="12"/><circle data-an cx="103" cy="103" r="92" fill="none" stroke="' + (o ? 'var(--warn)' : 'var(--accent)') + '" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + C + '" stroke-dashoffset="' + C * (1 - (s.stima ? q : 0.0001)) + '" style="transition:stroke-dashoffset 1s linear"/></svg><div class="in"><div class="tm" data-tm>' + fmt(secs()) + '</div><small>' + (s.stima ? 'su ' + nome(s.stima) : 'nessuna stima') + '</small></div></div></div><div class="az"><button class="tondo" data-az="pausa">⏸</button><button class="tondo pri" data-az="fatta">✓</button></div>'; }, c: 'v2' },
+ { n: '3 · Con i passi', d: 'Il timer resta compatto in alto; sotto c\'è tutto il contesto: passi spuntabili, note e link. Pensata per i progetti e le note lunghe.',
+   f: (s) => '<div class="testa"><div style="display:flex;justify-content:space-between;align-items:center">' + chip(s) + sole + '</div><div class="titolo"><span>' + s.t + '</span><span class="tm" data-tm>' + fmt(secs()) + '</span></div>' + barra(s) + '</div><div class="corpo">' + (s.passi.length ? '<div class="sez">Passi</div>' + passiHtml(s) : '') + '<div class="sez">Note</div><div class="nota-txt">' + s.note + '</div>' + (s.link ? '<div class="sez">Link</div><span class="link">↗ ' + s.link + '</span>' : '') + '</div><div class="az"><button class="btn sec" data-az="pausa">⏸ Pausa</button><button class="btn pri" data-az="fatta">✓ Fatta</button></div>', c: 'v3' },
+ { n: '4 · Lettura calma', d: 'Il testo della nota è il protagonista (grande, leggibile); il timer è piccolo in basso. Per completare serve tenere premuto, così non si tocca per sbaglio.',
+   f: (s) => '<div class="riga-alto">' + chip(s) + sole + '</div><div class="centro"><div class="titolo">' + s.t + '</div><div class="nota-txt">' + s.note + '</div>' + (s.link ? '<span class="link">↗ ' + s.link + '</span>' : '') + (s.passi.length ? '<div style="margin-top:10px">' + passiHtml(s) + '</div>' : '') + '</div><div style="padding:0 22px">' + barra(s) + '</div><div class="pie"><div><div class="tm" data-tm>' + fmt(secs()) + '</div><button class="pausa-t" data-az="pausa">⏸ Pausa</button></div><div class="tieni" data-tieni><div class="riempi"></div><span>Tieni premuto: fatta</span></div></div>', c: 'v4' },
+];
+
+function render() {
+  const g = document.getElementById('griglia'); g.innerHTML = '';
+  V.forEach((v, i) => { const s = S(); const sec = document.createElement('section'); sec.className = 'var'; sec.innerHTML = '<h2>' + v.n + '</h2><p>' + v.d + '</p>' +
+    '<div class="tel"><div class="stato"><span>9:41</span><span>◖◗ 5G ▮</span></div><div class="sch scheda"><div class="top">‹ <span class="ind">' + (s.prog || 'Attività') + '</span></div><div class="scroll"><h3>' + s.t + '</h3><div class="meta">' + (s.stima ? 'Tempo stimato ' + nome(s.stima) + ' · ' : '') + 'lavorato ' + fmt(S().base).slice(0, 5) + '</div>' +
+    '<div class="seg" data-seg><button data-st="da"><span class="cb"></span>Da fare</button><button data-st="corso"><span class="cb viva"></span>In corso</button><button data-st="pausa"><span class="cb pausa"></span>In pausa</button><button data-st="fatta"><span class="cb done"></span>Fatta</button></div>' +
+    '<div class="sugg">Tocca <b>In corso</b> per aprire la schermata a tutto schermo.</div></div></div>' +
+    '<div class="focus ' + v.c + '" data-focus>' + v.f(s) + '</div><div class="fine" data-fine>✓<div style="font-size:15px;margin-top:6px">Fatta!</div></div></div>';
+    g.appendChild(sec); legaFocus(sec); });
+}
+function legaFocus(sec) {
+  const foc = sec.querySelector('[data-focus]'), seg = sec.querySelector('[data-seg]'), fine = sec.querySelector('[data-fine]');
+  const seleziona = (k) => seg.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.st === k));
+  seg.querySelectorAll('button').forEach((b) => b.onclick = () => { seleziona(b.dataset.st); if (b.dataset.st === 'corso') setTimeout(() => foc.classList.add('on'), 120); });
+  const esci = (k) => { if (k === 'fatta') { fine.classList.add('on'); setTimeout(() => { fine.classList.remove('on'); foc.classList.remove('on'); seleziona('fatta'); }, 900); } else { foc.classList.remove('on'); seleziona('pausa'); } };
+  sec.querySelectorAll('[data-az]').forEach((b) => b.onclick = () => esci(b.dataset.az));
+  const t = sec.querySelector('[data-tieni]'); if (t) { let h; const via = () => { t.classList.add('preme'); h = setTimeout(() => { t.classList.remove('preme'); esci('fatta'); }, 1000); }, su = () => { clearTimeout(h); t.classList.remove('preme'); };
+    t.addEventListener('pointerdown', via); ['pointerup', 'pointerleave', 'pointercancel'].forEach((e) => t.addEventListener(e, su)); }
+}
+setInterval(() => { const s = S(); const ss = secs(); document.querySelectorAll('[data-tm]').forEach((e) => e.textContent = fmt(ss));
+  if (s.stima) { const q = Math.min(1, ss / (s.stima * 60)); document.querySelectorAll('[data-q]').forEach((e) => e.style.width = q * 100 + '%'); const C = 2 * Math.PI * 92; document.querySelectorAll('[data-an]').forEach((e) => e.style.strokeDashoffset = C * (1 - q)); } }, 1000);
+function scegli(i) { cur = i; t0 = Date.now(); document.querySelectorAll('#scen button').forEach((b, k) => b.classList.toggle('on', k === i)); document.getElementById('desc').textContent = SC[i].d; render(); }
+SC.forEach((s, i) => { const b = document.createElement('button'); b.textContent = s.n; b.onclick = () => scegli(i); document.getElementById('scen').appendChild(b); });
+scegli(0);
+</script></body></html>

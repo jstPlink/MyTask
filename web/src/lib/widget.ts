@@ -1,6 +1,6 @@
 // Widget «Oggi» della schermata Home di Android. L'app scrive nel plugin nativo `Widget` la lista di oggi, la sessione
 // «Inizia» e l'archivio per la ricerca; il widget accoda le azioni fatte dall'utente (note veloci per l'Inbox, voci
-// spuntate, avvio/pausa/ripresa/fine della sessione) e l'app le applica, con l'orario in cui sono state fatte, appena si apre
+// spuntate, avvio/pausa/ripresa/fine della sessione, tocco che chiede la pagina Priorità) e l'app le applica, con l'orario in cui sono state fatte, appena si apre
 // o torna in primo piano. Nel browser non fa nulla.
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -17,8 +17,15 @@ type AzioneWidget =
   | { tipo: 'nota'; testo: string; ts: number }
   | { tipo: 'fatto'; id: string; ts: number }
   | { tipo: 'avvia'; id: string; ts: number }
-  | { tipo: 'pausa' | 'riprendi' | 'fine'; ts: number };
+  | { tipo: 'pausa' | 'riprendi' | 'fine'; ts: number }
+  | { tipo: 'priorita'; ts: number };
 const Widget = registerPlugin<{ aggiorna(o: { righe: string; archivio?: string; lavoro?: string }): Promise<void>; coda(): Promise<{ azioni: AzioneWidget[] }> }>('Widget');
+
+/** Un tocco sul widget chiede la pagina Priorità: il flag serve se l'app non ha ancora montato l'interfaccia, l'evento se è già aperta. */
+let richiestaPriorita = false;
+export const EVENTO_PRIORITA = 'mytask:priorita';
+/** True (una sola volta) se il widget ha chiesto la pagina Priorità e l'interfaccia non l'ha ancora aperta. */
+export function consumaRichiestaPriorita(): boolean { const r = richiestaPriorita; richiestaPriorita = false; return r; }
 
 /** Applica, nell'ordine e con il loro orario, le note scritte, le voci spuntate e i comandi della sessione fatti dal widget. */
 async function applicaAzioni() {
@@ -38,6 +45,9 @@ async function applicaAzioni() {
       riprendi(a.ts);
     } else if (a.tipo === 'fine') {
       finisciSessione(a.ts);
+    } else if (a.tipo === 'priorita') {
+      richiestaPriorita = true;
+      window.dispatchEvent(new Event(EVENTO_PRIORITA));
     }
   }
 }

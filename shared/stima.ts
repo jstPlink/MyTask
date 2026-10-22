@@ -62,20 +62,15 @@ export function margineAtteso(items: Item[], adesso = Date.now()): number {
 }
 
 /**
- * Il margine com'era alla fine di ognuna delle ultime `settimane` settimane (dalla più lontana alla più vicina), calcolato solo con
- * le attività completate fino a quel momento. Le settimane in cui non c'era ancora nessun dato si saltano.
+ * Lo scostamento (reale − stimato, in proporzione alla stima) delle ultime `quante` attività completate con stima e tempo reale,
+ * dalla meno recente alla più recente: sono le barre del foglio del margine. Positivo = ci è voluto più del previsto.
  */
-export function storicoMargine(items: Item[], adesso = Date.now(), settimane = 5): number[] {
-  const SETTIMANA = 7 * 86_400_000;
-  const fatte = misurate(items).filter((i) => !!i.sforzoMin);
-  const fine = (i: Item) => i.completatoTs ?? i.aggiornato;
-  const out: number[] = [];
-  for (let k = settimane; k >= 1; k--) {
-    const t = adesso - k * SETTIMANA;
-    const fino = fatte.filter((i) => fine(i) <= t);
-    if (fino.length) out.push(margineAtteso(fino, t));
-  }
-  return out;
+export function ultimeNote(items: Item[], quante = 7): number[] {
+  return misurate(items)
+    .filter((i) => !!i.sforzoMin)
+    .sort((a, b) => (a.completatoTs ?? a.aggiornato) - (b.completatoTs ?? b.aggiornato))
+    .slice(-quante)
+    .map((i) => scostamento(i.sforzoMin!, i.durataRealeMin!));
 }
 
 /** Stima per una nuova attività in base a quelle simili già fatte (mediana dei loro tempi reali). */

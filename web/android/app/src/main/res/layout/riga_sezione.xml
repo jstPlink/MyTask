@@ -2,6 +2,7 @@
 <!-- Intestazione di sezione della lista del widget (Attività, Curiosità): nome a sinistra e tempo necessario a destra.
      I colori li imposta WidgetService secondo il tema. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sez_riga"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"

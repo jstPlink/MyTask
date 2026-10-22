@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: «In corso» a tutto schermo, varianti del primo</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4;
+  --accent:#2F7D5B; --accent-soft:#E3F1EA; --warn:#D1430B; --warn-soft:#FDEBE2; --giallo:#D9A400; --on-accent:#fff;
+  --c1:#2F7D5B; --c1s:#E3F1EA; --c2:#9A5B0B; --c2s:#FBEBD0; --c3:#4F46E5; --c3s:#ECEBFD; --c4:#B03A6E; --c4s:#FADFEB; --c5:#0E7490; --c5s:#DDF1F6;
+  /* misure di testo dell'app (px): titolo pagina .top .title 26, numero grande .rot-totale 30, titolo riga .t1 15, secondario .t2 12, dettaglio 11 */
+  --a-titolo:26; --a-timer:30; --a-corpo:15; --a-sec:12; --a-det:11; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 70px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 14px; max-width:860px; }
+button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:inherit; }
+.scen { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+.scen button { background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-weight:700; text-align:center; }
+.scen button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.desc { color:var(--mid); font-size:13px; margin:8px 0 18px; max-width:860px; min-height:36px; }
+.regola { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:12px 16px; max-width:860px; margin-bottom:22px; font-size:13px; color:var(--mid); }
+.regola table { border-collapse:collapse; margin-top:8px; width:100%; } .regola td, .regola th { text-align:left; padding:3px 10px 3px 0; font-size:12.5px; } .regola th { color:var(--ink); }
+.griglia { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:30px; max-width:1500px; }
+.var h2 { font-size:15px; margin:0 0 2px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; min-height:40px; max-width:330px; }
+.tel { position:relative; width:300px; height:620px; background:var(--surface); border-radius:34px; border:7px solid #1b1b20; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); display:flex; flex-direction:column; }
+.stato { height:24px; flex:none; display:flex; justify-content:space-between; align-items:center; padding:0 18px; font-size:11px; font-weight:700; }
+/* la schermata: tutte le misure di testo = misura dell'app × --k */
+.f { flex:1; display:flex; flex-direction:column; padding:6px 20px 0; }
+.f .alto { display:flex; justify-content:space-between; align-items:center; min-height:28px; }
+.chip { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:calc(var(--a-det) * 1px * var(--k)); font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); background:var(--accent-soft); padding:4px 10px; border-radius:999px; }
+.chip i { width:7px; height:7px; border-radius:50%; background:var(--accent); animation:pulsa 1.6s ease-in-out infinite; } @keyframes pulsa { 50% { opacity:.3; } }
+.sole { color:var(--soft); display:inline-flex; }
+.f .centro { flex:1; display:flex; flex-direction:column; justify-content:center; padding-bottom:10px; }
+.titolo { font-size:calc(var(--a-titolo) * 1px * var(--k)); font-weight:750; letter-spacing:-.015em; line-height:1.15; overflow-wrap:anywhere; }
+.meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin:10px 0 18px; font-size:calc(var(--a-sec) * 1px * var(--k)); color:var(--mid); }
+.tipo { display:inline-flex; align-items:center; gap:6px; font-weight:600; }
+.bd { display:inline-grid; place-items:center; border-radius:7px; width:calc(22px * var(--k)); height:calc(22px * var(--k)); }
+.bd svg { width:66%; height:66%; }
+.scad { display:inline-flex; align-items:center; gap:5px; font-weight:700; padding:3px 9px; border-radius:999px; background:var(--surface2); color:var(--mid); }
+.scad.urg { background:var(--warn-soft); color:var(--warn); }
+.tm { font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight:700; letter-spacing:-.02em; font-size:calc(var(--a-timer) * 1px * var(--k) * 1.35); line-height:1.1; margin-bottom:10px; }
+.barra { height:calc(8px * var(--k)); background:var(--surface2); border-radius:6px; overflow:hidden; } .barra i { display:block; height:100%; background:var(--accent); border-radius:6px; } .barra.oltre i { background:var(--warn); }
+.prev { display:flex; justify-content:space-between; font-size:calc(var(--a-sec) * 1px * var(--k)); color:var(--mid); margin-top:6px; } .prev .oltre { color:var(--warn); font-weight:700; }
+.az { display:flex; gap:10px; padding:10px 0 20px; }
+.btn { flex:1; padding:calc(14px * var(--k)) 0; border-radius:18px; font-weight:750; font-size:calc(var(--a-corpo) * 1px * var(--k)); text-align:center; }
+.btn.sec { background:var(--surface2); } .btn.pri { background:var(--accent); color:#fff; flex:1.4; }
+.lampo { position:absolute; inset:0; background:var(--accent); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:22px; opacity:0; pointer-events:none; transition:opacity .35s; } .lampo.on { opacity:1; }
+.k-lbl { display:inline-block; font-size:11px; font-weight:800; background:var(--ink); color:#fff; border-radius:999px; padding:2px 8px; margin-left:6px; vertical-align:middle; }
+/* v4: badge in cima */
+.v4 .alto { align-items:flex-start; }
+.v4 .testa { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
+.v4 .prog { font-size:calc(var(--a-sec) * 1px * var(--k)); color:var(--mid); margin-top:8px; font-weight:600; }
+</style></head><body>
+<h1>«In corso» a tutto schermo: varianti del primo mockup</h1>
+<p class="sub">Parto dal mockup 1 (solo la nota) e provo tre grandezze di testo, più una disposizione diversa di tipo e scadenza. Le schermate sono già aperte (animazione tra i pannelli: dopo). Il timer scorre davvero; «Pausa» e «Fatta» mostrano solo un lampo.</p>
+<div class="regola"><b>Regola dei testi:</b> ogni testo usa una misura già presente nell'app moltiplicata per un fattore <b>k</b> uguale per tutta la schermata, così i rapporti restano quelli dell'app.
+<table><tr><th>Elemento</th><th>Misura dell'app</th><th>k = 1</th><th>k = 1,25</th><th>k = 1,5</th></tr>
+<tr><td>Titolo della nota</td><td>titolo di pagina, 26 px</td><td>26</td><td>32,5</td><td>39</td></tr>
+<tr><td>Timer</td><td>numero grande (selettore del tempo), 30 px × 1,35</td><td>40</td><td>51</td><td>61</td></tr>
+<tr><td>Tipo, scadenza, previsto</td><td>riga grigia, 12 px</td><td>12</td><td>15</td><td>18</td></tr>
+<tr><td>Pulsanti</td><td>titolo riga, 15 px</td><td>15</td><td>19</td><td>22,5</td></tr>
+<tr><td>«In corso», etichette</td><td>dettaglio, 11 px</td><td>11</td><td>14</td><td>16,5</td></tr></table></div>
+<div class="scen" id="scen"></div>
+<div class="desc" id="desc"></div>
+<div class="griglia" id="griglia"></div>
+<script>
+const G = {
+ azione: '<path d="M5 12l5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
+ curiosita: '<path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3zM9.5 19h5M10.5 21.5h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+ progetto: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+ esperienza: '<path d="M12 21s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="11" r="2.2" fill="currentColor"/>',
+};
+const NOMI = { azione: 'Attività', curiosita: 'Curiosità', progetto: 'Passo di progetto', esperienza: 'Esperienza' };
+const TINTA = { azione: 1, progetto: 3, curiosita: 3, esperienza: 4 };
+const SC = [
+ { n: 'Scade oggi', d: 'Attività con scadenza oggi: la scadenza compare in arancio, come nelle liste dell\'app.', t: 'Preparare la dichiarazione dei redditi', tipo: 'azione', prog: 'Tasse 2026', scad: 'oggi', urg: 1, fissa: 0, stima: 120, base: 42 * 60 + 10 },
+ { n: 'Scadenza fissa', d: 'Passo di un progetto con scadenza fissa tra 5 giorni: il lucchetto sostituisce l\'orologio.', t: 'Inviare i documenti al commercialista', tipo: 'progetto', prog: 'Tasse 2026', scad: 'ven 30 ott', urg: 0, fissa: 1, stima: 30, base: 9 * 60 },
+ { n: 'Senza data', d: 'Curiosità senza data né stima: restano solo tipo e timer, senza barra.', t: 'Capire la differenza tra Strategy e State', tipo: 'curiosita', prog: '', scad: '', urg: 0, fissa: 0, stima: 0, base: 18 * 60 },
+ { n: 'Scaduta e oltre il previsto', d: 'Scaduta da 2 giorni e oltre la stima: scadenza e barra in arancio-rosso, ma la schermata resta calma.', t: 'Scrivere la relazione trimestrale', tipo: 'azione', prog: 'Lavoro', scad: 'scaduta da 2 giorni', urg: 1, fissa: 0, stima: 90, base: 110 * 60 + 5 },
+ { n: 'Titolo lungo', d: 'Un titolo molto lungo: verifica che a k = 1,5 il testo resti nello schermo.', t: 'Riorganizzare la cartella dei documenti della casa e archiviare le fatture degli ultimi tre anni', tipo: 'azione', prog: '', scad: 'sab 25 ott', urg: 0, fissa: 0, stima: 240, base: 25 * 60 },
+];
+const VAR = [
+ { n: '1 · Identico all\'app', k: 1, lay: 'a', d: 'k = 1: i testi hanno le stesse misure dell\'app (titolo 26 px). Compatta, coerente, lascia molta aria.' },
+ { n: '2 · Un quarto più grande', k: 1.25, lay: 'a', d: 'k = 1,25: titolo 32 px e timer 51 px. Si legge bene a distanza di braccio senza perdere le proporzioni.' },
+ { n: '3 · Grande', k: 1.5, lay: 'a', d: 'k = 1,5: titolo 39 px e timer 61 px. Il più «da cruscotto»; i titoli lunghi iniziano a pesare.' },
+ { n: '4 · Tipo e scadenza in cima', k: 1.25, lay: 'b', d: 'k = 1,25 con una disposizione diversa: il badge del tipo e la scadenza stanno sopra il titolo, il progetto sotto.' },
+];
+let cur = 0, t0 = Date.now();
+const S = () => SC[cur];
+const fmt = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(x).padStart(2, '0'); };
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const secs = () => S().base + Math.floor((Date.now() - t0) / 1000);
+const sole = '<span class="sole"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>';
+const orol = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const luc = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const badge = (s) => '<span class="bd" style="background:var(--c' + TINTA[s.tipo] + 's);color:var(--c' + TINTA[s.tipo] + ')"><svg viewBox="0 0 24 24">' + G[s.tipo] + '</svg></span>';
+const scad = (s) => s.scad ? '<span class="scad ' + (s.urg ? 'urg' : '') + '">' + (s.fissa ? luc : orol) + s.scad + '</span>' : '';
+const barra = (s) => { if (!s.stima) return '<div class="prev"><span>Nessun tempo previsto</span></div>'; const q = Math.min(1, secs() / (s.stima * 60)), o = secs() > s.stima * 60;
+  return '<div class="barra ' + (o ? 'oltre' : '') + '"><i data-q style="width:' + q * 100 + '%"></i></div><div class="prev"><span class="' + (o ? 'oltre' : '') + '">' + (o ? 'Oltre il previsto' : 'lavorato') + '</span><span>previsto ' + nome(s.stima) + '</span></div>'; };
+const chip = '<span class="chip"><i></i>In corso</span>';
+const az = '<div class="az"><button class="btn sec" data-az="pausa">⏸ Pausa</button><button class="btn pri" data-az="fatta">✓ Fatta</button></div>';
+
+function schermata(v, s) {
+  if (v.lay === 'a') return '<div class="alto">' + chip + sole + '</div><div class="centro"><div class="titolo">' + s.t + '</div>' +
+    '<div class="meta"><span class="tipo">' + badge(s) + NOMI[s.tipo] + (s.prog ? ' · ' + s.prog : '') + '</span>' + scad(s) + '</div><div class="tm" data-tm>' + fmt(secs()) + '</div>' + barra(s) + '</div>' + az;
+  return '<div class="alto">' + chip + sole + '</div><div class="centro"><div class="testa"><span class="tipo" style="font-size:calc(12px * var(--k));font-weight:700;color:var(--mid)">' + badge(s) + NOMI[s.tipo] + '</span>' + scad(s) + '</div><div class="titolo">' + s.t + '</div>' +
+    (s.prog ? '<div class="prog">' + s.prog + '</div>' : '') + '<div class="tm" style="margin-top:20px" data-tm>' + fmt(secs()) + '</div>' + barra(s) + '</div>' + az;
+}
+function render() {
+  const g = document.getElementById('griglia'); g.innerHTML = '';
+  VAR.forEach((v) => { const sec = document.createElement('section'); sec.className = 'var';
+    sec.innerHTML = '<h2>' + v.n + '<span class="k-lbl">k = ' + String(v.k).replace('.', ',') + '</span></h2><p>' + v.d + '</p><div class="tel" style="--k:' + v.k + '"><div class="stato"><span>9:41</span><span>◖◗ 5G ▮</span></div><div class="f ' + (v.lay === 'b' ? 'v4' : '') + '">' + schermata(v, S()) + '</div><div class="lampo" data-lampo>✓<div style="font-size:15px;margin-top:6px">Fatta!</div></div></div>';
+    sec.querySelectorAll('[data-az]').forEach((b) => b.onclick = () => { const l = sec.querySelector('[data-lampo]'); l.firstChild.textContent = b.dataset.az === 'fatta' ? '✓' : '⏸'; l.lastChild.textContent = b.dataset.az === 'fatta' ? 'Fatta!' : 'In pausa'; l.style.background = b.dataset.az === 'fatta' ? 'var(--accent)' : 'var(--giallo)'; l.classList.add('on'); setTimeout(() => l.classList.remove('on'), 800); });
+    g.appendChild(sec); });
+}
+setInterval(() => { const s = S(), ss = secs(); document.querySelectorAll('[data-tm]').forEach((e) => e.textContent = fmt(ss)); if (s.stima) document.querySelectorAll('[data-q]').forEach((e) => e.style.width = Math.min(1, ss / (s.stima * 60)) * 100 + '%'); }, 1000);
+function scegli(i) { cur = i; t0 = Date.now(); document.querySelectorAll('#scen button').forEach((b, k) => b.classList.toggle('on', k === i)); document.getElementById('desc').textContent = SC[i].d; render(); }
+SC.forEach((s, i) => { const b = document.createElement('button'); b.textContent = s.n; b.onclick = () => scegli(i); document.getElementById('scen').appendChild(b); });
+scegli(0);
+</script></body></html>

@@ -34,8 +34,6 @@ public class WidgetService extends RemoteViewsService {
         private JSONArray righe = new JSONArray();
         /** Le voci della lista: intestazioni di sezione (con «h») e righe, nell'ordine in cui compaiono. */
         private final List<JSONObject> voci = new ArrayList<>();
-        /** La nota del blocco del cronometro: il suo tempo sta già lì, non accanto alla casella. */
-        private String idBlocco = "";
 
         Fabbrica(Context c, boolean scuro) {
             this.c = c;
@@ -45,8 +43,6 @@ public class WidgetService extends RemoteViewsService {
         @Override public void onCreate() { }
         @Override public void onDataSetChanged() {
             righe = WidgetDati.righe(c);
-            JSONObject blocco = WidgetDati.notaBlocco(c);
-            idBlocco = blocco == null ? "" : blocco.optString("id");
             voci.clear();
             aggiungi("Attività", false);
             aggiungi("Curiosità", true);
@@ -85,6 +81,7 @@ public class WidgetService extends RemoteViewsService {
             long m = o.optLong("m", 0);
             v.setTextViewText(R.id.sez_tempo, m > 0 ? WidgetDati.durata(m) : "");
             v.setTextColor(R.id.sez_tempo, colore("#2F7D5B", "#6FCF9B"));
+            v.setOnClickFillInIntent(R.id.sez_riga, new Intent().putExtra("azione", "apri")); // anche l'intestazione apre l'app
             return v;
         }
 
@@ -115,9 +112,9 @@ public class WidgetService extends RemoteViewsService {
             v.setTextViewText(R.id.sub, WidgetDati.durata(previsto));
             v.setTextColor(R.id.sub, colore("#65656E", "#A5A5B0"));
 
-            // tempo già lavorato accanto alla casella (non per la nota del blocco in alto, che ha il suo timer)
+            // tempo già lavorato accanto alla casella
             long lavorato = o.optLong("w", 0);
-            boolean mostraTempo = lavorato >= 1000 && !id.equals(idBlocco) && !fatto;
+            boolean mostraTempo = lavorato >= 1000 && !fatto;
             v.setViewVisibility(R.id.tempo, mostraTempo ? View.VISIBLE : View.GONE);
             v.setTextViewText(R.id.tempo, WidgetDati.cronometro(lavorato));
             v.setTextColor(R.id.tempo, colore("#65656E", "#A5A5B0"));

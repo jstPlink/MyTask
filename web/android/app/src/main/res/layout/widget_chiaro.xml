@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget Oggi (chiaro): in cima il blocco del cronometro (come in Priorità: stato, timer grande, tasti e barra;
-     Chronometer nativo, avanza da solo); sotto la lista scorrevole di attività e curiosità (riga_*, riga_sezione), il messaggio
-     a lista vuota e il pulsante + per la nota veloce. Il padding in basso della lista lascia spazio al pulsante. -->
+<!-- Widget Oggi (chiaro): la lista scorrevole di attività e curiosità (riga_*, riga_sezione), il messaggio a lista vuota e il pulsante + per la nota veloce.
+     Nessuna barra in alto: un tocco su qualsiasi parte (righe, caselle, intestazioni, sfondo) apre l'app sulla pagina Priorità. Il padding in basso della lista lascia spazio al pulsante. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/radice"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="10dp"
@@ -12,89 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-
-        <!-- Blocco del cronometro (come in Priorità, sempre della stessa altezza): stato, timer grande, tasti ■ e ▶/⏸ e barra del tempo; lo sfondo cambia con lo stato -->
-        <LinearLayout
-            android:id="@+id/blocco"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="6dp"
-            android:background="@drawable/blocco_vuoto_c"
-            android:orientation="vertical"
-            android:paddingStart="14dp"
-            android:paddingTop="8dp"
-            android:paddingEnd="10dp"
-            android:paddingBottom="10dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:minHeight="52dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:id="@+id/blk_sx"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/blk_e"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:letterSpacing="0.08"
-                        android:maxLines="1"
-                        android:textColor="#919199"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-
-                    <Chronometer
-                        android:id="@+id/blk_tm"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="monospace"
-                        android:textColor="#919199"
-                        android:textSize="30sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/blk_st"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/blocco_stop_c"
-                    android:contentDescription="Chiudi la sessione"
-                    android:gravity="center"
-                    android:text="■"
-                    android:textColor="#111115"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/blk_pl"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/piu_bg_c"
-                    android:gravity="center"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-            </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/blk_barra"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="5dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="2dp"
-                android:max="1000"
-                android:progressDrawable="@drawable/blocco_barra_c" />
-        </LinearLayout>
 
         <ListView
             android:id="@+id/lista"
@@ -111,8 +28,7 @@
         android:id="@+id/vuoto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="70dp"
-        android:gravity="center"
+                android:gravity="center"
         android:text="@string/widget_vuoto"
         android:textColor="#65656E"
         android:textSize="14sp" />

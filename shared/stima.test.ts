@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, margineAtteso, percentuale, storicoMargine, stimaPer, tempoAtteso } from './stima.ts';
+import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, margineAtteso, percentuale, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
 
 let n = 0;
 const fatta = (titolo: string, sforzoMin: number | undefined, durataRealeMin: number | undefined): Item =>
@@ -73,13 +73,11 @@ test('stima: le attività non completate o senza tempo reale non contano', () =>
   assert.equal(stimaPer('Pagare il bollo', [aperta, senzaTempo]), undefined);
 });
 
-test('stima: lo storico dà il margine di ogni settimana usando solo le note già completate', () => {
-  const GG = 86_400_000;
-  const adesso = 100 * GG;
-  const a = { ...fatta('Uno', 60, 90), completatoTs: adesso - 20 * GG }; // +50%
-  const b = { ...fatta('Due', 60, 54), completatoTs: adesso - 2 * GG }; // −10%
-  const s = storicoMargine([a, b], adesso);
-  assert.equal(s.length, 2, 'le settimane in cui non c era ancora nessuna nota si saltano');
-  assert.ok(Math.abs(s[0] - 0.5) < 1e-9 && Math.abs(s[1] - 0.5) < 1e-9, 'la seconda nota (2 giorni fa) non conta nelle settimane già chiuse');
-  assert.deepEqual(storicoMargine([], adesso), []);
+test('stima: ultimeNote dà lo scostamento delle ultime note, dalla meno recente', () => {
+  const note = [1, 2, 3, 4, 5].map((k) => ({ ...fatta(`Nota ${k}`, 60, 60 + k * 6), completatoTs: k * 1000 })); // +10%, +20%, …
+  const u = ultimeNote(note, 3);
+  assert.equal(u.length, 3);
+  assert.ok(Math.abs(u[0] - 0.3) < 1e-9 && Math.abs(u[2] - 0.5) < 1e-9, 'le ultime tre, in ordine di completamento');
+  assert.deepEqual(ultimeNote([]), []);
+  assert.deepEqual(ultimeNote([fatta('Senza stima', undefined, 30)]), [], 'senza stima non conta');
 });

@@ -4,14 +4,15 @@
 /** Dati del foglio di confronto stima / tempo reale. */
 interface Completamento {
   titolo: string;
-  /** Tempo stimato e tempo reale, in minuti. */
-  stimaMin: number;
-  realeMin: number;
+  /** Tempo stimato e tempo reale, in minuti: mancano se la nota non aveva una stima o se il tempo lavorato è troppo breve per essere misurato. */
+  stimaMin?: number;
+  realeMin?: number;
   /** Margine delle stime (con segno) prima e dopo questa nota, in percentuale (15 = +15%, −20 = stime abbondanti). */
   margineDa: number;
   margineA: number;
-  /** Il margine (in percentuale) alla fine delle ultime settimane, dalla più lontana alla più vicina. */
-  storico: number[];
+  /** Lo scostamento (in percentuale: +30 = ci è voluto il 30% in più) delle ultime note completate, dalla meno recente, e di questa nota se misurata. */
+  note: number[];
+  oggi?: number;
 }
 
 /** Il foglio resta aperto il tempo dell'animazione più 2 secondi, poi si chiude da solo. */

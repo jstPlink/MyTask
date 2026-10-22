@@ -529,28 +529,6 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .sezione { --sz-p: 18px; margin: 16px calc(var(--sz-p) * -1) 0; }
 .sezione:first-child { margin-top: 8px; }
 .sz-t { margin: 0; padding: 9px var(--sz-p); background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 750; letter-spacing: -.005em; }
-/* Blocco del cronometro in Priorità: senza nota in corso solo lo stato; con la nota in corso la nota e la barra del tempo sempre visibili; mentre corre, timer grande accanto al tasto */
-.blocco { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 10px 12px 12px 16px; margin: 0 0 10px; transition: border-color .3s, box-shadow .3s; }
-.blocco.vuoto { border: 1.5px dashed var(--soft); }
-.blocco .fantasma { visibility: hidden; }
-.blocco.corre { border-color: var(--accent); box-shadow: var(--shadow); }
-.blk-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
-.blk-e { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
-.blocco.corre .blk-e { color: var(--accent); }
-.blk-dx { display: flex; align-items: center; gap: 10px; }
-.blk-tm { font: 800 30px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; color: var(--accent); animation: blk-entra .4s ease-out; }
-@keyframes blk-entra { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
-.blk-pl { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; }
-.blk-nota { width: 100%; margin-top: 6px; border-radius: 14px; padding: 9px 12px; display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--line); text-align: left; animation: blk-entra .45s ease-out; }
-.blk-rk { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 800; font-size: 11px; }
-.blk-rk.p3 { --c: var(--warn); --cs: var(--warn-soft); } .blk-rk.p2 { --c: var(--amber); --cs: var(--amber-soft); } .blk-rk.p1 { --c: var(--soft); --cs: var(--surface2); }
-.blk-t { flex: 1; min-width: 0; } .blk-t b { display: block; font-size: 13.5px; } .blk-t small { display: block; font-size: 11px; color: var(--mid); }
-.blk-nota .cb { width: 21px; height: 21px; border-radius: 6px; margin-left: auto; }
-.blk-sotto { margin: 9px 2px 0; }
-.blk-tt { display: flex; justify-content: space-between; align-items: baseline; font: 800 12.5px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; margin-bottom: 4px; }
-.blk-tt b { color: var(--accent); } .blk-tt em { font-style: normal; color: var(--mid); }
-.blk-barra { height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--accent) 22%, transparent); overflow: hidden; }
-.blk-barra i { display: block; height: 100%; border-radius: 3px; background: var(--accent); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
 /* tempo già lavorato accanto alla casella delle note non attive */
 .dx-riga { display: inline-flex; align-items: center; gap: 8px; }
 .tempo-riga { font: 700 12px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; color: var(--mid); animation: blk-entra .4s ease-out; }
@@ -558,6 +536,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .acc-t { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--soft); font-weight: 700; }
 .acc-s { font-size: 11.5px; color: var(--mid); margin-top: 2px; }
 .acc .mg { font: 800 26px/1.1 ui-monospace, Consolas, monospace; }
+@keyframes blk-entra { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
 .sz-tempi { display: inline-flex; align-items: baseline; gap: 7px; font-size: 12px; font-weight: 600; color: var(--mid); }
 .sz-tempi i { font-style: normal; color: var(--soft); }
 .sz-conto { font: 800 12.5px ui-monospace, Consolas, monospace; }
@@ -770,3 +749,56 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 
 .rot-sheet { max-height: calc(100% - 16px); overflow-y: auto; scrollbar-width: none; }
 .rot-sheet::-webkit-scrollbar { display: none; }
+
+/* ---------- Nota «in corso» a tutto schermo (ui/InCorso.tsx; testi = misure dell'app × 1,2, mockup docs/mockup-focus-*.html) ---------- */
+.incorso { --k: 1.2; position: fixed; inset: 0; z-index: 15; background: var(--surface); display: flex; justify-content: center; animation: ic-sale .55s cubic-bezier(.2, .8, .2, 1); }
+@keyframes ic-sale { from { transform: translateY(100%); } to { transform: none; } }
+.ic-col { width: 100%; max-width: 560px; display: flex; flex-direction: column; padding: calc(env(safe-area-inset-top) + 20px) 26px 0; }
+.ic-alto { display: flex; align-items: center; min-height: 34px; }
+.ic-stato { display: inline-flex; align-items: center; gap: 9px; font-size: calc(11px * var(--k)); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+.ic-stato .cb { width: 20px; height: 20px; border-radius: 6px; }
+.ic-centro { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 14px; min-height: 0; }
+.ic-nome, .ic-vela { transition: opacity .8s ease; } .ic-nome.nascosto, .ic-vela.nascosto { opacity: 0; }
+.ic-titolo { margin: 0; font-size: calc(26px * var(--k)); font-weight: 750; letter-spacing: -.015em; line-height: 1.15; overflow-wrap: anywhere; }
+.ic-info { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; padding: 14px 0; margin: 16px 0 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: calc(12px * var(--k)); color: var(--mid); }
+.ic-info b { color: var(--ink); font-weight: 600; } .ic-tipo { display: inline-flex; color: var(--ink); }
+.ic-data { margin-left: auto; } .ic-data.hard { color: var(--warn); font-weight: 700; }
+.ic-timer { font-variant-numeric: tabular-nums; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-weight: 700; letter-spacing: -.02em; font-size: calc(40px * var(--k)); line-height: 1.1; margin-bottom: 12px; }
+.ic-timer.fermo { color: var(--mid); }
+.ic-barra { height: calc(8px * var(--k)); background: var(--surface2); border-radius: 6px; overflow: hidden; } .ic-barra i { display: block; height: 100%; background: var(--accent); border-radius: 6px; transition: width 1s linear; } .ic-barra.oltre i { background: var(--warn); }
+.ic-prev { display: flex; justify-content: space-between; font-size: calc(12px * var(--k)); color: var(--mid); margin-top: 7px; } .ic-prev .oltre { color: var(--warn); font-weight: 700; }
+.ic-az { display: flex; gap: 12px; padding: 12px 0 calc(env(safe-area-inset-bottom) + 28px); }
+.ic-btn { flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 10px; height: calc(54px * var(--k)); border-radius: 20px; font-weight: 750; font-size: calc(15px * var(--k)); transition: transform .15s; }
+.ic-btn:active { transform: scale(.96); } .ic-btn.ic-sec { background: var(--surface2); } .ic-btn.ic-pri { background: var(--accent); color: var(--on-accent); }
+.ic-btn .cb { width: 22px; height: 22px; } .ic-btn .cb.done { background: transparent; border-color: var(--on-accent); }
+.incorso-verde { background: var(--accent); color: var(--on-accent); flex-direction: column; align-items: center; animation: iv-appare .3s ease-out; }
+@keyframes iv-appare { from { opacity: 0; } to { opacity: 1; } }
+.iv-segno { font-size: 84px; font-weight: 800; line-height: 1; animation: cmp-pop .5s ease-out .1s both; } .iv-testo { font-size: 26px; font-weight: 800; margin-top: 10px; }
+@keyframes ic-esce { from { transform: none; } to { transform: translateY(100%); } }
+.incorso.esce { animation: ic-esce .45s cubic-bezier(.4, 0, .8, .4) forwards; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .incorso, .incorso-verde, .iv-segno { animation: none; } .incorso.esce { animation-duration: .01s; } .ic-nome, .ic-vela { transition: none; } }
+
+/* foglio del margine senza il confronto stimato/reale: le animazioni partono prima (mancano le due barre iniziali) */
+.cmp-corto .cmp-stima { animation-delay: .5s; } .cmp-corto .cmp-vecchio { animation-delay: 1.2s; } .cmp-corto .cmp-agg .a1 { animation-delay: 1.7s; } .cmp-corto .cmp-agg .a2 { animation-delay: 1.8s; }
+.cmp-corto .cmp-delta { animation-delay: 2.4s; } .cmp-corto .cmp-base, .cmp-corto .cmp-extra { animation-delay: 1.2s; } .cmp-corto .cmp-linea { animation-delay: 1.8s; }
+.cmp-corto .cmp-seg, .cmp-corto .cmp-punto, .cmp-corto .cmp-alone { animation-delay: 3.2s; } .cmp-corto .cmp-frase { animation-delay: 3.5s; }
+.cmp-motivo { margin-top: 10px; font-size: 12px; color: var(--mid); }
+
+/* scheda del margine al centro dello schermo (non in basso: la barra «Annulla» in basso non deve coprire i dati) e barre delle ultime note */
+.sheet.cmp-sheet { top: 50%; bottom: auto; left: 16px; right: 16px; max-height: calc(100% - 250px); border-radius: 26px; padding: 18px; animation: cmp-centro 8s cubic-bezier(.2, .8, .2, 1) both; transform: translateY(-50%); }
+@keyframes cmp-centro { 0% { opacity: 0; transform: translateY(-46%) scale(.94); } 7.5%, 91% { opacity: 1; transform: translateY(-50%); } 100% { opacity: 0; transform: translateY(-46%) scale(.94); } }
+.shell .sheet.cmp-sheet { top: 50%; left: 50%; right: auto; width: min(500px, 92%); max-height: 86%; transform: translate(-50%, -50%); animation-name: cmp-centro-largo; }
+@keyframes cmp-centro-largo { 0% { opacity: 0; transform: translate(-50%, -46%) scale(.94); } 7.5%, 91% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -46%) scale(.94); } }
+.cmp-nb { transform-box: fill-box; animation: cmp-cresce .8s cubic-bezier(.3, .8, .2, 1) var(--d, 1s) both; }
+.cmp-nb.su { transform-origin: 50% 100%; } .cmp-nb.giu { transform-origin: 50% 0%; }
+@keyframes cmp-cresce { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.cmp-nbt { animation: cmp-compare .4s ease-out 2.2s both; }
+@media (prefers-reduced-motion: reduce) { .cmp-nb { animation-duration: .01s; animation-delay: 0s; } }
+
+/* «in corso» a tutto schermo, dopo 5 secondi: restano solo il timer (ingrandito, al centro dello schermo) e la barra del tempo sotto di lui */
+.incorso .ic-alto, .incorso .ic-az, .incorso .ic-nome, .incorso .ic-info, .incorso .ic-prev { transition: opacity .8s ease; }
+.incorso.solo .ic-alto, .incorso.solo .ic-az, .incorso.solo .ic-nome, .incorso.solo .ic-info, .incorso.solo .ic-prev { opacity: 0; }
+.incorso.solo .ic-az { pointer-events: none; }
+.ic-timer { align-self: flex-start; white-space: nowrap; transform-origin: center; transition: transform 1.1s cubic-bezier(.3, .8, .2, 1); position: relative; z-index: 3; }
+.ic-barra { transition: transform 1.1s cubic-bezier(.3, .8, .2, 1); position: relative; z-index: 3; }
+@media (prefers-reduced-motion: reduce) { .ic-timer, .ic-barra { transition: none; } }

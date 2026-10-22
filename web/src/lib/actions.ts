@@ -7,7 +7,7 @@ import { toggleOggi } from '../../../shared/routine.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { avanzamento, figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
-import { margineAtteso, storicoMargine } from '../../../shared/stima.ts';
+import { margineAtteso, scostamento, ultimeNote } from '../../../shared/stima.ts';
 import { dopoCompletamento, fermaSessioneSe, lasciaInCorsoSolo, passaA, tempoDi } from './sessione.ts';
 import { minutiMisurati } from '../../../shared/sessione.ts';
 import { mostraCompletamento } from './completamento.ts';
@@ -41,7 +41,7 @@ function fotografaProgetto(progetto: Item, idTarget: string) {
  * questo task, passa al successivo della lista di Oggi. `ora` (di base adesso) è il momento del completamento: il widget
  * lo passa quando l'azione è stata fatta mentre l'app era chiusa.
  */
-export function completaVoce(item: Item, ora = Date.now()) {
+export function completaVoce(item: Item, ora = Date.now(), opzioni: { sempreFoglio?: boolean } = {}) {
   // film, serie, libri, giochi…: prima si chiede il voto e un commento, poi si segna come fatto
   if (TIPI_CON_VOTO.has(item.tipo) && !item.ricorrenza) { chiediRecensione(item); return; }
   const oggi = today();
@@ -57,11 +57,14 @@ export function completaVoce(item: Item, ora = Date.now()) {
   const dopo = { ...completa(item, oggi, ora), ...(lavoratoMs > 0 ? { lavoratoMs: Math.round(lavoratoMs) } : {}), ...(durata ? { durataRealeMin: durata } : {}) };
   dopoCompletamento(item.id, ora); // il cronometro si ferma: la prossima nota la sceglie l'utente
   const margineDa = margineAtteso(getItems());
-  const storico = storicoMargine(getItems(), ora).map((m) => Math.round(m * 100));
+  const note = ultimeNote(getItems(), 7).map((m) => Math.round(m * 100));
+  const oggiPc = durata && item.sforzoMin ? Math.round(scostamento(item.sforzoMin, durata) * 100) : undefined;
   saveItem(dopo);
   // con il tempo misurato e una stima si apre il foglio con il confronto e il margine d'errore aggiornato
-  const confronto = durata && item.sforzoMin
-    ? () => mostraCompletamento({ titolo: item.titolo, stimaMin: item.sforzoMin!, realeMin: durata, margineDa: Math.round(margineDa * 100), margineA: Math.round(margineAtteso(getItems()) * 100), storico })
+  // con il tempo misurato e una stima si apre il foglio con il confronto; da «in corso» a tutto schermo (`sempreFoglio`) si apre sempre
+  // per le attività, anche senza stima o con un tempo troppo breve (allora il margine non cambia e il foglio lo spiega)
+  const confronto = (durata && item.sforzoMin) || (opzioni.sempreFoglio && misurabile)
+    ? () => mostraCompletamento({ titolo: item.titolo, stimaMin: item.sforzoMin, realeMin: durata, margineDa: Math.round(margineDa * 100), margineA: Math.round(margineAtteso(getItems()) * 100), note, oggi: oggiPc })
     : undefined;
 
   if (progetto && fotoPrima) mostraAvanzamento({ ...fotoPrima, dopo: avanzamento(progetto, getItems()), alTermine: confronto });
