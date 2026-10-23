@@ -11,7 +11,7 @@ import { stimaProgetto } from '../../../shared/views.ts';
 import { percentuale } from '../../../shared/stima.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
 import { GlifoTipo } from './Icone.tsx';
-import { statoVisto } from '../lib/actions.ts';
+import { avanzaStato, statoVisto } from '../lib/actions.ts';
 import { apriStatoMenu } from '../lib/statoMenu.ts';
 import type { Item, Stato, Tipo } from '../../../shared/types.ts';
 import { battito } from '../lib/battito.ts';
@@ -87,21 +87,43 @@ export function ClasseCasella(s: Stato): string {
   return v === 'in_corso' ? 'viva' : v === 'in_pausa' ? 'pausa' : v === 'fatto' ? 'done' : v === 'parcheggiato' ? 'arch' : 'dafare';
 }
 
+/** Dopo quanto tempo di pressione la casella apre il foglio con tutti gli stati (millisecondi). */
+const PRESSIONE_LUNGA_MS = 380;
+
 /**
- * Casella a quattro stati di una nota: un tocco (o il tasto destro) apre subito il foglio con tutti gli stati, come una pressione
- * lunga; lo stato non cambia da solo, così non si sbaglia toccando di fretta.
+ * Casella di stato di una nota. **Un tocco fa avanzare lo stato**: «da fare» e «in pausa» → «in corso» (le attività e le curiosità
+ * si aprono a tutto schermo), «in corso» → «fatta» (è l'unico modo di chiudere una nota dalla casella, e solo se è in corso),
+ * «fatta» o «archiviata» → «da fare». **Tenendo premuto** (o col tasto destro) si apre il foglio con tutti gli stati, per sceglierne
+ * un altro (in pausa, archiviata…).
  */
 function CasellaStato({ voce }: { voce: Item }) {
   const stato = statoVisto(voce.stato);
   const nome = { da_fare: 'da fare', in_corso: 'in corso', in_pausa: 'in pausa', fatto: 'fatta', parcheggiato: 'archiviata' }[stato as 'da_fare'] ?? '';
+  const timer = useRef<number | undefined>(undefined);
+  const lungo = useRef(false);
+  const ferma = () => { window.clearTimeout(timer.current); };
+  const parti = () => {
+    lungo.current = false;
+    ferma();
+    timer.current = window.setTimeout(() => { lungo.current = true; navigator.vibrate?.(25); apriStatoMenu(voce); }, PRESSIONE_LUNGA_MS);
+  };
   return (
     <span
       className={clsx('cb', ClasseCasella(voce.stato))}
       role="button"
-      aria-label={`«${voce.titolo}»: ${nome}. Tocca per scegliere lo stato`}
-      style={{ cursor: 'pointer', touchAction: 'manipulation' }}
-      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); apriStatoMenu(voce); }}
-      onClick={(e) => { e.stopPropagation(); navigator.vibrate?.(12); apriStatoMenu(voce); }}
+      aria-label={`«${voce.titolo}»: ${nome}. Tocca per avanzare, tieni premuto per scegliere lo stato`}
+      style={{ cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none', WebkitTouchCallout: 'none' }}
+      onPointerDown={parti}
+      onPointerUp={ferma}
+      onPointerLeave={ferma}
+      onPointerCancel={ferma}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); if (!lungo.current) apriStatoMenu(voce); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (lungo.current) { lungo.current = false; return; } // il rilascio dopo una pressione lunga non è un tocco
+        navigator.vibrate?.(12);
+        avanzaStato(voce);
+      }}
     />
   );
 }
