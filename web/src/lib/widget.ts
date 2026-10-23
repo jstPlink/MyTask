@@ -14,7 +14,7 @@ import { debounce } from './util.ts';
 
 /** Azione accodata dal widget mentre l'app era chiusa. `ts` è il momento in cui è stata fatta. */
 type AzioneWidget =
-  | { tipo: 'nota'; testo: string; ts: number }
+  | { tipo: 'nota'; testo: string; ts: number; apri?: boolean }
   | { tipo: 'fatto'; id: string; ts: number }
   | { tipo: 'avvia'; id: string; ts: number }
   | { tipo: 'pausa' | 'riprendi' | 'fine'; ts: number }
@@ -27,13 +27,21 @@ export const EVENTO_PRIORITA = 'mytask:priorita';
 /** True (una sola volta) se il widget ha chiesto la pagina Priorità e l'interfaccia non l'ha ancora aperta. */
 export function consumaRichiestaPriorita(): boolean { const r = richiestaPriorita; richiestaPriorita = false; return r; }
 
+/** «Salva e apri» dal widget: la nota appena salvata da aprire nell'app (stesso schema del flag Priorità). */
+let richiestaApri: string | undefined;
+export const EVENTO_APRI_NOTA = 'mytask:apri-nota';
+/** L'id della nota che il widget ha chiesto di aprire (una sola volta), se l'interfaccia non l'ha ancora aperta. */
+export function consumaRichiestaApri(): string | undefined { const r = richiestaApri; richiestaApri = undefined; return r; }
+
 /** Applica, nell'ordine e con il loro orario, le note scritte, le voci spuntate e i comandi della sessione fatti dal widget. */
 async function applicaAzioni() {
   let azioni: AzioneWidget[] = [];
   try { azioni = (await Widget.coda()).azioni ?? []; } catch { return; }
   for (const a of azioni) {
     if (a.tipo === 'nota' && a.testo.trim()) {
-      saveItem({ ...nuovaVoce({ tipo: 'nota', titolo: a.testo.trim(), inbox: true }), creato: a.ts, aggiornato: a.ts });
+      const nota = { ...nuovaVoce({ tipo: 'nota', titolo: a.testo.trim(), inbox: true }), creato: a.ts, aggiornato: a.ts };
+      saveItem(nota);
+      if (a.apri) { richiestaApri = nota.id; window.dispatchEvent(new Event(EVENTO_APRI_NOTA)); }
     } else if (a.tipo === 'fatto') {
       const item = getItem(a.id);
       if (item && isOpen(item)) completaVoce(item, a.ts);

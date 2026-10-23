@@ -35,7 +35,7 @@ test('widget: un task «in pausa» è segnalato per la casella gialla con le lin
   assert.equal(r.find((x) => x.t === 'Messa da parte')?.c, undefined);
 });
 
-test('widget: dopo le attività ci sono le curiosità, senza posizione, con la stima', () => {
+test('widget: dopo le attività ci sono le curiosità, con la posizione nella loro classifica e la stima', () => {
   const a = mk({ titolo: 'Attività', importanza: 5, fine: OGGI, sforzoMin: 80 });
   const cs = Array.from({ length: 6 }, (_, i) => mk({ tipo: 'curiosita', titolo: `Curiosità ${i}`, interesse: 5 - (i % 3) as 3 | 4 | 5, sforzoMin: i === 0 ? 25 : undefined }));
   const r = righeWidget([a, ...cs], OGGI);
@@ -44,7 +44,8 @@ test('widget: dopo le attività ci sono le curiosità, senza posizione, con la s
   assert.equal(r[0].k, undefined);
   const c = r.filter((x) => x.k === 'c');
   assert.equal(c.length, 5, 'tutte e cinque le curiosità, nessuna tagliata');
-  assert.ok(c.every((x) => x.r === undefined));
+  assert.deepEqual(c.map((x) => x.r), [1, 2, 3, 4, 5], 'ogni curiosità ha la sua posizione, da 1');
+  assert.equal(c[0].t, 'Curiosità 0', 'la più breve (25 min) e interessante è la prima');
   assert.ok(c.every((x) => x.i !== undefined && x.i >= 1 && x.i <= 5), 'ogni curiosità ha il suo interesse per il pallino');
   assert.equal(r.indexOf(c[0]), 1, 'le curiosità vengono dopo le attività');
 });

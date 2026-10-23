@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
 import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.ts';
-import { chiavePriorita, daysOverdue, livelloPriorita, battitoBpm, intensitaBattito, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
+import { punteggioCuriosita, chiavePriorita, daysOverdue, livelloPriorita, battitoBpm, intensitaBattito, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
-import { classificaPriorita, posizionePriorita, stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
+import { classificaCuriosita, curiositaPerPriorita, classificaPriorita, posizionePriorita, stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
 import { suggerisciStasera } from './stasera.ts';
 import { listaGameDesign, punteggioGameDesign } from './gamedesign.ts';
 
@@ -285,4 +285,34 @@ test('battito legato alla formula: il grigio è fermo, ambra e rosso battono con
   assert.equal(b(mk({ importanza: 5 })), 43); // ambra
   assert.equal(b(mk({ importanza: 3, fine: OGGI })), 73); // rossa
   assert.ok(battitoBpm(b(mk({ importanza: 3, fine: OGGI }))) > battitoBpm(b(mk({ importanza: 5 }))));
+});
+
+test('curiosità: il punteggio è 55% tempo stimato e 45% interesse', () => {
+  const c = (interesse: number, sforzoMin?: number) => mk({ tipo: 'curiosita', titolo: 'C', interesse, sforzoMin });
+  assert.equal(punteggioCuriosita(c(5, 10)), 100); // 15 min o meno e interesse massimo
+  assert.equal(punteggioCuriosita(c(1, 120)), 0); // lunga e senza interesse
+  assert.equal(punteggioCuriosita(c(3, 20)), 56); // 0,55 × 60 + 0,45 × 50 = 55,5
+  // il tempo pesa un po' più dell'interesse: breve e poco interessante batte lunga e molto interessante, a parità di distanza
+  assert.ok(punteggioCuriosita(c(3, 10)) > punteggioCuriosita(c(5, 90)));
+  assert.ok(punteggioCuriosita(c(5, 90)) > punteggioCuriosita(c(1, 90)), 'a parità di tempo vince l’interesse');
+  assert.equal(punteggioCuriosita(c(3)), Math.round(0.55 * 30 + 0.45 * 50), 'senza stima il tempo vale 30');
+});
+
+test('curiosità: la classifica numera da 1 in ordine di priorità e Priorità ne mostra cinque', () => {
+  const lunga = mk({ tipo: 'curiosita', titolo: 'Lunga', interesse: 5, sforzoMin: 120, aggiornato: 1 });
+  const breve = mk({ tipo: 'curiosita', titolo: 'Breve', interesse: 3, sforzoMin: 10, aggiornato: 2 });
+  const media = mk({ tipo: 'curiosita', titolo: 'Media', interesse: 4, sforzoMin: 30, aggiornato: 3 });
+  const altre = [1, 2, 3, 4].map((k) => mk({ tipo: 'curiosita', titolo: `Altra ${k}`, interesse: 1, sforzoMin: 200 }));
+  const tutte = [lunga, breve, media, ...altre];
+  assert.deepEqual(curiositaPerPriorita(tutte).slice(0, 3).map((x) => x.titolo), ['Breve', 'Media', 'Lunga']);
+  const pos = classificaCuriosita(tutte);
+  assert.equal(pos.get(breve.id), 1);
+  assert.equal(pos.get(lunga.id), 3);
+  assert.equal(vistaOggi(tutte, OGGI, NOW).curiosita.length, 5);
+});
+
+test('Priorità: al massimo cinque attività, anche se altre sono scadute', () => {
+  const scadute = Array.from({ length: 8 }, (_, k) => mk({ titolo: `Scaduta ${k}`, fine: '2000-01-01', sforzoMin: 20 }));
+  const inPausa = mk({ titolo: 'In pausa', stato: 'in_pausa', importanza: 1 });
+  assert.equal(vistaOggi([...scadute, inPausa], OGGI, NOW).fare.length, 5);
 });

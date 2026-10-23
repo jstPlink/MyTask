@@ -19,6 +19,7 @@ import { ItemDetail } from './screens/ItemDetail.tsx';
 import { Capture } from './screens/Capture.tsx';
 import { Login } from './screens/Login.tsx';
 import { PesiPriorita } from './screens/PesiPriorita.tsx';
+import { StoricoMargine } from './screens/StoricoMargine.tsx';
 import { RecensioneSheet } from './ui/Recensione.tsx';
 import { StatoMenu } from './ui/StatoMenu.tsx';
 import { CompletamentoSheet } from './ui/CompletamentoSheet.tsx';
@@ -26,7 +27,7 @@ import { AvanzamentoProgetto } from './ui/AvanzamentoProgetto.tsx';
 import { ControlloSessione } from './ui/ControlloSessione.tsx';
 import { InCorso } from './ui/InCorso.tsx';
 import { focusAperto } from './lib/focus.ts';
-import { EVENTO_PRIORITA, consumaRichiestaPriorita } from './lib/widget.ts';
+import { EVENTO_APRI_NOTA, EVENTO_PRIORITA, consumaRichiestaApri, consumaRichiestaPriorita } from './lib/widget.ts';
 import { Account, Altro, Archivio, Aspetto, DaParte, Inbox, NotificaTimer, Stasera } from './screens/Secondarie.tsx';
 
 // Radice dell'interfaccia: sceglie tra accesso, layout stretto (telefono: una schermata + barra delle schede) e
@@ -53,6 +54,7 @@ function Schermata({ s }: { s: Screen }) {
     case 'stasera': return <Stasera />;
     case 'account': return <Account />;
     case 'pesi': return <PesiPriorita />;
+    case 'storicomargine': return <StoricoMargine />;
   }
 }
 
@@ -195,6 +197,14 @@ export function App() {
     window.addEventListener(EVENTO_PRIORITA, vaPriorita);
     return () => window.removeEventListener(EVENTO_PRIORITA, vaPriorita);
   }, [vaTab]);
+
+  // «Salva e apri» dal widget: la nota appena salvata si apre per configurarla subito
+  useEffect(() => {
+    const apri = () => { const id = consumaRichiestaApri(); if (id) push({ k: 'item', id }); };
+    apri();
+    window.addEventListener(EVENTO_APRI_NOTA, apri);
+    return () => window.removeEventListener(EVENTO_APRI_NOTA, apri);
+  }, [push]);
 
   // scorciatoie da tastiera (schermi larghi): N nuova nota, / cerca, Esc chiude
   useEffect(() => {

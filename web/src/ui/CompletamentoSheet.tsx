@@ -1,4 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react';
+import { livelloMargine } from '../../../shared/stima.ts';
 import { chiudiCompletamento, DURATA_COMPLETAMENTO_MS, getCompletamento, subscribeCompletamento } from '../lib/completamento.ts';
 import { clsx, durataLavoro, nomeTempo } from '../lib/util.ts';
 import { useLayer } from './nav.tsx';
@@ -23,7 +24,9 @@ export function CompletamentoSheet() {
   const { stimaMin, realeMin } = c;
   const cambia = c.margineA !== c.margineDa;
   const punti = c.margineA - c.margineDa;
-  const col = (p: number) => (p > 0 ? 'su' : p < 0 ? 'giu' : '');
+  // il colore dice quanto è giusta la stima (vicino a zero è bene), non la direzione: buono fino a ±15%, medio fino a ±30%, sbagliato oltre
+  const col = (p: number) => `mg-${livelloMargine(p / 100)}`;
+  const migliora = Math.abs(c.margineA) < Math.abs(c.margineDa);
   const pc = (p: number) => (p > 0 ? `+${p}%` : p < 0 ? `−${-p}%` : '0%');
   // salire = stime troppo corte (rosso), scendere = stime abbondanti (verde)
   const frase = c.margineA > 0 ? 'Conviene aggiungere tempo alle tue stime' : c.margineA < 0 ? 'Stai stimando più del necessario' : 'Le tue stime sono centrate';
@@ -35,6 +38,10 @@ export function CompletamentoSheet() {
   };
   const limite = (1 / 1.6) * 100;
   const extraMin = Math.round((stimaMin ?? 0) * (c.margineA / 100));
+  // la stima è scritta sempre a sinistra, nella parte grigia (accorciata se la barra è stretta); l'etichetta dei minuti sta nella coda o, se è troppo stretta, subito dopo
+  const baseFinale = barra(c.margineA).base;
+  const etichettaStima = stimaMin ? (baseFinale >= 38 ? `Stima ${nomeTempo(stimaMin)}` : baseFinale >= 22 ? nomeTempo(stimaMin) : '') : '';
+  const codaLarga = barra(c.margineA).extra >= 11;
   const motivo = !stimaMin ? 'Questa nota non aveva un tempo stimato: il margine non cambia.' : !realeMin ? 'Tempo lavorato troppo breve per essere misurato: il margine non cambia.' : '';
 
   // barre delle ultime note: ognuna è lo scostamento di una nota (verso l'alto rosso = più del previsto, verso il basso verde); l'ultima è questa nota
@@ -64,13 +71,14 @@ export function CompletamentoSheet() {
               {cambia && <span className={clsx('a1', col(c.margineDa))}>{pc(c.margineDa)}</span>}
               <span className={clsx('a2', col(c.margineA))}>{pc(c.margineA)}</span>
             </div>
-            {cambia && <span className={clsx('cmp-delta', col(punti))}>{punti > 0 ? '+' : '−'}{Math.abs(punti)} {Math.abs(punti) === 1 ? 'punto' : 'punti'}</span>}
+            {cambia && <span className={clsx('cmp-delta', migliora ? 'mg-buono' : 'mg-sbagliato')}>{punti > 0 ? '+' : '−'}{Math.abs(punti)} {Math.abs(punti) === 1 ? 'punto' : 'punti'}</span>}
           </div>
           {stimaMin ? (
             <div className="cmp-tempo" style={{ ['--b0' as string]: `${barra(c.margineDa).base}%`, ['--b1' as string]: `${barra(c.margineA).base}%`, ['--e0' as string]: `${barra(c.margineDa).extra}%`, ['--e1' as string]: `${barra(c.margineA).extra}%` }}>
               <div className="cmp-pista">
-                <div className="cmp-base"><span>Stima {nomeTempo(stimaMin)}</span></div>
-                <div className={clsx('cmp-extra', c.margineA < 0 && 'risp')}>{extraMin !== 0 && <b>{extraMin > 0 ? '+' : '−'}{Math.abs(extraMin)} min</b>}</div>
+                <div className="cmp-base"><span>{etichettaStima}</span></div>
+                <div className={clsx('cmp-extra', col(c.margineA))}>{extraMin !== 0 && codaLarga && <b>{extraMin > 0 ? '+' : '−'}{Math.abs(extraMin)} min</b>}</div>
+                {extraMin !== 0 && !codaLarga && <span className="cmp-etic" style={{ left: `${barra(c.margineA).base + barra(c.margineA).extra}%` }}>{extraMin > 0 ? '+' : '−'}{Math.abs(extraMin)} min</span>}
                 <div className="cmp-lim" style={{ left: `${limite}%` }} />
               </div>
               <div className="cmp-conto">Per una stima di {nomeTempo(stimaMin)} metti in conto <b>{durataLavoro(Math.max(1, Math.round(stimaMin * (1 + c.margineA / 100))) * 60_000)}</b></div>
@@ -89,7 +97,7 @@ export function CompletamentoSheet() {
                   const ultima = ultimaOggi && i === n - 1;
                   return (
                     <rect key={i} className={clsx('cmp-nb', su ? 'su' : 'giu')} x={bx(i) - larghezza / 2} y={su ? 50 - alt : 50} width={larghezza} height={alt} rx="4"
-                      fill={su ? 'var(--warn)' : 'var(--c1)'} opacity={ultima ? 1 : 0.72} stroke={ultima ? 'var(--ink)' : undefined} strokeWidth={ultima ? 2 : undefined}
+                      fill={{ buono: 'var(--c1)', medio: 'var(--amber)', sbagliato: 'var(--warn)' }[livelloMargine(v / 100)]} opacity={ultima ? 1 : 0.8} stroke={ultima ? 'var(--ink)' : undefined} strokeWidth={ultima ? 2 : undefined}
                       style={{ ['--d' as string]: `${1.1 + i * 0.12}s` }} />
                   );
                 })}

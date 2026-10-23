@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: colore del margine di stima</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } h2 { font-size:15px; margin:26px 0 6px; } .sub { color:var(--mid); margin:0 0 14px; max-width:820px; }
+.griglia { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:22px; max-width:1200px; }
+.var { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:16px; }
+.var h3 { margin:0 0 2px; font-size:15px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; min-height:54px; }
+.scala { display:flex; height:16px; border-radius:8px; overflow:hidden; margin:10px 0 2px; } .scala i { flex:1; }
+.assi { display:flex; justify-content:space-between; font-size:10.5px; color:var(--soft); margin-bottom:12px; }
+.chips { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px; }
+.chip { font:800 13px ui-monospace,Consolas,monospace; padding:4px 10px; border-radius:999px; font-variant-numeric:tabular-nums; }
+.targ { display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:11px 14px; margin-bottom:12px; }
+.targ .t { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--soft); font-weight:700; } .targ .s { font-size:11.5px; color:var(--mid); margin-top:2px; } .targ .n { font:800 26px/1.1 ui-monospace,Consolas,monospace; }
+.pista { position:relative; display:flex; height:26px; border-radius:8px; background:var(--surface2); overflow:hidden; } .base { width:62.5%; background:var(--soft); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; flex:none; } .coda { flex:none; position:relative; } .coda b { position:absolute; inset:0; display:grid; place-items:center; color:#fff; font-size:10.5px; white-space:nowrap; }
+.barre svg { display:block; width:100%; margin-top:8px; }
+.slider { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px 18px; max-width:700px; margin-bottom:20px; }
+.slider input { width:100%; } .slider .v { font:800 22px ui-monospace,Consolas,monospace; }
+.nota { max-width:820px; color:var(--mid); font-size:13px; margin-top:6px; }
+table { border-collapse:collapse; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; max-width:900px; } th, td { padding:8px 14px; text-align:left; font-size:13px; border-bottom:1px solid var(--line); } th { color:var(--mid); font-weight:700; }
+</style></head><body>
+<h1>Colore del margine di stima: vicino allo zero è bene</h1>
+<p class="sub">Oggi il colore dice la <b>direzione</b>: rosso se positivo, verde se negativo. Nuova regola: il colore dice <b>quanto sei lontano dallo zero</b>, in qualsiasi direzione. Vicino a 0% = stime giuste (verde); più il numero è grande in valore assoluto, più la stima è sbagliata (si va verso il rosso). Il segno (+ / −) resta scritto e la direzione si capisce dal testo e dalla coda della barra del tempo. Trascina il cursore per provare i valori.</p>
+<div class="slider"><div>Margine: <span class="v" id="val">+9%</span></div><input id="r" type="range" min="-50" max="150" value="9"></div>
+<div class="griglia" id="g"></div>
+
+<h2>Tabella dei valori</h2>
+<table id="tab"><thead><tr><th>Margine</th><th>A · tre livelli</th><th>B · sfumatura</th><th>C · quattro livelli</th></tr></thead><tbody></tbody></table>
+<p class="nota">Dove si userebbe: la targhetta «Correzione alle tue stime» in Priorità, il numero e la coda della barra nel foglio dopo «Fatta», e le barre delle ultime note (ogni barra prende il colore dal suo scostamento: la direzione resta nella posizione, sopra o sotto lo zero). Il testo sotto la targhetta non dice più «stimi meno / più del necessario» per colore ma per parole: «Stimi meno del necessario» (positivo) e «Stimi più del necessario» (negativo).</p>
+<script>
+const VERDE = [47, 125, 91], AMBRA = [183, 121, 31], ROSSO = [209, 67, 11];
+const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
+const rgb = (c) => `rgb(${c.join(',')})`;
+const tint = (c) => `rgba(${c.join(',')},.14)`;
+// restituisce {c: colore, etichetta}
+const REGOLE = {
+  a: (v) => { const m = Math.abs(v); const c = m <= 10 ? VERDE : m <= 25 ? AMBRA : ROSSO; return { c, e: m <= 10 ? 'Stime giuste' : m <= 25 ? 'Un po\' fuori' : 'Molto fuori' }; },
+  b: (v) => { const m = Math.min(40, Math.abs(v)); const c = m <= 20 ? mix(VERDE, AMBRA, m / 20) : mix(AMBRA, ROSSO, (m - 20) / 20); return { c, e: m < 6 ? 'Stime giuste' : m < 20 ? 'Quasi giuste' : m < 32 ? 'Un po\' fuori' : 'Molto fuori' }; },
+  c: (v) => { const m = Math.abs(v); const c = m <= 5 ? VERDE : m <= 15 ? mix(VERDE, AMBRA, .75) : m <= 30 ? ROSSO.map((x, i) => Math.round(x * .75 + AMBRA[i] * .25)) : ROSSO; return { c, e: m <= 5 ? 'Centrate' : m <= 15 ? 'Quasi' : m <= 30 ? 'Fuori' : 'Molto fuori' }; },
+};
+const NOMI = { a: ['A · Tre livelli', 'Verde fino a ±10%, ambra fino a ±25%, rosso oltre. Semplice da leggere e coerente con i tre livelli del pallino di priorità (grigio, ambra, rosso).'], b: ['B · Sfumatura continua', 'Il colore scorre senza scalini da verde (0%) ad ambra (±20%) a rosso (±40% e oltre). Ogni punto percentuale cambia un po\' il colore.'], c: ['C · Quattro livelli', 'Verde fino a ±5% («centrate»), verde-ambra fino a ±15%, arancio fino a ±30%, rosso oltre. Più sensibile attorno allo zero, dove le stime sono già buone.'] };
+const pc = (v) => v > 0 ? '+' + v + '%' : v < 0 ? '−' + (-v) + '%' : '0%';
+const nomeT = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const NOTE = [30, 12, 25, -5, 10, -12, 8, -20];
+function scalaHtml(k) { let s = ''; for (let v = -50; v <= 150; v += 2) s += `<i style="background:${rgb(REGOLE[k](v).c)}"></i>`; return `<div class="scala">${s}</div><div class="assi"><span>−50%</span><span>0%</span><span>+150%</span></div>`; }
+function scheda(k, v) {
+  const r = REGOLE[k](v), c = rgb(r.c), t = tint(r.c); const stima = 90, base = 62.5, ex = (stima * Math.abs(v) / 100) / (stima * 1.6) * 100, min = Math.round(stima * Math.abs(v) / 100);
+  const barre = NOTE.map((o, i) => { const rr = REGOLE[k](o), x = 20 + i * 37.1, y = o >= 0 ? 50 - Math.min(50, o) * .9 : 50, h = Math.min(50, Math.abs(o)) * .9; return `<rect x="${x - 11}" y="${y}" width="22" height="${h}" rx="4" fill="${rgb(rr.c)}" ${i === 7 ? 'stroke="#111" stroke-width="2"' : 'opacity=".85"'}/>`; }).join('');
+  return `<div class="var"><h3>${NOMI[k][0]}</h3><p>${NOMI[k][1]}</p>${scalaHtml(k)}
+  <div class="chips">${[-40, -20, -8, -2, 0, 3, 9, 15, 30, 60].map((x) => { const q = REGOLE[k](x); return `<span class="chip" style="color:${rgb(q.c)};background:${tint(q.c)}">${pc(x)}</span>`; }).join('')}</div>
+  <div class="targ"><div><div class="t">Correzione alle tue stime</div><div class="s">${v > 0 ? 'Stimi meno del necessario' : v < 0 ? 'Stimi più del necessario' : 'Stime centrate'} · ${r.e}</div></div><span class="n" style="color:${c}">${pc(v)}</span></div>
+  <div class="pista"><div class="base">Stima ${nomeT(stima)}</div><div class="coda" style="width:${ex}%;background:repeating-linear-gradient(135deg,${c} 0 5px,${rgb(mix(r.c, [255, 255, 255], .45))} 5px 10px)"><b>${min ? (v > 0 ? '+' : '−') + min + ' min' : ''}</b></div></div>
+  <div class="barre"><svg viewBox="0 0 300 100"><rect x="0" y="0" width="300" height="100" fill="#F7F6F3"/><line x1="0" y1="50" x2="300" y2="50" stroke="#919199" stroke-dasharray="3 4"/>${barre}</svg></div></div>`;
+}
+function disegna() { const v = +document.getElementById('r').value; document.getElementById('val').textContent = pc(v); document.getElementById('g').innerHTML = ['a', 'b', 'c'].map((k) => scheda(k, v)).join(''); }
+document.getElementById('r').addEventListener('input', disegna); disegna();
+document.querySelector('#tab tbody').innerHTML = [-50, -30, -15, -8, -3, 0, 3, 8, 15, 25, 40, 80, 150].map((v) => `<tr><td><b>${pc(v)}</b></td>${['a', 'b', 'c'].map((k) => { const q = REGOLE[k](v); return `<td><span class="chip" style="color:${rgb(q.c)};background:${tint(q.c)}">${pc(v)}</span> ${q.e}</td>`; }).join('')}</tr>`).join('');
+</script></body></html>

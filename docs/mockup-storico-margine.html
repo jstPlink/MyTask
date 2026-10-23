@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: storico del margine di stima</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4; --accent:#2F7D5B; --ok:#2F7D5B; --okS:#E3F1EA; --med:#B7791F; --medS:#FBEBD0; --no:#D1430B; --noS:#FDEBE2; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 14px; max-width:820px; }
+button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:inherit; }
+.riga { display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start; } .note { max-width:430px; color:var(--mid); font-size:13px; } .note li { margin-bottom:6px; }
+.ctrl button { background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 15px; font-weight:700; margin:0 8px 8px 0; text-align:center; } .ctrl button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.telw { width:321px; height:711px; flex:none; }
+.tel { position:relative; width:411px; height:911px; transform:scale(.78); transform-origin:0 0; background:var(--bg); border-radius:56px; border:10px solid #1b1b20; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,.22); }
+.stato { position:absolute; top:0; left:0; right:0; height:36px; display:flex; justify-content:space-between; align-items:center; padding:3px 30px 0; font-size:13px; font-weight:700; z-index:50; } .foro { position:absolute; top:11px; left:50%; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:#111; z-index:51; } .gesto { position:absolute; bottom:8px; left:50%; width:134px; height:5px; margin-left:-67px; border-radius:3px; background:#111; opacity:.85; z-index:51; }
+.schermo { position:absolute; inset:36px 0 0 0; background:var(--bg); display:flex; flex-direction:column; }
+.top { padding:12px 20px 6px; font-size:26px; font-weight:750; letter-spacing:-.015em; }
+.acc { margin:6px 20px 8px; display:flex; justify-content:space-between; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:11px 14px; cursor:pointer; position:relative; } .acc .t { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--soft); font-weight:700; } .acc .s { font-size:11.5px; color:var(--mid); margin-top:2px; } .acc .n { font:800 26px/1.1 ui-monospace,Consolas,monospace; } .acc .freccia { color:var(--soft); margin-left:10px; font-size:18px; }
+.acc.tocca::after { content:""; position:absolute; inset:-4px; border-radius:20px; border:2px solid var(--accent); animation:pulsa 1.2s ease-in-out infinite; } @keyframes pulsa { 50% { opacity:.2; } }
+.rg { margin:0 20px; padding:14px 0; border-bottom:1px solid var(--line); display:flex; gap:12px; align-items:center; font-weight:620; } .rg i { width:32px; height:32px; border-radius:50%; border:2px solid var(--no); display:grid; place-items:center; font-style:normal; font-size:13px; font-weight:800; background:var(--surface); } .rg small { display:block; font-weight:400; color:var(--mid); font-size:12px; }
+/* pagina storico */
+.pag { position:absolute; inset:36px 0 0 0; background:var(--bg); z-index:20; display:flex; flex-direction:column; transform:translateX(105%); transition:transform .45s cubic-bezier(.2,.8,.2,1); } .pag.on { transform:none; }
+.back { padding:14px 20px 0; color:var(--accent); font-weight:700; font-size:15px; } .titolo { padding:6px 20px 0; font-size:26px; font-weight:750; letter-spacing:-.015em; line-height:1.15; } .sottot { padding:2px 20px 0; color:var(--mid); font-size:12.5px; }
+.scroll { flex:1; overflow-y:auto; padding:12px 20px 40px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:14px 16px; margin-bottom:12px; }
+.su { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--soft); font-weight:700; }
+.grande { display:flex; align-items:baseline; gap:10px; margin-top:4px; } .grande .n { font:800 40px/1.1 ui-monospace,Consolas,monospace; } .grande .e { font-weight:700; font-size:13px; }
+.fr { font-size:12.5px; color:var(--mid); margin-top:6px; }
+.distr { display:flex; height:12px; border-radius:6px; overflow:hidden; margin:10px 0 6px; } .distr i { display:block; } .leg { display:flex; gap:12px; font-size:11.5px; color:var(--mid); flex-wrap:wrap; } .leg b { color:var(--ink); } .leg span::before { content:""; display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; background:var(--c); vertical-align:0; }
+svg { display:block; width:100%; overflow:visible; } .assi { display:flex; justify-content:space-between; font-size:10.5px; color:var(--soft); margin-top:2px; }
+.range { display:flex; gap:6px; margin:10px 0 2px; } .range button { padding:6px 12px; border-radius:999px; background:var(--surface2); font-size:12.5px; font-weight:700; color:var(--mid); text-align:center; } .range button.on { background:var(--ink); color:#fff; }
+.nr { display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--line); } .nr:first-of-type { border-top:0; }
+.nr .tt { flex:1; min-width:0; } .nr .t1 { font-size:14.5px; font-weight:620; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .nr .t2 { font-size:12px; color:var(--mid); margin-top:1px; }
+.chip { font:800 13px ui-monospace,Consolas,monospace; padding:4px 10px; border-radius:999px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.peso { width:34px; height:5px; border-radius:3px; background:var(--surface2); overflow:hidden; margin-top:5px; } .peso i { display:block; height:100%; background:var(--soft); }
+.spieg { font-size:12px; color:var(--mid); margin-top:4px; }
+</style></head><body>
+<h1>Storico del margine di stima</h1>
+<p class="sub">Si apre toccando la targhetta «Correzione alle tue stime» in Priorità. Telefono a misura reale (Nothing Phone 4a) ridotto al 78%. La demo parte da sola; puoi anche toccare tu la targhetta (pulsa) e il pulsante «‹ Priorità» per tornare.</p>
+<div class="riga">
+ <div class="telw"><div class="tel" id="tel">
+  <div class="stato"><span>9:41</span><span>◖◗ 5G ▮</span></div><div class="foro"></div><div class="gesto"></div>
+  <div class="schermo" id="home"><div class="top">Priorità</div>
+   <div class="acc tocca" id="targ"><div><div class="t">Correzione alle tue stime</div><div class="s">Stimi meno del necessario · Stime giuste</div></div><div style="display:flex;align-items:center"><span class="n" style="color:var(--ok)">+9%</span><span class="freccia">›</span></div></div>
+   <div class="rg"><i>1</i><div>Preparare la dichiarazione dei redditi<small>Tasse 2026 · 2 h</small></div></div><div class="rg"><i>2</i><div>Chiamare l'idraulico<small>15 min</small></div></div><div class="rg"><i>3</i><div>Inviare i documenti al commercialista<small>Tasse 2026 · 30 min</small></div></div></div>
+  <div class="pag" id="pag"></div>
+ </div></div>
+ <div class="note"><div class="ctrl"><button id="p">▶ Rivedi l'apertura</button></div>
+  <ul><li><b>In alto:</b> il margine attuale grande, col colore del livello (verde fino a ±15%, ambra fino a ±30%, rosso oltre) e una frase.</li>
+  <li><b>Come sono andate le note:</b> una barra divisa per quante sono state giuste, medie o sbagliate.</li>
+  <li><b>Le ultime note:</b> grafico a barre, una per nota (verso l'alto = ci hai messo più del previsto), con la barra più chiara per le note più vecchie, che pesano meno nel margine.</li>
+  <li><b>L'elenco:</b> ogni nota con stimato → reale, scostamento colorato, data e quanto pesa oggi nel calcolo. Toccandola si apre la scheda.</li>
+  <li><b>Intervallo:</b> ultime 10, ultime 30 o tutte.</li></ul>
+  <p>Come pesa una nota: ogni 21 giorni il suo peso si dimezza (è la regola del margine). Una nota fatta oggi pesa 100%, una di 3 settimane fa 50%.</p></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const OGGI = 0; // giorni fa
+// ultime note completate (dalla più recente): titolo, tipo, stima (min), reale (min), giorni fa
+const NOTE = [
+ ['Scrivere la relazione trimestrale', 90, 72, 0], ['Chiamare l\'idraulico', 15, 14, 1], ['Preparare la dichiarazione dei redditi', 120, 150, 2], ['Fare la spesa', 45, 40, 3], ['Inviare i documenti al commercialista', 30, 28, 5],
+ ['Aggiornare il sito', 90, 125, 7], ['Prenotare la revisione dell\'auto', 20, 16, 8], ['Pagare il bollo', 15, 25, 10], ['Riordinare la cartella documenti', 60, 95, 12], ['Scrivere il verbale', 40, 38, 14],
+ ['Telefonata al dentista', 10, 22, 16], ['Preparare la presentazione', 120, 100, 19], ['Rispondere alle email', 30, 55, 22], ['Studiare il capitolo 4', 60, 85, 26], ['Montare la libreria', 90, 150, 30], ['Cambiare la lampadina', 10, 8, 33],
+ ['Fare il bucato', 20, 35, 37], ['Revisione del budget', 60, 110, 41], ['Sistemare il garage', 120, 210, 47], ['Compilare il modulo', 25, 50, 52],
+].map(([t, s, r, g]) => ({ t, s, r, g, sc: Math.round((r - s) / s * 100), peso: Math.pow(.5, g / 21) }));
+const COL = { buono: '#2F7D5B', medio: '#B7791F', sbagliato: '#D1430B' }, SOFT = { buono: '#E3F1EA', medio: '#FBEBD0', sbagliato: '#FDEBE2' };
+const liv = (v) => { const m = Math.abs(v); return m <= 15 ? 'buono' : m <= 30 ? 'medio' : 'sbagliato'; };
+const pc = (v) => v > 0 ? '+' + v + '%' : v < 0 ? '−' + (-v) + '%' : '0%';
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const quando = (g) => g === 0 ? 'oggi' : g === 1 ? 'ieri' : g < 7 ? g + ' giorni fa' : g < 14 ? 'una settimana fa' : Math.round(g / 7) + ' settimane fa';
+let N = 10;
+function pagina() {
+  const tutte = NOTE; const elenco = N === 0 ? tutte : tutte.slice(0, N);
+  const somma = tutte.reduce((a, n) => a + n.peso * n.sc, 0) / tutte.reduce((a, n) => a + n.peso, 0); const marg = Math.round(somma);
+  const tn = document.querySelector('#targ .n'); tn.textContent = pc(marg); tn.style.color = COL[liv(marg)]; document.querySelector('#targ .s').textContent = (marg > 0 ? 'Stimi meno del necessario' : 'Stimi più del necessario') + ' · ' + (liv(marg) === 'buono' ? 'Stime giuste' : liv(marg) === 'medio' ? 'Poco fuori' : 'Molto fuori');
+  const cont = { buono: 0, medio: 0, sbagliato: 0 }; elenco.forEach((n) => cont[liv(n.sc)]++);
+  const tot = elenco.length;
+  const ord = [...elenco].reverse(); // dalla più vecchia alla più recente per il grafico
+  const nn = ord.length, w = Math.min(24, 280 / nn * .62), X = (i) => 10 + (i / Math.max(1, nn - 1)) * 280, Y = (v) => 50 - Math.max(-60, Math.min(60, v)) * .75;
+  const barre = ord.map((n, i) => { const su = n.sc >= 0, y = su ? Y(n.sc) : 50, h = Math.max(1.5, Math.abs(Y(n.sc) - 50)); return `<rect x="${X(i) - w / 2}" y="${y}" width="${w}" height="${h}" rx="3.5" fill="${COL[liv(n.sc)]}" opacity="${(.35 + .65 * n.peso).toFixed(2)}" ${i === nn - 1 ? 'stroke="#111" stroke-width="1.6"' : ''}/>`; }).join('');
+  $('pag').innerHTML = `<div class="back" id="back">‹ Priorità</div><div class="titolo">Storico del margine</div><div class="sottot">Le ultime note completate con stima e tempo reale</div>
+  <div class="scroll">
+   <div class="card"><div class="su">Margine attuale</div><div class="grande"><span class="n" style="color:${COL[liv(marg)]}">${pc(marg)}</span><span class="e" style="color:${COL[liv(marg)]}">${liv(marg) === 'buono' ? 'Stime giuste' : liv(marg) === 'medio' ? 'Un po\' fuori' : 'Molto fuori'}</span></div>
+    <div class="fr">${marg > 0 ? 'Stimi meno del necessario: in media ci metti il ' + marg + '% in più.' : marg < 0 ? 'Stimi più del necessario.' : 'Le tue stime sono centrate.'} Le note recenti contano di più.</div></div>
+   <div class="card"><div class="su">Come sono andate</div>
+    <div class="distr">${['buono', 'medio', 'sbagliato'].map((k) => `<i style="width:${cont[k] / tot * 100}%;background:${COL[k]}"></i>`).join('')}</div>
+    <div class="leg"><span style="--c:${COL.buono}"><b>${cont.buono}</b> giuste (±15%)</span><span style="--c:${COL.medio}"><b>${cont.medio}</b> medie (±30%)</span><span style="--c:${COL.sbagliato}"><b>${cont.sbagliato}</b> sbagliate</span></div></div>
+   <div class="range" id="range">${[[10, 'Ultime 10'], [30, 'Ultime 30'], [0, 'Tutte']].map(([v, l]) => `<button data-n="${v}" class="${N === v ? 'on' : ''}">${l}</button>`).join('')}</div>
+   <div class="card" style="margin-top:10px"><div class="su">Scostamento di ogni nota</div>
+    <svg viewBox="0 0 300 100"><rect width="300" height="50" y="0" fill="#FDEBE2" opacity=".55"/><rect width="300" height="50" y="50" fill="#E3F1EA" opacity=".55"/><line x1="0" y1="50" x2="300" y2="50" stroke="#919199" stroke-dasharray="3 4"/><line x1="0" y1="${Y(15)}" x2="300" y2="${Y(15)}" stroke="#2F7D5B" stroke-dasharray="2 4" opacity=".5"/><line x1="0" y1="${Y(-15)}" x2="300" y2="${Y(-15)}" stroke="#2F7D5B" stroke-dasharray="2 4" opacity=".5"/>${barre}</svg>
+    <div class="assi"><span>più vecchia</span><span>più recente</span></div><div class="spieg">Più chiara = nota più vecchia, pesa meno. Le righe verdi tratteggiate sono ±15%.</div></div>
+   <div class="card"><div class="su">Le note</div>${elenco.map((n) => `<div class="nr"><div class="tt"><div class="t1">${n.t}</div><div class="t2">${nome(n.s)} → ${nome(n.r)} · ${quando(n.g)}</div></div><div style="text-align:right"><span class="chip" style="color:${COL[liv(n.sc)]};background:${SOFT[liv(n.sc)]}">${pc(n.sc)}</span><div class="peso" style="margin-left:auto" title="peso nel calcolo"><i style="width:${n.peso * 100}%"></i></div></div></div>`).join('')}
+    <div class="spieg">La barretta sotto la percentuale è il peso della nota nel margine oggi.</div></div>
+  </div>`;
+  $('back').onclick = chiudi; document.querySelectorAll('#range button').forEach((b) => b.onclick = () => { N = +b.dataset.n; const y = document.querySelector('#pag .scroll').scrollTop; pagina(); document.querySelector('#pag .scroll').scrollTop = y; $('pag').classList.add('on'); });
+}
+function apri() { pagina(); $('targ').classList.remove('tocca'); $('pag').classList.add('on'); }
+function chiudi() { $('pag').classList.remove('on'); }
+$('targ').onclick = apri;
+async function demo() { chiudi(); $('targ').classList.add('tocca'); await new Promise((r) => setTimeout(r, 1800)); apri(); }
+$('p').onclick = demo; pagina(); demo();
+</script></body></html>

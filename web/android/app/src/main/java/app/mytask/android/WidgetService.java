@@ -78,8 +78,7 @@ public class WidgetService extends RemoteViewsService {
             RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.riga_sezione);
             v.setTextViewText(R.id.sez_nome, o.optString("h"));
             v.setTextColor(R.id.sez_nome, colore("#65656E", "#A5A5B0"));
-            long m = o.optLong("m", 0);
-            v.setTextViewText(R.id.sez_tempo, m > 0 ? WidgetDati.durata(m) : "");
+            v.setTextViewText(R.id.sez_tempo, ""); // nessuna stima del tempo totale: la compili una nota alla volta
             v.setTextColor(R.id.sez_tempo, colore("#2F7D5B", "#6FCF9B"));
             v.setOnClickFillInIntent(R.id.sez_riga, new Intent().putExtra("azione", "apri")); // anche l'intestazione apre l'app
             return v;

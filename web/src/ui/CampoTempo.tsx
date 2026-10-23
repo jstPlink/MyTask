@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { scomponi } from '../../../shared/tempo.ts';
-import { percentuale, tempoAtteso } from '../../../shared/stima.ts';
+import { percentuale, tempoAtteso, livelloMargine } from '../../../shared/stima.ts';
 import { clsx, nomeTempo } from '../lib/util.ts';
 import { useLayer } from './nav.tsx';
 
@@ -94,7 +94,7 @@ function SelettoreTempo({ label, iniziale, margine, onProgetto, onFatto, onChiud
         <div className="t1" style={{ fontSize: 18 }}>{label}</div>
         <div className={clsx('rot-totale', grande && 'grande')} aria-live="polite">{totale ? nomeTempo(totale) : 'Nessuna stima'}</div>
         {margine !== undefined && totale > 0 && (
-          <div className="rot-margine"><span className={clsx('rot-pc', margine > 0.005 && 'mg-su', margine < -0.005 && 'mg-giu')}>{percentuale(margine)}</span><span>{margine > 0.005 ? 'da aggiungere: ' : margine < -0.005 ? 'stime abbondanti: ' : ''}in conto {nomeTempo(atteso)}</span></div>
+          <div className="rot-margine"><span className={clsx('rot-pc', `mg-${livelloMargine(margine)}`)}>{percentuale(margine)}</span><span>{margine > 0.005 ? 'da aggiungere: ' : margine < -0.005 ? 'stime abbondanti: ' : ''}in conto {nomeTempo(atteso)}</span></div>
         )}
         {grande && (
           <div className="rot-avviso" role="note">

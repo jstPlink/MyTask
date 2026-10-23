@@ -8,7 +8,7 @@ import { useAdesso, useItems, useSessione } from '../lib/hooks.ts';
 import { tempoDi } from '../lib/sessione.ts';
 import { formatoCronometro } from '../../../shared/sessione.ts';
 import { stimaProgetto } from '../../../shared/views.ts';
-import { percentuale } from '../../../shared/stima.ts';
+import { livelloMargine, percentuale } from '../../../shared/stima.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
 import { GlifoTipo } from './Icone.tsx';
 import { avanzaStato, statoVisto } from '../lib/actions.ts';
@@ -279,10 +279,9 @@ export function ImportanzaDoppia({ valore, onChange, label }: { valore?: number;
   );
 }
 
-/** Margine delle stime con segno: rosso se positivo (conviene aggiungere tempo), verde se negativo (stime abbondanti). */
+/** Margine delle stime con segno: il colore dice quanto è giusta la stima, vicino a zero è bene (verde fino a ±15%, ambra fino a ±30%, rosso oltre). */
 export function Margine({ valore }: { valore: number }) {
-  const p = Math.round(valore * 100);
-  return <span className={clsx('mg', p > 0 && 'mg-su', p < 0 && 'mg-giu')}>{percentuale(valore)}</span>;
+  return <span className={clsx('mg', `mg-${livelloMargine(valore)}`)}>{percentuale(valore)}</span>;
 }
 
 /** Unisce i pezzi della riga grigia con « · » (accetta anche elementi, non solo testo). */

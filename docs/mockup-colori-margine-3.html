@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: barra del margine di stima, versione finale</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4; --ok:#2F7D5B; --med:#B7791F; --no:#D1430B; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } h2 { font-size:16px; margin:28px 0 6px; } .sub { color:var(--mid); margin:0 0 14px; max-width:840px; }
+.slider { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px 18px; max-width:760px; margin-bottom:8px; } .slider input { width:100%; } .v { font:800 22px ui-monospace,Consolas,monospace; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:16px; max-width:420px; }
+.targ { display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:11px 14px; margin-bottom:12px; } .targ .t { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--soft); font-weight:700; } .targ .s { font-size:11.5px; color:var(--mid); margin-top:2px; } .targ .n { font:800 26px/1.1 ui-monospace,Consolas,monospace; }
+/* barra: la stima è sempre a sinistra con la sua etichetta; positivo = coda oltre la riga, negativo = la stima si accorcia e la coda arriva fino alla riga */
+.pista { position:relative; display:flex; height:30px; border-radius:8px; background:var(--surface2); overflow:hidden; }
+.base { flex:none; background:var(--soft); display:grid; place-items:center; color:#fff; font-size:11.5px; font-weight:700; white-space:nowrap; overflow:hidden; transition:width .5s; }
+.coda { flex:none; position:relative; transition:width .5s; } .coda b { position:absolute; inset:0; display:grid; place-items:center; color:#fff; font-size:11px; font-weight:800; white-space:nowrap; text-shadow:0 0 3px rgba(0,0,0,.45); }
+.lim { position:absolute; top:0; bottom:0; width:2px; background:var(--ink); opacity:.75; left:62.5%; }
+.conto { font-size:13px; color:var(--mid); margin-top:8px; } .conto b { color:var(--ink); }
+.griglia { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; max-width:1100px; } .es { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:12px 14px; } .es .e { display:flex; justify-content:space-between; font-size:12px; color:var(--mid); margin-bottom:6px; } .es .e b { font:800 14px ui-monospace,Consolas,monospace; }
+.regola { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0; } .liv { border-radius:14px; padding:9px 14px; background:var(--surface); border:1px solid var(--line); font-size:13px; } .pall { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+.nota { max-width:840px; color:var(--mid); font-size:13px; margin-top:8px; }
+</style></head><body>
+<h1>Barra del margine di stima: versione unificata</h1>
+<p class="sub">Stile della prima barra (la stima si accorcia, la coda colorata arriva fino alla riga), con il <b>+ e il −</b> scritti davanti ai minuti, e il <b>tempo stimato sempre scritto a sinistra</b> dentro la barra. Colori: buono fino a ±15%, medio fino a ±30%, sbagliato oltre. Trascina il cursore per provare.</p>
+<div class="slider"><div>Margine: <span class="v" id="val"></span></div><input id="r" type="range" min="-60" max="120" value="-20"></div>
+<div class="regola"><div class="liv"><span class="pall" style="background:var(--ok)"></span>Buono · fino a ±15%</div><div class="liv"><span class="pall" style="background:var(--med)"></span>Medio · oltre 15% fino a ±30%</div><div class="liv"><span class="pall" style="background:var(--no)"></span>Sbagliato · oltre ±30%</div></div>
+
+<h2>Come appare nel foglio dopo «Fatta»</h2>
+<div class="card"><div class="targ"><div><div class="t">Margine delle tue stime</div><div class="s" id="sotto"></div></div><span class="n" id="num"></span></div><div id="barra"></div></div>
+<p class="nota">La riga nera è la stima. Con un margine <b>positivo</b> (hai stimato troppo poco) la stima occupa tutta la barra a sinistra e la coda tratteggiata va oltre la riga, con «+N min». Con un margine <b>negativo</b> (hai sovrastimato) la barra della stima si accorcia verso sinistra e la coda tratteggiata riempie il tratto fino alla riga, con «−N min»: il tempo da mettere in conto è dove finisce la parte grigia. L'etichetta «Stima 1 h 30 min» resta sempre a sinistra, nella parte grigia (se la barra diventa troppo corta si accorcia per entrarci).</p>
+
+<h2>Esempi a confronto</h2>
+<div class="griglia" id="es"></div>
+<script>
+const COL = { buono: '#2F7D5B', medio: '#B7791F', sbagliato: '#D1430B' };
+const liv = (v) => { const m = Math.abs(v); return m <= 15 ? 'buono' : m <= 30 ? 'medio' : 'sbagliato'; };
+const NOMI = { buono: 'Stime giuste', medio: 'Un po\' fuori', sbagliato: 'Molto fuori' };
+const c = (v) => COL[liv(v)];
+const pc = (v) => v > 0 ? '+' + v + '%' : v < 0 ? '−' + (-v) + '%' : '0%';
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const hat = (hex) => `repeating-linear-gradient(135deg,${hex} 0 5px,${hex}99 5px 10px)`;
+function barra(v, stima) {
+  const hex = c(v), m = Math.abs(v) / 100, min = Math.round(stima * m);
+  const base = v >= 0 ? 62.5 : 62.5 * (1 - Math.min(1, m)); const coda = 62.5 * Math.min(m, v >= 0 ? 1.6 : 1);
+  const etichetta = base >= 38 ? 'Stima ' + nome(stima) : base >= 22 ? nome(stima) : '';
+  const conto = Math.max(1, Math.round(stima * (1 + v / 100)));
+  return `<div class="pista"><div class="base" style="width:${base}%">${etichetta}</div><div class="coda" style="width:${coda}%;background:${hat(hex)}"><b>${min ? (v > 0 ? '+' : '−') + min + ' min' : ''}</b></div><div class="lim"></div></div><div class="conto">Per una stima di ${nome(stima)} metti in conto <b>${nome(conto)}</b></div>`;
+}
+function disegna() {
+  const v = +document.getElementById('r').value;
+  document.getElementById('val').textContent = pc(v) + ' · ' + NOMI[liv(v)]; document.getElementById('val').style.color = c(v);
+  const n = document.getElementById('num'); n.textContent = pc(v); n.style.color = c(v);
+  document.getElementById('sotto').textContent = (v > 0 ? 'Stimi meno del necessario' : v < 0 ? 'Stimi più del necessario' : 'Stime centrate') + ' · ' + NOMI[liv(v)];
+  document.getElementById('barra').innerHTML = barra(v, 90);
+}
+document.getElementById('r').addEventListener('input', disegna); disegna();
+document.getElementById('es').innerHTML = [[-55, 90], [-30, 60], [-20, 90], [-8, 45], [0, 30], [9, 90], [20, 60], [30, 120], [45, 90], [80, 30]].map(([v, s]) => `<div class="es"><div class="e"><span>${NOMI[liv(v)]}</span><b style="color:${c(v)}">${pc(v)}</b></div>${barra(v, s)}</div>`).join('');
+</script></body></html>

@@ -1,9 +1,9 @@
 // Dati per il widget «Oggi» della schermata Home di Android: le righe della lista di oggi, la sessione «Inizia» e un
 // archivio compatto delle note. L'app li calcola e li invia al widget (plugin Widget); il widget non legge i dati dell'app né usa la rete.
 import type { Item } from './types.ts';
-import { livelloPriorita, battitoBpm, isClosed, intensitaBattito } from './priority.ts';
+import { livelloPriorita, livelloDaPunteggio, battitoBpm, isClosed, intensitaBattito, intensitaBattitoCuriosita, punteggioCuriosita } from './priority.ts';
 import type { Sessione } from './sessione.ts';
-import { classificaPriorita, live, vistaOggi } from './views.ts';
+import { classificaCuriosita, classificaPriorita, live, vistaOggi } from './views.ts';
 import { chiaveTitolo } from './testo.ts';
 import { NOMI_TIPO } from './types.ts';
 
@@ -26,7 +26,7 @@ export interface RigaWidget {
   z?: 1;
   /** Tempo previsto in minuti (la stima della nota), se c'è. */
   p?: number;
-  /** «c» se è una curiosità (senza posizione in classifica, in una sezione sua); assente per le attività. */
+  /** «c» se è una curiosità (in una sezione sua, con la posizione nella classifica delle curiosità); assente per le attività. */
   k?: 'c';
   /** Interesse 1-5 di una curiosità, per il pallino verde che si riempie con l'interesse. */
   i?: number;
@@ -34,7 +34,7 @@ export interface RigaWidget {
 
 /**
  * Le cose da fare oggi per il widget, come in Priorità: prima le attività (`vistaOggi().fare`, con posizione in classifica,
- * priorità e battito), poi le curiosità (`k: 'c'`, senza posizione). Nessuna è tagliata: il widget scorre.
+ * priorità e battito), poi le curiosità (`k: 'c'`, con la posizione nella loro classifica). Nessuna è tagliata: il widget scorre.
  */
 export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[] {
   const classifica = classificaPriorita(items, oggi); // la stessa posizione che si legge nell'app
@@ -42,9 +42,15 @@ export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[]
   const attivita: RigaWidget[] = v.fare.slice(0, max).map((e) => ({
     id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi), b: battitoBpm(intensitaBattito(e.item, oggi), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, z: e.item.stato === 'in_pausa' ? 1 : undefined, p: e.item.sforzoMin || undefined,
   }));
-  const curiosita: RigaWidget[] = v.curiosita.map((i) => ({
-    id: i.id, t: i.titolo, l: 1, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, z: i.stato === 'in_pausa' ? 1 : undefined, p: i.sforzoMin || undefined, k: 'c', i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))),
-  }));
+  const posCur = classificaCuriosita(items); // la posizione nella classifica delle curiosità, come nell'app
+  const curiosita: RigaWidget[] = v.curiosita.map((i) => {
+    const punteggio = punteggioCuriosita(i);
+    const r = posCur.get(i.id);
+    return {
+      id: i.id, t: i.titolo, r, l: livelloDaPunteggio(punteggio), b: battitoBpm(intensitaBattitoCuriosita(punteggio), r) || undefined, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, z: i.stato === 'in_pausa' ? 1 : undefined, p: i.sforzoMin || undefined, k: 'c',
+      i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))),
+    };
+  });
   return [...attivita, ...curiosita];
 }
 

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: colore e barra del margine di stima</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4; --ok:#2F7D5B; --med:#B7791F; --no:#D1430B; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } h2 { font-size:16px; margin:28px 0 6px; } .sub { color:var(--mid); margin:0 0 14px; max-width:840px; }
+.slider { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px 18px; max-width:720px; margin-bottom:8px; } .slider input { width:100%; } .v { font:800 22px ui-monospace,Consolas,monospace; }
+.regola { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 6px; } .liv { border-radius:14px; padding:10px 14px; background:var(--surface); border:1px solid var(--line); min-width:180px; } .liv b { display:block; font-size:13px; } .liv span { font-size:12px; color:var(--mid); }
+.pall { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+.scala { display:flex; height:16px; border-radius:8px; overflow:hidden; max-width:720px; margin-top:10px; } .scala i { flex:1; } .assi { display:flex; justify-content:space-between; font-size:10.5px; color:var(--soft); max-width:720px; }
+.coppia { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:20px; max-width:1100px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:16px; } .card h3 { margin:0 0 8px; font-size:14px; }
+.targ { display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:11px 14px; margin-bottom:12px; } .targ .t { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--soft); font-weight:700; } .targ .s { font-size:11.5px; color:var(--mid); margin-top:2px; } .targ .n { font:800 26px/1.1 ui-monospace,Consolas,monospace; }
+.pista { position:relative; height:30px; border-radius:8px; background:var(--surface2); overflow:hidden; }
+.base { position:absolute; left:0; top:0; bottom:0; width:62.5%; background:var(--soft); display:grid; place-items:center; color:#fff; font-size:11px; font-weight:700; }
+.seg { position:absolute; top:0; bottom:0; display:grid; place-items:center; color:#fff; font-size:11px; font-weight:800; white-space:nowrap; transition:all .5s; }
+.mark { position:absolute; top:-1px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:9px solid var(--ink); margin-left:-6px; z-index:3; transition:left .5s; } .pistaw { position:relative; padding-top:10px; }
+.lim { position:absolute; top:-2px; bottom:-2px; left:62.5%; width:2px; background:var(--ink); opacity:.75; }
+.legenda { display:flex; justify-content:space-between; font-size:11px; color:var(--mid); margin-top:6px; } .conto { font-size:13px; color:var(--mid); margin-top:8px; } .conto b { color:var(--ink); }
+.chips { display:flex; flex-wrap:wrap; gap:7px; margin:8px 0; } .chip { font:800 13px ui-monospace,Consolas,monospace; padding:4px 10px; border-radius:999px; font-variant-numeric:tabular-nums; }
+.barre svg { display:block; width:100%; margin-top:8px; }
+table { border-collapse:collapse; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; } th, td { padding:7px 14px; text-align:left; font-size:13px; border-bottom:1px solid var(--line); } th { color:var(--mid); }
+.nota { max-width:840px; color:var(--mid); font-size:13px; margin-top:8px; }
+</style></head><body>
+<h1>Margine di stima: stessa regola nei due versi, e la sovrastima va a sinistra</h1>
+<p class="sub">Un'unica regola dei colori, uguale per i valori positivi e negativi, e una barra del tempo in cui il valore <b>si sposta a sinistra</b> quando hai sovrastimato, invece di allungarsi sempre oltre la stima. Trascina il cursore per provare.</p>
+<div class="slider"><div>Margine: <span class="v" id="val"></span></div><input id="r" type="range" min="-60" max="120" value="-20"></div>
+
+<h2>La regola dei colori (valore assoluto, uguale in positivo e in negativo)</h2>
+<div class="regola">
+ <div class="liv"><b><span class="pall" style="background:var(--ok)"></span>Buono · da −15% a +15%</b><span>stime giuste, verde</span></div>
+ <div class="liv"><b><span class="pall" style="background:var(--med)"></span>Medio · oltre 15% fino a 30%</b><span>un po' fuori, ambra</span></div>
+ <div class="liv"><b><span class="pall" style="background:var(--no)"></span>Sbagliato · oltre 30%</b><span>molto fuori, rosso</span></div>
+</div>
+<div class="scala" id="scala"></div><div class="assi"><span>−60%</span><span>−30</span><span>−15</span><span>0</span><span>+15</span><span>+30</span><span>+120%</span></div>
+
+<h2>La barra del tempo: prima e dopo</h2>
+<div class="coppia">
+ <div class="card"><h3>Prima: la coda cresce sempre verso destra</h3><div id="prima"></div></div>
+ <div class="card"><h3>Dopo: positivo a destra, negativo a sinistra</h3><div id="dopo"></div></div>
+</div>
+<p class="nota">La riga nera è la stima (il «previsto»). Con un margine <b>positivo</b> (hai stimato troppo poco) la coda tratteggiata va <b>oltre la riga, a destra</b>, e il tempo da mettere in conto è maggiore. Con un margine <b>negativo</b> (hai sovrastimato) il tratteggiato sta <b>a sinistra della riga</b>, dentro la barra, e il triangolino (il tempo da mettere in conto) <b>arretra a sinistra</b> quanto più sei largo; la barra della stima resta intera. Il colore dipende solo da quanto è lontano dallo zero.</p>
+
+<h2>Dove si vede il colore</h2>
+<div class="coppia"><div class="card"><h3>Targhetta in Priorità e barre delle ultime note</h3><div id="uso"></div></div>
+<div class="card"><h3>Tabella</h3><table id="tab"><thead><tr><th>Margine</th><th>Livello</th></tr></thead><tbody></tbody></table></div></div>
+<script>
+const COL = { buono: '#2F7D5B', medio: '#B7791F', sbagliato: '#D1430B' };
+const liv = (v) => { const m = Math.abs(v); return m <= 15 ? 'buono' : m <= 30 ? 'medio' : 'sbagliato'; };
+const NOMI = { buono: 'Stime giuste', medio: 'Un po\' fuori', sbagliato: 'Molto fuori' };
+const c = (v) => COL[liv(v)];
+const tint = (hex) => hex + '24';
+const pc = (v) => v > 0 ? '+' + v + '%' : v < 0 ? '−' + (-v) + '%' : '0%';
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const hat = (hex) => `repeating-linear-gradient(135deg,${hex} 0 5px,${hex}99 5px 10px)`;
+const STIMA = 90;
+function barraPrima(v) { // vecchio: coda verso destra; con margine negativo la base si accorcia e la coda verde sta a destra della base
+  const hex = c(v), m = Math.abs(v) / 100; const base = v >= 0 ? 62.5 : 62.5 * (1 - m), coda = 62.5 * m;
+  return `<div class="pista"><div class="base" style="width:${base}%">Stima ${nome(STIMA)}</div><div class="seg" style="left:${base}%;width:${coda}%;background:${hat(hex)}">${Math.round(STIMA * m)} min</div><div class="lim"></div></div><div class="legenda"><span>0</span><span>${v >= 0 ? 'da aggiungere' : 'stima accorciata, coda fino alla riga'}</span></div>`;
+}
+function barraDopo(v) {
+  const hex = c(v), m = Math.abs(v) / 100; const min = Math.round(STIMA * m);
+  const seg = v >= 0 ? `<div class="seg" style="left:62.5%;width:${62.5 * m}%;background:${hat(hex)}">${min ? '+' + min + ' min' : ''}</div>` : `<div class="seg" style="left:${62.5 * (1 - m)}%;width:${62.5 * m}%;background:${hat(hex)}">${min ? '−' + min + ' min' : ''}</div>`;
+  const conto = Math.max(1, Math.round(STIMA * (1 + v / 100)));
+  return `<div class="pistaw"><span class="mark" style="left:${62.5 * (1 + v / 100)}%" title="tempo da mettere in conto"></span><div class="pista"><div class="base">${v >= 0 ? 'Stima ' + nome(STIMA) : ''}</div>${seg}<div class="lim"></div></div></div><div class="legenda"><span>0</span><span>${v >= 0 ? 'da aggiungere → destra' : '← sovrastimato: il valore va a sinistra'}</span></div><div class="conto">Per una stima di ${nome(STIMA)} metti in conto <b>${nome(conto)}</b></div>`;
+}
+const NOTE = [30, 12, 25, -5, 10, -12, 8, -20, -35, 40];
+function uso(v) {
+  const barre = NOTE.map((o, i) => { const x = 18 + i * 29.3, y = o >= 0 ? 50 - Math.min(50, o) * .9 : 50, h = Math.min(50, Math.abs(o)) * .9; return `<rect x="${x - 10}" y="${y}" width="20" height="${h}" rx="4" fill="${c(o)}" ${i === 7 ? 'stroke="#111" stroke-width="2"' : 'opacity=".85"'}/>`; }).join('');
+  return `<div class="targ"><div><div class="t">Correzione alle tue stime</div><div class="s">${v > 0 ? 'Stimi meno del necessario' : v < 0 ? 'Stimi più del necessario' : 'Stime centrate'} · ${NOMI[liv(v)]}</div></div><span class="n" style="color:${c(v)}">${pc(v)}</span></div>
+  <div class="chips">${[-45, -30, -15, -8, 0, 8, 15, 16, 30, 31, 60].map((x) => `<span class="chip" style="color:${c(x)};background:${tint(c(x))}">${pc(x)}</span>`).join('')}</div>
+  <div class="barre"><svg viewBox="0 0 300 100"><rect width="300" height="100" fill="#F7F6F3"/><line x1="0" y1="50" x2="300" y2="50" stroke="#919199" stroke-dasharray="3 4"/>${barre}</svg></div>`;
+}
+function disegna() {
+  const v = +document.getElementById('r').value; document.getElementById('val').textContent = pc(v) + ' · ' + NOMI[liv(v)]; document.getElementById('val').style.color = c(v);
+  document.getElementById('prima').innerHTML = barraPrima(v); document.getElementById('dopo').innerHTML = barraDopo(v); document.getElementById('uso').innerHTML = uso(v);
+}
+let s = ''; for (let v = -60; v <= 120; v += 2) s += `<i style="background:${c(v)}"></i>`; document.getElementById('scala').innerHTML = s;
+document.getElementById('r').addEventListener('input', disegna); disegna();
+document.querySelector('#tab tbody').innerHTML = [-60, -31, -30, -16, -15, -5, 0, 5, 15, 16, 30, 31, 80, 120].map((v) => `<tr><td><span class="chip" style="color:${c(v)};background:${tint(c(v))}">${pc(v)}</span></td><td>${NOMI[liv(v)]}</td></tr>`).join('');
+</script></body></html>

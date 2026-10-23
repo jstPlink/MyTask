@@ -47,14 +47,36 @@ const misurate = (items: Item[]) => items.filter((i) => !i.eliminato && i.tipo =
 /** Differenza di una singola attività in proporzione alla stima: (reale − stimato) / stimato. Positiva se la stima era troppo corta. */
 export const scostamento = (stimaMin: number, realeMin: number) => (realeMin - stimaMin) / stimaMin;
 
+/** Quanto pesa oggi una nota completata in `completatoTs`: 1 se è di adesso, si dimezza ogni EMIVITA_GIORNI. */
+export function pesoNota(completatoTs: number, adesso: number = Date.now()): number {
+  return 0.5 ** (Math.max(0, adesso - completatoTs) / 86_400_000 / EMIVITA_GIORNI);
+}
+
+/** Una nota dello storico del margine: stimato, reale, scostamento e peso nel calcolo di oggi. */
+export interface NotaStorico { item: Item; stimaMin: number; realeMin: number; scostamento: number; completatoTs: number; peso: number }
+
+/**
+ * Le note completate con stima e tempo reale, la più recente prima: sono quelle che formano il margine (pagina «Storico del margine»).
+ * Con `quante` (> 0) solo le ultime `quante`.
+ */
+export function storicoNote(items: Item[], adesso: number = Date.now(), quante = 0): NotaStorico[] {
+  const lista = misurate(items)
+    .filter((i) => !!i.sforzoMin)
+    .map((i) => {
+      const ts = i.completatoTs ?? i.aggiornato;
+      return { item: i, stimaMin: i.sforzoMin!, realeMin: i.durataRealeMin!, scostamento: scostamento(i.sforzoMin!, i.durataRealeMin!), completatoTs: ts, peso: pesoNota(ts, adesso) };
+    })
+    .sort((a, b) => b.completatoTs - a.completatoTs);
+  return quante > 0 ? lista.slice(0, quante) : lista;
+}
+
 /** Margine atteso: media pesata degli scostamenti delle attività misurate con una stima; le più recenti pesano di più. */
 export function margineAtteso(items: Item[], adesso = Date.now()): number {
   let somma = 0;
   let pesi = 0;
   for (const i of misurate(items)) {
     if (!i.sforzoMin) continue;
-    const giorni = Math.max(0, (adesso - (i.completatoTs ?? i.aggiornato)) / 86_400_000);
-    const peso = 0.5 ** (giorni / EMIVITA_GIORNI);
+    const peso = pesoNota(i.completatoTs ?? i.aggiornato, adesso);
     somma += peso * scostamento(i.sforzoMin, i.durataRealeMin!);
     pesi += peso;
   }
@@ -90,6 +112,18 @@ export function stimaPer(titolo: string, items: Item[]): Stima | undefined {
 
 /** Quante attività con stima e tempo reale hanno già contribuito al margine. */
 export const stimeMisurate = (items: Item[]) => misurate(items).filter((i) => !!i.sforzoMin).length;
+
+/** Quanto è giusto un margine: vicino a zero va bene, in qualsiasi direzione (+ o −). */
+export type LivelloMargine = 'buono' | 'medio' | 'sbagliato';
+/** Fino a ±15% la stima è buona, fino a ±30% media, oltre ±30% sbagliata (stessi limiti per il margine positivo e negativo). */
+export const SOGLIA_MARGINE_BUONO = 15;
+export const SOGLIA_MARGINE_MEDIO = 30;
+
+/** Livello di un margine (in proporzione: 0,15 = +15%) o di uno scostamento: dipende solo dal valore assoluto, arrotondato alla percentuale intera. */
+export function livelloMargine(valore: number): LivelloMargine {
+  const p = Math.abs(Math.round(valore * 100));
+  return p <= SOGLIA_MARGINE_BUONO ? 'buono' : p <= SOGLIA_MARGINE_MEDIO ? 'medio' : 'sbagliato';
+}
 
 /** Margine con segno: «+15%», «−20%», «0%». */
 export const percentuale = (margine: number) => {

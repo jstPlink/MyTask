@@ -35,11 +35,17 @@ export function Capture() {
 
   const chiudi = () => { rec.current?.stop(); nav.openCapture(false); };
 
-  const salva = () => {
+  const salva = (apri = false) => {
     const titolo = testo.trim();
     if (!titolo) return;
     const item = nuovaVoce({ tipo: 'nota', titolo, inbox: true }); // bozza da smistare in Inbox: il tipo lo sceglie l'utente
     saveItem(item);
+    if (apri) {
+      // «Salva e apri»: la scheda della nota si apre subito per configurarla (l'apertura chiude da sola la finestra di cattura)
+      rec.current?.stop();
+      nav.push({ k: 'item', id: item.id });
+      return;
+    }
     nav.openCapture(false);
     mostraToast('Bozza salvata in Inbox', { label: 'Apri', fn: () => nav.push({ k: 'item', id: item.id }) });
   };
@@ -84,12 +90,13 @@ export function Capture() {
       <div className="sheet capture-sheet" role="dialog" aria-label="Cattura rapida">
         <div className="grip" />
         {!nav.wide && elenco}
-        <form onSubmit={(e) => { e.preventDefault(); salva(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); salva(false); }}>
           <div className="input">
             <input autoFocus value={testo} onChange={(e) => setTesto(e.target.value)} placeholder="Cosa ti è venuto in mente?" aria-label="Appunto" />
             {Voce && <button type="button" className={clsx('mic', ascolta && 'on')} aria-label={ascolta ? 'Smetti di ascoltare' : 'Detta'} onClick={parla}>●</button>}
           </div>
           <div className="btns">
+            <button type="button" className="btn" disabled={!testo.trim()} onClick={() => salva(true)}>Salva e apri</button>
             <button type="submit" className="btn solid" disabled={!testo.trim()}>Salva in Inbox</button>
           </div>
         </form>

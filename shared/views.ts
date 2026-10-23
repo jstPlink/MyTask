@@ -5,7 +5,7 @@ import type { Item } from './types.ts';
 import { chiaveTitolo } from './testo.ts';
 import { addDays, diffDays } from './dates.ts';
 import {
-  dueDate, isClosed, isOpen, chiavePriorita, withInheritance,
+  dueDate, isClosed, isOpen, chiavePriorita, punteggioCuriosita, withInheritance,
 } from './priority.ts';
 import { routineDueToday } from './routine.ts';
 
@@ -156,7 +156,7 @@ export function posizionePriorita(items: Item[], nota: Item, today: string, now:
 export interface VistaOggi {
   routine: Item[];
   fare: Entry[];
-  /** Le curiosità più interessanti, in un gruppo separato dalle attività (non entrano nella classifica numerata). */
+  /** Le prime curiosità della loro classifica (tempo stimato e interesse), in un gruppo separato dalle attività con la loro numerazione. */
   curiosita: Item[];
   prossimi: Entry[];
   inbox: number;
@@ -165,21 +165,33 @@ export interface VistaOggi {
 /** Quante curiosità mostra al massimo la pagina Priorità nel gruppo «Curiosità». */
 export const MAX_CURIOSITA_OGGI = 5;
 
-/** Le curiosità da proporre oggi: prima le più interessanti, a parità quelle aggiornate da più tempo; le parcheggiate no. */
-export function curiositaDaSmaltire(items: Item[], max: number = MAX_CURIOSITA_OGGI): Item[] {
+/**
+ * Le curiosità aperte (non parcheggiate) in ordine di priorità: prima il punteggio della formula delle curiosità (tempo stimato 55% e
+ * interesse 45%, `punteggioCuriosita`), a parità l'interesse più alto e la curiosità aggiornata da più tempo.
+ */
+export function curiositaPerPriorita(items: Item[]): Item[] {
   return curiosita(items)
     .filter((c) => c.stato !== 'parcheggiato')
-    .sort((a, b) => (b.interesse ?? 3) - (a.interesse ?? 3) || a.aggiornato - b.aggiornato)
-    .slice(0, max);
+    .sort((a, b) => punteggioCuriosita(b) - punteggioCuriosita(a) || (b.interesse ?? 3) - (a.interesse ?? 3) || a.aggiornato - b.aggiornato || a.id.localeCompare(b.id));
 }
 
-/** Quante note mostra Priorità al massimo: le 5 con la posizione migliore; le scadute o in scadenza oggi compaiono sempre, anche se fuori dalle prime 5. */
+/** Posizione di ogni curiosità aperta nella loro classifica (1 = la prima da approfondire): è il numero accanto alla riga. */
+export function classificaCuriosita(items: Item[]): Map<string, number> {
+  return new Map(curiositaPerPriorita(items).map((c, n) => [c.id, n + 1]));
+}
+
+/** Le curiosità da proporre oggi: le prime della classifica delle curiosità. */
+export function curiositaDaSmaltire(items: Item[], max: number = MAX_CURIOSITA_OGGI): Item[] {
+  return curiositaPerPriorita(items).slice(0, max);
+}
+
+/** Quante attività mostra Priorità al massimo: le 5 con la posizione migliore, e basta (niente scadute o «in pausa» oltre la quinta). */
 const MAX_OGGI = 5;
 
 /**
  * Cosa compare in Priorità: le routine del giorno, le 5 note con la posizione migliore nella classifica unica (anche con una scadenza futura;
- * un progetto con il suo prossimo passo; le esperienze solo se scadute o in scadenza oggi), più le scadute e quelle di oggi che restassero fuori,
- * le scadenze dei prossimi 7 giorni e il numero di note in Inbox. Il numero che ogni nota porta è la sua posizione nella classifica unica.
+ * un progetto con il suo prossimo passo; le esperienze solo se scadute o in scadenza oggi), mai di più, poi le scadenze dei prossimi 7 giorni
+ * e il numero di note in Inbox. Il numero che ogni nota porta è la sua posizione nella classifica unica.
  */
 export function vistaOggi(items: Item[], today: string, now: number = Date.now()): VistaOggi {
   const cand = candidatiOggi(items, today, now);
@@ -189,13 +201,8 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
   const perClassifica = (a: Entry, b: Entry) => b.punteggio - a.punteggio || posizione(a) - posizione(b) || a.item.id.localeCompare(b.item.id);
   const dovuta = (e: Entry) => { const d = due(e); return d !== undefined && diffDays(d, today) <= 0; };
 
-  const migliori = cand.filter((e) => e.item.tipo !== 'esperienza' || dovuta(e)).sort(perClassifica).slice(0, MAX_OGGI);
-  const presenti = new Set(migliori.map((e) => e.item.id));
-  const dovute = [...migliori, ...cand.filter((e) => dovuta(e) && !presenti.has(e.item.id))].sort(perClassifica);
-  // le note «in corso» o «in pausa» che non sono già in lista si aggiungono in coda, così restano sotto mano
-  const inLista = new Set(dovute.map((e) => e.item.id));
-  const inCorso = cand.filter((e) => (e.item.stato === 'in_corso' || e.item.stato === 'in_pausa') && !inLista.has(e.item.id)).sort(perClassifica);
-  const fare = [...dovute, ...inCorso];
+  // al massimo 5 attività, le migliori della classifica: nessuna aggiunta oltre la quinta
+  const fare = cand.filter((e) => e.item.tipo !== 'esperienza' || dovuta(e)).sort(perClassifica).slice(0, MAX_OGGI);
 
   const limite = addDays(today, 7);
   const prossimi = live(items)

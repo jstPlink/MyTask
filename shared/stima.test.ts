@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, margineAtteso, percentuale, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
+import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, margineAtteso, pesoNota, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
 
 let n = 0;
 const fatta = (titolo: string, sforzoMin: number | undefined, durataRealeMin: number | undefined): Item =>
@@ -80,4 +80,28 @@ test('stima: ultimeNote dà lo scostamento delle ultime note, dalla meno recente
   assert.ok(Math.abs(u[0] - 0.3) < 1e-9 && Math.abs(u[2] - 0.5) < 1e-9, 'le ultime tre, in ordine di completamento');
   assert.deepEqual(ultimeNote([]), []);
   assert.deepEqual(ultimeNote([fatta('Senza stima', undefined, 30)]), [], 'senza stima non conta');
+});
+
+test('stima: il livello del margine dipende dalla distanza da zero, uguale in positivo e in negativo', () => {
+  for (const [p, atteso] of [[0, 'buono'], [15, 'buono'], [16, 'medio'], [30, 'medio'], [31, 'sbagliato'], [120, 'sbagliato']] as const) {
+    assert.equal(livelloMargine(p / 100), atteso, `+${p}%`);
+    assert.equal(livelloMargine(-p / 100), atteso, `−${p}%`);
+  }
+  assert.equal(livelloMargine(0.151), 'buono', '15,1% si arrotonda a 15%');
+  assert.equal(livelloMargine(0.156), 'medio', '15,6% si arrotonda a 16%');
+});
+
+test('stima: lo storico elenca le note misurate dalla più recente, con scostamento e peso', () => {
+  const GG = 86_400_000;
+  const adesso = 100 * GG;
+  const a = { ...fatta('Vecchia', 60, 90), completatoTs: adesso - 21 * GG };
+  const b = { ...fatta('Recente', 60, 54), completatoTs: adesso };
+  const senza = fatta('Senza stima', undefined, 30);
+  const st = storicoNote([a, b, senza], adesso);
+  assert.deepEqual(st.map((n) => n.item.titolo), ['Recente', 'Vecchia']);
+  assert.ok(Math.abs(st[0].scostamento - (-0.1)) < 1e-9 && Math.abs(st[1].scostamento - 0.5) < 1e-9);
+  assert.equal(st[0].peso, 1);
+  assert.ok(Math.abs(st[1].peso - 0.5) < 1e-9, 'dopo 21 giorni il peso si dimezza');
+  assert.equal(storicoNote([a, b], adesso, 1).length, 1);
+  assert.equal(pesoNota(adesso, adesso), 1);
 });

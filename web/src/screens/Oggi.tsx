@@ -1,22 +1,22 @@
 /**
  * Priorità (la scheda `oggi`, prima «Oggi»): la schermata iniziale. In cima solo la targhetta del margine di stima («Correzione alle tue
- * stime»), poi l'elenco: le routine del giorno, le «Attività»
- * (`vistaOggi`: le 5 con la posizione migliore nella classifica unica, anche con scadenza futura, più le scadute o in scadenza oggi
- * che restassero fuori) e le «Curiosità». Non c'è più il blocco della nota in corso: quando una nota passa «in corso» la schermata
+ * stime», che toccata apre lo storico del margine), poi l'elenco: le routine del giorno, le «Attività»
+ * (`vistaOggi`: le 5 con la posizione migliore nella classifica unica, anche con scadenza futura, e basta) e le «Curiosità» (le prime 5 della
+ * loro classifica). Nessuna stima del tempo totale nelle intestazioni. Non c'è più il blocco della nota in corso: quando una nota passa «in corso» la schermata
  * a tutto schermo (`ui/InCorso.tsx`) riempie lo schermo.
  *
  * - Tocco su una riga: apre la scheda della nota; la casella apre il foglio degli stati.
  * - Le attività dello stesso progetto sono riunite sotto la testata del progetto, il numero è la posizione in classifica.
- * - «Curiosità»: dopo le attività, al massimo cinque curiosità (le più interessanti, a parità le più vecchie), senza posizione
- *   in classifica; la casella le segna come approfondite e toccando la riga si apre la nota.
+ * - «Curiosità»: dopo le attività, al massimo cinque curiosità, le prime della classifica delle curiosità (tempo stimato 55%, interesse 45%):
+ *   pallino numerato con la posizione, colorato e pulsante come quello delle attività; la casella le segna come approfondite.
  * - Telefono: titolo con i pulsanti tondi (Aspetto, Inbox, Altro) e «+» per la cattura. Da 900 px (`nav.wide`) la stessa
  *   colonna senza pulsanti né «+», che stanno nella barra laterale.
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { formatLong, formatShortYear } from '../../../shared/dates.ts';
-import { livelloPriorita, dueDate, daysOverdue, intensitaBattito } from '../../../shared/priority.ts';
-import { classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
+import { livelloPriorita, livelloDaPunteggio, dueDate, daysOverdue, intensitaBattito, intensitaBattitoCuriosita, punteggioCuriosita } from '../../../shared/priority.ts';
+import { classificaCuriosita, classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { formatoCronometro } from '../../../shared/sessione.ts';
@@ -25,8 +25,8 @@ import { segnaRoutine, statoVisto } from '../lib/actions.ts';
 import { tempoDi } from '../lib/sessione.ts';
 import { Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
-import { margineAtteso, percentuale, stimeMisurate, tempoAtteso } from '../../../shared/stima.ts';
-import { clsx, durataLavoro, nomeGiorniOre, nomeTempo } from '../lib/util.ts';
+import { margineAtteso, percentuale, stimeMisurate } from '../../../shared/stima.ts';
+import { clsx, nomeTempo } from '../lib/util.ts';
 
 /** Schermata Oggi (vedi l'intestazione del file). */
 export function Oggi() {
@@ -37,6 +37,7 @@ export function Oggi() {
   const v = useMemo(() => vistaOggi(items, oggi), [items, oggi]);
   const margine = useMemo(() => margineAtteso(items), [items]);
   const nMisurate = useMemo(() => stimeMisurate(items), [items]);
+  const posCuriosita = useMemo(() => classificaCuriosita(items), [items]); // la posizione nella classifica delle curiosità
   const classifica = useMemo(() => classificaPriorita(items, oggi), [items, oggi]); // la posizione è quella unica, uguale in ogni schermata
 
   // Riga grigia sotto il titolo: prossimo passo di un progetto, tempo stimato, ricorrenza.
@@ -90,35 +91,18 @@ export function Oggi() {
       onOpen={() => nav.push({ k: 'item', id: e.item.id })}
     />
   );
-  // Al posto del conteggio (sempre 5) il tempo necessario a finire le voci mostrate: somma delle stime, con quante ne sono prive.
-  // Accanto, il valore corretto col margine («2 h → 1 h 29 min»), colorato come il margine; a 0% resta solo il totale.
-  const tempoNecessario = (voci: { sforzoMin?: number }[]) => {
-    const minuti = voci.reduce((s, x) => s + (x.sforzoMin ?? 0), 0);
-    if (minuti <= 0) return undefined;
-    const senza = voci.filter((x) => !x.sforzoMin).length;
-    const nome = (m: number) => (m >= 1440 ? nomeGiorniOre(m) : durataLavoro(m * 60_000));
-    const conto = tempoAtteso(minuti, margine);
-    const diverso = Math.round(margine * 100) !== 0 && conto !== minuti;
-    return (
-      <span className="sz-tempi">
-        <span>{nome(minuti)}</span>
-        {diverso && <><i aria-hidden="true">→</i><span className={clsx('sz-conto', margine > 0 ? 'mg-su' : 'mg-giu')} title="Tempo in conto, col margine delle tue stime">{nome(conto)}</span></>}
-        {senza ? <span className="sz-senza">· {senza} senza stima</span> : null}
-      </span>
-    );
-  };
-  // Targhetta del margine di stima (parte da 0%): rosso se stimi troppo poco, verde se stimi più del necessario.
+  // Targhetta del margine di stima (parte da 0%): il colore dice quanto è giusta la stima, vicino a zero è bene (verde fino a ±15%, ambra fino a ±30%, rosso oltre).
   const accuratezza = (
-    <div className="acc" aria-label={`Correzione alle tue stime ${percentuale(margine)}`}>
+    <button className="acc" aria-label={`Correzione alle tue stime ${percentuale(margine)}: apri lo storico`} onClick={() => nav.push({ k: 'storicomargine' })}>
       <div>
         <div className="acc-t">Correzione alle tue stime</div>
         <div className="acc-s">{Math.round(margine * 100) > 0 ? 'Stimi meno del necessario' : Math.round(margine * 100) < 0 ? 'Stimi più del necessario' : nMisurate > 0 ? 'Stime centrate' : 'Ancora nessun dato'}</div>
       </div>
-      <Margine valore={margine} />
-    </div>
+      <span className="acc-dx"><Margine valore={margine} /><span className="acc-freccia" aria-hidden="true">›</span></span>
+    </button>
   );
   const prime = (
-    <Sezione titolo="Attività" dettaglio={tempoNecessario(v.fare.map((e) => e.item))}>
+    <Sezione titolo="Attività">
       {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Intrattenimento».</div>}
       {raggruppaPerProgetto(v.fare, items).map((g) => g.progetto
         ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
@@ -128,13 +112,15 @@ export function Oggi() {
 
   // Curiosità da smaltire: poche, sotto le attività, senza numero di priorità (hanno un interesse, non un'importanza).
   const curiosita = v.curiosita.length > 0 && (
-    <Sezione titolo="Curiosità" dettaglio={tempoNecessario(v.curiosita)}>
+    <Sezione titolo="Curiosità">
       {v.curiosita.map((c) => (
         <Row
           key={c.id}
           titolo={c.titolo} tipo="curiosita"
           meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, c.note?.split('\n')[0]].filter(Boolean).join(' · ') || undefined}
-          interesse={c.interesse ?? 3}
+          rank={posCuriosita.get(c.id)}
+          urgenza={intensitaBattitoCuriosita(punteggioCuriosita(c))}
+          level={livelloDaPunteggio(punteggioCuriosita(c))}
           check="square"
           centrato
           voce={c}

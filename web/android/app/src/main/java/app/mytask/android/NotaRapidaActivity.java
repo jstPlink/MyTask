@@ -1,6 +1,7 @@
 package app.mytask.android;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -149,6 +150,27 @@ public class NotaRapidaActivity extends Activity {
         }
     }
 
+    /** Mette la nota in coda per l'app (come «non assegnata» in Inbox); con `apriSubito` apre anche l'app sulla scheda della nota. */
+    private void salva(String testo, boolean apriSubito) {
+        if (testo.isEmpty()) { finish(); return; }
+        try {
+            JSONObject a = new JSONObject();
+            a.put("tipo", "nota");
+            a.put("testo", testo);
+            a.put("ts", System.currentTimeMillis());
+            if (apriSubito) a.put("apri", true);
+            WidgetDati.accoda(this, a);
+            if (apriSubito) {
+                Intent lancia = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                if (lancia != null) startActivity(lancia);
+            } else {
+                Toast.makeText(this, "Salvata nell’Inbox", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception ignored) {
+        }
+        finish();
+    }
+
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
@@ -219,6 +241,18 @@ public class NotaRapidaActivity extends Activity {
             @Override public void afterTextChanged(Editable e) { aggiornaSimili(e.toString()); }
         });
 
+        TextView apri = new TextView(this);
+        apri.setText("↗");
+        apri.setTextSize(20);
+        apri.setTextColor(accento);
+        apri.setTypeface(apri.getTypeface(), Typeface.BOLD);
+        apri.setGravity(Gravity.CENTER);
+        apri.setBackground(forma(campoBg, 0, accento, 1.5f, true));
+        apri.setContentDescription("Salva e apri la nota per configurarla");
+        LinearLayout.LayoutParams lpApri = new LinearLayout.LayoutParams(dp(46), dp(46));
+        lpApri.leftMargin = dp(8);
+        barra.addView(apri, lpApri);
+
         TextView invia = new TextView(this);
         invia.setText("↑");
         invia.setTextSize(22);
@@ -230,20 +264,9 @@ public class NotaRapidaActivity extends Activity {
         LinearLayout.LayoutParams lpInvia = new LinearLayout.LayoutParams(dp(46), dp(46));
         lpInvia.leftMargin = dp(8);
         barra.addView(invia, lpInvia);
-        invia.setOnClickListener(v -> {
-            String testo = campo.getText().toString().trim();
-            if (testo.isEmpty()) { finish(); return; }
-            try {
-                JSONObject a = new JSONObject();
-                a.put("tipo", "nota");
-                a.put("testo", testo);
-                a.put("ts", System.currentTimeMillis());
-                WidgetDati.accoda(this, a);
-                Toast.makeText(this, "Salvata nell’Inbox", Toast.LENGTH_SHORT).show();
-            } catch (Exception ignored) {
-            }
-            finish();
-        });
+        invia.setOnClickListener(v -> salva(campo.getText().toString().trim(), false));
+        // «Salva e apri»: salva la nota nell'Inbox e apre subito l'app sulla sua scheda, per configurarla
+        apri.setOnClickListener(v -> salva(campo.getText().toString().trim(), true));
 
         setContentView(radice);
         getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
