@@ -45,6 +45,7 @@ test('widget: dopo le attività ci sono le curiosità, con la posizione nella lo
   const c = r.filter((x) => x.k === 'c');
   assert.equal(c.length, 5, 'tutte e cinque le curiosità, nessuna tagliata');
   assert.deepEqual(c.map((x) => x.r), [1, 2, 3, 4, 5], 'ogni curiosità ha la sua posizione, da 1');
+  assert.ok(c.every((x) => x.b === undefined && x.l === 1), 'le curiosità non battono e non hanno il colore del livello');
   assert.equal(c[0].t, 'Curiosità 0', 'la più breve (25 min) e interessante è la prima');
   assert.ok(c.every((x) => x.i !== undefined && x.i >= 1 && x.i <= 5), 'ogni curiosità ha il suo interesse per il pallino');
   assert.equal(r.indexOf(c[0]), 1, 'le curiosità vengono dopo le attività');

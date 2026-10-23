@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { cercaVoci, classificaCuriosita, curiosita, curiositaPerPriorita } from '../../../shared/views.ts';
-import { intensitaBattitoCuriosita, livelloDaPunteggio, punteggioCuriosita } from '../../../shared/priority.ts';
 import { useItems } from '../lib/hooks.ts';
 import { Cerca, Empty, Fab, Row, Top, Sezione } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav } from '../ui/nav.tsx';
+import { nomeTempo } from '../lib/util.ts';
 
 /**
  * Scheda Curiosità: le note da approfondire, con ricerca, in ordine di priorità (tempo stimato 55%, interesse 45%). Ogni riga ha il
- * pallino numerato con la posizione nella classifica delle curiosità e la casella a quattro stati. Le prime compaiono anche nella
+ * pallino verde e fermo con la posizione nella classifica delle curiosità (il riempimento è l'interesse) e la casella a quattro stati. Le prime compaiono anche nella
  * pagina principale, nel gruppo «Curiosità».
  */
 export function Curiosita() {
@@ -37,10 +37,9 @@ export function Curiosita() {
             <Row
               key={i.id}
               titolo={i.titolo} tipo="curiosita"
-              meta={i.note?.split('\n')[0]}
+              meta={[i.sforzoMin ? nomeTempo(i.sforzoMin) : undefined, i.note?.split('\n')[0]].filter(Boolean).join(' · ') || undefined}
               rank={pos.get(i.id)}
-              urgenza={pos.has(i.id) ? intensitaBattitoCuriosita(punteggioCuriosita(i)) : 0}
-              level={livelloDaPunteggio(punteggioCuriosita(i))}
+              interesse={i.interesse ?? 3}
               check="square"
               centrato
               voce={i}

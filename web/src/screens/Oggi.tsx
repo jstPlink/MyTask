@@ -8,14 +8,14 @@
  * - Tocco su una riga: apre la scheda della nota; la casella apre il foglio degli stati.
  * - Le attività dello stesso progetto sono riunite sotto la testata del progetto, il numero è la posizione in classifica.
  * - «Curiosità»: dopo le attività, al massimo cinque curiosità, le prime della classifica delle curiosità (tempo stimato 55%, interesse 45%):
- *   pallino numerato con la posizione, colorato e pulsante come quello delle attività; la casella le segna come approfondite.
+ *   pallino verde e fermo con la posizione (il riempimento è l'interesse); la casella le segna come approfondite.
  * - Telefono: titolo con i pulsanti tondi (Aspetto, Inbox, Altro) e «+» per la cattura. Da 900 px (`nav.wide`) la stessa
  *   colonna senza pulsanti né «+», che stanno nella barra laterale.
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { formatLong, formatShortYear } from '../../../shared/dates.ts';
-import { livelloPriorita, livelloDaPunteggio, dueDate, daysOverdue, intensitaBattito, intensitaBattitoCuriosita, punteggioCuriosita } from '../../../shared/priority.ts';
+import { livelloPriorita, dueDate, daysOverdue, intensitaBattito } from '../../../shared/priority.ts';
 import { classificaCuriosita, classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
@@ -119,8 +119,7 @@ export function Oggi() {
           titolo={c.titolo} tipo="curiosita"
           meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, c.note?.split('\n')[0]].filter(Boolean).join(' · ') || undefined}
           rank={posCuriosita.get(c.id)}
-          urgenza={intensitaBattitoCuriosita(punteggioCuriosita(c))}
-          level={livelloDaPunteggio(punteggioCuriosita(c))}
+          interesse={c.interesse ?? 3}
           check="square"
           centrato
           voce={c}

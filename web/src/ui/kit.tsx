@@ -53,7 +53,7 @@ interface RowProps {
   centrato?: boolean;
   /** Posizione in classifica (1 = la prima da fare): numero colorato a destra, nel colore del livello. */
   rank?: number;
-  /** Interesse 1-5 (Intrattenimento, Curiosità, Esperienze): numero in un pallino verde che si riempie con l'interesse, fermo. */
+  /** Interesse 1-5 (Intrattenimento, Curiosità, Esperienze): numero in un pallino verde che si riempie con l'interesse, fermo; con `rank` il numero è la posizione. */
   interesse?: number;
   /** La nota della riga: la casella ha quattro stati (un tocco avanza, pressione lunga apre il menu). */
   voce?: Item;
@@ -143,8 +143,9 @@ export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, m
   const body = (
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
-      {rank !== undefined && <span className="rank" style={urgenza ? battito(urgenza, rank) : undefined} aria-label={`Posizione ${rank}`}>{rank}</span>}
-      {interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
+      {/* con rank e interesse (le curiosità) il pallino è verde e fermo: il numero è la posizione, il riempimento è l'interesse */}
+      {rank !== undefined && <span className={clsx('rank', interesse !== undefined && 'rank-int', interesse !== undefined && `g${Math.round(interesse)}`)} style={urgenza && interesse === undefined ? battito(urgenza, rank) : undefined} aria-label={interesse !== undefined ? `Posizione ${rank}, interesse ${Math.round(interesse)} su 5` : `Posizione ${rank}`}>{rank}</span>}
+      {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
       <div className="grow">
         <div className="line">
           <div className={clsx('t1', (light || (voce && statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso' && statoVisto(voce.stato) !== 'in_pausa')) && 'light', (struck || (voce && statoVisto(voce.stato) === 'fatto')) && 'struck')}>{tipo && <GlifoTipo tipo={tipo} />}{titolo}</div>

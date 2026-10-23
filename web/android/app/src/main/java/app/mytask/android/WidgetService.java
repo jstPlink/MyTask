@@ -120,7 +120,7 @@ public class WidgetService extends RemoteViewsService {
 
             // pallino della posizione: fermo (TextView «rank») oppure pulsante (ViewFlipper «rank_flip»)
             int rank = o.optInt("r", 0);
-            if (rank > 0) {
+            if (rank > 0 && !"c".equals(o.optString("k"))) {
                 int livello = Math.max(1, Math.min(3, o.optInt("l", 1)));
                 int[] sfondiC = {R.drawable.rank_c_1, R.drawable.rank_c_2, R.drawable.rank_c_3};
                 int[] sfondiS = {R.drawable.rank_s_1, R.drawable.rank_s_2, R.drawable.rank_s_3};
@@ -166,7 +166,7 @@ public class WidgetService extends RemoteViewsService {
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
                 v.setViewVisibility(R.id.rank_flip, View.GONE);
                 v.setViewVisibility(R.id.rank, View.VISIBLE);
-                v.setTextViewText(R.id.rank, String.valueOf(interesse));
+                v.setTextViewText(R.id.rank, String.valueOf(rank > 0 ? rank : interesse)); // la posizione nella classifica delle curiosità
                 v.setInt(R.id.rank, "setBackgroundResource", (s ? pieniS : pieniC)[interesse - 1]);
                 v.setTextColor(R.id.rank, interesse >= 3 ? Color.parseColor(s ? "#0E0F12" : "#F1F0EC") : Color.parseColor(s ? "#6FCF9B" : "#2F7D5B"));
             } else {

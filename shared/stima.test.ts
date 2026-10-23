@@ -64,7 +64,7 @@ test('stima: per un titolo simile usa la mediana dei tempi reali e il margine ge
   assert.equal(s.fonte, 'simili');
   assert.equal(s.campioni, 2);
   assert.equal(s.minuti, 25);
-  assert.equal(s.margine, margineAtteso(storico));
+  assert.ok(Math.abs(s.margine - margineAtteso(storico)) < 1e-6, "stesso margine (le due chiamate usano l ora di adesso)");
 });
 
 test('stima: le attività non completate o senza tempo reale non contano', () => {
