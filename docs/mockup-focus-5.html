@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: restyle della nota in corso, senza barra di stato</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4; --accent:#2F7D5B; --accent-soft:#E3F1EA; --warn:#D1430B; --warn-soft:#FDEBE2; --amber:#B7791F; --k:1.2; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 12px; max-width:860px; }
+button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:inherit; }
+.barra { position:sticky; top:0; z-index:100; background:var(--bg); padding:8px 0 10px; display:flex; flex-wrap:wrap; gap:8px 22px; align-items:center; border-bottom:1px solid var(--line); margin-bottom:18px; }
+.grp { display:flex; gap:6px; align-items:center; font-size:12.5px; color:var(--mid); font-weight:700; } .grp button { background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 13px; font-weight:700; text-align:center; } .grp button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.grp input[type=range] { width:240px; } .tt { font:800 15px ui-monospace,Consolas,monospace; color:var(--ink); min-width:96px; }
+.griglia { display:flex; flex-wrap:wrap; gap:34px 38px; }
+.var h2 { font-size:15px; margin:0 0 2px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; max-width:320px; min-height:58px; }
+.telw { width:321px; height:711px; flex:none; }
+.tel { position:relative; width:411px; height:911px; transform:scale(.78); transform-origin:0 0; background:var(--surface); border-radius:56px; border:10px solid #1b1b20; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,.22); }
+.sbarra { position:absolute; top:0; left:0; right:0; height:36px; display:flex; justify-content:space-between; align-items:center; padding:3px 30px 0; font-size:13px; font-weight:700; z-index:50; transition:opacity .4s, transform .4s; } .nascondi .sbarra { opacity:0; transform:translateY(-100%); }
+.foro { position:absolute; top:11px; left:50%; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:#111; z-index:51; }
+.gesto { position:absolute; bottom:8px; left:50%; width:134px; height:5px; margin-left:-67px; border-radius:3px; background:#111; opacity:.85; z-index:51; transition:opacity .4s; } .nascondi .gesto { opacity:0; }
+.f { position:absolute; inset:0; display:flex; flex-direction:column; padding:30px 26px 0; transition:padding .4s; } .f.nasc .alto, .f.nasc .vela, .f.nasc .az { opacity:0; } .nascondi .f { padding-top:56px; }
+.alto { display:flex; align-items:center; min-height:34px; margin-top:10px; transition:opacity .8s; }
+.stg { display:flex; align-items:center; gap:9px; font-size:calc(11px * var(--k)); font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); }
+.cb { width:20px; height:20px; border:2px solid var(--accent); border-radius:6px; display:flex; align-items:center; justify-content:center; } .cb::after { content:""; width:9px; height:9px; border-radius:50%; background:var(--accent); animation:pulso 1.6s ease-in-out infinite; } @keyframes pulso { 50% { opacity:.35; } }
+.centro { flex:1; display:flex; flex-direction:column; justify-content:center; padding-bottom:10px; position:relative; z-index:2; }
+.vela { transition:opacity .8s; } .titolo { font-size:calc(26px * var(--k)); font-weight:750; letter-spacing:-.015em; line-height:1.15; }
+.info { display:flex; align-items:center; gap:8px; padding:14px 0; margin:16px 0 22px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); font-size:calc(12px * var(--k)); color:var(--mid); } .info b { color:var(--ink); font-weight:600; }
+.nucleo { transition:all .5s; } .f.nasc .nucleo { position:absolute; left:26px; right:26px; top:50%; transform:translateY(-50%); }
+.tm { font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight:700; letter-spacing:-.02em; font-size:calc(40px * var(--k)); line-height:1.1; margin-bottom:14px; } .f.nasc .tm { font-size:calc(56px * var(--k)); text-align:center; }
+.az { display:flex; gap:12px; padding:12px 0 38px; transition:opacity .8s; position:relative; z-index:2; } .btn { flex:1 1 0; display:flex; align-items:center; justify-content:center; gap:10px; height:calc(54px * var(--k)); border-radius:20px; font-weight:750; font-size:calc(15px * var(--k)); } .btn.s { background:var(--surface2); } .btn.p { background:var(--accent); color:#fff; }
+.prv { display:flex; justify-content:space-between; font-size:calc(12px * var(--k)); color:var(--mid); margin-top:8px; } .prv .o { color:var(--warn); font-weight:700; }
+/* A: barra spessa */
+.bs { position:relative; height:44px; border-radius:16px; background:var(--surface2); overflow:hidden; } .bs .ok { position:absolute; left:0; top:0; bottom:0; background:var(--accent); } .bs .ex { position:absolute; top:0; bottom:0; background:repeating-linear-gradient(135deg,var(--warn) 0 7px,#E58B63 7px 14px); } .bs .tk { position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,.55); } .bs .pv { position:absolute; top:-2px; bottom:-2px; width:3px; background:var(--ink); }
+/* B: schermo che si riempie */
+.riemp { position:absolute; left:0; right:0; bottom:0; background:var(--accent-soft); z-index:1; transition:height .4s, background .6s; } .riemp.oltre { background:var(--warn-soft); } .riemp::before { content:""; position:absolute; left:0; right:0; top:-2px; height:2px; background:var(--accent); opacity:.6; } .riemp.oltre::before { background:var(--warn); }
+.prevl { position:absolute; left:0; right:0; top:40px; border-top:2px dashed var(--soft); z-index:1; font-size:11px; color:var(--soft); padding:2px 26px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+/* C: anello */
+.an { position:relative; width:300px; height:300px; margin:0 auto 6px; } .an svg { width:100%; height:100%; transform:rotate(-90deg); } .an .in { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; } .an .tm { margin:0; font-size:calc(34px * var(--k)); } .an small { color:var(--mid); font-size:calc(12px * var(--k)); margin-top:2px; }
+/* D: blocchi */
+.blk { display:flex; flex-wrap:wrap; gap:6px; } .blk i { width:calc((100% - 6 * 5px) / 6); height:34px; border-radius:9px; background:var(--surface2); position:relative; overflow:hidden; display:block; } .blk i b { position:absolute; left:0; top:0; bottom:0; background:var(--accent); } .blk i.o b { background:var(--warn); } .blk i.o { background:var(--warn-soft); }
+/* E: linea del tempo */
+.lt { position:relative; height:64px; margin-top:4px; } .lt .as { position:absolute; left:0; right:0; top:30px; height:6px; border-radius:3px; background:var(--surface2); } .lt .pr { position:absolute; top:30px; height:6px; border-radius:3px; background:var(--accent); } .lt .zo { position:absolute; top:30px; height:6px; border-radius:3px; background:repeating-linear-gradient(135deg,var(--warn) 0 5px,#E58B63 5px 10px); }
+.lt .fl { position:absolute; top:6px; bottom:6px; width:2px; background:var(--ink); } .lt .fl span { position:absolute; top:-4px; left:6px; font-size:calc(11px * var(--k)); font-weight:800; white-space:nowrap; }
+.lt .pt { position:absolute; top:22px; width:22px; height:22px; margin-left:-11px; border-radius:50%; background:var(--accent); border:4px solid #fff; box-shadow:0 1px 6px rgba(0,0,0,.3); } .lt .pt.o { background:var(--warn); }
+.nota { max-width:860px; color:var(--mid); font-size:13px; margin-top:24px; } .nota li { margin-bottom:5px; }
+</style></head><body>
+<h1>Restyle della nota in corso: senza barra di stato e con il tempo in cinque modi</h1>
+<p class="sub">Telefono a misura reale (Nothing Phone 4a) ridotto al 78%. Il cursore in alto fa scorrere il tempo lavorato rispetto al previsto (1 h 30 min) e vale per tutte e cinque le versioni. «Dopo 5 secondi» mostra lo stato in cui restano solo timer e rappresentazione del tempo, al centro.</p>
+<div class="barra">
+ <div class="grp">Tempo lavorato <input id="r" type="range" min="0" max="150" value="48"> <span class="tt" id="tt"></span><button id="play">▶ Scorri</button></div>
+ <div class="grp">Barra di stato <button id="bs" class="on" data-v="1">Nascosta</button><button id="bv" data-v="0">Visibile</button></div>
+ <div class="grp">Schermata <button id="sc" class="on">Completa</button><button id="s5">Dopo 5 secondi</button></div>
+</div>
+<div class="griglia" id="g"></div>
+<ul class="nota"><li><b>Barra di stato nascosta:</b> sì, è possibile. Sull'app Android si usa la modalità a tutto schermo «immersiva» di Android: la barra delle notifiche e i tasti/gesti di sistema spariscono mentre la schermata è aperta, e tornano quando esci (Pausa o Fatta). Se si scorre dal bordo in alto o in basso compaiono per un attimo e poi si nascondono da soli. Resta solo il foro della fotocamera.</li>
+<li><b>Contro:</b> con la barra nascosta non vedi l'ora, la batteria né le notifiche in arrivo, se non scorrendo dal bordo. Per questo nel mockup si può confrontare con la barra visibile; potrei anche renderlo un'impostazione.</li>
+<li><b>Sul sito e sul computer</b> la barra del sistema non c'è: il restyle vale solo per il tempo e per la schermata.</li></ul>
+<script>
+const $ = (id) => document.getElementById(id);
+const STIMA = 90; let nasc = false, nasconda = true;
+const fmt = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60); const d = (n) => String(n).padStart(2, '0'); return h ? `${h}:${d(m)}:${d(x)}` : `${d(m)}:${d(x)}`; };
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const rap = {
+ a: (r, el) => { const tot = Math.max(1, r), ok = Math.min(1, r) / tot * 100, pv = 1 / tot * 100, ex = r > 1 ? (r - 1) / tot * 100 : 0; const tk = []; for (let m = 15; m < STIMA * tot; m += 15) tk.push(`<i class="tk" style="left:${m / (STIMA * tot) * 100}%"></i>`); return `<div class="bs"><div class="ok" style="width:${ok}%"></div>${r > 1 ? `<div class="ex" style="left:${pv}%;width:${ex}%"></div>` : ''}${tk.join('')}${r > 1 ? `<div class="pv" style="left:${pv}%"></div>` : ''}</div><div class="prv vela"><span class="${r > 1 ? 'o' : ''}">${r > 1 ? 'Oltre il previsto di ' + nome(el - STIMA) : 'previsto ' + nome(STIMA)}</span><span>${Math.round(r * 100)}%</span></div>`; },
+ b: () => '', // riempimento schermo: gestito a parte
+ c: (r, el) => { const R = 118, C = 2 * Math.PI * R, p = Math.min(1, r), q = Math.max(0, Math.min(1, r - 1)); return `<div class="an"><svg viewBox="0 0 300 300"><circle cx="150" cy="150" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="22"/><circle cx="150" cy="150" r="${R}" fill="none" stroke="var(--accent)" stroke-width="22" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - p)}"/>${q ? `<circle cx="150" cy="150" r="${R}" fill="none" stroke="var(--warn)" stroke-width="22" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - q)}"/>` : ''}</svg><div class="in">%TM%<small>${r > 1 ? '+' + nome(el - STIMA) + ' oltre' : 'su ' + nome(STIMA)}</small></div></div>`; },
+ d: (r, el) => { const n = Math.ceil(STIMA / 15), tot = Math.max(n, Math.ceil(el / 15)); let h = ''; for (let k = 0; k < tot; k++) { const da = k * 15, pieno = Math.max(0, Math.min(1, (el - da) / 15)); h += `<i class="${k >= n ? 'o' : ''}"><b style="width:${pieno * 100}%"></b></i>`; } return `<div class="blk">${h}</div><div class="prv vela"><span class="${r > 1 ? 'o' : ''}">${r > 1 ? 'Oltre il previsto' : 'ogni blocco = 15 minuti'}</span><span>previsto ${nome(STIMA)}</span></div>`; },
+ e: (r, el) => { const max = Math.max(1.5, r + .1), x = (v) => v / max * 100; return `<div class="lt"><div class="as"></div><div class="pr" style="left:0;width:${x(Math.min(1, r))}%"></div>${r > 1 ? `<div class="zo" style="left:${x(1)}%;width:${x(r - 1)}%"></div>` : ''}<div class="fl" style="left:${x(1)}%"><span>previsto ${nome(STIMA)}</span></div><div class="pt ${r > 1 ? 'o' : ''}" style="left:${x(r)}%"></div></div><div class="prv vela"><span class="${r > 1 ? 'o' : ''}">${r > 1 ? '+' + nome(el - STIMA) + ' oltre il previsto' : 'mancano ' + nome(STIMA - el)}</span><span>${Math.round(r * 100)}%</span></div>`; },
+};
+const VAR = [['a', 'A · Barra spessa', 'Barra alta 44 px con le tacche ogni 15 minuti; oltre il previsto compare la parte tratteggiata rossa dopo la riga nera.'], ['b', 'B · Lo schermo si riempie', 'Dal basso sale una tinta verde che riempie tutto lo schermo; arrivata in cima è il previsto, oltre diventa rosa/rossa. Nessuna barra: il tempo è lo schermo stesso.'], ['c', 'C · Anello grande', 'Il timer dentro un grande anello che si chiude sul previsto; il secondo giro, in rosso, è il tempo oltre il previsto.'], ['d', 'D · Blocchi da 15 minuti', 'Una fila di blocchi, uno ogni 15 minuti previsti, che si riempiono uno dopo l\'altro; oltre il previsto se ne aggiungono di rossi.'], ['e', 'E · Linea del tempo', 'Una linea con la riga «previsto» e un marcatore che avanza; oltre la riga il percorso diventa tratteggiato rosso e la linea si allunga.']];
+function render() {
+  const el = +$('r').value * 60, r = el / (STIMA * 60), min = el / 60; const tmS = fmt(el);
+  $('tt').textContent = nome(Math.round(min)) + ' · ' + Math.round(r * 100) + '%';
+  document.querySelectorAll('.tel').forEach((t) => t.classList.toggle('nascondi', nascondi()));
+  $('g').innerHTML = VAR.map(([k, n, d]) => {
+    const rapp = k === 'c' ? rap.c(r, min).replace('%TM%', `<div class="tm">${tmS}</div>`) : rap[k](r, min);
+    const timer = k === 'c' ? '' : `<div class="tm">${tmS}</div>`;
+    const riemp = k === 'b' ? `<div class="riemp ${r > 1 ? 'oltre' : ''}" style="height:${Math.min(100, r * 100)}%"></div><div class="prevl vela">previsto ${nome(STIMA)}</div>` : '';
+    return `<section class="var"><h2>${n}</h2><p>${d}</p><div class="telw"><div class="tel ${nascondi() ? 'nascondi' : ''}"><div class="sbarra"><span>9:41</span><span>◖◗ 5G ▮</span></div><div class="foro"></div><div class="gesto"></div>${riemp}
+      <div class="f ${nasc ? 'nasc' : ''}"><div class="alto"><span class="stg"><span class="cb"></span>In corso</span></div>
+       <div class="centro"><div class="vela titolo">Scrivere la relazione trimestrale</div><div class="vela info"><b>Attività</b><span>· Lavoro</span><span style="margin-left:auto">domani</span></div>
+        <div class="nucleo">${timer}${rapp}</div></div>
+       <div class="az"><button class="btn s">⏸ Pausa</button><button class="btn p">✓ Fatta</button></div></div></div></div></section>`;
+  }).join('');
+}
+const nascondi = () => nasconda;
+$('r').addEventListener('input', render);
+$('bs').onclick = () => { nasconda = true; $('bs').classList.add('on'); $('bv').classList.remove('on'); render(); };
+$('bv').onclick = () => { nasconda = false; $('bv').classList.add('on'); $('bs').classList.remove('on'); render(); };
+$('sc').onclick = () => { nasc = false; $('sc').classList.add('on'); $('s5').classList.remove('on'); render(); };
+$('s5').onclick = () => { nasc = true; $('s5').classList.add('on'); $('sc').classList.remove('on'); render(); };
+let iv; $('play').onclick = () => { if (iv) { clearInterval(iv); iv = null; $('play').textContent = '▶ Scorri'; return; } $('play').textContent = '⏸ Ferma'; $('r').value = 0; iv = setInterval(() => { const v = +$('r').value + 1; if (v > 150) { clearInterval(iv); iv = null; $('play').textContent = '▶ Scorri'; return; } $('r').value = v; render(); }, 120); };
+render();
+</script></body></html>

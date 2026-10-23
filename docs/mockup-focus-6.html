@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: altre prove per la nota in corso e colore del timer</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4; --accent:#2F7D5B; --accent-soft:#E3F1EA; --warn:#D1430B; --warn-soft:#FDEBE2; --amber:#B7791F; --k:1.2; --tc:#111115; --tw:700; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 12px; max-width:880px; }
+button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:inherit; }
+.barra { position:sticky; top:0; z-index:100; background:var(--bg); padding:8px 0 10px; display:flex; flex-wrap:wrap; gap:8px 22px; align-items:center; border-bottom:1px solid var(--line); margin-bottom:18px; }
+.grp { display:flex; gap:6px; align-items:center; font-size:12.5px; color:var(--mid); font-weight:700; flex-wrap:wrap; } .grp button { background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-weight:700; text-align:center; display:inline-flex; align-items:center; gap:7px; } .grp button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.sw { width:14px; height:14px; border-radius:50%; border:1px solid rgba(0,0,0,.2); display:inline-block; } .grp input[type=range] { width:220px; } .tt { font:800 14px ui-monospace,Consolas,monospace; min-width:150px; color:var(--ink); }
+.griglia { display:flex; flex-wrap:wrap; gap:34px 38px; }
+.var h2 { font-size:15px; margin:0 0 2px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; max-width:320px; min-height:58px; }
+.telw { width:321px; height:711px; flex:none; }
+.tel { position:relative; width:411px; height:911px; transform:scale(.78); transform-origin:0 0; background:var(--surface); border-radius:56px; border:10px solid #1b1b20; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,.22); }
+.sbarra { position:absolute; top:0; left:0; right:0; height:36px; display:flex; justify-content:space-between; align-items:center; padding:3px 30px 0; font-size:13px; font-weight:700; z-index:50; transition:opacity .4s, transform .4s; } .nascondi .sbarra { opacity:0; transform:translateY(-100%); }
+.foro { position:absolute; top:11px; left:50%; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:#111; z-index:51; }
+.gesto { position:absolute; bottom:8px; left:50%; width:134px; height:5px; margin-left:-67px; border-radius:3px; background:#111; opacity:.85; z-index:51; transition:opacity .4s; } .nascondi .gesto { opacity:0; }
+.f { position:absolute; inset:0; display:flex; flex-direction:column; padding:30px 26px 0; z-index:2; } .f.nasc .alto, .f.nasc .vela, .f.nasc .az { opacity:0; }
+.alto { display:flex; align-items:center; min-height:34px; margin-top:10px; transition:opacity .8s; }
+.stg { display:flex; align-items:center; gap:9px; font-size:calc(11px * var(--k)); font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); }
+.cb { width:20px; height:20px; border:2px solid var(--accent); border-radius:6px; display:flex; align-items:center; justify-content:center; } .cb::after { content:""; width:9px; height:9px; border-radius:50%; background:var(--accent); animation:pulso 1.6s ease-in-out infinite; } @keyframes pulso { 50% { opacity:.35; } }
+.centro { flex:1; display:flex; flex-direction:column; justify-content:center; padding-bottom:10px; position:relative; }
+.vela { transition:opacity .8s; } .titolo { font-size:calc(26px * var(--k)); font-weight:750; letter-spacing:-.015em; line-height:1.15; }
+.info { display:flex; align-items:center; gap:8px; padding:14px 0; margin:16px 0 22px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); font-size:calc(12px * var(--k)); color:var(--mid); } .info b { color:var(--ink); font-weight:600; }
+.nucleo { transition:all .5s; } .f.nasc .nucleo { position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); }
+.tm { font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight:var(--tw); letter-spacing:-.02em; font-size:calc(40px * var(--k)); line-height:1.1; margin-bottom:14px; color:var(--tc); } .f.nasc .tm { font-size:calc(56px * var(--k)); text-align:center; }
+.az { display:flex; gap:12px; padding:12px 0 38px; transition:opacity .8s; } .btn { flex:1 1 0; display:flex; align-items:center; justify-content:center; gap:10px; height:calc(54px * var(--k)); border-radius:20px; font-weight:750; font-size:calc(15px * var(--k)); } .btn.s { background:var(--surface2); } .btn.p { background:var(--accent); color:#fff; }
+.prv { display:flex; justify-content:space-between; font-size:calc(12px * var(--k)); color:var(--mid); margin-top:8px; } .prv .o { color:var(--warn); font-weight:700; }
+/* F: il timer si riempie */
+.fillt { font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight:800; letter-spacing:-.02em; font-size:calc(58px * var(--k)); line-height:1.1; text-align:center; -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:6px; } .f.nasc .fillt { font-size:calc(66px * var(--k)); }
+/* G: bordo dello schermo */
+.bordo { position:absolute; inset:0; z-index:1; pointer-events:none; } .bordo svg { width:100%; height:100%; }
+/* H: onda */
+.onda { position:absolute; left:0; right:0; bottom:0; z-index:1; overflow:visible; transition:height .4s; background:#CFE6DB; } .onda.oltre { background:#F6CDBA; } .onda .w { position:absolute; left:0; top:-22px; width:200%; height:24px; animation:moto 5s linear infinite; } @keyframes moto { to { transform:translateX(-50%); } } .onda .w path { fill:#CFE6DB; } .onda.oltre .w path { fill:#F6CDBA; }
+/* I: contagiri */
+.gau { position:relative; width:330px; height:190px; margin:0 auto; } .gau svg { width:100%; height:100%; } .gau .in { position:absolute; left:0; right:0; bottom:6px; text-align:center; } .gau .tm { margin:0; font-size:calc(34px * var(--k)); } .gau small { color:var(--mid); font-size:calc(12px * var(--k)); }
+/* J: barra altissima con il timer dentro */
+.jb { position:relative; height:120px; border-radius:30px; background:var(--surface2); overflow:hidden; } .jb .l { position:absolute; inset:0; display:grid; place-items:center; font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight:800; font-size:calc(40px * var(--k)); color:var(--tc); } .jb .fill { position:absolute; left:0; top:0; bottom:0; overflow:hidden; background:var(--accent); } .jb .fill.ex { background:var(--warn); } .jb .fill .l { color:#fff; width:359px; right:auto; } .jb .pv { position:absolute; top:0; bottom:0; width:3px; background:var(--ink); opacity:.7; }
+.nota { max-width:880px; color:var(--mid); font-size:13px; margin-top:24px; } .nota li { margin-bottom:5px; }
+</style></head><body>
+<h1>Altre prove per il tempo e un timer più morbido</h1>
+<p class="sub">Cinque idee nuove (F–J) rispetto al mockup precedente (<code>mockup-focus-5.html</code>: barra spessa, schermo che si riempie, anello, blocchi, linea del tempo). In alto puoi cambiare il <b>colore</b> e lo <b>spessore</b> del timer e far scorrere il tempo. Tutto a misura reale (Nothing Phone 4a), barra di stato nascosta.</p>
+<div class="barra">
+ <div class="grp">Tempo <input id="r" type="range" min="0" max="150" value="48"><span class="tt" id="tt"></span><button id="play">▶ Scorri</button></div>
+ <div class="grp">Schermata <button id="sc" class="on">Completa</button><button id="s5">Dopo 5 secondi</button></div>
+ <div class="grp">Colore del timer <span id="colori"></span></div>
+ <div class="grp">Spessore <span id="pesi"></span></div>
+</div>
+<div class="griglia" id="g"></div>
+<ul class="nota"><li><b>Colore del timer:</b> «Scuro» è quello di oggi (quasi nero). «Grafite» e «Verde scuro» sono più morbidi ma leggibili; «Grigio» è il più discreto; «Verde» usa l'accento dell'app; «Segue il tempo» passa da verde ad ambra a rosso con l'avanzare verso il previsto e oltre. Lo spessore «Leggero» o «Medio» ammorbidisce ancora di più.</li>
+<li><b>Contrasto:</b> i colori più chiari restano sopra il bianco con contrasto sufficiente (il grigio è il limite: va bene a 48 px grandi, meno nei testi piccoli).</li></ul>
+<script>
+const $ = (id) => document.getElementById(id);
+const STIMA = 90; let nasc = false, colore = 'scuro', peso = '700';
+const COLORI = { scuro: ['Scuro', '#111115'], grafite: ['Grafite', '#3A403D'], verdescuro: ['Verde scuro', '#24473A'], grigio: ['Grigio', '#6A6A73'], verde: ['Verde', '#2F7D5B'], segue: ['Segue il tempo', null] };
+const PESI = { 700: 'Pieno', 500: 'Medio', 300: 'Leggero' };
+const fmt = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60); const d = (n) => String(n).padStart(2, '0'); return h ? `${h}:${d(m)}:${d(x)}` : `${d(m)}:${d(x)}`; };
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const colTimer = (r) => colore !== 'segue' ? COLORI[colore][1] : r > 1 ? '#D1430B' : r > .85 ? '#B7791F' : '#2F7D5B';
+const arc = (cx, cy, R, a0, a1) => { const p = (a) => [cx + R * Math.cos(a), cy + R * Math.sin(a)]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return `M${x0} ${y0} A${R} ${R} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1}`; };
+const VAR = [
+ ['f', 'F · Il timer si riempie', 'Le cifre stesse sono la barra: si colorano di verde da sinistra a destra man mano che passa il tempo; quello oltre il previsto è rosso. Niente barra separata.'],
+ ['g', 'G · Il bordo dello schermo', 'Una linea sul bordo dello schermo che si disegna in senso orario; il secondo giro, in rosso, è il tempo oltre il previsto. Il timer sta al centro, libero.'],
+ ['h', 'H · Onda', 'Come lo schermo che si riempie, ma con una piccola onda che si muove sulla superficie: più «viva», il livello sale con il tempo.'],
+ ['i', 'I · Contagiri', 'Un grande semicerchio sopra il timer; l\'arco si riempie fino al previsto e continua in rosso oltre.'],
+ ['j', 'J · Barra altissima con il timer dentro', 'Una barra alta 120 px che contiene il timer: la parte riempita è verde con le cifre bianche, quella vuota è grigia con le cifre scure.'],
+];
+function rap(k, r, min, tmS, col) {
+  const p = Math.min(1, r), q = Math.max(0, r - 1);
+  if (k === 'f') { const stop = r > 1 ? 100 / r : p * 100; const g = r > 1 ? `linear-gradient(90deg,#2F7D5B 0 ${stop}%,#D1430B ${stop}%)` : `linear-gradient(90deg,#2F7D5B 0 ${stop}%,#C9C9CF ${stop}%)`; return `<div class="fillt" style="background-image:${g}">${tmS}</div><div class="prv vela"><span class="${r > 1 ? 'o' : ''}">${r > 1 ? '+' + nome(Math.round(min - STIMA)) + ' oltre il previsto' : 'previsto ' + nome(STIMA)}</span><span>${Math.round(r * 100)}%</span></div>`; }
+  if (k === 'j') { const tot = Math.max(1, r), okW = Math.min(1, r) / tot * 100, pv = 100 / tot; return `<div class="jb"><div class="l" style="color:${col}">${tmS}</div><div class="fill" style="width:${okW}%"><div class="l">${tmS}</div></div>${r > 1 ? `<div class="fill ex" style="left:${pv}%;width:${(r - 1) / tot * 100}%"><div class="l" style="margin-left:-${pv / 100 * 359}px">${tmS}</div></div><div class="pv" style="left:${pv}%"></div>` : ''}</div><div class="prv vela"><span class="${r > 1 ? 'o' : ''}">${r > 1 ? 'Oltre il previsto' : 'previsto ' + nome(STIMA)}</span><span>${Math.round(r * 100)}%</span></div>`; }
+  if (k === 'i') { const a0 = Math.PI * 0.85, tot = Math.PI * 1.3; return `<div class="gau"><svg viewBox="0 0 330 190"><path d="${arc(165, 165, 140, a0, a0 + tot)}" fill="none" stroke="#E3E1DC" stroke-width="22" stroke-linecap="round"/>${p > .002 ? `<path d="${arc(165, 165, 140, a0, a0 + tot * p)}" fill="none" stroke="#2F7D5B" stroke-width="22" stroke-linecap="round"/>` : ''}${q > .002 ? `<path d="${arc(165, 165, 140, a0, a0 + tot * Math.min(1, q))}" fill="none" stroke="#D1430B" stroke-width="22" stroke-linecap="round"/>` : ''}</svg><div class="in"><div class="tm" style="color:${col}">${tmS}</div><small>${r > 1 ? '+' + nome(Math.round(min - STIMA)) + ' oltre' : 'su ' + nome(STIMA)}</small></div></div>`; }
+  return `<div class="tm">${tmS}</div><div class="prv vela"><span class="${r > 1 ? 'o' : ''}">${r > 1 ? 'Oltre il previsto' : 'previsto ' + nome(STIMA)}</span><span>${Math.round(r * 100)}%</span></div>`;
+}
+function bordo(r) { const p = Math.min(1, r), q = Math.max(0, Math.min(1, r - 1)); const W = 391, H = 891, ri = 52, per = 2 * (W - 2 * ri) + 2 * (H - 2 * ri) + 2 * Math.PI * ri; const rect = (c, f) => `<rect x="5" y="5" width="${W}" height="${H}" rx="${ri}" fill="none" stroke="${c}" stroke-width="10" stroke-linecap="round" pathLength="1" stroke-dasharray="${f} 1" transform="rotate(0)"/>`; return `<svg viewBox="0 0 401 901" preserveAspectRatio="none"><rect x="5" y="5" width="${W}" height="${H}" rx="${ri}" fill="none" stroke="#E3E1DC" stroke-width="10"/>${p > .003 ? rect('#2F7D5B', p) : ''}${q > .003 ? rect('#D1430B', q) : ''}</svg>`; }
+function render() {
+  const el = +$('r').value * 60, r = el / (STIMA * 60), min = el / 60, tmS = fmt(el), col = colTimer(r);
+  $('tt').textContent = nome(Math.round(min)) + ' · ' + Math.round(r * 100) + '%';
+  document.documentElement.style.setProperty('--tc', col); document.documentElement.style.setProperty('--tw', peso);
+  $('g').innerHTML = VAR.map(([k, n, d]) => {
+    const fondo = k === 'g' ? `<div class="bordo">${bordo(r)}</div>` : k === 'h' ? `<div class="onda ${r > 1 ? 'oltre' : ''}" style="height:${Math.min(100, r * 100)}%"><svg class="w" viewBox="0 0 400 24" preserveAspectRatio="none"><path d="M0 12 Q50 0 100 12 T200 12 T300 12 T400 12 V24 H0Z"/></svg></div>` : '';
+    return `<section class="var"><h2>${n}</h2><p>${d}</p><div class="telw"><div class="tel nascondi"><div class="sbarra"><span>9:41</span><span>◖◗ 5G ▮</span></div><div class="foro"></div><div class="gesto"></div>${fondo}
+     <div class="f ${nasc ? 'nasc' : ''}" style="${k === 'g' ? 'padding-top:60px' : 'padding-top:56px'}"><div class="alto"><span class="stg"><span class="cb"></span>In corso</span></div>
+      <div class="centro"><div class="vela titolo">Scrivere la relazione trimestrale</div><div class="vela info"><b>Attività</b><span>· Lavoro</span><span style="margin-left:auto">domani</span></div><div class="nucleo">${rap(k, r, min, tmS, col)}</div></div>
+      <div class="az"><button class="btn s">⏸ Pausa</button><button class="btn p">✓ Fatta</button></div></div></div></div></section>`;
+  }).join('');
+}
+$('colori').innerHTML = Object.entries(COLORI).map(([k, [n, c]]) => `<button data-c="${k}" class="${k === colore ? 'on' : ''}"><span class="sw" style="background:${c ?? 'linear-gradient(90deg,#2F7D5B,#B7791F,#D1430B)'}"></span>${n}</button>`).join('');
+$('pesi').innerHTML = Object.entries(PESI).map(([k, n]) => `<button data-p="${k}" class="${k === peso ? 'on' : ''}">${n}</button>`).join('');
+document.querySelectorAll('#colori button').forEach((b) => b.onclick = () => { colore = b.dataset.c; document.querySelectorAll('#colori button').forEach((x) => x.classList.toggle('on', x === b)); render(); });
+document.querySelectorAll('#pesi button').forEach((b) => b.onclick = () => { peso = b.dataset.p; document.querySelectorAll('#pesi button').forEach((x) => x.classList.toggle('on', x === b)); render(); });
+$('r').addEventListener('input', render);
+$('sc').onclick = () => { nasc = false; $('sc').classList.add('on'); $('s5').classList.remove('on'); render(); };
+$('s5').onclick = () => { nasc = true; $('s5').classList.add('on'); $('sc').classList.remove('on'); render(); };
+let iv; $('play').onclick = () => { if (iv) { clearInterval(iv); iv = null; $('play').textContent = '▶ Scorri'; return; } $('play').textContent = '⏸ Ferma'; $('r').value = 0; iv = setInterval(() => { const v = +$('r').value + 1; if (v > 150) { clearInterval(iv); iv = null; $('play').textContent = '▶ Scorri'; return; } $('r').value = v; render(); }, 120); };
+render();
+</script></body></html>

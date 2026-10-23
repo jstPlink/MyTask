@@ -4,7 +4,7 @@
 // segnale viene ripetuto ogni 20 secondi, così anche se il sistema lo toglie torna subito.
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
-const Schermo = registerPlugin<{ acceso(o: { acceso: boolean }): Promise<void> }>('Schermo');
+const Schermo = registerPlugin<{ acceso(o: { acceso: boolean }): Promise<void>; immersivo(o: { attivo: boolean }): Promise<void> }>('Schermo');
 
 /** Ogni quanto si ripete la richiesta mentre lo schermo deve restare acceso (millisecondi). */
 const RIPETI_MS = 20_000;
@@ -52,4 +52,9 @@ export function schermoAcceso(acceso: boolean) {
     lock = null;
     void l.release().catch(() => {});
   }
+}
+
+/** Nasconde (o rimostra) le barre di sistema, notifiche in alto e gesti in basso, a tutto schermo: solo app Android. Scorrendo dal bordo tornano per un attimo. */
+export function schermoImmersivo(attivo: boolean) {
+  if (Capacitor.isNativePlatform()) void Schermo.immersivo({ attivo }).catch(() => {});
 }

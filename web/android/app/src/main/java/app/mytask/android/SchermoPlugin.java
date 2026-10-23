@@ -5,6 +5,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -22,6 +25,8 @@ public class SchermoPlugin extends Plugin {
     private static final String TAG = "MyTaskSchermo";
     /** Ultimo stato richiesto dall'app. */
     private boolean voluto = false;
+    /** True se le barre di sistema devono restare nascoste (modalità immersiva). */
+    private boolean immersivo = false;
 
     @PluginMethod
     public void acceso(PluginCall call) {
@@ -46,10 +51,38 @@ public class SchermoPlugin extends Plugin {
         });
     }
 
+    /**
+     * Nasconde (o rimostra) la barra di stato e i gesti di sistema: restano solo il foro della fotocamera e lo schermo. Scorrendo dal bordo le barre
+     * ricompaiono per un attimo e poi si nascondono da sole. Serve alla schermata «in corso» quando restano solo timer e barra.
+     */
+    @PluginMethod
+    public void immersivo(PluginCall call) {
+        immersivo = Boolean.TRUE.equals(call.getBoolean("attivo", false));
+        applicaImmersivo(immersivo);
+        call.resolve();
+    }
+
+    private void applicaImmersivo(final boolean attivo) {
+        final Activity attivita = getActivity();
+        if (attivita == null) return;
+        attivita.runOnUiThread(() -> {
+            Window finestra = attivita.getWindow();
+            WindowInsetsControllerCompat controllo = WindowCompat.getInsetsController(finestra, finestra.getDecorView());
+            if (attivo) {
+                controllo.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                controllo.hide(WindowInsetsCompat.Type.systemBars());
+            } else {
+                controllo.show(WindowInsetsCompat.Type.systemBars());
+            }
+            Log.i(TAG, "barre di sistema nascoste=" + attivo);
+        });
+    }
+
     /** Quando l'app torna in primo piano riapplica lo stato richiesto (Android può togliere i flag della finestra). */
     @Override
     protected void handleOnResume() {
         super.handleOnResume();
         if (voluto) applica(true);
+        if (immersivo) applicaImmersivo(true);
     }
 }

@@ -7,7 +7,7 @@ import { useAdesso, useItems, useOggi, useSessione } from '../lib/hooks.ts';
 import { cambiaStato, completaVoce } from '../lib/actions.ts';
 import { getVerde, impostaVerde, subscribeFocus } from '../lib/focus.ts';
 import { iniziaLavoro, riprendi, tempoDi } from '../lib/sessione.ts';
-import { schermoAcceso } from '../lib/schermo.ts';
+import { schermoAcceso, schermoImmersivo } from '../lib/schermo.ts';
 import { tocco } from '../lib/haptic.ts';
 import { clsx, durataLavoro } from '../lib/util.ts';
 import { GlifoTipo } from './Icone.tsx';
@@ -18,14 +18,16 @@ const NASCONDI_NOME_MS = 5000;
 const DURATA_VERDE_MS = 1500;
 /** Durata dell'animazione con cui la schermata scende via quando si mette «in pausa». */
 const DURATA_USCITA_MS = 450;
+/** Altezza (px) della barra del tempo quando restano solo timer e barra: più spessa di quella della schermata completa. */
+const ALTEZZA_BARRA_SOLO = 18;
 
 /**
  * Nota «in corso» a tutto schermo: appena una nota (attività o curiosità) passa «in corso» questa schermata riempie lo schermo e
  * ci si concentra solo su quella nota (stile C dei mockup `docs/mockup-focus-*.html`): stato, titolo, tipo, progetto e scadenza,
  * timer grande e barra del tempo previsto, Pausa e Fatta della stessa dimensione. Lo schermo resta sempre acceso e si torna alla
  * schermata normale solo con «Pausa» (la nota passa «in pausa») o «Fatta» (schermo verde, poi il foglio con il margine di stima).
- * Dopo 5 secondi restano solo il timer (ingrandito e al centro esatto dello schermo) e la barra del tempo sul totale, subito sotto:
- * tutto il resto sparisce e riappare toccando lo schermo (il tocco che lo fa riapparire non preme i pulsanti). «Pausa» chiude la
+ * Dopo 5 secondi restano solo il timer (grigio, ingrandito e al centro esatto dello schermo) e la barra del tempo sul totale, larga come
+ * il timer e alta 18 px, subito sotto, con le barre di sistema nascoste: tutto il resto sparisce e riappare toccando lo schermo (il tocco che lo fa riapparire non preme i pulsanti). «Pausa» chiude la
  * schermata con un'animazione.
  */
 export function InCorso() {
@@ -39,6 +41,7 @@ export function InCorso() {
   const [nascosto, setNascosto] = useState(false);
   const [tocchi, setTocchi] = useState(0);
   const [uscita, setUscita] = useState(false);
+  const [ridim, setRidim] = useState(0); // cambia quando lo schermo cambia misura (per esempio quando le barre di sistema spariscono)
   const timerRef = useRef<HTMLDivElement>(null);
   const barraRef = useRef<HTMLDivElement>(null);
   const ignoraClick = useRef(false);
@@ -79,16 +82,35 @@ export function InCorso() {
     void t.offsetWidth;
     t.style.transition = '';
     if (b) b.style.transition = '';
+    if (b) { b.style.width = ''; b.style.height = ''; b.style.borderRadius = ''; }
     if (!nascosto) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const scala = Math.min(2.2, (vw * 0.8) / Math.max(1, r.width));
     t.style.transform = `translate(${vw / 2 - (r.left + r.width / 2)}px, ${vh / 2 - (r.top + r.height / 2)}px) scale(${scala})`;
     if (b && rb) {
-      const centro = vh / 2 + (r.height * scala) / 2 + 22 + rb.height / 2;
-      b.style.transform = `translateY(${centro - (rb.top + rb.height / 2)}px)`;
+      // la barra diventa larga come il timer ingrandito, un po' più spessa, e gli si mette sotto (centrata)
+      const largB = r.width * scala;
+      b.style.width = `${largB}px`;
+      b.style.height = `${ALTEZZA_BARRA_SOLO}px`;
+      b.style.borderRadius = `${ALTEZZA_BARRA_SOLO / 2}px`;
+      const alto = vh / 2 + (r.height * scala) / 2 + 22;
+      b.style.transform = `translate(${vw / 2 - largB / 2 - rb.left}px, ${alto - rb.top}px)`;
     }
-  }, [nascosto, lungo, id]);
+  }, [nascosto, lungo, id, ridim]);
+  useEffect(() => {
+    if (!nascosto) return;
+    const su = () => setRidim((n) => n + 1);
+    window.addEventListener('resize', su);
+    return () => window.removeEventListener('resize', su);
+  }, [nascosto]);
+
+  // con solo timer e barra le barre di sistema (notifiche e gesti) si nascondono; tornano uscendo (Android; nel browser non fa nulla)
+  const solo = nascosto && !verde && !!nota;
+  useEffect(() => {
+    schermoImmersivo(solo);
+    return () => schermoImmersivo(false);
+  }, [solo]);
 
   if (verde) {
     return (

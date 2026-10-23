@@ -801,7 +801,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .incorso.solo .ic-alto, .incorso.solo .ic-az, .incorso.solo .ic-nome, .incorso.solo .ic-info, .incorso.solo .ic-prev { opacity: 0; }
 .incorso.solo .ic-az { pointer-events: none; }
 .ic-timer { align-self: flex-start; white-space: nowrap; transform-origin: center; transition: transform 1.1s cubic-bezier(.3, .8, .2, 1); position: relative; z-index: 3; }
-.ic-barra { transition: transform 1.1s cubic-bezier(.3, .8, .2, 1); position: relative; z-index: 3; }
+.ic-barra { transition: transform 1.1s cubic-bezier(.3, .8, .2, 1), width 1.1s cubic-bezier(.3, .8, .2, 1), height 1.1s cubic-bezier(.3, .8, .2, 1), border-radius 1.1s; position: relative; z-index: 3; }
+.ic-timer { transition: transform 1.1s cubic-bezier(.3, .8, .2, 1), color .9s; } .incorso.solo .ic-timer { color: #6A6A73; }
 @media (prefers-reduced-motion: reduce) { .ic-timer, .ic-barra { transition: none; } }
 
 /* ---------- Storico del margine di stima (screens/StoricoMargine.tsx) ---------- */

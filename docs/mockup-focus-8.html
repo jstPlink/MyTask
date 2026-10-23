@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: schermata completa invariata, nuova schermata dopo 5 secondi</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4; --accent:#2F7D5B; --warn:#D1430B; --k:1.2; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 12px; max-width:880px; }
+button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:inherit; }
+.barra { position:sticky; top:0; z-index:100; background:var(--bg); padding:8px 0 10px; display:flex; flex-wrap:wrap; gap:8px 22px; align-items:center; border-bottom:1px solid var(--line); margin-bottom:18px; }
+.grp { display:flex; gap:6px; align-items:center; font-size:12.5px; color:var(--mid); font-weight:700; flex-wrap:wrap; } .grp button { background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-weight:700; text-align:center; } .grp button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.grp input[type=range] { width:220px; } .tt { font:800 14px ui-monospace,Consolas,monospace; min-width:150px; color:var(--ink); }
+.griglia { display:flex; flex-wrap:wrap; gap:34px 44px; }
+.var h2 { font-size:15px; margin:0 0 2px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; max-width:320px; min-height:58px; }
+.telw { width:321px; height:711px; flex:none; }
+.tel { position:relative; width:411px; height:911px; transform:scale(.78); transform-origin:0 0; background:var(--surface); border-radius:56px; border:10px solid #1b1b20; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,.22); }
+.sbarra { position:absolute; top:0; left:0; right:0; height:36px; display:flex; justify-content:space-between; align-items:center; padding:3px 30px 0; font-size:13px; font-weight:700; z-index:50; transition:opacity .6s; } .tel.senza .sbarra { opacity:0; }
+.foro { position:absolute; top:11px; left:50%; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:#111; z-index:51; }
+.gesto { position:absolute; bottom:8px; left:50%; width:134px; height:5px; margin-left:-67px; border-radius:3px; background:#111; opacity:.85; z-index:51; transition:opacity .6s; } .tel.senza .gesto { opacity:0; }
+/* schermata «in corso» com'è oggi nell'app (stesse misure di styles.css × 1,2) */
+.incorso { position:absolute; inset:0; padding:56px 26px 0; display:flex; flex-direction:column; }
+.alto { display:flex; align-items:center; min-height:34px; transition:opacity .8s; }
+.stato { display:inline-flex; align-items:center; gap:9px; font-size:13.2px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); }
+.cb { width:20px; height:20px; border:2px solid var(--accent); border-radius:6px; display:flex; align-items:center; justify-content:center; } .cb::after { content:""; width:9px; height:9px; border-radius:50%; background:var(--accent); animation:pulso 1.6s ease-in-out infinite; } @keyframes pulso { 50% { opacity:.35; } }
+.centro { flex:1; display:flex; flex-direction:column; justify-content:center; padding-bottom:14px; position:relative; }
+.nome, .infor, .prev { transition:opacity .8s ease; }
+.titolo { margin:0; font-size:31.2px; font-weight:750; letter-spacing:-.015em; line-height:1.15; }
+.infor { display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; padding:14px 0; margin:16px 0 24px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); font-size:14.4px; color:var(--mid); } .infor b { color:var(--ink); font-weight:600; } .infor .data { margin-left:auto; }
+.timer { font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight:700; letter-spacing:-.02em; font-size:48px; line-height:1.1; margin-bottom:12px; align-self:flex-start; white-space:nowrap; transform-origin:center; color:var(--ink); position:relative; z-index:3; }
+.barrab { height:9.6px; background:var(--surface2); border-radius:6px; overflow:hidden; position:relative; z-index:3; } .barrab i { display:block; height:100%; background:var(--accent); border-radius:6px; } .barrab i.o { background:var(--warn); }
+.prev { display:flex; justify-content:space-between; font-size:14.4px; color:var(--mid); margin-top:7px; } .prev .o { color:var(--warn); font-weight:700; }
+.az { display:flex; gap:12px; padding:12px 0 28px; transition:opacity .8s; } .btn { flex:1 1 0; display:flex; align-items:center; justify-content:center; gap:10px; height:64.8px; border-radius:20px; font-weight:750; font-size:18px; } .btn.s { background:var(--surface2); } .btn.p { background:var(--accent); color:#fff; }
+/* stato «solo timer e barra» */
+.tel.solo .alto, .tel.solo .nome, .tel.solo .infor, .tel.solo .prev, .tel.solo .az { opacity:0; }
+.tel.anim .timer { transition:transform 1.1s cubic-bezier(.3,.8,.2,1), color .9s; } .tel.anim .barrab { transition:transform 1.1s cubic-bezier(.3,.8,.2,1), width 1.1s cubic-bezier(.3,.8,.2,1), height 1.1s cubic-bezier(.3,.8,.2,1), border-radius 1.1s; }
+.nota { max-width:880px; color:var(--mid); font-size:13px; margin-top:24px; } .nota li { margin-bottom:5px; }
+</style></head><body>
+<h1>Schermata completa uguale a oggi, solo la seconda cambia</h1>
+<p class="sub">A sinistra la schermata <b>identica a quella attuale dell'app</b> (timer scuro, barra a tutta larghezza alta 10 px, barra di stato visibile). Al centro la schermata <b>dopo 5 secondi</b> come nella versione B: timer grigio con spessore pieno, ingrandito e al centro dello schermo, con sotto la barra <b>larga come il timer</b> e alta 18 px. A destra il passaggio dall'una all'altra, animato. Telefono a misura reale (Nothing Phone 4a).</p>
+<div class="barra">
+ <div class="grp">Tempo <input id="r" type="range" min="0" max="150" value="48"><span class="tt" id="tt"></span></div>
+ <div class="grp">Barra di stato dopo 5 secondi <button id="sv">Visibile</button><button id="sn" class="on">Nascosta</button></div>
+ <div class="grp"><button id="play">▶ Riproduci il passaggio</button></div>
+</div>
+<div class="griglia">
+ <section class="var"><h2>1 · Schermata completa (come ora)</h2><p>Nessuna modifica rispetto all'app attuale.</p><div class="telw"><div class="tel" id="t1"></div></div></section>
+ <section class="var"><h2>2 · Dopo 5 secondi (nuova)</h2><p>Solo timer grigio e barra larga come il timer, al centro.</p><div class="telw"><div class="tel" id="t2"></div></div></section>
+ <section class="var"><h2>Il passaggio</h2><p>Dopo 5 secondi le scritte svaniscono, il timer si sposta al centro e si ingrandisce, la barra lo segue e si adatta.</p><div class="telw"><div class="tel" id="t3"></div></div></section>
+</div>
+<ul class="nota"><li><b>Barra di stato:</b> nella schermata completa resta visibile come oggi. Nella seconda puoi scegliere se nasconderla (modalità immersiva) o lasciarla.</li>
+<li>Il colore del timer passa da scuro a grigio (#6A6A73) durante l'animazione; lo spessore resta pieno. La barra diventa rossa oltre il previsto, come adesso.</li></ul>
+<script>
+const $ = (id) => document.getElementById(id), SC = .78, STIMA = 90;
+let senzaBarra = true;
+const fmt = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60); const d = (n) => String(n).padStart(2, '0'); return h ? `${h}:${d(m)}:${d(x)}` : `${d(m)}:${d(x)}`; };
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+const TT = 'fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"';
+function html(el, r) {
+  return `<div class="sbarra"><span>9:41</span><span>◖◗ 5G ▮</span></div><div class="foro"></div><div class="gesto"></div>
+  <div class="incorso"><div class="alto"><span class="stato"><span class="cb"></span>In corso</span></div>
+   <div class="centro"><div class="nome"><h1 class="titolo">Scrivere la relazione trimestrale</h1></div>
+    <div class="infor"><svg width="18" height="18" viewBox="0 0 24 24" ${TT}><rect x="3.5" y="4" width="17" height="16" rx="4.5"/><path d="M8 12.2l3 3 5-6"/></svg><b>Attività</b><span>· Lavoro</span><span class="data">domani</span></div>
+    <div class="timer">${fmt(el)}</div>
+    <div class="barrab"><i class="${r > 1 ? 'o' : ''}" style="width:${Math.min(100, r * 100)}%"></i></div>
+    <div class="prev"><span class="${r > 1 ? 'o' : ''}">${r > 1 ? 'Oltre il previsto' : 'lavorato'}</span><span>previsto ${nome(STIMA)}</span></div></div>
+   <div class="az"><button class="btn s">⏸ Pausa</button><button class="btn p"><span class="cb" style="border-color:#fff"></span>Fatta</button></div></div>`;
+}
+function posiziona(tel, solo) {
+  const t = tel.querySelector('.timer'), b = tel.querySelector('.barrab');
+  tel.classList.remove('anim'); t.style.transform = ''; b.style.transform = ''; b.style.width = ''; b.style.height = ''; b.style.borderRadius = ''; t.style.color = '';
+  const T = tel.getBoundingClientRect(), rt = t.getBoundingClientRect(), rb = b.getBoundingClientRect(); void t.offsetWidth;
+  if (solo) {
+    const Wi = T.width / SC - 20, cxP = T.left + T.width / 2, cyP = T.top + T.height / 2, larg = rt.width / SC;
+    const scala = Math.min(2.2, 0.8 * Wi / larg), wS = larg * scala;
+    t.style.transform = `translate(${(cxP - (rt.left + rt.width / 2)) / SC}px, ${(cyP - (rt.top + rt.height / 2)) / SC}px) scale(${scala})`; t.style.color = '#6A6A73';
+    b.style.width = wS + 'px'; b.style.height = '18px'; b.style.borderRadius = '9px';
+    const topB = cyP + (rt.height / SC * scala) / 2 * SC + 22 * SC;
+    b.style.transform = `translate(${(cxP - wS / 2 * SC - rb.left) / SC}px, ${(topB - rb.top) / SC}px)`;
+  }
+  tel.classList.toggle('solo', solo); tel.classList.toggle('senza', solo && senzaBarra);
+}
+function disegna() {
+  const el = +$('r').value * 60, r = el / (STIMA * 60);
+  $('tt').textContent = nome(Math.round(el / 60)) + ' · ' + Math.round(r * 100) + '%';
+  ['t1', 't2', 't3'].forEach((id) => { $(id).innerHTML = html(el, r); $(id).className = 'tel'; });
+  posiziona($('t1'), false); posiziona($('t2'), true); posiziona($('t3'), false);
+}
+async function passaggio() {
+  const t = $('t3'); posiziona(t, false); await new Promise((r) => setTimeout(r, 1800)); t.classList.add('anim');
+  // ricalcolo la posizione finale con l'animazione attiva
+  const el = t.querySelector('.timer'); const prima = t.className; t.classList.remove('anim');
+  const copia = t.cloneNode(true); copia.style.position = 'absolute'; copia.style.visibility = 'hidden'; t.parentNode.appendChild(copia); posiziona(copia, true);
+  const tt = copia.querySelector('.timer'), bb = copia.querySelector('.barrab'); const tr = tt.style.transform, br = bb.style.transform, bw = bb.style.width; copia.remove();
+  t.classList.add('anim'); t.classList.add('solo'); if (senzaBarra) t.classList.add('senza');
+  const tm = t.querySelector('.timer'), ba = t.querySelector('.barrab'); tm.style.transform = tr; tm.style.color = '#6A6A73'; ba.style.transform = br; ba.style.width = bw; ba.style.height = '18px'; ba.style.borderRadius = '9px';
+  await new Promise((r) => setTimeout(r, 4200)); posiziona(t, false);
+}
+$('r').addEventListener('input', disegna);
+$('sv').onclick = () => { senzaBarra = false; $('sv').classList.add('on'); $('sn').classList.remove('on'); disegna(); };
+$('sn').onclick = () => { senzaBarra = true; $('sn').classList.add('on'); $('sv').classList.remove('on'); disegna(); };
+$('play').onclick = passaggio;
+disegna();
+</script></body></html>

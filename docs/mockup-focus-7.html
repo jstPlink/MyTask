@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: barra più corta e un po' più spessa, timer grigio</title>
+<style>
+:root { --bg:#F1F0EC; --surface:#FFFFFF; --surface2:#E3E1DC; --ink:#111115; --mid:#65656E; --soft:#919199; --line:#DDDAD4; --accent:#2F7D5B; --warn:#D1430B; --k:1.2; --tc:#6A6A73; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:20px 16px 60px; }
+h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--mid); margin:0 0 12px; max-width:880px; }
+button { font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; text-align:inherit; }
+.barra { position:sticky; top:0; z-index:100; background:var(--bg); padding:8px 0 10px; display:flex; flex-wrap:wrap; gap:8px 22px; align-items:center; border-bottom:1px solid var(--line); margin-bottom:18px; }
+.grp { display:flex; gap:6px; align-items:center; font-size:12.5px; color:var(--mid); font-weight:700; flex-wrap:wrap; } .grp button { background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-weight:700; text-align:center; } .grp button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.grp input[type=range] { width:220px; } .tt { font:800 14px ui-monospace,Consolas,monospace; min-width:150px; color:var(--ink); }
+.griglia { display:flex; flex-wrap:wrap; gap:34px 38px; }
+.var h2 { font-size:15px; margin:0 0 2px; } .var p { margin:0 0 10px; color:var(--mid); font-size:13px; max-width:320px; min-height:40px; }
+.telw { width:321px; height:711px; flex:none; }
+.tel { position:relative; width:411px; height:911px; transform:scale(.78); transform-origin:0 0; background:var(--surface); border-radius:56px; border:10px solid #1b1b20; overflow:hidden; box-shadow:0 12px 36px rgba(0,0,0,.22); }
+.foro { position:absolute; top:11px; left:50%; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:#111; z-index:51; }
+.f { position:absolute; inset:0; display:flex; flex-direction:column; padding:56px 26px 0; }
+.f.nasc .alto, .f.nasc .vela, .f.nasc .az { opacity:0; } .alto { display:flex; align-items:center; min-height:34px; margin-top:10px; transition:opacity .8s; }
+.stg { display:flex; align-items:center; gap:9px; font-size:calc(11px * var(--k)); font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); }
+.cb { width:20px; height:20px; border:2px solid var(--accent); border-radius:6px; display:flex; align-items:center; justify-content:center; } .cb::after { content:""; width:9px; height:9px; border-radius:50%; background:var(--accent); animation:pulso 1.6s ease-in-out infinite; } @keyframes pulso { 50% { opacity:.35; } }
+.centro { flex:1; display:flex; flex-direction:column; justify-content:center; padding-bottom:10px; position:relative; }
+.vela { transition:opacity .8s; } .titolo { font-size:calc(26px * var(--k)); font-weight:750; letter-spacing:-.015em; line-height:1.15; }
+.info { display:flex; align-items:center; gap:8px; padding:14px 0; margin:16px 0 22px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); font-size:calc(12px * var(--k)); color:var(--mid); } .info b { color:var(--ink); font-weight:600; }
+.nucleo { transition:all .5s; display:flex; flex-direction:column; } .f.nasc .nucleo { position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); align-items:center; }
+.tm { font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-weight:700; letter-spacing:-.02em; font-size:calc(40px * var(--k)); line-height:1.1; margin-bottom:14px; color:var(--tc); } .f.nasc .tm { font-size:calc(56px * var(--k)); }
+.gb { display:inline-flex; flex-direction:column; } /* gruppo timer + barra */
+.az { display:flex; gap:12px; padding:12px 0 38px; transition:opacity .8s; } .btn { flex:1 1 0; display:flex; align-items:center; justify-content:center; gap:10px; height:calc(54px * var(--k)); border-radius:20px; font-weight:750; font-size:calc(15px * var(--k)); } .btn.s { background:var(--surface2); } .btn.p { background:var(--accent); color:#fff; }
+.br { background:var(--surface2); overflow:hidden; } .br i { display:block; height:100%; background:var(--accent); } .br i.o { background:var(--warn); }
+.prv { display:flex; justify-content:space-between; font-size:calc(12px * var(--k)); color:var(--mid); margin-top:8px; } .prv .o { color:var(--warn); font-weight:700; }
+.nota { max-width:880px; color:var(--mid); font-size:13px; margin-top:24px; } .nota li { margin-bottom:5px; }
+</style></head><body>
+<h1>Timer grigio e barra più corta, un po' più spessa</h1>
+<p class="sub">Il timer è <b>grigio</b> (#6A6A73) con spessore <b>pieno</b>. La barra è quella di prima (verde che si riempie, rossa oltre il previsto) ma <b>più corta e un po' più spessa</b>, in cinque misure. Oggi la barra è larga tutto lo schermo e alta 10 px. Telefono a misura reale (Nothing Phone 4a), barra di stato nascosta.</p>
+<div class="barra">
+ <div class="grp">Tempo <input id="r" type="range" min="0" max="150" value="48"><span class="tt" id="tt"></span><button id="play">▶ Scorri</button></div>
+ <div class="grp">Schermata <button id="sc" class="on">Completa</button><button id="s5">Dopo 5 secondi</button></div>
+ <div class="grp">Scritte sotto la barra <button id="t1" class="on">Sì</button><button id="t0">No</button></div>
+</div>
+<div class="griglia" id="g"></div>
+<ul class="nota"><li><b>Misure:</b> larghezza e altezza sono in px dello schermo vero (411 × 911 dp). «Larga come il timer» adatta la barra alle cifre.</li>
+<li>In «Dopo 5 secondi» il timer e la barra restano al centro, uniti, come nella versione attuale.</li></ul>
+<script>
+const $ = (id) => document.getElementById(id);
+const STIMA = 90; let nasc = false, testi = true;
+const fmt = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60); const d = (n) => String(n).padStart(2, '0'); return h ? `${h}:${d(m)}:${d(x)}` : `${d(m)}:${d(x)}`; };
+const nome = (m) => m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min';
+// [id, titolo, descrizione, larghezza (%, 'timer' = come il timer), altezza px]
+const VAR = [
+ ['a', 'A · Corta e sottile', 'Metà schermo, 14 px.', 50, 14],
+ ['b', 'B · Larga come il timer', 'Quanto le cifre, 18 px.', 'timer', 18],
+ ['c', 'C · Due terzi', '66% dello schermo, 22 px.', 66, 22],
+ ['d', 'D · Lunga e sottile', '80% dello schermo, 16 px.', 80, 16],
+ ['e', 'E · Corta e tozza', '40% dello schermo, 28 px.', 40, 28],
+];
+function render() {
+  const el = +$('r').value * 60, r = el / (STIMA * 60), min = el / 60;
+  $('tt').textContent = nome(Math.round(min)) + ' · ' + Math.round(r * 100) + '%';
+  $('g').innerHTML = VAR.map(([k, n, d, w, h]) => {
+    const larg = w === 'timer' ? 'auto' : `${w}%`;
+    const barra = `<div class="br" style="height:${h}px;border-radius:${h / 2}px;width:${w === 'timer' ? '100%' : '100%'}"><i class="${r > 1 ? 'o' : ''}" style="width:${Math.min(100, r * 100)}%"></i></div>`;
+    const scritte = testi ? `<div class="prv vela"><span class="${r > 1 ? 'o' : ''}">${r > 1 ? '+' + nome(Math.round(min - STIMA)) + ' oltre' : 'previsto ' + nome(STIMA)}</span><span>${Math.round(r * 100)}%</span></div>` : '';
+    const gruppo = w === 'timer' ? `<div class="gb"><div class="tm">${fmt(el)}</div>${barra}${scritte}</div>` : `<div class="tm">${fmt(el)}</div><div style="width:${larg}">${barra}${scritte}</div>`;
+    return `<section class="var"><h2>${n}</h2><p>${d}</p><div class="telw"><div class="tel"><div class="foro"></div>
+     <div class="f ${nasc ? 'nasc' : ''}"><div class="alto"><span class="stg"><span class="cb"></span>In corso</span></div>
+      <div class="centro"><div class="vela titolo">Scrivere la relazione trimestrale</div><div class="vela info"><b>Attività</b><span>· Lavoro</span><span style="margin-left:auto">domani</span></div><div class="nucleo">${gruppo}</div></div>
+      <div class="az"><button class="btn s">⏸ Pausa</button><button class="btn p">✓ Fatta</button></div></div></div></div></section>`;
+  }).join('');
+}
+$('r').addEventListener('input', render);
+$('sc').onclick = () => { nasc = false; $('sc').classList.add('on'); $('s5').classList.remove('on'); render(); };
+$('s5').onclick = () => { nasc = true; $('s5').classList.add('on'); $('sc').classList.remove('on'); render(); };
+$('t1').onclick = () => { testi = true; $('t1').classList.add('on'); $('t0').classList.remove('on'); render(); };
+$('t0').onclick = () => { testi = false; $('t0').classList.add('on'); $('t1').classList.remove('on'); render(); };
+let iv; $('play').onclick = () => { if (iv) { clearInterval(iv); iv = null; $('play').textContent = '▶ Scorri'; return; } $('play').textContent = '⏸ Ferma'; $('r').value = 0; iv = setInterval(() => { const v = +$('r').value + 1; if (v > 150) { clearInterval(iv); iv = null; $('play').textContent = '▶ Scorri'; return; } $('r').value = v; render(); }, 120); };
+render();
+</script></body></html>
