@@ -2,7 +2,7 @@
  * Storico del margine di stima (si apre toccando la targhetta «Correzione alle tue stime» in Priorità; mockup `docs/mockup-storico-margine.html`):
  * il margine attuale grande e colorato, come sono andate le note (giuste, medie, sbagliate), un intervallo (ultime 10, 30 o tutte),
  * il grafico a barre dello scostamento di ogni nota (più chiara = più vecchia, pesa meno) e l'elenco delle note con stimato → reale,
- * scostamento colorato, quando è stata fatta e quanto pesa oggi nel margine. Toccando una nota si apre la sua scheda.
+ * scostamento colorato (in percentuale e in minuti), quando è stata fatta e quanto pesa oggi nel margine (più è recente e lunga, più pesa). Toccando una nota si apre la sua scheda.
  */
 import { useMemo, useState } from 'react';
 import { livelloMargine, margineAtteso, percentuale, storicoNote, type LivelloMargine } from '../../../shared/stima.ts';
@@ -49,7 +49,7 @@ export function StoricoMargine() {
   const scegli = (n: number) => { setQuante(n); try { localStorage.setItem(CHIAVE, String(n)); } catch { /* ignora */ } };
 
   const conta: Record<LivelloMargine, number> = { buono: 0, medio: 0, sbagliato: 0 };
-  for (const n of elenco) conta[livelloMargine(n.scostamento)]++;
+  for (const n of elenco) conta[n.livello]++;
 
   // grafico: dalla più vecchia (a sinistra) alla più recente (a destra); l'altezza è lo scostamento, l'opacità il peso
   const ord = [...elenco].reverse();
@@ -102,27 +102,27 @@ export function StoricoMargine() {
                   const su = p >= 0;
                   return (
                     <rect key={n.item.id} x={X(i) - larghezza / 2} y={su ? Y(p) : 50} width={larghezza} height={Math.max(1.5, Math.abs(Y(p) - 50))} rx="3.5"
-                      fill={COLORE[livelloMargine(n.scostamento)]} opacity={0.35 + 0.65 * n.peso} stroke={i === nn - 1 ? 'var(--ink)' : undefined} strokeWidth={i === nn - 1 ? 1.6 : undefined} />
+                      fill={COLORE[n.livello]} opacity={0.35 + 0.65 * n.peso} stroke={i === nn - 1 ? 'var(--ink)' : undefined} strokeWidth={i === nn - 1 ? 1.6 : undefined} />
                   );
                 })}
               </svg>
               <div className="sm-assi"><span>più vecchia</span><span>più recente</span></div>
-              <div className="sm-sp">Più chiara = nota più vecchia, pesa meno. Le righe tratteggiate sono ±15%.</div>
+              <div className="sm-sp">Più chiara = nota che pesa meno (più vecchia o più breve). Le righe tratteggiate sono ±15%.</div>
             </div>
 
             <div className="sm-card">
               <div className="sm-su">Le note</div>
               {elenco.map((n) => {
                 const p = Math.round(n.scostamento * 100);
-                const l = livelloMargine(n.scostamento);
+                const l = n.livello;
                 return (
                   <button key={n.item.id} className="sm-nr" onClick={() => nav.push({ k: 'item', id: n.item.id })}>
-                    <span className="sm-tt"><span className="sm-t1">{n.item.titolo}</span><span className="sm-t2">{nomeTempo(n.stimaMin)} → {nomeTempo(n.realeMin)} · {quando(n.completatoTs, oggi)}</span></span>
+                    <span className="sm-tt"><span className="sm-t1">{n.item.titolo}</span><span className="sm-t2">{nomeTempo(n.stimaMin)} → {nomeTempo(n.realeMin)} ({n.differenzaMin > 0 ? '+' : n.differenzaMin < 0 ? '\u2212' : ''}{Math.abs(n.differenzaMin)} min) · {quando(n.completatoTs, oggi)}</span></span>
                     <span className="sm-dx"><span className="sm-chip" style={{ color: COLORE[l], background: FONDO[l] }}>{pc(p)}</span><span className="sm-peso" title="Peso della nota nel margine di oggi"><i style={{ width: `${n.peso * 100}%` }} /></span></span>
                   </button>
                 );
               })}
-              <div className="sm-sp">La barretta sotto la percentuale è il peso della nota nel margine oggi (si dimezza ogni 21 giorni).</div>
+              <div className="sm-sp">La barretta sotto la percentuale è il peso della nota nel margine oggi: più è recente (si dimezza ogni 21 giorni) e più è lunga, più pesa. Una nota con meno di 10 minuti di differenza non è mai «sbagliata».</div>
             </div>
           </>
         )}

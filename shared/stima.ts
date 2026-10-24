@@ -1,8 +1,11 @@
 // Stima dei tempi con margine (editor della nota). Il margine è il **tempo da aggiungere** alle tue stime, con segno: è la media
 // pesata dello scostamento (reale − stimato, in proporzione alla stima) di tutte le attività completate con tempo stimato e tempo
-// reale (`durataRealeMin`, misurato dall'app). Il peso di ogni attività si dimezza ogni EMIVITA_GIORNI dal suo completamento,
-// quindi contano di più le più recenti. Stime troppo corte lo fanno salire (positivo, da aggiungere); stime troppo abbondanti
-// lo fanno scendere, anche sotto zero (negativo: stai stimando più del necessario).
+// reale (`durataRealeMin`, misurato dall'app). Il peso di ogni attività è il prodotto di due cose: quanto è recente (si dimezza ogni
+// EMIVITA_GIORNI dal completamento) e quanto è lunga (la radice della stima: un errore su 2 ore conta più dello stesso errore
+// percentuale su 20 minuti, ma non in proporzione). Stime troppo corte lo fanno salire (positivo, da aggiungere); stime troppo
+// abbondanti lo fanno scendere, anche sotto zero (negativo: stai stimando più del necessario).
+//
+// Il giudizio su una singola nota (`livelloNota`) tiene conto anche dei minuti: un errore piccolo in assoluto non è «sbagliato».
 import type { Item } from './types.ts';
 import { chiaveTitolo } from './testo.ts';
 
@@ -52,8 +55,28 @@ export function pesoNota(completatoTs: number, adesso: number = Date.now()): num
   return 0.5 ** (Math.max(0, adesso - completatoTs) / 86_400_000 / EMIVITA_GIORNI);
 }
 
-/** Una nota dello storico del margine: stimato, reale, scostamento e peso nel calcolo di oggi. */
-export interface NotaStorico { item: Item; stimaMin: number; realeMin: number; scostamento: number; completatoTs: number; peso: number }
+/** Peso di una nota nel margine: quanto è recente per la radice della stima (le note lunghe contano di più, ma non in proporzione). */
+export const pesoMargine = (completatoTs: number, stimaMin: number, adesso: number = Date.now()) => pesoNota(completatoTs, adesso) * Math.sqrt(stimaMin);
+
+/** Sotto questa differenza (minuti) una nota non può essere «sbagliata», al massimo «media»; sotto la metà è «buona». */
+export const MINUTI_NOTA_SBAGLIATA = 10;
+export const MINUTI_NOTA_MEDIA = 5;
+
+/**
+ * Il giudizio su una singola nota (colore delle barre e dei numeri nello storico): parte dal livello dello scostamento in percentuale
+ * (±15% buono, ±30% medio, oltre sbagliato) ma un errore piccolo in assoluto vale meno: fino a 10 minuti di differenza una nota non è
+ * mai «sbagliata» e sotto i 5 minuti è «buona», così 5 minuti su una nota da 10 non sono un errore grave.
+ */
+export function livelloNota(stimaMin: number, realeMin: number): LivelloMargine {
+  const diff = Math.abs(realeMin - stimaMin);
+  let l = livelloMargine(scostamento(stimaMin, realeMin));
+  if (l === 'sbagliato' && diff <= MINUTI_NOTA_SBAGLIATA) l = 'medio';
+  if (l === 'medio' && diff < MINUTI_NOTA_MEDIA) l = 'buono';
+  return l;
+}
+
+/** Una nota dello storico del margine: stimato, reale, scostamento (anche in minuti), livello e peso nel calcolo di oggi (0-1 rispetto alla nota che pesa di più). */
+export interface NotaStorico { item: Item; stimaMin: number; realeMin: number; scostamento: number; differenzaMin: number; livello: LivelloMargine; completatoTs: number; peso: number }
 
 /**
  * Le note completate con stima e tempo reale, la più recente prima: sono quelle che formano il margine (pagina «Storico del margine»).
@@ -64,35 +87,43 @@ export function storicoNote(items: Item[], adesso: number = Date.now(), quante =
     .filter((i) => !!i.sforzoMin)
     .map((i) => {
       const ts = i.completatoTs ?? i.aggiornato;
-      return { item: i, stimaMin: i.sforzoMin!, realeMin: i.durataRealeMin!, scostamento: scostamento(i.sforzoMin!, i.durataRealeMin!), completatoTs: ts, peso: pesoNota(ts, adesso) };
+      return { item: i, stimaMin: i.sforzoMin!, realeMin: i.durataRealeMin!, scostamento: scostamento(i.sforzoMin!, i.durataRealeMin!), differenzaMin: i.durataRealeMin! - i.sforzoMin!, livello: livelloNota(i.sforzoMin!, i.durataRealeMin!), completatoTs: ts, peso: pesoMargine(ts, i.sforzoMin!, adesso) };
     })
     .sort((a, b) => b.completatoTs - a.completatoTs);
-  return quante > 0 ? lista.slice(0, quante) : lista;
+  const massimo = Math.max(...lista.map((n) => n.peso), 0);
+  const normalizzata = massimo > 0 ? lista.map((n) => ({ ...n, peso: n.peso / massimo })) : lista;
+  return quante > 0 ? normalizzata.slice(0, quante) : normalizzata;
 }
 
-/** Margine atteso: media pesata degli scostamenti delle attività misurate con una stima; le più recenti pesano di più. */
+/** Margine atteso: media pesata degli scostamenti delle attività misurate con una stima; pesano di più le più recenti e le più lunghe (radice della stima). */
 export function margineAtteso(items: Item[], adesso = Date.now()): number {
   let somma = 0;
   let pesi = 0;
   for (const i of misurate(items)) {
     if (!i.sforzoMin) continue;
-    const peso = pesoNota(i.completatoTs ?? i.aggiornato, adesso);
+    const peso = pesoMargine(i.completatoTs ?? i.aggiornato, i.sforzoMin, adesso);
     somma += peso * scostamento(i.sforzoMin, i.durataRealeMin!);
     pesi += peso;
   }
   return pesi > 0 ? Math.min(MARGINE_MAX, Math.max(MARGINE_MIN, somma / pesi)) : MARGINE_INIZIALE;
 }
 
+/** Una barra del foglio del margine: scostamento in proporzione, differenza in minuti e giudizio sulla nota. */
+export interface BarraNota { scostamento: number; differenzaMin: number; livello: LivelloMargine }
+
+/** La barra di una nota con stima e tempo reale (in minuti). */
+export const barraNota = (stimaMin: number, realeMin: number): BarraNota => ({ scostamento: scostamento(stimaMin, realeMin), differenzaMin: realeMin - stimaMin, livello: livelloNota(stimaMin, realeMin) });
+
 /**
- * Lo scostamento (reale − stimato, in proporzione alla stima) delle ultime `quante` attività completate con stima e tempo reale,
- * dalla meno recente alla più recente: sono le barre del foglio del margine. Positivo = ci è voluto più del previsto.
+ * Le barre delle ultime `quante` attività completate con stima e tempo reale, dalla meno recente alla più recente: sono le barre del
+ * foglio del margine. Scostamento positivo = ci è voluto più del previsto.
  */
-export function ultimeNote(items: Item[], quante = 7): number[] {
+export function ultimeNote(items: Item[], quante = 7): BarraNota[] {
   return misurate(items)
     .filter((i) => !!i.sforzoMin)
     .sort((a, b) => (a.completatoTs ?? a.aggiornato) - (b.completatoTs ?? b.aggiornato))
     .slice(-quante)
-    .map((i) => scostamento(i.sforzoMin!, i.durataRealeMin!));
+    .map((i) => barraNota(i.sforzoMin!, i.durataRealeMin!));
 }
 
 /** Stima per una nuova attività in base a quelle simili già fatte (mediana dei loro tempi reali). */

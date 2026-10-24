@@ -51,6 +51,7 @@ export function CompletamentoSheet() {
   const bx = (i: number) => 20 + (i / (n - 1)) * 260;
   const by = (v: number) => 50 - Math.max(-50, Math.min(50, v)) * 0.9;
   const ultimaOggi = c.oggi !== undefined;
+  const minTesto = (m: number) => `${m > 0 ? '+' : m < 0 ? '\u2212' : ''}${Math.abs(m)} min`;
 
   return (
     <>
@@ -91,17 +92,18 @@ export function CompletamentoSheet() {
                 <rect x="0" y="50" width="300" height="50" fill="var(--c1s)" opacity=".6" />
                 <rect x="0" y="0" width="300" height="50" fill="var(--warn-soft)" opacity=".6" />
                 <line x1="0" y1="50" x2="300" y2="50" stroke="var(--soft)" strokeDasharray="3 4" />
-                {barre.map((v, i) => {
+                {barre.map((b, i) => {
+                  const v = b.p;
                   const su = v >= 0;
                   const alt = Math.max(1.5, Math.abs(by(v) - 50));
                   const ultima = ultimaOggi && i === n - 1;
                   return (
                     <rect key={i} className={clsx('cmp-nb', su ? 'su' : 'giu')} x={bx(i) - larghezza / 2} y={su ? 50 - alt : 50} width={larghezza} height={alt} rx="4"
-                      fill={{ buono: 'var(--c1)', medio: 'var(--amber)', sbagliato: 'var(--warn)' }[livelloMargine(v / 100)]} opacity={ultima ? 1 : 0.8} stroke={ultima ? 'var(--ink)' : undefined} strokeWidth={ultima ? 2 : undefined}
+                      fill={{ buono: 'var(--c1)', medio: 'var(--amber)', sbagliato: 'var(--warn)' }[b.livello]} opacity={ultima ? 1 : 0.8} stroke={ultima ? 'var(--ink)' : undefined} strokeWidth={ultima ? 2 : undefined}
                       style={{ ['--d' as string]: `${1.1 + i * 0.12}s` }} />
                   );
                 })}
-                {ultimaOggi && <text className="cmp-nbt" x={bx(n - 1)} y={c.oggi! >= 0 ? Math.max(10, by(c.oggi!) - 5) : 44} textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--ink)">{pc(c.oggi!)}</text>}
+                {ultimaOggi && <text className="cmp-nbt" x={296} y={c.oggi!.p >= 0 ? Math.max(10, by(c.oggi!.p) - 5) : 44} textAnchor="end" fontSize="10" fontWeight="800" fill="var(--ink)">{pc(c.oggi!.p)} · {minTesto(c.oggi!.min)}</text>}
               </svg>
               <div className="cmp-assi"><span>{n - (ultimaOggi ? 1 : 0)} note fa</span><span>{ultimaOggi ? 'questa nota' : 'più recente'}</span></div>
             </div>

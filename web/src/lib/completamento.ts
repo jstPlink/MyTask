@@ -1,5 +1,9 @@
+import type { LivelloMargine } from '../../../shared/stima.ts';
 // Stato del foglio che compare dopo aver completato una nota di cui si conosce il tempo reale: confronto tra
 // stimato e reale e margine d'errore aggiornato. Piccolo store con ascoltatori; il disegno è in ui/CompletamentoSheet.tsx.
+
+/** Una barra delle ultime note: scostamento in percentuale intera, differenza in minuti e giudizio sulla nota. */
+export interface BarraNotaFoglio { p: number; min: number; livello: LivelloMargine }
 
 /** Dati del foglio di confronto stima / tempo reale. */
 interface Completamento {
@@ -11,8 +15,8 @@ interface Completamento {
   margineDa: number;
   margineA: number;
   /** Lo scostamento (in percentuale: +30 = ci è voluto il 30% in più) delle ultime note completate, dalla meno recente, e di questa nota se misurata. */
-  note: number[];
-  oggi?: number;
+  note: BarraNotaFoglio[];
+  oggi?: BarraNotaFoglio;
 }
 
 /** Il foglio resta aperto il tempo dell'animazione più 2 secondi, poi si chiude da solo. */

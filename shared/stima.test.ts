@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, margineAtteso, pesoNota, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
+import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, livelloNota, margineAtteso, pesoNota, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
 
 let n = 0;
 const fatta = (titolo: string, sforzoMin: number | undefined, durataRealeMin: number | undefined): Item =>
@@ -45,9 +45,9 @@ test('stima: esempio con sei attività, emivita 21 giorni', () => {
   const dati: [number, number, number][] = [[30, 60, 90], [24, 30, 45], [18, 120, 130], [10, 45, 40], [4, 60, 55], [1, 30, 28]];
   const items = dati.map(([giorni, st, re], k) => ({ ...fatta(`Es ${k}`, st, re), completatoTs: adesso - giorni * GG }));
   let somma = 0, pesi = 0;
-  for (const [giorni, st, re] of dati) { const w = 0.5 ** (giorni / 21); somma += w * (re - st) / st; pesi += w; }
+  for (const [giorni, st, re] of dati) { const w = 0.5 ** (giorni / 21) * Math.sqrt(st); somma += w * (re - st) / st; pesi += w; } // peso = recenza × radice della stima
   assert.ok(Math.abs(margineAtteso(items, adesso) - somma / pesi) < 1e-9);
-  assert.ok(margineAtteso(items, adesso) > 0.03 && margineAtteso(items, adesso) < 0.14);
+  assert.ok(margineAtteso(items, adesso) > 0.03 && margineAtteso(items, adesso) < 0.2);
 });
 
 test('stima: percentuale con segno e tempo atteso', () => {
@@ -73,13 +73,35 @@ test('stima: le attività non completate o senza tempo reale non contano', () =>
   assert.equal(stimaPer('Pagare il bollo', [aperta, senzaTempo]), undefined);
 });
 
-test('stima: ultimeNote dà lo scostamento delle ultime note, dalla meno recente', () => {
+test('stima: ultimeNote dà scostamento, minuti e livello delle ultime note, dalla meno recente', () => {
   const note = [1, 2, 3, 4, 5].map((k) => ({ ...fatta(`Nota ${k}`, 60, 60 + k * 6), completatoTs: k * 1000 })); // +10%, +20%, …
   const u = ultimeNote(note, 3);
   assert.equal(u.length, 3);
-  assert.ok(Math.abs(u[0] - 0.3) < 1e-9 && Math.abs(u[2] - 0.5) < 1e-9, 'le ultime tre, in ordine di completamento');
+  assert.ok(Math.abs(u[0].scostamento - 0.3) < 1e-9 && Math.abs(u[2].scostamento - 0.5) < 1e-9, 'le ultime tre, in ordine di completamento');
+  assert.deepEqual(u.map((x) => x.differenzaMin), [18, 24, 30]);
   assert.deepEqual(ultimeNote([]), []);
   assert.deepEqual(ultimeNote([fatta('Senza stima', undefined, 30)]), [], 'senza stima non conta');
+});
+
+test('stima: una nota lunga pesa più di una breve con lo stesso errore percentuale (radice della stima)', () => {
+  const breve = { ...fatta('Breve', 20, 30), completatoTs: 1000 }; // +50%
+  const lunga = { ...fatta('Lunga', 120, 120), completatoTs: 1000 }; // 0%
+  const m = margineAtteso([breve, lunga], 1000);
+  const attesoB = (Math.sqrt(20) * 0.5) / (Math.sqrt(20) + Math.sqrt(120));
+  assert.ok(Math.abs(m - attesoB) < 1e-9);
+  assert.ok(m < 0.25, 'meno della media semplice (25%) perché la nota lunga, giusta, pesa di più');
+  // con la media delle percentuali le due note avrebbero pesato uguale: 25%
+});
+
+test('stima: il giudizio sulla singola nota tiene conto anche dei minuti', () => {
+  assert.equal(livelloNota(10, 15), 'medio', '+50% ma solo 5 minuti: non è sbagliata (sotto i 10) ma 5 minuti sono ancora una differenza media');
+  assert.equal(livelloNota(10, 14), 'buono', '+40% ma 4 minuti: buona');
+  assert.equal(livelloNota(20, 30), 'medio', '+50% ma 10 minuti di differenza: al massimo media');
+  assert.equal(livelloNota(20, 31), 'sbagliato', '+55% e 11 minuti: sbagliata');
+  assert.equal(livelloNota(120, 150), 'medio', '+25% su 30 minuti: media');
+  assert.equal(livelloNota(120, 90), 'medio', '−25%: media, uguale in negativo');
+  assert.equal(livelloNota(60, 66), 'buono', '+10%: buona');
+  assert.equal(livelloNota(60, 120), 'sbagliato', '+100% e 60 minuti: sbagliata');
 });
 
 test('stima: il livello del margine dipende dalla distanza da zero, uguale in positivo e in negativo', () => {

@@ -7,7 +7,7 @@ import { toggleOggi } from '../../../shared/routine.ts';
 import { isOpen } from '../../../shared/priority.ts';
 import { avanzamento, figli } from '../../../shared/views.ts';
 import { getItem, getItems, saveItem } from './store.ts';
-import { margineAtteso, scostamento, ultimeNote } from '../../../shared/stima.ts';
+import { barraNota, margineAtteso, ultimeNote } from '../../../shared/stima.ts';
 import { dopoCompletamento, fermaSessioneSe, lasciaInCorsoSolo, passaA, tempoDi } from './sessione.ts';
 import { minutiMisurati } from '../../../shared/sessione.ts';
 import { mostraCompletamento } from './completamento.ts';
@@ -57,8 +57,9 @@ export function completaVoce(item: Item, ora = Date.now(), opzioni: { sempreFogl
   const dopo = { ...completa(item, oggi, ora), ...(lavoratoMs > 0 ? { lavoratoMs: Math.round(lavoratoMs) } : {}), ...(durata ? { durataRealeMin: durata } : {}) };
   dopoCompletamento(item.id, ora); // il cronometro si ferma: la prossima nota la sceglie l'utente
   const margineDa = margineAtteso(getItems());
-  const note = ultimeNote(getItems(), 7).map((m) => Math.round(m * 100));
-  const oggiPc = durata && item.sforzoMin ? Math.round(scostamento(item.sforzoMin, durata) * 100) : undefined;
+  const pcMin = (b: ReturnType<typeof barraNota>) => ({ p: Math.round(b.scostamento * 100), min: b.differenzaMin, livello: b.livello });
+  const note = ultimeNote(getItems(), 7).map(pcMin);
+  const oggiPc = durata && item.sforzoMin ? pcMin(barraNota(item.sforzoMin, durata)) : undefined;
   saveItem(dopo);
   // con il tempo misurato e una stima si apre il foglio con il confronto e il margine d'errore aggiornato
   // con il tempo misurato e una stima si apre il foglio con il confronto; da «in corso» a tutto schermo (`sempreFoglio`) si apre sempre
