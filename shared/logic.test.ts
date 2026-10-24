@@ -316,3 +316,14 @@ test('Priorità: al massimo cinque attività, anche se altre sono scadute', () =
   const inPausa = mk({ titolo: 'In pausa', stato: 'in_pausa', importanza: 1 });
   assert.equal(vistaOggi([...scadute, inPausa], OGGI, NOW).fare.length, 5);
 });
+
+test('Priorità: un progetto è solo un contenitore, senza passi non compare; con passi compare il suo prossimo passo', () => {
+  const vuoto = mk({ tipo: 'progetto', titolo: 'Progetto senza passi', importanza: 5 });
+  const conPassi = mk({ tipo: 'progetto', titolo: 'Progetto con passi' });
+  const passo = mk({ titolo: 'Primo passo', padreId: conPassi.id, ordine: 0 });
+  const nota = mk({ titolo: 'Nota libera' });
+  const fare = vistaOggi([vuoto, conPassi, passo, nota], OGGI, NOW).fare.map((e) => e.item.titolo);
+  assert.ok(!fare.includes('Progetto senza passi'), 'il progetto vuoto non è una nota da fare');
+  assert.ok(!fare.includes('Progetto con passi'), 'nemmeno il progetto con passi: compare il suo passo');
+  assert.deepEqual([...fare].sort(), ['Nota libera', 'Primo passo']);
+});

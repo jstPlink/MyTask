@@ -77,7 +77,7 @@ export function punteggioEffettivo(i: Item, items: Item[], today: string, now: n
 
 /**
  * Le voci tra cui scegliere cosa fare, ognuna col suo punteggio. Esclude chiuse, archiviate, Inbox e passi di progetto;
- * un progetto con passi aperti entra con il solo prossimo passo (con le eredità del progetto), uno senza passi entra come voce a sé.
+ * un progetto con passi aperti entra con il solo prossimo passo (con le eredità del progetto), uno senza passi non entra: i progetti sono solo contenitori.
  */
 export function candidatiOggi(items: Item[], today: string, now: number): Entry[] {
   const tutte = live(items);
@@ -89,11 +89,10 @@ export function candidatiOggi(items: Item[], today: string, now: number): Entry[
     if (i.padreId) continue; // i figli compaiono solo come prossimo passo del padre
     if (i.tipo === 'progetto') {
       const next = prossimoPasso(i, tutte);
+      // i progetti sono solo contenitori: compare il loro prossimo passo; un progetto senza passi (o con tutti i passi chiusi) non compare
       if (next) {
         const eff = withInheritance(next, i);
         out.push({ item: eff, padre: i, punteggio: punteggioEffettivo(next, tutte, today, now, cache) });
-      } else if (figli(tutte, i.id).length === 0) {
-        out.push({ item: i, punteggio: chiavePriorita(i, today, now) });
       }
       continue;
     }

@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.91.0
+- **Versione documento:** 0.92.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -288,7 +288,7 @@ Cinque stati visibili: **Da fare** (`da_fare`), **In corso** (`in_corso`), **In 
 
 1. **Routine** del giorno.
 2. **Da fare:** le **5** note con la posizione migliore nella classifica unica (anche con scadenza futura), **mai di più**: le scadute o «in pausa» che non rientrano tra le prime cinque non compaiono (si trovano in Attività). A parità vengono prima quelle «in corso».
-3. Di un progetto compare solo il prossimo passo.
+3. I progetti sono solo contenitori: di un progetto compare solo il **prossimo passo**; un **progetto senza passi** (o con tutti i passi chiusi) **non compare** in Priorità né nel widget.
 4. Le **esperienze senza data** non compaiono mai in Oggi: sono una lista di desideri.
 5. Le archiviate e le note in Inbox non compaiono.
 6. **Curiosità:** le prime cinque della classifica delle curiosità (6.17), in un gruppo separato dalle attività.
@@ -595,6 +595,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-23 | 0.89.0 | **Curiosità:** il pallino numerato è verde e fermo (niente battito né colori del livello), nell'app e nel widget; la scheda Curiosità mostra anche il tempo stimato sulla riga |
 | 2026-10-23 | 0.90.0 | **Schermata «in corso» dopo 5 secondi:** timer grigio con spessore pieno, barra larga come il timer e alta 18 px (la schermata completa resta identica), barre di sistema nascoste in modalità immersiva su Android (`schermoImmersivo`, `SchermoPlugin.immersivo`) |
 | 2026-10-24 | 0.91.0 | **Nuovo calcolo del margine (peso per durata):** il peso di ogni nota è recenza × radice della stima, quindi un errore su una nota lunga conta più di uno uguale in percentuale su una breve; **giudizio per nota** (`livelloNota`) con soglie in minuti (fino a 10 minuti di differenza mai «sbagliata», sotto 5 «buona») nello storico e nelle barre del foglio, che mostrano anche i minuti di differenza |
+| 2026-10-24 | 0.92.0 | **Priorità solo note:** un progetto senza passi non compare più nell'elenco di Priorità e nel widget (i progetti sono contenitori: compare solo il prossimo passo) |
 
 ## Selettore del tempo a rotelle (0.65.3)
 
