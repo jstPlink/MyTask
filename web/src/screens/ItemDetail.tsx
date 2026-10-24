@@ -126,6 +126,13 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const alternaPrio = () => setPrioAperta((v) => { try { localStorage.setItem('mytask.prio.aperta', v ? '0' : '1'); } catch { /* ignora */ } return !v; });
   const setCheck = (c: VoceChecklist[]) => up({ checklist: c.length ? c : undefined });
   const ordChecklist = useRiordino(checklist.map((c) => c.id), (idsNuovi) => setCheck(idsNuovi.map((i) => checklist.find((c) => c.id === i)!)));
+  // «Aggiungi un passo»: crea una nota vera (attività con il progetto come padre), che si apre, ha la sua priorità e si segna come tutte le altre
+  const aggiungiPasso = (titolo: string) => {
+    if (!d.titolo.trim()) { mostraToast('Dai prima un nome al progetto'); return; }
+    salva(d); // il progetto deve esistere prima di avere dei passi
+    const ordine = Math.max(-1, ...passi.map((p) => p.ordine ?? -1)) + 1;
+    saveItem(nuovaVoce({ tipo: 'azione', titolo, padreId: d.id, ordine }));
+  };
   const ordPassi = useRiordino(passi.map((c) => c.id), (idsNuovi) => ordinaPassi(d.id, idsNuovi));
   const avanz = t === 'progetto' ? avanzamento(d, tutte) : undefined;
   // La durata di un gioco si scrive in ore (anche con la virgola) ma si salva in minuti: serve il testo grezzo.
@@ -302,7 +309,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
               ))}
             </div>
             {(passi.length > 1 || checklist.length > 1) && <div className="t2" style={{ padding: '6px 0 4px' }}>L'ordine è la priorità: il primo passo aperto è il prossimo da fare. Tieni premuta una riga, o trascinala dal bordo sinistro, per spostarla.</div>}
-            <AggiungiRiga placeholder="Aggiungi un passo" onAdd={(txt) => setCheck([...checklist, { id: newId(), testo: txt, fatto: false }])} />
+            <AggiungiRiga placeholder="Aggiungi un passo" onAdd={aggiungiPasso} />
               </div>
             )}
             {t === 'esperienza' && <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>}

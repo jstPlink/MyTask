@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.92.0
+- **Versione documento:** 0.93.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -179,7 +179,7 @@ La scheda (`ItemDetail`) salva da sola dopo 500 ms e all'uscita; non salva senza
 3. **Titolo**, **Tipo** e, per l'intrattenimento, **Sezione** (due tendine che si chiudono a vicenda con la pila). I tipi scelti sono Attività, Progetto, Esperienza, Routine, Intrattenimento (Film, Serie, Anime, Gioco, Libro), Ricetta, Curiosità, Game design. La tendina si espande per mostrare tutte le voci, senza scorrimento. Una nota **non assegnata** ha solo titolo, note, link e immagini: scegliendo un tipo lascia l'Inbox.
 4. **Campi per tipo:**
    - **Attività** e **Progetto**: un solo gruppo con Progetto (solo per le attività: tendina dell'app con icona, leggibile anche sul sito e scorrevole se i progetti sono molti; «Nessuno» se non collegata), Data, **Scadenza fissa** (appena c'è una data), Importanza (slider continuo da 1 a 5 a cuneo grigio→rosso, anche 3,4; **non si chiede per un'attività collegata a un progetto**: vale quella del progetto, e scegliendo il progetto il valore proprio si toglie), **Tempo stimato** (solo per le attività: in un progetto dipende dai passi, quindi il campo non c'è; si sceglie con le rotelle, vedi sotto) con margine e suggerimento «Usa», promemoria (7 giorni, 3 giorni, 1 giorno prima, il giorno stesso, alle 9:00) e «Ripeti».
-   - **Progetto**: subito sotto la barra dell'importanza ci sono i **passi** («Passi · X su Y», con barra a tacchette; non c'è più un blocco «Checklist» a parte) con le righe e i passi già esistenti, tutti spuntabili e **riordinabili trascinando** (dalla maniglia subito, con pressione lunga di 380 ms sul dito, con clic e trascinamento col mouse); «Aggiungi un passo». L'ordine è anche la priorità e la dipendenza (sezione 6.6).
+   - **Progetto**: subito sotto la barra dell'importanza ci sono i **passi** («Passi · X su Y», con barra a tacchette), tutti **note vere** (attività con il progetto come padre): si aprono con un tocco, hanno il loro numero di priorità e la loro casella di stato, e sono **riordinabili trascinando** (dalla maniglia subito, con pressione lunga di 380 ms sul dito, con clic e trascinamento col mouse). «**Aggiungi un passo**» crea una nota vera in fondo ai passi (il progetto deve avere un nome: viene salvato prima). Non esiste più la checklist a righe non cliccabili. L'ordine è anche la priorità e la dipendenza (sezione 6.6).
    - **Esperienza**: Data, Interesse, **Luogo** (campo `zona`, con sotto come chip i luoghi già usati, dal più usato; si restringono mentre si scrive) e «Apri in Google Maps» (cerca il nome).
    - **Curiosità**: Interesse e Tempo stimato (15 minuti di base, si può togliere).
    - **Game design**: gruppo «Idea» con **Interesse** (1-5), **Tempo stimato** e **Difficoltà** (1 = facile, 5 = molto difficile) e, in sola lettura, la **Priorità** calcolata («72 su 100 · 2ª su 5»); la descrizione dell'idea sta nelle note.
@@ -273,7 +273,7 @@ Cinque stati visibili: **Da fare** (`da_fare`), **In corso** (`in_corso`), **In 
 2. **Il progetto non compare in Oggi: compare il suo prossimo passo**, il primo passo aperto in ordine (`prossimoPasso`), con l'importanza (sempre quella del progetto) e la scadenza ereditate dal progetto (`withInheritance`). Un progetto senza passi compare come voce a sé.
 3. **Avanzamento calcolato** («3 su 8») dai passi completati; mai inserito a mano.
 4. **Ordine = priorità e dipendenza:** i passi si riordinano trascinando e l'ordine è salvato in `ordine`; un passo non ha priorità più bassa dei successivi (`punteggioEffettivo` dà a ogni passo aperto il punteggio più alto tra il suo e quello dei successivi), e questo vale per liste, piano e widget.
-5. **Checklist o passo?** Una riga con solo un nome da spuntare è una **checklist** interna; con data, note o priorità proprie è un **passo** (voce figlia). Solo i progetti (e i giochi, come obiettivi) hanno la checklist.
+5. **Passo = nota vera.** Ogni passo di un progetto è una voce figlia (attività con `padreId`), non una riga di checklist: ha titolo, data, importanza, tempo e stato come ogni nota. Le righe di checklist rimaste nei progetti (dati vecchi, o aggiunte da una versione precedente dell'app) vengono convertite in passi veri all'avvio e a ogni sincronizzazione (`checklistInPassi`, nello stesso ordine e prima dei passi già presenti; una riga spuntata diventa un passo fatto). Il campo `checklist` resta solo per i giochi (obiettivi).
 6. Completando l'ultimo passo non si chiude il progetto da solo; nessun avviso per i progetti fermi.
 7. **Nelle collezioni** i figli sono obiettivi, non task: non finiscono in Oggi.
 
@@ -335,7 +335,7 @@ Punteggio da 0 a 100 che mescola tre parametri, con pesi **interesse 50% › tem
 - `POST /api/sync` con `since`, le modifiche in coda e le impostazioni; il server risponde con le voci cambiate, `seq` e le impostazioni. Parte 1,2 s dopo una modifica, al ritorno della rete o in primo piano e ogni 60 s. Un 401 cancella il token ma lascia i dati.
 - Utente unico: conflitti risolti **per voce** con la modifica più recente (`aggiornato`); una voce remota non sovrascrive una modifica locale più recente. Le cancellazioni sono logiche.
 - Il database sul NAS è il riferimento. Il server ne salva una copia al giorno nel volume Docker (le ultime 14); il backup vero lo gestisce l'utente con gli strumenti del NAS. Dall'app non c'è più l'esportazione JSON.
-- All'avvio e a ogni sincronizzazione (`web/src/lib/migrazioni.ts`, `shared/migrazioni.ts`): `persone` e le checklist non dei progetti passano nelle note, la checklist di un progetto finita nelle note torna nel campo, le note in Inbox create come attività e mai toccate diventano «non assegnate».
+- All'avvio e a ogni sincronizzazione (`web/src/lib/migrazioni.ts`, `shared/migrazioni.ts`): `persone` e le checklist non dei progetti passano nelle note, la checklist di un progetto finita nelle note torna nel campo e le righe di checklist dei progetti diventano passi veri (`checklistInPassi`), le note in Inbox create come attività e mai toccate diventano «non assegnate».
 
 ### 6.16 Sessione di lavoro («Inizia») (`shared/sessione.ts`, `web/src/lib/sessione.ts`)
 
@@ -596,6 +596,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-23 | 0.90.0 | **Schermata «in corso» dopo 5 secondi:** timer grigio con spessore pieno, barra larga come il timer e alta 18 px (la schermata completa resta identica), barre di sistema nascoste in modalità immersiva su Android (`schermoImmersivo`, `SchermoPlugin.immersivo`) |
 | 2026-10-24 | 0.91.0 | **Nuovo calcolo del margine (peso per durata):** il peso di ogni nota è recenza × radice della stima, quindi un errore su una nota lunga conta più di uno uguale in percentuale su una breve; **giudizio per nota** (`livelloNota`) con soglie in minuti (fino a 10 minuti di differenza mai «sbagliata», sotto 5 «buona») nello storico e nelle barre del foglio, che mostrano anche i minuti di differenza |
 | 2026-10-24 | 0.92.0 | **Priorità solo note:** un progetto senza passi non compare più nell'elenco di Priorità e nel widget (i progetti sono contenitori: compare solo il prossimo passo) |
+| 2026-10-24 | 0.93.0 | **Passi dei progetti = note vere:** «Aggiungi un passo» crea una nota attività con il progetto come padre (cliccabile, con priorità e stato) invece di una riga di checklist non cliccabile; le righe di checklist già presenti nei progetti vengono convertite in passi veri all'avvio e a ogni sincronizzazione (`checklistInPassi`) |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

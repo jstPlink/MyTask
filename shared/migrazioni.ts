@@ -1,6 +1,7 @@
 // Migrazioni dei dati già salvati: funzioni pure (stesso input, stesso output) che l'app applica a ogni voce all'avvio
 // (web/src/lib/migrazioni.ts). Ognuna restituisce la voce corretta, oppure undefined se non c'è nulla da cambiare.
 import type { Item, VoceChecklist } from './types.ts';
+import { figli } from './views.ts';
 
 const BLOCCO_CHECKLIST = /(?:^|\n\n)Checklist:\n((?:- \[[ xX]\] .*(?:\n|$))+)/;
 
@@ -50,4 +51,22 @@ export function inboxNonAssegnata(i: Item): Item | undefined {
  */
 export function eliminaPersone(i: Item): Item | undefined {
   return i.tipo === 'persona' && !i.eliminato ? { ...i, eliminato: true } : undefined;
+}
+
+/**
+ * Le righe della checklist di un progetto non erano vere note (non si aprivano né avevano priorità): diventano **passi veri**, cioè note di
+ * tipo attività che hanno il progetto come padre, nello stesso ordine in cui si vedevano (prima le righe della checklist, poi i passi già
+ * presenti). Una riga spuntata diventa un passo fatto. Il progetto resta senza checklist, quindi la conversione non si ripete.
+ * Restituisce le voci da salvare (il progetto, i passi nuovi e i passi esistenti con la nuova posizione), oppure undefined se non c'è nulla da fare.
+ */
+export function checklistInPassi(progetto: Item, tutti: Item[], nuovoId: () => string, oggi: string, now: number): Item[] | undefined {
+  const righe = progetto.checklist ?? [];
+  if (progetto.tipo !== 'progetto' || progetto.eliminato || righe.length === 0) return undefined;
+  const nuovi: Item[] = righe.map((c, k) => ({
+    id: nuovoId(), tipo: 'azione', titolo: c.testo, stato: c.fatto ? 'fatto' : 'da_fare', creato: now + k, aggiornato: now + k,
+    padreId: progetto.id, ordine: k,
+    ...(c.fatto ? { completatoIl: oggi, completatoTs: now } : {}),
+  }));
+  const esistenti = figli(tutti, progetto.id).map((p, n) => ({ ...p, ordine: righe.length + n, aggiornato: Math.max(p.aggiornato, now) }));
+  return [{ ...progetto, checklist: undefined, aggiornato: Math.max(progetto.aggiornato, now) }, ...nuovi, ...esistenti];
 }
