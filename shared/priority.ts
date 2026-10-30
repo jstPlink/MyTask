@@ -48,12 +48,15 @@ export function battitoBpm(intensita: number, posizione?: number): number {
 /**
  * Urgenza della scadenza da 0 a 100 secondo la distanza della data: scaduta o oggi 100, entro 3 giorni 80, entro 7 giorni 60,
  * entro 30 giorni 35, oltre 15; senza data 0.
+ * Con la data fissa (`tipoData`): da quel giorno in poi 100, il giorno prima 60, entro 3 giorni 40, entro 7 giorni 20, oltre 0.
  */
 export function urgency(i: Item, today: string): number {
   const due = dueDate(i);
   if (!due) return 0;
   const days = diffDays(due, today);
   if (days <= 0) return 100;
+  // data fissa: si fa da quel giorno, quindi prima non fa fretta (poco la settimana prima, 60 il giorno prima)
+  if (i.tipoData === 'fissa') return days <= 1 ? 60 : days <= 3 ? 40 : days <= 7 ? 20 : 0;
   if (days <= 3) return 80;
   if (days <= 7) return 60;
   if (days <= 30) return 35;
@@ -170,5 +173,6 @@ export function withInheritance(child: Item, parent: Item | undefined): Item {
     ...child,
     importanza: parent.importanza ?? child.importanza, // l'importanza di un passo è quella del progetto
     fine: child.fine ?? (child.inizio ? undefined : parent.fine),
+    tipoData: child.fine || child.inizio ? child.tipoData : parent.tipoData,
   };
 }

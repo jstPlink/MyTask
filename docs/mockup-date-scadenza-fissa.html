@@ -1,0 +1,79 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: date a scadenza e date fisse</title><style>
+:root{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--accent:#2F7D5B;--accent-soft:#E3F1EA;--warn:#D1430B;--warn-soft:#FDEBE2;--amber:#B7791F;--amber-soft:#FBEBD0}
+@media (prefers-color-scheme:dark){:root{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--accent:#6FCF9B;--accent-soft:#17332A;--warn:#FF9466;--warn-soft:#3A2218;--amber:#F0B866;--amber-soft:#3A2C14}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:30px 0 4px;letter-spacing:.02em;text-transform:uppercase;color:var(--mid)}p.s{margin:0 0 12px;color:var(--mid);max-width:70ch}
+.wrap{max-width:1100px;margin:0 auto}.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
+.cap{font-size:12px;color:var(--soft);margin:0 0 8px}
+.field{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.field:first-of-type{border-top:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface2);border-radius:12px;padding:4px;margin:6px 0}
+.seg b{font-weight:600;text-align:center;padding:9px 6px;border-radius:9px;color:var(--mid);font-size:13px}.seg b.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.help{font-size:12.5px;color:var(--mid);background:var(--accent-soft);border-radius:10px;padding:8px 10px;margin:4px 0 6px}
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}.row:first-of-type{border-top:0}
+.dot{flex:none;width:30px;height:30px;border-radius:50%;border:2.5px solid var(--soft);display:grid;place-items:center;font-weight:700;font-size:13px}
+.dot.r{border-color:var(--warn);color:var(--warn)}.dot.a{border-color:var(--amber);color:var(--amber)}
+.t{flex:1;min-width:0}.t b{display:block;font-weight:650}.t span{color:var(--mid);font-size:12.5px}
+.when{font-size:12.5px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:4px;color:var(--mid)}.when.w{color:var(--warn)}.when.a{color:var(--amber)}
+.box{flex:none;width:24px;height:24px;border-radius:8px;border:2px solid var(--line);background:var(--surface2)}
+svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}th{color:var(--mid);font-weight:600}
+td.r{color:var(--warn);font-weight:700}td.a{color:var(--amber);font-weight:700}td.g{color:var(--soft)}
+.notif{background:var(--surface2);border-radius:16px;padding:10px 12px;margin:8px 0;display:flex;gap:10px}.notif i{flex:none;width:28px;height:28px;border-radius:8px;background:var(--accent);margin-top:2px}
+.notif small{color:var(--soft)}.notif b{display:block}.tag{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:6px}.tag.s{background:var(--amber-soft);color:var(--amber)}.tag.f{background:var(--accent-soft);color:var(--accent)}
+</style></head><body><div class="wrap">
+<h1>Date a scadenza e date fisse</h1>
+<p class="s">Ogni data ha un <b>tipo</b>: <b>scadenza</b> (va finita entro quel giorno) oppure <b>fissa</b> (si fa proprio quel giorno). Il tipo cambia il punteggio di priorità e i promemoria. Le note già esistenti restano a scadenza, come oggi.</p>
+
+<h2>1 · Nella scheda della nota</h2>
+<p class="s">Sotto il campo Data compare un selettore a due voci. Il testo d'aiuto cambia con la scelta; i promemoria si adattano da soli.</p>
+<div class="grid">
+ <div class="card"><p class="cap">Scadenza</p>
+  <div class="field"><span>Data</span><b>ven 6 nov</b></div>
+  <div class="seg"><b class="on">Entro il giorno</b><b>Proprio quel giorno</b></div>
+  <div class="help">Va finita <b>entro</b> venerdì. Più si avvicina, più sale in Priorità. Promemoria ogni giorno fino a quando la spunti.</div>
+  <div class="field"><span>Promemoria</span><span style="color:var(--mid)">ogni giorno alle 9:00, da 7 giorni prima</span></div>
+ </div>
+ <div class="card"><p class="cap">Fissa</p>
+  <div class="field"><span>Data</span><b>gio 5 nov</b></div>
+  <div class="seg"><b>Entro il giorno</b><b class="on">Proprio quel giorno</b></div>
+  <div class="help">Si fa <b>giovedì</b>: prima non fa fretta, il giorno stesso è al massimo. Promemoria da giovedì in poi, ogni giorno, finché non la spunti.</div>
+  <div class="field"><span>Promemoria</span><span style="color:var(--mid)">da quel giorno, ogni giorno alle 9:00</span></div>
+ </div>
+</div>
+
+<h2>2 · Nelle liste</h2>
+<p class="s">La data a destra della riga ha un'icona per il tipo: bandierina a scadenza, lucchetto per le fisse (già usato per «scadenza fissa»). Arancio quando è oggi o passata, con quanto è in ritardo.</p>
+<div class="grid"><div class="card">
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when w"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>scaduta da 2 giorni</span><span class="box"></span></div>
+ <div class="row"><span class="dot r">2</span><div class="t"><b>Dentista</b><span>visita</span></div><span class="when w"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>oggi</span><span class="box"></span></div>
+ <div class="row"><span class="dot r">3</span><div class="t"><b>Ritirare il pacco</b><span>20 min</span></div><span class="when w"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>era per ieri</span><span class="box"></span></div>
+ <div class="row"><span class="dot a">4</span><div class="t"><b>Relazione di tirocinio</b><span>3 h</span></div><span class="when a"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>entro ven 6 nov</span><span class="box"></span></div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Cena dai nonni</b><span>esperienza</span></div><span class="when"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>sab 14 nov</span><span class="box"></span></div>
+</div></div>
+
+<h2>3 · Come cambia il punteggio (componente «data», peso 50%)</h2>
+<p class="s">La scadenza resta com'è oggi. La data fissa non cresce con la distanza: resta bassa finché non è vicina, poi arriva a 100 il giorno stesso e ci resta se la lasci passare.</p>
+<div class="card"><table>
+<tr><th>Quando</th><th>Oltre 30 gg</th><th>≤ 7 gg</th><th>≤ 3 gg</th><th>Domani</th><th>Oggi</th><th>Passata</th></tr>
+<tr><td>A scadenza (come oggi)</td><td class="g">15</td><td class="a">60</td><td class="r">80</td><td class="r">80</td><td class="r">100</td><td class="r">100</td></tr>
+<tr><td>Fissa (proposta)</td><td class="g">0</td><td class="g">20</td><td class="g">40</td><td class="a">60</td><td class="r">100</td><td class="r">100</td></tr>
+</table><p class="cap" style="margin-top:8px">I valori della data fissa sono una proposta di partenza, da regolare insieme.</p></div>
+
+<h2>4 · Promemoria sul telefono</h2>
+<div class="grid">
+ <div class="card"><p class="cap">Scadenza <span class="tag s">ogni giorno fino alla scadenza</span></p>
+  <div class="notif"><i></i><div><b>Relazione di tirocinio</b>Scade tra 3 giorni<br><small>9:00 · lun 2 nov</small></div></div>
+  <div class="notif"><i></i><div><b>Relazione di tirocinio</b>Scade domani<br><small>9:00 · gio 5 nov</small></div></div>
+  <div class="notif"><i></i><div><b>Relazione di tirocinio</b>Scade oggi<br><small>9:00 · ven 6 nov</small></div></div>
+  <div class="notif"><i></i><div><b>Relazione di tirocinio</b>Scaduta ieri, ancora da fare<br><small>9:00 · sab 7 nov</small></div></div>
+ </div>
+ <div class="card"><p class="cap">Fissa <span class="tag f">da quel giorno, finché non è fatta</span></p>
+  <div class="notif"><i></i><div><b>Dentista</b>Da fare oggi<br><small>9:00 · gio 5 nov</small></div></div>
+  <div class="notif"><i></i><div><b>Dentista</b>Era per ieri, ancora da fare<br><small>9:00 · ven 6 nov</small></div></div>
+  <div class="notif"><i></i><div><b>Dentista</b>Era per giovedì (2 giorni fa)<br><small>9:00 · sab 7 nov</small></div></div>
+  <p class="cap">Prima di giovedì nessun promemoria.</p>
+ </div>
+</div>
+<p class="s" style="margin-top:20px">Dopo la scadenza i promemoria a scadenza continuano come quelli delle date fisse, finché la nota non è spuntata. L'ora si sceglie nella scheda (di base 9:00).</p>
+</div></body></html>

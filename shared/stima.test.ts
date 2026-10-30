@@ -127,3 +127,9 @@ test('stima: lo storico elenca le note misurate dalla più recente, con scostame
   assert.equal(storicoNote([a, b], adesso, 1).length, 1);
   assert.equal(pesoNota(adesso, adesso), 1);
 });
+
+test('stima: anche le curiosità completate con stima e tempo reale contano nel margine', () => {
+  const curiosita: Item = { ...fatta('Capire i nodi', 60, 90), tipo: 'curiosita' };
+  assert.ok(Math.abs(margineAtteso([curiosita]) - 0.5) < 1e-9);
+  assert.equal(storicoNote([curiosita]).length, 1);
+});

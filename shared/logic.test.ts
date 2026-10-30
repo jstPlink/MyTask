@@ -327,3 +327,40 @@ test('Priorità: un progetto è solo un contenitore, senza passi non compare; co
   assert.ok(!fare.includes('Progetto con passi'), 'nemmeno il progetto con passi: compare il suo passo');
   assert.deepEqual([...fare].sort(), ['Nota libera', 'Primo passo']);
 });
+
+test('date fisse: la priorità non sale con la distanza, il giorno stesso è al massimo', async () => {
+  const { urgency } = await import('./priority.ts');
+  const f = (data: string) => mk({ inizio: data, tipoData: 'fissa' });
+  assert.equal(urgency(f('2026-12-15'), OGGI), 0);
+  assert.equal(urgency(f('2026-10-20'), OGGI), 20);
+  assert.equal(urgency(f('2026-10-17'), OGGI), 40);
+  assert.equal(urgency(f('2026-10-16'), OGGI), 60);
+  assert.equal(urgency(f(OGGI), OGGI), 100);
+  assert.equal(urgency(f('2026-10-10'), OGGI), 100);
+  assert.equal(urgency(mk({ inizio: '2026-10-20' }), OGGI), 60); // a scadenza resta com'è
+});
+
+test('notifiche: una al giorno, a scadenza da N giorni prima e con la data fissa dal giorno stesso, finché non è spuntata', async () => {
+  const { pianificaNotifiche } = await import('./pianifica.ts');
+  const ora = new Date(2026, 9, 15, 10, 0, 0); // giovedì 15 ottobre 2026, 10:00
+  const scad = mk({ titolo: 'Relazione', inizio: '2026-10-17', promemoriaGiornaliero: { giorniPrima: 3, ora: '09:00' } });
+  const n1 = pianificaNotifiche([scad], ora, 5);
+  assert.deepEqual(n1.slice(0, 4).map((x) => x.corpo), ['Scade domani', 'Scade oggi', 'Scaduta ieri, ancora da fare', 'Scaduta da 2 giorni, ancora da fare']);
+  assert.equal(new Date(n1[0].quando).getDate(), 16); // quella di oggi alle 9 è già passata
+  assert.equal(new Set(n1.map((x) => x.id)).size, n1.length);
+  const fissa = mk({ titolo: 'Dentista', inizio: '2026-10-17', oraInizio: '16:30', tipoData: 'fissa', promemoriaGiornaliero: { giorniPrima: 0, ora: '09:00' } });
+  const n2 = pianificaNotifiche([fissa], ora, 5);
+  assert.deepEqual(n2.map((x) => x.corpo).slice(0, 3), ['Da fare oggi · 16:30', 'Era per ieri, ancora da fare', 'Era per sabato (2 giorni fa)']);
+  assert.equal(new Date(n2[0].quando).getDate(), 17); // nessuna notifica prima del giorno
+  assert.equal(pianificaNotifiche([{ ...fissa, stato: 'fatto' }], ora, 5).length, 0);
+});
+
+test('date nelle liste: scadenza con bandierina, data fissa con lucchetto, in ritardo dal giorno stesso', async () => {
+  const { etichettaData } = await import('./dataNota.ts');
+  const fm = (iso: string) => formatShort(iso);
+  assert.deepEqual(etichettaData(mk({ inizio: '2026-11-06' }), OGGI, fm), { tipo: 'scadenza', ritardo: false, testo: 'entro 6 nov' });
+  assert.deepEqual(etichettaData(mk({ inizio: '2026-11-05', tipoData: 'fissa' }), OGGI, fm), { tipo: 'fissa', ritardo: false, testo: '5 nov' });
+  assert.equal(etichettaData(mk({ inizio: '2026-10-13' }), OGGI, fm)?.testo, 'scaduta da 2 gg');
+  assert.equal(etichettaData(mk({ inizio: '2026-10-14', tipoData: 'fissa' }), OGGI, fm)?.testo, 'era per ieri');
+  assert.equal(etichettaData(mk({}), OGGI, fm), undefined);
+});

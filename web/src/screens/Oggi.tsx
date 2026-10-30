@@ -23,7 +23,7 @@ import { formatoCronometro } from '../../../shared/sessione.ts';
 import { useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { segnaRoutine, statoVisto } from '../lib/actions.ts';
 import { tempoDi } from '../lib/sessione.ts';
-import { Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
+import { DataRiga, Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
 import { margineAtteso, percentuale, stimeMisurate } from '../../../shared/stima.ts';
 import { clsx, nomeTempo } from '../lib/util.ts';
@@ -54,11 +54,7 @@ export function Oggi() {
     const ms = tempoDi(e.item, Date.now());
     const tempo = !['in_corso', 'in_pausa'].includes(e.item.stato) && ms >= 1000 ? <span className="tempo-riga">{formatoCronometro(ms)}</span> : null;
     const d = dueDate(e.item);
-    let data: ReactNode = null;
-    if (d && d !== oggi) {
-      const ritardo = daysOverdue(e.item, oggi);
-      data = ritardo > 0 ? <span className="hard">{ritardo === 1 ? 'ieri' : `${ritardo} gg fa`}</span> : formatShortYear(d, oggi);
-    }
+    const data: ReactNode = d ? <DataRiga item={e.item} oggi={oggi} /> : null;
     return data || tempo ? <span className="dx-riga">{data}{tempo}</span> : null;
   };
 

@@ -1,0 +1,100 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: scheda della nota con le date</title><style>
+:root{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--accent:#2F7D5B;--accent-soft:#E3F1EA;--warn:#D1430B;--warn-soft:#FDEBE2;--amber:#B7791F;--amber-soft:#FBEBD0;--on:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--accent:#6FCF9B;--accent-soft:#17332A;--warn:#FF9466;--warn-soft:#3A2218;--amber:#F0B866;--amber-soft:#3A2C14;--on:#0E0F12}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px 16px 60px}
+.wrap{max-width:1000px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}p.s{margin:0 0 16px;color:var(--mid);max-width:75ch}
+.phones{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));justify-items:center}
+.col>h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--mid);margin:0 0 8px;text-align:center}
+.phone{width:360px;background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:14px 14px 20px;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:2px 2px 10px}.bar b{font-size:15px}.bar span{color:var(--accent);font-weight:600}
+.g{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:4px 14px;margin:0 0 10px}
+.gt{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin:12px 4px 6px}
+.f{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}.f:first-child{border-top:0}.f>span:first-child{color:var(--mid)}.f b{font-weight:600}
+.st{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;background:var(--surface2);border-radius:14px;padding:4px;margin-bottom:10px}
+.st div{text-align:center;font-size:10.5px;padding:6px 2px;border-radius:10px;color:var(--mid)}.st div.on{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.q{width:18px;height:18px;border-radius:6px;background:var(--surface2);border:1.5px solid var(--line);margin:0 auto 3px;display:grid;place-items:center}.q i{width:8px;height:8px;border-radius:50%;display:block}
+.q.d i{border:1.5px dashed var(--soft)}.q.c{border-color:var(--accent)}.q.c i{background:var(--accent)}.q.p{border-color:#D9A400}.q.p i{background:#D9A400}.q.f2{background:var(--accent);border-color:var(--accent)}.q.f2 i{border:2px solid #fff}.q.a{border-style:dashed}.q.a i{border:1.5px dashed var(--soft)}
+.prio{display:flex;align-items:center;gap:10px;padding:10px 0}.pd{flex:none;width:34px;height:34px;border-radius:50%;border:2.5px solid var(--warn);color:var(--warn);display:grid;place-items:center;font-weight:700}.pd.a{border-color:var(--amber);color:var(--amber)}
+.bars div{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mid);margin:3px 0}.bars em{flex:none;width:78px;font-style:normal}.bars u{flex:1;height:6px;border-radius:4px;background:var(--surface2);text-decoration:none;position:relative;overflow:hidden}.bars u i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:4px}.bars b{width:24px;text-align:right}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface2);border-radius:12px;padding:4px;margin:8px 0 6px}.seg b{text-align:center;padding:8px 4px;border-radius:9px;color:var(--mid);font-size:12.5px;font-weight:600}.seg b.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.help{font-size:12px;color:var(--mid);background:var(--accent-soft);border-radius:10px;padding:7px 10px;margin:2px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 10px}.chips span{border:1px solid var(--line);border-radius:99px;padding:5px 11px;font-size:12.5px;color:var(--mid)}.chips span.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);font-weight:600}
+.tg{width:40px;height:24px;border-radius:99px;background:var(--surface2);position:relative;flex:none}.tg:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.3)}.tg.on{background:var(--accent)}.tg.on:after{left:19px;background:var(--on)}
+.wedge{height:14px;border-radius:8px;background:linear-gradient(90deg,#d8d8dc,#D1430B);clip-path:polygon(0 70%,100% 0,100% 100%,0 100%);margin:4px 0 2px}
+.sug{font-size:12px;color:var(--mid);display:flex;justify-content:space-between;gap:8px}.sug a{color:var(--accent);font-weight:700}
+.ta{padding:10px 0;color:var(--mid);font-size:13px;min-height:54px}.lk{display:flex;gap:8px;padding:2px 0 10px}.lk span{border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12.5px;color:var(--mid)}
+.new{outline:2px dashed var(--accent);outline-offset:3px;border-radius:12px;position:relative}.new:before{content:"nuovo";position:absolute;top:-9px;right:8px;background:var(--accent);color:var(--on);font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;letter-spacing:.04em}
+.del{text-align:center;color:var(--warn);font-weight:600;padding:12px}.mt{color:var(--soft);font-size:12px}
+</style></head><body><div class="wrap">
+<h1>Scheda della nota: versione completa</h1>
+<p class="s">La scheda di un'attività com'è con le novità: i riquadri tratteggiati sono ciò che cambia (selettore del tipo di data e promemoria legati al tipo). Il resto è come oggi. A sinistra una nota a <b>scadenza</b>, a destra una nota con data <b>fissa</b>.</p>
+<div class="phones">
+
+<div class="col"><h2>Attività a scadenza</h2><div class="phone">
+ <div class="bar"><span>‹ Priorità</span><b>Nota</b><span style="color:var(--soft)">salvata</span></div>
+ <div class="st">
+  <div><div class="q d"><i></i></div>Da fare</div><div class="on"><div class="q c"><i></i></div>In corso</div><div><div class="q p"><i></i></div>In pausa</div><div><div class="q f2"><i></i></div>Fatta</div><div><div class="q a"><i></i></div>Archiviata</div>
+ </div>
+ <div class="g"><div class="prio"><span class="pd a">4</span><div style="flex:1"><b>4ª da fare su 28</b><div class="mt">priorità media · 58 su 100 ▾</div></div></div>
+  <div class="bars"><div><em>Data</em><u><i style="width:60%"></i></u><b>60</b></div><div><em>Importanza</em><u><i style="width:75%"></i></u><b>75</b></div><div><em>Tempo</em><u><i style="width:0"></i></u><b>0</b></div></div></div>
+ <div class="g"><div class="f"><span>Titolo</span><b>Relazione di tirocinio</b></div><div class="f"><span>Tipo</span><b>Attività ▾</b></div></div>
+ <div class="gt">Attività</div>
+ <div class="g">
+  <div class="f"><span>Progetto</span><b>Nessuno ▾</b></div>
+  <div class="f"><span>Data</span><b>ven 6 nov</b></div>
+  <div class="new"><div class="seg"><b class="on">Entro il giorno</b><b>Proprio quel giorno</b></div><div class="help">Va finita <b>entro</b> venerdì: sale in Priorità man mano che si avvicina.</div></div>
+  <div class="f"><span>Importanza</span><b>4,2</b></div><div class="wedge"></div>
+  <div class="f"><span>Tempo stimato</span><b>3 h</b></div>
+  <div class="sug"><span>Margine +14%: metti in conto 3 h 25</span><a>Usa</a></div><div style="height:8px"></div>
+ </div>
+ <div class="gt">Promemoria</div>
+ <div class="g new">
+  <div class="f"><span>Ricordamelo ogni giorno</span><span class="tg on"></span></div>
+  <div class="f"><span>Da</span><b>7 giorni prima ▾</b></div>
+  <div class="f"><span>Alle</span><b>9:00 ▾</b></div>
+  <div class="help" style="margin-top:8px">Una notifica al giorno da lunedì 30 ott fino a quando non la spunti, anche dopo la scadenza.</div>
+  <div class="f"><span>Ripeti finché non spunto</span><span class="tg"></span></div>
+  <div class="f"><span>Ripeti la nota</span><b>Mai ▾</b></div>
+ </div>
+ <div class="gt">Note</div>
+ <div class="g"><div class="ta">Dopo aver sentito il tutor chiedere le firme in segreteria.</div></div>
+ <div class="lk"><span>＋ Link</span><span>＋ Immagine</span></div>
+ <div class="gt">Cronologia</div>
+ <div class="g"><div class="f"><span>Creata</span><b>lun 26 ott · 14:32</b></div><div class="f"><span>In corso dal</span><b>gio 29 ott · 09:10</b></div><div class="f"><span>Tempo lavorato</span><b>42 min su 3 h</b></div></div>
+ <div class="del">Elimina</div>
+</div></div>
+
+<div class="col"><h2>Attività con data fissa</h2><div class="phone">
+ <div class="bar"><span>‹ Priorità</span><b>Nota</b><span style="color:var(--soft)">salvata</span></div>
+ <div class="st">
+  <div class="on"><div class="q d"><i></i></div>Da fare</div><div><div class="q c"><i></i></div>In corso</div><div><div class="q p"><i></i></div>In pausa</div><div><div class="q f2"><i></i></div>Fatta</div><div><div class="q a"><i></i></div>Archiviata</div>
+ </div>
+ <div class="g"><div class="prio"><span class="pd">9</span><div style="flex:1"><b>9ª da fare su 28</b><div class="mt">priorità bassa · 26 su 100 ▾</div></div></div>
+  <div class="bars"><div><em>Data</em><u><i style="width:20%"></i></u><b>20</b></div><div><em>Importanza</em><u><i style="width:50%"></i></u><b>50</b></div><div><em>Tempo</em><u><i style="width:30%"></i></u><b>30</b></div></div></div>
+ <div class="g"><div class="f"><span>Titolo</span><b>Dentista</b></div><div class="f"><span>Tipo</span><b>Attività ▾</b></div></div>
+ <div class="gt">Attività</div>
+ <div class="g">
+  <div class="f"><span>Progetto</span><b>Nessuno ▾</b></div>
+  <div class="f"><span>Data</span><b>gio 5 nov</b></div>
+  <div class="new"><div class="seg"><b>Entro il giorno</b><b class="on">Proprio quel giorno</b></div><div class="help">Si fa <b>giovedì</b>: prima non fa fretta, il giorno stesso è al massimo e ci resta se passa.</div></div>
+  <div class="f"><span>Ora</span><b>16:30 ▾</b></div>
+  <div class="f"><span>Importanza</span><b>3,0</b></div><div class="wedge" style="opacity:.6"></div>
+  <div class="f"><span>Tempo stimato</span><b>1 h</b></div><div style="height:8px"></div>
+ </div>
+ <div class="gt">Promemoria</div>
+ <div class="g new">
+  <div class="f"><span>Ricordamelo dal giorno</span><span class="tg on"></span></div>
+  <div class="f"><span>Alle</span><b>9:00 ▾</b></div>
+  <div class="help" style="margin-top:8px">Nessuna notifica prima. Da giovedì 5 nov una al giorno finché non la spunti.</div>
+  <div class="f"><span>Anticipo di un giorno</span><span class="tg"></span></div>
+  <div class="f"><span>Ripeti finché non spunto</span><span class="tg"></span></div>
+ </div>
+ <div class="gt">Note</div>
+ <div class="g"><div class="ta">Portare la tessera sanitaria e le radiografie.</div></div>
+ <div class="lk"><span>＋ Link</span><span>＋ Immagine</span></div>
+ <div class="gt">Cronologia</div>
+ <div class="g"><div class="f"><span>Creata</span><b>mar 27 ott · 18:02</b></div></div>
+ <div class="del">Elimina</div>
+</div></div>
+
+</div></div></body></html>

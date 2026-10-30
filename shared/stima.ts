@@ -1,5 +1,5 @@
 // Stima dei tempi con margine (editor della nota). Il margine è il **tempo da aggiungere** alle tue stime, con segno: è la media
-// pesata dello scostamento (reale − stimato, in proporzione alla stima) di tutte le attività completate con tempo stimato e tempo
+// pesata dello scostamento (reale − stimato, in proporzione alla stima) di tutte le attività e curiosità completate con tempo stimato e tempo
 // reale (`durataRealeMin`, misurato dall'app). Il peso di ogni attività è il prodotto di due cose: quanto è recente (si dimezza ogni
 // EMIVITA_GIORNI dal completamento) e quanto è lunga (la radice della stima: un errore su 2 ore conta più dello stesso errore
 // percentuale su 20 minuti, ma non in proporzione). Stime troppo corte lo fanno salire (positivo, da aggiungere); stime troppo
@@ -44,8 +44,8 @@ export function somiglianza(a: string, b: string): number {
   return comuni / (x.size + y.size - comuni);
 }
 
-/** Attività completate con tempo reale registrato. */
-const misurate = (items: Item[]) => items.filter((i) => !i.eliminato && i.tipo === 'azione' && i.stato === 'fatto' && !!i.durataRealeMin);
+/** Attività e curiosità completate con tempo reale registrato (le curiosità contano nel margine come le attività). */
+const misurate = (items: Item[]) => items.filter((i) => !i.eliminato && (i.tipo === 'azione' || i.tipo === 'curiosita') && i.stato === 'fatto' && !!i.durataRealeMin);
 
 /** Differenza di una singola attività in proporzione alla stima: (reale − stimato) / stimato. Positiva se la stima era troppo corta. */
 export const scostamento = (stimaMin: number, realeMin: number) => (realeMin - stimaMin) / stimaMin;

@@ -18,7 +18,7 @@ import { ordinaPerTe } from '../../../shared/esperienze.ts';
 import { chiediPosizione, posizioneRecente, posizioneSalvata, type EsitoPosizione, type Posizione } from '../lib/posizione.ts';
 import { cercaLuoghi, coordinateNote, leggiCacheLuoghi, luoghiDaCercare } from '../lib/luoghi.ts';
 import { useItems, useOggi } from '../lib/hooks.ts';
-import { Cerca, Empty, Fab, GruppoProgetto, Row, Seg, Sezione, Top, unisciMeta } from '../ui/kit.tsx';
+import { Cerca, DataRiga, Empty, Fab, GruppoProgetto, Row, Seg, Sezione, Top, unisciMeta } from '../ui/kit.tsx';
 import { PulsanteAspetto } from '../ui/PulsanteAspetto.tsx';
 import { useNav, type SubFare } from '../ui/nav.tsx';
 import { clsx, mapsUrl, nomeGiorniOre, nomeTempo } from '../lib/util.ts';
@@ -106,7 +106,7 @@ function Azioni({ filtro }: { filtro: Filtro }) {
         key={item.id}
         titolo={item.titolo} tipo={item.tipo}
         meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : unisciMeta([item.stato === 'in_corso' ? 'In corso' : item.stato === 'in_pausa' ? 'In pausa' : undefined, item.sforzoMin ? nomeTempo(item.sforzoMin) : undefined])}
-        right={d ? (scaduta ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
+        right={d ? <DataRiga item={item} oggi={oggi} /> : null}
         level={item.stato === 'parcheggiato' ? 1 : livelloPriorita(item, oggi)}
         rank={classifica.get(item.id)}
         urgenza={item.stato === 'parcheggiato' ? 0 : intensitaBattito(item, oggi)}
@@ -153,7 +153,7 @@ function Progetti({ filtro }: { filtro: Filtro }) {
       return (
         <Row key={c.id} titolo={c.titolo} tipo={c.tipo} done={chiuso} light={chiuso} struck={chiuso}
           meta={chiuso ? undefined : c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
-          right={d && !chiuso ? (isOverdue(c, oggi) ? <span className="hard">{formatShortYear(d, oggi)}</span> : formatShortYear(d, oggi)) : null}
+          right={d && !chiuso ? <DataRiga item={c} oggi={oggi} /> : null}
           level={chiuso ? undefined : livelloPriorita(withInheritance(c, p.progetto), oggi)}
           voce={c}
           selected={nav.openId === c.id} onOpen={() => nav.push({ k: 'item', id: c.id })} />

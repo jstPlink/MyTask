@@ -59,6 +59,11 @@ const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
 const GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
 
+/** "giovedì" */
+export function giornoSettimana(iso: string): string {
+  return GIORNI[parseISO(iso).getDay()];
+}
+
 /** "21 ott" */
 export function formatShort(iso: string): string {
   const d = parseISO(iso);

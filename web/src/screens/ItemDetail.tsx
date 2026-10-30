@@ -8,8 +8,9 @@
  * (vedi sotto), note e allegati, cronologia, riepilogo di ciò che è stato completato, Elimina.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type Promemoria, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
-import { diffDays, formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
+import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type TipoData, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
+import { diffDays, formatLong, formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
+import { inizioPromemoria, tipoDataDi } from '../../../shared/dataNota.ts';
 import { livelloPriorita, dueDate, componentiPunteggio, score } from '../../../shared/priority.ts';
 import { avanzamento, classificaPriorita, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
 import { useAdesso, useItems, useSessione } from '../lib/hooks.ts';
@@ -20,7 +21,7 @@ import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
-import { Back, ClasseCasella, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
+import { Back, ClasseCasella, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, Seg, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { AllegatiNote } from '../ui/AllegatiNote.tsx';
@@ -47,9 +48,8 @@ const IS_VIDEO = (t: Tipo) => t === 'film' || t === 'serie' || t === 'anime'; //
 const IS_COLLEZIONE = (t: Tipo) => IS_VIDEO(t) || t === 'gioco' || t === 'libro' || t === 'ricetta'; // gruppo «Intrattenimento» o «Ricetta»
 const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'curiosita' || t === 'gamedesign'; // slider dell'interesse
 
-const PROMEMORIA_PRESET: { giorni: number; nome: string }[] = [
-  { giorni: 7, nome: '7 giorni prima' }, { giorni: 3, nome: '3 giorni prima' }, { giorni: 1, nome: '1 giorno prima' }, { giorni: 0, nome: 'Il giorno stesso' },
-];
+/** Quanti giorni prima della scadenza parte la notifica quotidiana. */
+const GIORNI_PRIMA = [1, 2, 3, 5, 7, 14, 30];
 
 const TIPI_PIATTO = ['Antipasto', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Piatto unico', 'Zuppa', 'Pane e lievitati', 'Bevanda'];
 
@@ -191,12 +191,14 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     up(p);
   };
 
-  // I promemoria preimpostati scattano alle 9:00 del giorno indicato.
-  const togglePromemoria = (giorni: number, on: boolean) => {
-    const lista = (d.promemoria ?? []).filter((p) => p.giorniPrima !== giorni);
-    if (on) lista.push({ giorniPrima: giorni, ora: '09:00' } satisfies Promemoria);
-    up({ promemoria: lista.length ? lista.sort((a, b) => b.giorniPrima - a.giorniPrima) : undefined });
+  // Data: la prima volta che si imposta una data (attività e progetti) la notifica quotidiana parte 7 giorni prima, alle 9:00, e «Ripeti
+  // finché non spunto» è acceso; togliendo la data si tolgono anche tipo e promemoria.
+  const cambiaData = (v: string) => {
+    if (!v) { up({ inizio: undefined, fine: undefined, rigida: undefined, oraInizio: undefined, oraFine: undefined, tipoData: undefined, promemoriaGiornaliero: undefined, insisti: undefined }); return; }
+    const prima = !d.inizio && t !== 'esperienza';
+    up({ inizio: v, rigida: undefined, ...(prima ? { promemoriaGiornaliero: { giorniPrima: 7, ora: '09:00' }, insisti: d.insisti ?? { ogniMinuti: 60 } } : {}) });
   };
+  const cambiaTipoData = (td: TipoData) => up({ tipoData: td, ...(d.promemoriaGiornaliero ? { promemoriaGiornaliero: { ...d.promemoriaGiornaliero, giorniPrima: td === 'fissa' ? 0 : 7 } } : {}) });
 
 
   const elimina = () => {
@@ -281,7 +283,11 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                 onChange={(v) => up({ padreId: v || undefined, ...(v ? { importanza: undefined } : {}) })} /* con un progetto l'importanza è la sua */
                 voci={[{ id: '', nome: 'Nessuno', icona: null }, ...progetti.map((p) => ({ id: p.id, nome: p.titolo, icona: <BadgeTipo tipo="progetto" /> }))]} />
             )}
-            <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => up({ inizio: e.target.value || undefined, fine: e.target.value ? d.fine : undefined, rigida: undefined, oraInizio: e.target.value ? d.oraInizio : undefined, oraFine: e.target.value ? d.oraFine : undefined })} /></Field>
+            <Field label="Data"><input type="date" value={d.inizio ?? ''} onChange={(e) => cambiaData(e.target.value)} /></Field>
+            {d.inizio && (
+              <Seg<TipoData> uguali compatto attivo={tipoDataDi(d)} onChange={cambiaTipoData}
+                voci={[{ id: 'scadenza', nome: 'Entro il giorno' }, { id: 'fissa', nome: 'Dal giorno' }]} />
+            )}
             {IS_AZIONE(t) && !(t === 'azione' && d.padreId) && <ImportanzaDoppia label="Importanza" valore={d.importanza} onChange={(v) => up({ importanza: v })} />}
             {/* Progetto: i passi (voci figlie) riordinabili; l'ordine è la priorità, il primo passo aperto è il prossimo da fare */}
             {t === 'progetto' && (
@@ -337,24 +343,36 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {t === 'esperienza' && d.titolo.trim() && (
               <a className="field link" href={mapsUrl(d.titolo, d.zona)} target="_blank" rel="noreferrer"><b style={{ fontWeight: 620 }}>Apri in Google Maps</b><span className="muted">›</span></a>
             )}
-            {d.inizio && (
+          </Gruppo>
+        )}
+
+        {/* Promemoria: solo con una data. Una notifica al giorno (da N giorni prima a scadenza, dal giorno stesso con la data fissa) e «Ripeti finché non spunto» */}
+        {IS_DATATO(t) && d.inizio && (
+          <Gruppo titolo="Promemoria">
+            <Field label={tipoDataDi(d) === 'fissa' ? 'Ricordamelo dal giorno' : 'Ricordamelo ogni giorno'}>
+              <Toggle on={!!d.promemoriaGiornaliero} label="Notifica quotidiana"
+                onChange={(v) => up({ promemoriaGiornaliero: v ? { giorniPrima: tipoDataDi(d) === 'fissa' ? 0 : 7, ora: '09:00' } : undefined })} />
+            </Field>
+            {d.promemoriaGiornaliero && (
               <>
-                <div className="t2" style={{ marginTop: 12 }}>Promemoria (alle 9:00)</div>
-                <div className="chips">
-                  {PROMEMORIA_PRESET.map((p) => {
-                    const on = (d.promemoria ?? []).some((x) => x.giorniPrima === p.giorni);
-                    return <button key={p.giorni} className={clsx('chip', on && 'on')} onClick={() => togglePromemoria(p.giorni, !on)}>{p.nome}</button>;
-                  })}
-                </div>
-                <Field label="Ripeti finché non spunto"><Toggle on={!!d.insisti} label="Ripeti il promemoria" onChange={(v) => up({ insisti: v ? { ogniMinuti: 60 } : undefined })} /></Field>
-                {d.insisti && (
-                  <Field label="Ogni">
-                    <select value={d.insisti.ogniMinuti} onChange={(e) => up({ insisti: { ogniMinuti: Number(e.target.value) } })}>
-                      <option value={30}>30 minuti</option><option value={60}>1 ora</option><option value={120}>2 ore</option><option value={240}>4 ore</option>
+                {tipoDataDi(d) === 'scadenza' && (
+                  <Field label="Da">
+                    <select value={d.promemoriaGiornaliero.giorniPrima} onChange={(e) => up({ promemoriaGiornaliero: { ...d.promemoriaGiornaliero!, giorniPrima: Number(e.target.value) } })}>
+                      {GIORNI_PRIMA.map((g) => <option key={g} value={g}>{g === 1 ? '1 giorno prima' : `${g} giorni prima`}</option>)}
                     </select>
                   </Field>
                 )}
+                <Field label="Alle"><input type="time" value={d.promemoriaGiornaliero.ora} onChange={(e) => up({ promemoriaGiornaliero: { ...d.promemoriaGiornaliero!, ora: e.target.value || '09:00' } })} /></Field>
+                <div className="nota-verde">Da {formatLong(inizioPromemoria(d)!).toLowerCase()} una notifica al giorno fino a quando non la spunti.</div>
               </>
+            )}
+            <Field label="Ripeti finché non spunto"><Toggle on={!!d.insisti} label="Ripeti il promemoria" onChange={(v) => up({ insisti: v ? { ogniMinuti: 60 } : undefined })} /></Field>
+            {d.insisti && (
+              <Field label="Ogni">
+                <select value={d.insisti.ogniMinuti} onChange={(e) => up({ insisti: { ogniMinuti: Number(e.target.value) } })}>
+                  <option value={30}>30 minuti</option><option value={60}>1 ora</option><option value={120}>2 ore</option><option value={240}>4 ore</option>
+                </select>
+              </Field>
             )}
           </Gruppo>
         )}

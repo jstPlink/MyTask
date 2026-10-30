@@ -52,7 +52,7 @@ export function completaVoce(item: Item, ora = Date.now(), opzioni: { sempreFogl
   const fotoPrima = progetto ? fotografaProgetto(progetto, item.id) : undefined;
   // il tempo impiegato non si chiede: arriva dal cronometro «Inizia»
   const lavoratoMs = tempoDi(item, ora);
-  const misurabile = item.tipo === 'azione' && !item.ricorrenza;
+  const misurabile = (item.tipo === 'azione' || item.tipo === 'curiosita') && !item.ricorrenza;
   const durata = misurabile ? minutiMisurati(lavoratoMs) : undefined;
   const dopo = { ...completa(item, oggi, ora), ...(lavoratoMs > 0 ? { lavoratoMs: Math.round(lavoratoMs) } : {}), ...(durata ? { durataRealeMin: durata } : {}) };
   dopoCompletamento(item.id, ora); // il cronometro si ferma: la prossima nota la sceglie l'utente

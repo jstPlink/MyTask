@@ -4,6 +4,7 @@
 import type { Item } from './types.ts';
 import { addDays, diffDays, today as oggiDi, parseISO } from './dates.ts';
 import { dueDate, isOpen } from './priority.ts';
+import { inizioPromemoria, testoPromemoria } from './dataNota.ts';
 import { fattaOggi, weekCount } from './routine.ts';
 
 /** Una notifica locale da programmare nel telefono. */
@@ -37,6 +38,8 @@ function alle(giorno: string, hhmm: string): number {
 /**
  * Notifiche da programmare per i prossimi `giorni` (al massimo `max`, le più vicine):
  * - promemoria scelti sulla voce (N giorni prima della scadenza, all'ora indicata);
+ * - notifica quotidiana (`promemoriaGiornaliero`): una al giorno, all'ora indicata, dal giorno di inizio (a scadenza N giorni prima, con la data
+ *   fissa dal giorno stesso) fino a quando la voce non è spuntata, anche dopo la data;
  * - insistenza: se la voce scade oggi o è scaduta, si ripete ogni N minuti (almeno 15) per le ore successive;
  * - routine con ora del promemoria: ogni giorno, salvo oggi se già fatta e i giorni dopo che la quota settimanale è già raggiunta.
  * Non considera voci chiuse, eliminate o archiviate.
@@ -71,6 +74,16 @@ export function pianificaNotifiche(items: Item[], ora: Date, giorni = 14, max = 
     for (const p of i.promemoria ?? []) {
       const g = addDays(due, -p.giorniPrima);
       aggiungi(`${i.id}|${p.giorniPrima}|${due}`, i.titolo, p.giorniPrima === 0 ? 'Scade oggi' : p.giorniPrima === 1 ? 'Scade domani' : `Scade tra ${p.giorniPrima} giorni`, alle(g, p.ora));
+    }
+
+    // notifica quotidiana: una al giorno dal giorno di inizio finché la voce non è spuntata
+    const inizio = inizioPromemoria(i);
+    if (inizio && i.promemoriaGiornaliero) {
+      for (let n = 0; n <= giorni; n++) {
+        const g = addDays(oggi, n);
+        if (g < inizio) continue;
+        aggiungi(`${i.id}|giorno|${g}`, i.titolo, testoPromemoria(i, g), alle(g, i.promemoriaGiornaliero.ora));
+      }
     }
 
     // insistenza: ripete ogni N minuti nelle ore successive, finché la voce è scaduta o scade oggi

@@ -4,6 +4,7 @@ import type { Item } from '../../../shared/types.ts';
 import { addDays, diffDays, today } from '../../../shared/dates.ts';
 import { dueDate, isOpen } from '../../../shared/priority.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
+import { inizioPromemoria, testoPromemoria } from '../../../shared/dataNota.ts';
 import { getItems } from './store.ts';
 
 /** Promemoria già mostrati (chiave -> momento), per non ripeterli; le voci più vecchie di 3 giorni si scartano. */
@@ -51,6 +52,12 @@ function promemoriaDovuti(items: Item[], now: Date, notificati: Record<string, n
       if (!scattato || diffDays(due, giorno) < 0) continue;
       const chiave = `${i.id}|${p.giorniPrima}|${due}`;
       if (!notificati[chiave]) out.push({ chiave, titolo: i.titolo, corpo: p.giorniPrima === 0 ? 'Scade oggi' : `Scade tra ${p.giorniPrima} giorni` });
+    }
+    // notifica quotidiana: una al giorno, all'ora scelta, dal giorno di inizio finché la voce non è spuntata
+    const inizio = inizioPromemoria(i);
+    if (inizio && i.promemoriaGiornaliero && giorno >= inizio && min >= aMinuti(i.promemoriaGiornaliero.ora)) {
+      const chiave = `${i.id}|giorno|${giorno}`;
+      if (!notificati[chiave]) out.push({ chiave, titolo: i.titolo, corpo: testoPromemoria(i, giorno) });
     }
     // insistenza: ripete finché la voce non viene spuntata
     if (i.insisti && diffDays(due, giorno) <= 0) {

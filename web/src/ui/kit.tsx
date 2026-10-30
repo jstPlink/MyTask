@@ -15,6 +15,8 @@ import { avanzaStato, statoVisto } from '../lib/actions.ts';
 import { apriStatoMenu } from '../lib/statoMenu.ts';
 import type { Item, Stato, Tipo } from '../../../shared/types.ts';
 import { battito } from '../lib/battito.ts';
+import { etichettaData } from '../../../shared/dataNota.ts';
+import { formatShortYear } from '../../../shared/dates.ts';
 
 /** Intestazione di una schermata: titolo, sottotitolo grigio e, a destra, un elemento libero (di solito i pulsanti tondi). */
 export function Top({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
@@ -219,6 +221,23 @@ export function Seg<T extends string>({ voci, attivo, onChange, nav, uguali, com
 export function Field({ label, children, onClick }: { label: string; children?: ReactNode; onClick?: () => void }) {
   const inner = <><span>{label}</span><span style={{ display: 'contents' }}>{children}</span></>;
   return onClick ? <button className="field link" onClick={onClick}>{inner}</button> : <label className="field">{inner}</label>;
+}
+
+/**
+ * Data di una voce nelle liste: bandierina per la scadenza («entro 6 nov»), lucchetto per la data fissa («5 nov»); in arancio da oggi in poi
+ * («oggi», «scaduta ieri», «era per ieri»). Senza data non mostra nulla.
+ */
+export function DataRiga({ item, oggi }: { item: Item; oggi: string }) {
+  const e = etichettaData(item, oggi, (iso) => formatShortYear(iso, oggi));
+  if (!e) return null;
+  return (
+    <span className={clsx('data-riga', e.ritardo && 'hard')}>
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        {e.tipo === 'fissa' ? <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></> : <path d="M5 21V4M5 4h11l-2 4 2 4H5" />}
+      </svg>
+      {e.testo}
+    </span>
+  );
 }
 
 /** Interruttore acceso/spento. */

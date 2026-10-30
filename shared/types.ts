@@ -37,6 +37,8 @@ export const NOMI_FASCIA: Record<Fascia, string> = {
 export interface Ricorrenza { ogni: number; unita: 'giorni' | 'settimane' | 'mesi' | 'anni' }
 /** Promemoria a "giorniPrima" giorni dalla scadenza, all'ora indicata (HH:MM). */
 export interface Promemoria { giorniPrima: number; ora: string }
+/** Tipo di una data: «scadenza» (va finita entro quel giorno) o «fissa» (si fa da quel giorno in poi). Senza valore: scadenza (per le esperienze fissa). */
+export type TipoData = 'scadenza' | 'fissa';
 /** Insistenza: il promemoria si ripete ogni N minuti finché la voce non viene spuntata. */
 export interface Insistenza { ogniMinuti: number }
 export interface VoceChecklist { id: string; testo: string; fatto: boolean }
@@ -70,6 +72,10 @@ export interface Item {
   rigida?: boolean;
   ricorrenza?: Ricorrenza;
   promemoria?: Promemoria[];
+  /** Tipo della data della voce (`inizio` / `fine`). Cambia la priorità (shared/priority.ts) e i promemoria (shared/dataNota.ts). */
+  tipoData?: TipoData;
+  /** Una notifica al giorno all'ora indicata, finché la voce non è spuntata: a scadenza parte `giorniPrima` giorni prima, con la data fissa dal giorno stesso (0). */
+  promemoriaGiornaliero?: Promemoria;
   insisti?: Insistenza;
 
   // priorità e collezioni
