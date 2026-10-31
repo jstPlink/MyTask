@@ -1,0 +1,59 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: righe dei progetti 3</title><style>
+:root{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--accent:#2F7D5B;--accent-soft:#E3F1EA;--warn:#D1430B;--amber:#B7791F;--tint:#EEF4F0}
+@media (prefers-color-scheme:dark){:root{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--accent:#6FCF9B;--accent-soft:#17332A;--warn:#FF9466;--amber:#F0B866;--tint:#15211C}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px 16px 60px}
+.wrap{max-width:1180px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}p.s{margin:0 0 16px;color:var(--mid);max-width:80ch}
+.phones{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));justify-items:center}
+.col>h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--mid);margin:0 0 8px;text-align:center}.col>p{font-size:12.5px;color:var(--mid);max-width:340px;margin:8px auto 0;text-align:center}
+.phone{width:360px;background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:16px 14px 18px;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.sez{margin:10px -14px 0;padding:9px 18px;background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}.sez b{font-size:16px}.sez span{font-size:12px;font-weight:700;color:var(--accent)}
+.row{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.dot{flex:none;width:28px;height:28px;border-radius:50%;border:2.5px solid var(--soft);display:grid;place-items:center;font-weight:700;font-size:12px}.dot.r{border-color:var(--warn);color:var(--warn)}.dot.a{border-color:var(--amber);color:var(--amber)}
+.t{flex:1;min-width:0}.t b{display:block;font-weight:650;font-size:14px}.t span{color:var(--mid);font-size:12px}
+.when{font-size:12px;font-weight:600;color:var(--mid);white-space:nowrap}.box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);background:var(--surface2)}
+svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.fold{flex:none;width:28px;height:28px;border-radius:50%;border:1.8px solid color-mix(in srgb,var(--accent) 68%,white);color:color-mix(in srgb,var(--accent) 68%,white);display:grid;place-items:center}
+.pr{display:flex;align-items:center;gap:10px;padding:10px 8px}.pr b{flex:1;font-size:14px}.pr span{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+.bar{display:flex;gap:3px;margin:0 8px 6px}.bar i{flex:1;height:5px;border-radius:3px;background:var(--surface2)}.bar i.on{background:var(--accent)}
+
+.g{--gl:color-mix(in srgb,var(--ink) 11%,var(--surface2))}
+.g .pr{padding:11px 10px}.g .row{border-bottom:1px solid var(--gl);padding:10px 10px}.g .row:last-child{border-bottom:0}.g .box{background:var(--surface)}
+.g .sez+.row,.g>.phone>.row{padding-left:4px;padding-right:4px;border-bottom:1px solid var(--line)}
+
+.gruppo{margin:12px 0;border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--surface2) 50%,transparent)}
+.gruppo .pr{background:var(--surface2);border-bottom:1px solid var(--gl)}
+.gruppo .row{padding-left:10px}
+/* icona e testi della testata in scala di grigi */
+.fold{border-color:var(--soft);color:var(--mid);background:transparent}
+.pr span{color:var(--mid)}
+.v2 .fold{background:var(--mid);border-color:var(--mid);color:var(--surface)}
+.v2 .pr .pill{background:var(--surface);color:var(--mid);border-radius:99px;padding:2px 8px;font-size:11.5px;font-weight:700}
+.v3 .bar i.on{background:var(--mid)}.v3 .bar{margin:0;padding:0 10px 8px;background:var(--surface2)}
+.v3 .row.fatta .t b{text-decoration:line-through;color:var(--soft);font-weight:500}.v3 .row.fatta .dot{border-color:var(--mid);background:var(--mid);color:var(--surface)}
+.v4 .pr{align-items:center}.v4 .pr .tt{flex:1;min-width:0}.v4 .pr .tt b{display:block;font-size:14px}.v4 .pr .tt small{font-size:12px;color:var(--mid);font-weight:500}
+.note{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;color:var(--mid)}.note b{color:var(--ink)}
+</style></head><body><div class="wrap"><h1>Righe dei progetti: grigio dappertutto</h1><p class="s">Base scelta: passi senza rientro (come la versione 1), testata su un grigio più scuro e passi su uno più chiaro (come la 2). In più icona della cartella, stima delle ore e «passi fatti / totale» passano dal verde al grigio. Le quattro versioni cambiano solo i dettagli della testata.</p><div class="phones"><div class="col g v1"><h2>1 · Tutto in grigio semplice</h2><div class="phone">
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when">oggi</span><span class="box"></span></div>
+ <div class="gruppo"><div class="pr"><span class="fold"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><b>Tesi di laurea</b><span>2,5 h · 1 / 4</span></div><div class="row"><span class="dot r">2</span><div class="t"><b>Rivedere il capitolo 2</b><span>1 h</span></div><span class="when">entro 6 nov</span><span class="box"></span></div><div class="row"><span class="dot a">4</span><div class="t"><b>Scrivere le conclusioni</b><span>1 h 30</span></div><span class="box"></span></div></div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="box"></span></div>
+</div><p>Icona a contorno grigio, tempo e «1 / 4» in grigio sulla stessa riga del nome: è la versione attuale senza verde.</p></div>
+<div class="col g v2"><h2>2 · Icona piena e pastiglie</h2><div class="phone">
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when">oggi</span><span class="box"></span></div>
+ <div class="gruppo"><div class="pr"><span class="fold"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><b>Tesi di laurea</b><span class="pill">2,5 h</span><span class="pill">1 / 4</span></div><div class="row"><span class="dot r">2</span><div class="t"><b>Rivedere il capitolo 2</b><span>1 h</span></div><span class="when">entro 6 nov</span><span class="box"></span></div><div class="row"><span class="dot a">4</span><div class="t"><b>Scrivere le conclusioni</b><span>1 h 30</span></div><span class="box"></span></div></div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="box"></span></div>
+</div><p>Icona della cartella piena grigio scuro; tempo e passi in due pastiglie grigie chiare, che si leggono come dati separati.</p></div>
+<div class="col g v3"><h2>3 · Con tacche grigie</h2><div class="phone">
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when">oggi</span><span class="box"></span></div>
+ <div class="gruppo"><div class="pr" style="border-bottom:0"><span class="fold"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><b>Tesi di laurea</b><span>2,5 h · 1 / 4</span></div><div class="bar"><i class="on"></i><i></i><i></i><i></i></div><div class="row fatta"><span class="dot">✓</span><div class="t"><b>Raccogliere le fonti</b></div><span class="box"></span></div><div class="row"><span class="dot r">2</span><div class="t"><b>Rivedere il capitolo 2</b><span>1 h</span></div><span class="when">entro 6 nov</span><span class="box"></span></div><div class="row"><span class="dot a">4</span><div class="t"><b>Scrivere le conclusioni</b><span>1 h 30</span></div><span class="box"></span></div></div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="box"></span></div>
+</div><p>Come la 1, con la barra a tacchette in grigio sotto la testata e un passo già fatto con il pallino grigio pieno.</p></div>
+<div class="col g v4"><h2>4 · Nome e riga grigia</h2><div class="phone">
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when">oggi</span><span class="box"></span></div>
+ <div class="gruppo"><div class="pr"><span class="fold"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><div class="tt"><b>Tesi di laurea</b><small>1 su 4 · 2,5 h</small></div></div><div class="row"><span class="dot r">2</span><div class="t"><b>Rivedere il capitolo 2</b><span>1 h</span></div><span class="when">entro 6 nov</span><span class="box"></span></div><div class="row"><span class="dot a">4</span><div class="t"><b>Scrivere le conclusioni</b><span>1 h 30</span></div><span class="box"></span></div></div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="box"></span></div>
+</div><p>La testata ha il nome e sotto la riga grigia «1 su 4 · 2,5 h», come le altre note; solo l'icona resta a destra del nome.</p></div>
+</div><div class="note"><b>In comune:</b> nessun verde nella testata; il verde resta solo dove indica uno stato (pallino «fatto», «in corso»). Il bianco resta solo ai titoli di sezione. Vale in Priorità, Attività e nella scheda del progetto.</div></div></body></html>

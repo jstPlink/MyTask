@@ -8,6 +8,7 @@ import {
   dueDate, isClosed, isOpen, chiavePriorita, punteggioCuriosita, withInheritance,
 } from './priority.ts';
 import { routineDueToday } from './routine.ts';
+import { GIORNI_IN_ARRIVO, MAX_IN_ARRIVO, inArrivo } from './dataNota.ts';
 
 /** Una riga delle liste di azione con il suo punteggio di priorità. */
 export interface Entry {
@@ -78,8 +79,9 @@ export function punteggioEffettivo(i: Item, items: Item[], today: string, now: n
 /**
  * Le voci tra cui scegliere cosa fare, ognuna col suo punteggio. Esclude chiuse, archiviate, Inbox e passi di progetto;
  * un progetto con passi aperti entra con il solo prossimo passo (con le eredità del progetto), uno senza passi non entra: i progetti sono solo contenitori.
+ * Le note «in arrivo» (data fissa ancora futura, `inArrivo`) non entrano, a meno che si chieda proprio quelle (`soloInArrivo`).
  */
-export function candidatiOggi(items: Item[], today: string, now: number): Entry[] {
+export function candidatiOggi(items: Item[], today: string, now: number, soloInArrivo = false): Entry[] {
   const tutte = live(items);
   const cache = new Map<string, Item[]>();
   const out: Entry[] = [];
@@ -92,11 +94,11 @@ export function candidatiOggi(items: Item[], today: string, now: number): Entry[
       // i progetti sono solo contenitori: compare il loro prossimo passo; un progetto senza passi (o con tutti i passi chiusi) non compare
       if (next) {
         const eff = withInheritance(next, i);
-        out.push({ item: eff, padre: i, punteggio: punteggioEffettivo(next, tutte, today, now, cache) });
+        if (inArrivo(eff, today) === soloInArrivo) out.push({ item: eff, padre: i, punteggio: punteggioEffettivo(next, tutte, today, now, cache) });
       }
       continue;
     }
-    out.push({ item: i, punteggio: chiavePriorita(i, today, now) });
+    if (inArrivo(i, today) === soloInArrivo) out.push({ item: i, punteggio: chiavePriorita(i, today, now) });
   }
   return out;
 }
@@ -119,7 +121,7 @@ export function elencoPriorita(items: Item[], today: string, now: number = Date.
   }
   const gruppo = (e: Entry) => e.padre?.creato ?? e.item.creato;
   return tutte
-    .filter((i) => i.tipo === 'azione' && !i.inbox && isOpen(i) && !parcheggiata(i))
+    .filter((i) => i.tipo === 'azione' && !i.inbox && isOpen(i) && !parcheggiata(i) && !inArrivo(withInheritance(i, i.padreId ? progetti.get(i.padreId) : undefined), today))
     .map((i): Entry => {
       const padre = i.padreId ? progetti.get(i.padreId) : undefined;
       return { item: i, padre, punteggio: punteggioEffettivo(i, tutte, today, now, cache) };
@@ -158,6 +160,8 @@ export interface VistaOggi {
   /** Le prime curiosità della loro classifica (tempo stimato e interesse), in un gruppo separato dalle attività con la loro numerazione. */
   curiosita: Item[];
   prossimi: Entry[];
+  /** Note con la data fissa nei prossimi giorni (`inArrivo`): fuori dalla classifica, in una sezione a parte sotto le attività. */
+  inArrivo: Entry[];
   inbox: number;
 }
 
@@ -215,6 +219,10 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
     fare,
     curiosita: curiositaDaSmaltire(items),
     prossimi,
+    inArrivo: candidatiOggi(items, today, now, true)
+      .filter((e) => diffDays(dueDate(e.item)!, today) <= GIORNI_IN_ARRIVO)
+      .sort((a, b) => dueDate(a.item)!.localeCompare(dueDate(b.item)!) || a.item.creato - b.item.creato)
+      .slice(0, MAX_IN_ARRIVO),
     inbox: live(items).filter(inInbox).length,
   };
 }

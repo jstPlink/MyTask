@@ -49,6 +49,8 @@ interface RowProps {
   right?: ReactNode;
   /** Tipo della nota: la sua icona compare, piccola, a sinistra del titolo. */
   tipo?: Tipo;
+  /** Cerchio tratteggiato vuoto al posto del numero di classifica (note «in arrivo»: non hanno una posizione, ma restano allineate alle altre righe). */
+  segnaposto?: boolean;
   /** Livello di priorità (1-3): spessore della barra colorata a sinistra. */
   level?: 1 | 2 | 3;
   /** Checkbox e parte destra centrati in verticale sulla riga. */
@@ -134,7 +136,7 @@ function CasellaStato({ voce }: { voce: Item }) {
  * Riga di lista: priorità a sinistra (barra), titolo con riga grigia sotto, parte destra libera e casella.
  * Con `voce` la casella gestisce da sola gli stati della nota; senza, è una casella semplice comandata da `done`/`onCheck`.
  */
-export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, tipo, level, rank, segnaposto, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   // Una nota «in corso» o «in pausa» mostra al posto della riga grigia la barra del tempo (fissa; gialla in pausa, rossa oltre la stima) con «tempo lavorato / stima».
   const sessione = useSessione();
   const vs = voce ? statoVisto(voce.stato) : undefined;
@@ -147,6 +149,7 @@ export function Row({ titolo, meta, right, tipo, level, rank, interesse, voce, m
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
       {/* con rank e interesse (le curiosità) il pallino è verde e fermo: il numero è la posizione, il riempimento è l'interesse */}
       {rank !== undefined && <span className={clsx('rank', interesse !== undefined && 'rank-int', interesse !== undefined && `g${Math.round(interesse)}`)} style={urgenza && interesse === undefined ? battito(urgenza, rank) : undefined} aria-label={interesse !== undefined ? `Posizione ${rank}, interesse ${Math.round(interesse)} su 5` : `Posizione ${rank}`}>{rank}</span>}
+      {segnaposto && rank === undefined && <span className="rank rank-vuoto" aria-hidden="true" />}
       {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
       <div className="grow">
         <div className="line">
@@ -439,7 +442,7 @@ export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
         </span>
         <b>{progetto.titolo}</b>
-        {(totale > 0 || stima > 0) && <span>{[stima > 0 ? nomeTempo(stima) : undefined, totale > 0 ? `${fatti} / ${totale}` : undefined].filter(Boolean).join(' · ')}</span>}
+        {(totale > 0 || stima > 0) && <span>{[totale > 0 && fatti === totale ? 'completato' : undefined, stima > 0 ? nomeTempo(stima) : undefined, totale > 0 ? `${fatti} / ${totale}` : undefined].filter(Boolean).join(' · ')}</span>}
       </button>
       {totale > 0 && <Tacche fatti={fatti} totale={totale} />}
       {children}

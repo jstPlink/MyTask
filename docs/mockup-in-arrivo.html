@@ -1,0 +1,65 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: In arrivo in Priorità</title><style>
+:root{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--accent:#2F7D5B;--accent-soft:#E3F1EA;--warn:#D1430B;--amber:#B7791F;--amber-soft:#FBEBD0}
+@media (prefers-color-scheme:dark){:root{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--accent:#6FCF9B;--accent-soft:#17332A;--warn:#FF9466;--amber:#F0B866;--amber-soft:#3A2C14}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px 16px 60px}
+.wrap{max-width:900px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}p.s{margin:0 0 16px;color:var(--mid);max-width:75ch}
+.phones{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));justify-items:center}
+.col>h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--mid);margin:0 0 8px;text-align:center}
+.phone{width:360px;background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:16px 14px 18px;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.top{display:flex;justify-content:space-between;align-items:center;margin:0 4px 10px}.top b{font-size:24px;letter-spacing:-.01em}.top span{display:flex;gap:6px}.top i{width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:block}
+.marg{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:10px}.marg b{color:var(--accent)}
+.sez{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 4px;margin:12px 0 0}.sez b{font-size:16px}.sez span{color:var(--soft);font-size:12.5px}
+.row{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.dot{flex:none;width:28px;height:28px;border-radius:50%;border:2.5px solid var(--soft);display:grid;place-items:center;font-weight:700;font-size:12px}.dot.r{border-color:var(--warn);color:var(--warn)}.dot.a{border-color:var(--amber);color:var(--amber)}
+.t{flex:1;min-width:0}.t b{display:block;font-weight:650;font-size:14px}.t span{color:var(--mid);font-size:12px}
+.when{font-size:12px;font-weight:600;color:var(--mid);display:flex;gap:4px;align-items:center;white-space:nowrap}.when.w{color:var(--warn)}
+.box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);background:var(--surface2)}
+svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cur{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}.cur .dot{border-color:var(--accent);color:var(--accent)}
+.dot.v{border:2px dashed var(--line);color:transparent}
+.box2{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px}.box2 h3{margin:0 0 6px;font-size:14px}.box2 ul{margin:0;padding-left:18px;color:var(--mid)}.box2 li{margin:3px 0}
+</style></head><body><div class="wrap">
+<h1>Priorità con «In arrivo» (proposta A)</h1>
+<p class="s">Le note con data <b>«Dal giorno»</b> ancora nel futuro non entrano nella classifica: niente numero, niente pallino. Compaiono sotto le cinque attività in una sezione «In arrivo», con lo stesso divisorio e le stesse righe di tutta l'app, finché mancano 7 giorni o meno. Il giorno stesso diventano normali (100 punti di data). Oggi è <b>sabato 31 ottobre</b>; il dentista è dal <b>5 novembre</b> (tra 5 giorni), la visita dal <b>9 novembre</b> (tra 9 giorni, ancora fuori).</p>
+<div class="phones">
+
+<div class="col"><h2>Variante 1 · Righe senza pallino</h2><div class="phone">
+ <div class="top"><b>Priorità</b><span><i></i><i></i><i></i></span></div>
+ <div class="marg"><span>Correzione alle tue stime</span><b>+14%</b></div>
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when w"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>scaduta ieri</span><span class="box"></span></div>
+ <div class="row"><span class="dot r">2</span><div class="t"><b>Relazione di tirocinio</b><span>3 h</span></div><span class="when"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>entro 6 nov</span><span class="box"></span></div>
+ <div class="row"><span class="dot a">3</span><div class="t"><b>Bollo auto</b><span>10 min</span></div><span class="when"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>entro 9 nov</span><span class="box"></span></div>
+ <div class="row"><span class="dot">4</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="when"></span><span class="box"></span></div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Riordinare la scrivania</b><span>30 min</span></div><span class="when"></span><span class="box"></span></div>
+ <div class="sez" style="margin-top:16px"><b>In arrivo</b><span>2</span></div>
+ <div class="row"><div class="t"><b>Dentista</b><span>1 h</span></div><span class="when"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>5 nov</span><span class="box"></span></div>
+ <div class="row"><div class="t"><b>Ritirare gli occhiali</b><span>20 min</span></div><span class="when"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>7 nov</span><span class="box"></span></div>
+ <div class="sez" style="margin-top:16px"><b>Curiosità</b><span>5</span></div>
+ <div class="cur"><span class="dot">1</span><div class="t"><b>Come funziona un orologio atomico</b><span>10 min</span></div></div>
+</div></div>
+
+<div class="col"><h2>Variante 2 · Pallino vuoto (allineato)</h2><div class="phone">
+ <div class="top"><b>Priorità</b><span><i></i><i></i><i></i></span></div>
+ <div class="marg"><span>Correzione alle tue stime</span><b>+14%</b></div>
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when w"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>scaduta ieri</span><span class="box"></span></div>
+ <div class="row"><span class="dot r">2</span><div class="t"><b>Relazione di tirocinio</b><span>3 h</span></div><span class="when"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>entro 6 nov</span><span class="box"></span></div>
+ <div class="row"><span class="dot a">3</span><div class="t"><b>Bollo auto</b><span>10 min</span></div><span class="when"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>entro 9 nov</span><span class="box"></span></div>
+ <div class="row"><span class="dot">4</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="when"></span><span class="box"></span></div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Riordinare la scrivania</b><span>30 min</span></div><span class="when"></span><span class="box"></span></div>
+ <div class="sez" style="margin-top:16px"><b>In arrivo</b><span>2</span></div>
+ <div class="row"><span class="dot v">·</span><div class="t"><b>Dentista</b><span>1 h</span></div><span class="when"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>5 nov</span><span class="box"></span></div>
+ <div class="row"><span class="dot v">·</span><div class="t"><b>Ritirare gli occhiali</b><span>20 min</span></div><span class="when"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>7 nov</span><span class="box"></span></div>
+ <div class="sez" style="margin-top:16px"><b>Curiosità</b><span>5</span></div>
+ <div class="cur"><span class="dot">1</span><div class="t"><b>Come funziona un orologio atomico</b><span>10 min</span></div></div>
+</div></div>
+
+</div>
+<div class="box2"><h3>Come si comporta</h3><ul>
+<li>Nessuna estetica nuova: stesso divisorio con titolo e conteggio di «Attività» e «Curiosità», stesse righe, con il lucchetto della data fissa a destra.</li>
+<li>Le righe non hanno il numero di classifica. La variante 1 le lascia senza pallino (come in Inbox); la 2 mette un cerchio tratteggiato vuoto per tenere il titolo allineato alle righe sopra.</li>
+<li>Un tocco sulla riga apre la scheda. La sezione sparisce se non ci sono note imminenti, e mostra al massimo 3 note in ordine di data.</li>
+<li>Le note con data fissa oltre 7 giorni restano solo in Attività. Il 5 novembre il dentista esce da «In arrivo» ed entra in classifica con 100 punti di data.</li>
+</ul></div>
+</div></body></html>

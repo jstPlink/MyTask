@@ -196,7 +196,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const cambiaData = (v: string) => {
     if (!v) { up({ inizio: undefined, fine: undefined, rigida: undefined, oraInizio: undefined, oraFine: undefined, tipoData: undefined, promemoriaGiornaliero: undefined, insisti: undefined }); return; }
     const prima = !d.inizio && t !== 'esperienza';
-    up({ inizio: v, rigida: undefined, ...(prima ? { promemoriaGiornaliero: { giorniPrima: 7, ora: '09:00' }, insisti: d.insisti ?? { ogniMinuti: 60 } } : {}) });
+    up({ inizio: v, rigida: undefined, ...(prima ? { promemoriaGiornaliero: { giorniPrima: 7, ora: '09:00' }, insisti: d.insisti ?? { ogniMinuti: 1440 } } : {}) });
   };
   const cambiaTipoData = (td: TipoData) => up({ tipoData: td, ...(d.promemoriaGiornaliero ? { promemoriaGiornaliero: { ...d.promemoriaGiornaliero, giorniPrima: td === 'fissa' ? 0 : 7 } } : {}) });
 
@@ -363,17 +363,12 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                   </Field>
                 )}
                 <Field label="Alle"><input type="time" value={d.promemoriaGiornaliero.ora} onChange={(e) => up({ promemoriaGiornaliero: { ...d.promemoriaGiornaliero!, ora: e.target.value || '09:00' } })} /></Field>
-                <div className="nota-verde">Da {formatLong(inizioPromemoria(d)!).toLowerCase()} una notifica al giorno fino a quando non la spunti.</div>
+                <div className="nota-verde">
+                  Da {formatLong(inizioPromemoria(d)!).toLowerCase()} una notifica al giorno {d.insisti ? 'fino a quando non la spunti' : tipoDataDi(d) === 'fissa' ? 'solo quel giorno' : 'fino alla scadenza'}.
+                </div>
               </>
             )}
-            <Field label="Ripeti finché non spunto"><Toggle on={!!d.insisti} label="Ripeti il promemoria" onChange={(v) => up({ insisti: v ? { ogniMinuti: 60 } : undefined })} /></Field>
-            {d.insisti && (
-              <Field label="Ogni">
-                <select value={d.insisti.ogniMinuti} onChange={(e) => up({ insisti: { ogniMinuti: Number(e.target.value) } })}>
-                  <option value={30}>30 minuti</option><option value={60}>1 ora</option><option value={120}>2 ore</option><option value={240}>4 ore</option>
-                </select>
-              </Field>
-            )}
+            <Field label="Ripeti finché non spunto"><Toggle on={!!d.insisti} label="Ripeti il promemoria" onChange={(v) => up({ insisti: v ? { ogniMinuti: 1440 } : undefined })} /></Field>
           </Gruppo>
         )}
 

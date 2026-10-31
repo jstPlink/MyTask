@@ -197,11 +197,13 @@ test('notifiche native: promemoria, insistenza e routine', async () => {
   assert.equal(n[0].corpo, 'Scade domani');
   assert.equal(n[0].id, pianificaNotifiche([scad], ora)[0].id); // stabile
 
-  const insiste = mk({ titolo: 'Urgente', fine: '2026-10-15', insisti: { ogniMinuti: 60 } });
+  // «Ripeti finché non spunto»: una notifica al giorno (alle 9:00) dalla data in poi, senza promemoria quotidiano anche il giorno stesso
+  const insiste = mk({ titolo: 'Urgente', fine: '2026-10-15', insisti: { ogniMinuti: 1440 } });
   const ins = pianificaNotifiche([insiste], ora);
-  assert.equal(ins.length, 12);
-  assert.equal(ins[0].quando - ora.getTime(), 3600000);
-  assert.equal(new Set(ins.map((x) => x.id)).size, 12);
+  assert.equal(ins.length, 14); // dal 16 ottobre, 14 giorni
+  assert.equal(new Date(ins[0].quando).getDate(), 16);
+  assert.equal(ins[0].corpo, 'Scaduta ieri, ancora da fare');
+  assert.equal(new Set(ins.map((x) => x.id)).size, 14);
   assert.equal(pianificaNotifiche([{ ...insiste, stato: 'fatto' }], ora).length, 0);
 
   const r = mk({ tipo: 'routine', titolo: 'Leggere', oraPromemoria: '22:30', log: ['2026-10-15'] });
@@ -344,11 +346,12 @@ test('notifiche: una al giorno, a scadenza da N giorni prima e con la data fissa
   const { pianificaNotifiche } = await import('./pianifica.ts');
   const ora = new Date(2026, 9, 15, 10, 0, 0); // giovedì 15 ottobre 2026, 10:00
   const scad = mk({ titolo: 'Relazione', inizio: '2026-10-17', promemoriaGiornaliero: { giorniPrima: 3, ora: '09:00' } });
-  const n1 = pianificaNotifiche([scad], ora, 5);
+  assert.deepEqual(pianificaNotifiche([scad], ora, 5).map((x) => x.corpo), ['Scade domani', 'Scade oggi']); // senza «Ripeti» si ferma alla data
+  const n1 = pianificaNotifiche([{ ...scad, insisti: { ogniMinuti: 1440 } }], ora, 5);
   assert.deepEqual(n1.slice(0, 4).map((x) => x.corpo), ['Scade domani', 'Scade oggi', 'Scaduta ieri, ancora da fare', 'Scaduta da 2 giorni, ancora da fare']);
   assert.equal(new Date(n1[0].quando).getDate(), 16); // quella di oggi alle 9 è già passata
   assert.equal(new Set(n1.map((x) => x.id)).size, n1.length);
-  const fissa = mk({ titolo: 'Dentista', inizio: '2026-10-17', oraInizio: '16:30', tipoData: 'fissa', promemoriaGiornaliero: { giorniPrima: 0, ora: '09:00' } });
+  const fissa = mk({ titolo: 'Dentista', inizio: '2026-10-17', oraInizio: '16:30', tipoData: 'fissa', promemoriaGiornaliero: { giorniPrima: 0, ora: '09:00' }, insisti: { ogniMinuti: 1440 } });
   const n2 = pianificaNotifiche([fissa], ora, 5);
   assert.deepEqual(n2.map((x) => x.corpo).slice(0, 3), ['Da fare oggi · 16:30', 'Era per ieri, ancora da fare', 'Era per sabato (2 giorni fa)']);
   assert.equal(new Date(n2[0].quando).getDate(), 17); // nessuna notifica prima del giorno
@@ -363,4 +366,23 @@ test('date nelle liste: scadenza con bandierina, data fissa con lucchetto, in ri
   assert.equal(etichettaData(mk({ inizio: '2026-10-13' }), OGGI, fm)?.testo, 'scaduta da 2 gg');
   assert.equal(etichettaData(mk({ inizio: '2026-10-14', tipoData: 'fissa' }), OGGI, fm)?.testo, 'era per ieri');
   assert.equal(etichettaData(mk({}), OGGI, fm), undefined);
+});
+
+test('in arrivo: una data fissa futura sta fuori dalla classifica e compare solo nella sezione «In arrivo» (entro 7 giorni)', () => {
+  const normale = mk({ titolo: 'Normale', importanza: 1 });
+  const vicina = mk({ titolo: 'Dentista', inizio: '2026-10-20', tipoData: 'fissa', importanza: 5 }); // tra 5 giorni
+  const lontana = mk({ titolo: 'Visita', inizio: '2026-10-30', tipoData: 'fissa', importanza: 5 }); // tra 15 giorni
+  const items = [normale, vicina, lontana];
+  const cl = classificaPriorita(items, OGGI, NOW);
+  assert.equal(cl.get(normale.id), 1);
+  assert.equal(cl.has(vicina.id), false);
+  assert.equal(cl.has(lontana.id), false);
+  const v = vistaOggi(items, OGGI, NOW);
+  assert.deepEqual(v.fare.map((e) => e.item.titolo), ['Normale']);
+  assert.deepEqual(v.inArrivo.map((e) => e.item.titolo), ['Dentista']); // la lontana non compare ancora
+  // dal giorno stesso è una nota normale; una a scadenza (anche futura) resta in classifica
+  const stesso = vistaOggi(items, '2026-10-20', NOW);
+  assert.ok(stesso.fare.some((e) => e.item.titolo === 'Dentista'));
+  assert.equal(stesso.inArrivo.length, 0);
+  assert.ok(classificaPriorita([mk({ titolo: 'Scade', inizio: '2026-10-20' })], OGGI, NOW).size === 1);
 });

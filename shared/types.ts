@@ -39,7 +39,7 @@ export interface Ricorrenza { ogni: number; unita: 'giorni' | 'settimane' | 'mes
 export interface Promemoria { giorniPrima: number; ora: string }
 /** Tipo di una data: «scadenza» (va finita entro quel giorno) o «fissa» (si fa da quel giorno in poi). Senza valore: scadenza (per le esperienze fissa). */
 export type TipoData = 'scadenza' | 'fissa';
-/** Insistenza: il promemoria si ripete ogni N minuti finché la voce non viene spuntata. */
+/** «Ripeti finché non spunto»: dopo la data una notifica al giorno finché la voce non viene spuntata (`ogniMinuti` vale 1440; non si sceglie più). */
 export interface Insistenza { ogniMinuti: number }
 export interface VoceChecklist { id: string; testo: string; fatto: boolean }
 

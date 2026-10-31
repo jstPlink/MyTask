@@ -106,6 +106,24 @@ export function Oggi() {
     </Sezione>
   );
 
+  // In arrivo: attività con la data fissa nei prossimi giorni; non si possono fare adesso, quindi stanno fuori dalla classifica (nessun numero).
+  const inArrivo = v.inArrivo.length > 0 && (
+    <Sezione titolo="In arrivo" dettaglio={v.inArrivo.length}>
+      {v.inArrivo.map((e) => (
+        <Row
+          key={e.item.id}
+          segnaposto
+          titolo={e.item.titolo} tipo={e.item.tipo}
+          meta={meta(e)}
+          right={<DataRiga item={e.item} oggi={oggi} />}
+          voce={e.item}
+          selected={nav.openId === e.item.id}
+          onOpen={() => nav.push({ k: 'item', id: e.item.id })}
+        />
+      ))}
+    </Sezione>
+  );
+
   // Curiosità da smaltire: poche, sotto le attività, senza numero di priorità (hanno un interesse, non un'importanza).
   const curiosita = v.curiosita.length > 0 && (
     <Sezione titolo="Curiosità">
@@ -144,7 +162,7 @@ export function Oggi() {
         <div className="fisso senza-ombra">{accuratezza}</div>
         <div className="scroll wide-dash">
           <div className="dash">
-            <div>{routine}{prime}{curiosita}</div>
+            <div>{routine}{prime}{inArrivo}{curiosita}</div>
           </div>
         </div>
       </>
@@ -176,6 +194,7 @@ export function Oggi() {
       <div className="scroll">
         {routine}
         {prime}
+        {inArrivo}
         {curiosita}
         {stato}
       </div>

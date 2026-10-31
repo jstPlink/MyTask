@@ -4,7 +4,7 @@
 import type { Item } from './types.ts';
 import { addDays, diffDays, today as oggiDi, parseISO } from './dates.ts';
 import { dueDate, isOpen } from './priority.ts';
-import { inizioPromemoria, testoPromemoria } from './dataNota.ts';
+import { haNotificaIl, oraNotifica, testoPromemoria } from './dataNota.ts';
 import { fattaOggi, weekCount } from './routine.ts';
 
 /** Una notifica locale da programmare nel telefono. */
@@ -16,9 +16,6 @@ export interface Notifica {
   /** Istante in millisecondi */
   quando: number;
 }
-
-/** Quante ripetizioni di un promemoria insistente si programmano in anticipo (si ripianifica a ogni modifica e a ogni ritorno nell'app). */
-const MAX_RIPETIZIONI_INSISTENZA = 12;
 
 /** Numero intero positivo ricavato dal testo (hash FNV-1a): la stessa notifica ha sempre lo stesso id, così Android la sostituisce invece di duplicarla. */
 function idStabile(chiave: string): number {
@@ -40,7 +37,6 @@ function alle(giorno: string, hhmm: string): number {
  * - promemoria scelti sulla voce (N giorni prima della scadenza, all'ora indicata);
  * - notifica quotidiana (`promemoriaGiornaliero`): una al giorno, all'ora indicata, dal giorno di inizio (a scadenza N giorni prima, con la data
  *   fissa dal giorno stesso) fino a quando la voce non è spuntata, anche dopo la data;
- * - insistenza: se la voce scade oggi o è scaduta, si ripete ogni N minuti (almeno 15) per le ore successive;
  * - routine con ora del promemoria: ogni giorno, salvo oggi se già fatta e i giorni dopo che la quota settimanale è già raggiunta.
  * Non considera voci chiuse, eliminate o archiviate.
  */
@@ -76,22 +72,10 @@ export function pianificaNotifiche(items: Item[], ora: Date, giorni = 14, max = 
       aggiungi(`${i.id}|${p.giorniPrima}|${due}`, i.titolo, p.giorniPrima === 0 ? 'Scade oggi' : p.giorniPrima === 1 ? 'Scade domani' : `Scade tra ${p.giorniPrima} giorni`, alle(g, p.ora));
     }
 
-    // notifica quotidiana: una al giorno dal giorno di inizio finché la voce non è spuntata
-    const inizio = inizioPromemoria(i);
-    if (inizio && i.promemoriaGiornaliero) {
-      for (let n = 0; n <= giorni; n++) {
-        const g = addDays(oggi, n);
-        if (g < inizio) continue;
-        aggiungi(`${i.id}|giorno|${g}`, i.titolo, testoPromemoria(i, g), alle(g, i.promemoriaGiornaliero.ora));
-      }
-    }
-
-    // insistenza: ripete ogni N minuti nelle ore successive, finché la voce è scaduta o scade oggi
-    if (i.insisti && diffDays(due, oggi) <= 0) {
-      const passo = Math.max(15, i.insisti.ogniMinuti) * 60000;
-      for (let k = 1; k <= MAX_RIPETIZIONI_INSISTENZA; k++) {
-        aggiungi(`${i.id}|insisti|${k}`, i.titolo, 'Ancora da fare', ora_ms + k * passo);
-      }
+    // notifica quotidiana: dal giorno di inizio alla data («Ricordamelo ogni giorno»), poi ogni giorno finché non è spuntata («Ripeti finché non spunto»)
+    for (let n = 0; n <= giorni; n++) {
+      const g = addDays(oggi, n);
+      if (haNotificaIl(i, g)) aggiungi(`${i.id}|giorno|${g}`, i.titolo, testoPromemoria(i, g), alle(g, oraNotifica(i)));
     }
   }
   return out.sort((a, b) => a.quando - b.quando).slice(0, max);

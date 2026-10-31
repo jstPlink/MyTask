@@ -321,21 +321,25 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 @media (max-width: 420px) { .tabs button { font-size: 10px; } .tabs button .ic { width: 46px; } }
 
 /* ---------- Attività raggruppate sotto il progetto ---------- */
-.gp { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin: 12px -4px; animation: entra .26s ease-out backwards; }
-.gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 8px 11px 8px; background: var(--accent-soft); text-align: left; }
+/* Il progetto è tutto in grigio (niente bianco, che è dei titoli di sezione): testata su un grigio più scuro, passi su uno più chiaro, stesse linee sottili delle altre note */
+.gp { --gl: color-mix(in srgb, var(--ink) 11%, var(--surface2)); background: color-mix(in srgb, var(--surface2) 50%, transparent); border-radius: 14px; overflow: hidden; margin: 12px -4px; animation: entra .26s ease-out backwards; }
+.gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 8px 11px 10px; background: var(--surface2); border-bottom: 1px solid var(--gl); text-align: left; }
 .gp-h b { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
 /* barra a tacchette del progetto: una tacca per attività */
 .tacche { display: flex; gap: 3px; margin: 8px 0; }
 .tacche i { flex: 1; min-width: 0; height: 5px; border-radius: 3px; background: var(--surface2); transition: background .3s ease; }
 .tacche i.on { background: var(--accent); }
 .tacche.fitte { gap: 1px; }
-.gp .tacche { margin: 8px 12px 4px; }
+.gp-h:has(+ .tacche) { border-bottom: 0; }
+.gp .tacche { margin: 0; padding: 0 10px 9px; background: var(--surface2); }
+.gp .tacche i { background: color-mix(in srgb, var(--ink) 14%, var(--surface2)); }
+.gp .tacche i.on { background: var(--mid); }
 .sb-sep { height: 1px; background: var(--line); margin: 8px 14px 10px; }
-.gp-h span { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.gp-h span { font-size: 12px; font-weight: 700; color: var(--mid); white-space: nowrap; }
 /* la cornice del progetto sporge di 4 px per lato (restano 14 px dallo schermo): dentro, checkbox e pallino cadono 4 px più verso il centro delle righe normali */
-.gp .row { padding-left: 8px; padding-right: 8px; margin: 0; width: 100%; border-left: 0; }
+.gp .row { padding-left: 10px; padding-right: 8px; margin: 0; width: 100%; border-left: 0; border-bottom-color: var(--gl); }
 .gp .row:last-child { border-bottom: 0; }
-.gp-ic { --verde: color-mix(in srgb, var(--accent) 68%, white); width: 28px; height: 28px; flex: none; border-radius: 50%; border: 1.8px solid var(--verde); color: var(--verde); background: var(--surface); display: grid; place-items: center; }
+.gp-ic { --verde: color-mix(in srgb, var(--accent) 68%, white); width: 28px; height: 28px; flex: none; border-radius: 50%; border: 1.8px solid var(--soft); color: var(--mid); background: transparent; display: grid; place-items: center; }
 .interesse { font-size: 12px; letter-spacing: 1px; color: var(--accent); white-space: nowrap; }
 .scroll, .main-body { scrollbar-width: none; }
 .scroll::-webkit-scrollbar, .main-body::-webkit-scrollbar { display: none; }
@@ -823,3 +827,4 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* Data nelle righe delle liste (bandierina = scadenza, lucchetto = data fissa) e nota verde del blocco Promemoria */
 .data-riga { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .nota-verde { margin: 6px 0 8px; padding: 9px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); font-size: 13px; line-height: 1.4; }
+.row .rank-vuoto { border: 2px dashed var(--line); background: transparent; animation: none; }

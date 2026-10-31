@@ -1,0 +1,74 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: righe dei progetti</title><style>
+:root{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--accent:#2F7D5B;--accent-soft:#E3F1EA;--warn:#D1430B;--amber:#B7791F;--tint:#EEF4F0}
+@media (prefers-color-scheme:dark){:root{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--accent:#6FCF9B;--accent-soft:#17332A;--warn:#FF9466;--amber:#F0B866;--tint:#15211C}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px 16px 60px}
+.wrap{max-width:1180px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}p.s{margin:0 0 16px;color:var(--mid);max-width:80ch}
+.phones{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));justify-items:center}
+.col>h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--mid);margin:0 0 8px;text-align:center}.col>p{font-size:12.5px;color:var(--mid);max-width:340px;margin:8px auto 0;text-align:center}
+.phone{width:360px;background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:16px 14px 18px;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.sez{margin:10px -14px 0;padding:9px 18px;background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}.sez b{font-size:16px}.sez span{font-size:12px;font-weight:700;color:var(--accent)}
+.row{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.dot{flex:none;width:28px;height:28px;border-radius:50%;border:2.5px solid var(--soft);display:grid;place-items:center;font-weight:700;font-size:12px}.dot.r{border-color:var(--warn);color:var(--warn)}.dot.a{border-color:var(--amber);color:var(--amber)}
+.t{flex:1;min-width:0}.t b{display:block;font-weight:650;font-size:14px}.t span{color:var(--mid);font-size:12px}
+.when{font-size:12px;font-weight:600;color:var(--mid);white-space:nowrap}.box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);background:var(--surface2)}
+svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.fold{flex:none;width:28px;height:28px;border-radius:50%;border:1.8px solid color-mix(in srgb,var(--accent) 68%,white);color:color-mix(in srgb,var(--accent) 68%,white);display:grid;place-items:center}
+.pr{display:flex;align-items:center;gap:10px;padding:10px 8px}.pr b{flex:1;font-size:14px}.pr span{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+.bar{display:flex;gap:3px;margin:0 8px 6px}.bar i{flex:1;height:5px;border-radius:3px;background:var(--surface2)}.bar i.on{background:var(--accent)}
+/* A · binario */
+.A .gruppo{margin:12px 0;position:relative}.A .gruppo .pr{padding-left:4px}.A .rail{margin-left:14px;border-left:3px solid var(--accent);padding-left:12px}.A .rail .row{border-bottom:1px dashed var(--line);padding-left:0}.A .rail .row:last-child{border-bottom:0}.A .rail .dot{width:24px;height:24px;font-size:11px}
+/* B · cartella con linguetta */
+.B .gruppo{margin:22px 0 12px;position:relative}.B .tab{position:absolute;top:-17px;left:14px;background:var(--tint);border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;padding:2px 12px;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
+.B .card{background:var(--tint);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:6px 16px 16px 16px;padding:4px 10px 4px}.B .card .row{border-bottom:1px solid color-mix(in srgb,var(--accent) 18%,var(--line));padding-left:2px}.B .card .row:last-child{border-bottom:0}.B .box{background:var(--surface)}
+/* C · albero */
+.C .gruppo{margin:12px 0}.C .pr{background:var(--surface2);border-radius:14px 14px 0 0}.C .tree{background:color-mix(in srgb,var(--surface2) 45%,transparent);border-radius:0 0 14px 14px;padding:2px 10px 4px 22px}
+.C .tree .row{position:relative;border-bottom:0;padding:8px 2px 8px 18px}.C .tree .row:before{content:"";position:absolute;left:-6px;top:0;bottom:0;border-left:2px solid var(--line)}.C .tree .row:after{content:"";position:absolute;left:-6px;top:50%;width:14px;border-top:2px solid var(--line)}.C .tree .row:last-child:before{bottom:50%}
+.C .tree .dot{width:22px;height:22px;font-size:10.5px;border-width:2px}.C .tree .t b{font-size:13.5px;font-weight:600}
+.note{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;color:var(--mid)}.note b{color:var(--ink)}
+</style></head><body><div class="wrap">
+<h1>Righe dei progetti: tre estetiche</h1>
+<p class="s">Il problema: la fascia bianca dei titoli di sezione («Attività») e le note di un progetto hanno lo stesso sfondo bianco. In ognuna delle tre versioni i titoli di sezione restano com'è oggi e cambia solo il gruppo del progetto, in modo che si capisca a colpo d'occhio che le note ne fanno parte. Le righe dentro sono le normali righe dei passi, con la priorità che già hanno.</p>
+<div class="phones">
+
+<div class="col A"><h2>A · Binario</h2><div class="phone">
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when">oggi</span><span class="box"></span></div>
+ <div class="gruppo">
+  <div class="pr"><span class="fold"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><b>Tesi di laurea</b><span>2,5 h · 1 / 4</span></div>
+  <div class="rail">
+   <div class="row"><span class="dot r">2</span><div class="t"><b>Rivedere il capitolo 2</b><span>1 h</span></div><span class="when">entro 6 nov</span><span class="box"></span></div>
+   <div class="row"><span class="dot a">4</span><div class="t"><b>Scrivere le conclusioni</b><span>1 h 30</span></div><span class="box"></span></div>
+  </div>
+ </div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="box"></span></div>
+</div><p>Niente scatola: una linea verde a sinistra tiene insieme i passi, che rientrano sotto la testata. Lo sfondo resta quello della pagina, quindi non somiglia alla fascia bianca.</p></div>
+
+<div class="col B"><h2>B · Cartella con linguetta</h2><div class="phone">
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when">oggi</span><span class="box"></span></div>
+ <div class="gruppo"><div class="tab">Progetto</div>
+  <div class="card">
+   <div class="pr" style="padding-left:2px"><span class="fold"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><b>Tesi di laurea</b><span>2,5 h · 1 / 4</span></div>
+   <div class="row"><span class="dot r">2</span><div class="t"><b>Rivedere il capitolo 2</b><span>1 h</span></div><span class="when">entro 6 nov</span><span class="box"></span></div>
+   <div class="row"><span class="dot a">4</span><div class="t"><b>Scrivere le conclusioni</b><span>1 h 30</span></div><span class="box"></span></div>
+  </div>
+ </div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="box"></span></div>
+</div><p>La scatola intera, testata e passi, ha un fondo verde chiarissimo e una linguetta «Progetto» come una cartella vera. Il bianco resta solo ai titoli di sezione.</p></div>
+
+<div class="col C"><h2>C · Albero</h2><div class="phone">
+ <div class="sez"><b>Attività</b><span>5</span></div>
+ <div class="row"><span class="dot r">1</span><div class="t"><b>Pagare l'F24</b><span>15 min</span></div><span class="when">oggi</span><span class="box"></span></div>
+ <div class="gruppo">
+  <div class="pr"><span class="fold"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><b>Tesi di laurea</b><span>2,5 h · 1 / 4</span></div>
+  <div class="tree">
+   <div class="row"><span class="dot r">2</span><div class="t"><b>Rivedere il capitolo 2</b><span>1 h</span></div><span class="when">entro 6 nov</span><span class="box"></span></div>
+   <div class="row"><span class="dot a">4</span><div class="t"><b>Scrivere le conclusioni</b><span>1 h 30</span></div><span class="box"></span></div>
+  </div>
+ </div>
+ <div class="row"><span class="dot">5</span><div class="t"><b>Rispondere a Marco</b><span>5 min</span></div><span class="box"></span></div>
+</div><p>Testata grigia, passi un po' più piccoli e rientrati, collegati alla testata da linee ad albero. Grigio caldo al posto del bianco.</p></div>
+
+</div>
+<div class="note"><b>In comune:</b> la testata mantiene il nome, il tempo e «fatti / totale» (la barra a tacchette della versione attuale si può tenere sotto la testata in tutte e tre). Un tocco sulla testata apre il progetto, sul passo apre il passo. Si applica uguale in Priorità, Attività e nella scheda del progetto.</div>
+</div></body></html>
