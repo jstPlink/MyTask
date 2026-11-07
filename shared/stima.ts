@@ -1,9 +1,11 @@
-// Stima dei tempi con margine (editor della nota). Il margine è il **tempo da aggiungere** alle tue stime, con segno: è la media
-// pesata dello scostamento (reale − stimato, in proporzione alla stima) di tutte le attività e curiosità completate con tempo stimato e tempo
-// reale (`durataRealeMin`, misurato dall'app). Il peso di ogni attività è il prodotto di due cose: quanto è recente (si dimezza ogni
-// EMIVITA_GIORNI dal completamento) e quanto è lunga (la radice della stima: un errore su 2 ore conta più dello stesso errore
-// percentuale su 20 minuti, ma non in proporzione). Stime troppo corte lo fanno salire (positivo, da aggiungere); stime troppo
-// abbondanti lo fanno scendere, anche sotto zero (negativo: stai stimando più del necessario).
+// Stima dei tempi con margine (editor della nota). Il margine è il **tempo da aggiungere** alle tue stime, con segno: stime troppo corte lo
+// alzano (positivo), stime troppo abbondanti lo abbassano, anche sotto zero. Si aggiorna nota dopo nota, dalla più vecchia alla più recente
+// (attività e curiosità completate con tempo stimato e tempo reale, `durataRealeMin`, misurato dall'app): la prima nota dà il suo scostamento
+// (reale − stimato, in proporzione alla stima); ogni nota successiva sposta il margine verso il proprio scostamento di una quota che dipende da
+// quanto è precisa la stima: più lo scostamento è vicino a zero, più la nota ha forza (`passoNota`) per riportare il margine a zero; una
+// stima molto sbagliata lo sposta poco. Così un grosso eccesso seguito da un grosso difetto lascia il margine quasi com'era, mentre un
+// eccesso seguito da una stima giusta lo corregge di molto. Una nota più lunga conta un po' di più (radice della stima) e dopo un lungo
+// intervallo il margine precedente vale meno (si dimezza ogni EMIVITA_GIORNI).
 //
 // Il giudizio su una singola nota (`livelloNota`) tiene conto anche dei minuti: un errore piccolo in assoluto non è «sbagliato».
 import type { Item } from './types.ts';
@@ -50,13 +52,50 @@ const misurate = (items: Item[]) => items.filter((i) => !i.eliminato && (i.tipo 
 /** Differenza di una singola attività in proporzione alla stima: (reale − stimato) / stimato. Positiva se la stima era troppo corta. */
 export const scostamento = (stimaMin: number, realeMin: number) => (realeMin - stimaMin) / stimaMin;
 
-/** Quanto pesa oggi una nota completata in `completatoTs`: 1 se è di adesso, si dimezza ogni EMIVITA_GIORNI. */
-export function pesoNota(completatoTs: number, adesso: number = Date.now()): number {
-  return 0.5 ** (Math.max(0, adesso - completatoTs) / 86_400_000 / EMIVITA_GIORNI);
+/** Quota con cui una nota sposta il margine: da PASSO_MIN (stima molto sbagliata) a PASSO_MAX (stima giusta). */
+export const PASSO_MIN = 0.15;
+export const PASSO_MAX = 0.7;
+/** Scala della precisione: a questo scostamento (25%) la forza di una nota è già scesa a circa un terzo. */
+export const SCALA_PRECISIONE = 0.25;
+
+/** Precisione di una stima da 0 a 1: 1 se lo scostamento è zero, scende verso 0 man mano che la stima è sbagliata (in più o in meno). */
+export const precisione = (scostamentoNota: number) => Math.exp(-((scostamentoNota / SCALA_PRECISIONE) ** 2));
+
+/** Quota (0-1) con cui una nota sposta il margine: cresce con la precisione, e un po' con la lunghezza (radice della stima, tra 0,6 e 1,4 volte). */
+export function passoNota(stimaMin: number, scostamentoNota: number): number {
+  const durata = Math.min(1.4, Math.max(0.6, Math.sqrt(stimaMin / 60)));
+  return Math.min(0.85, (PASSO_MIN + (PASSO_MAX - PASSO_MIN) * precisione(scostamentoNota)) * durata);
 }
 
-/** Peso di una nota nel margine: quanto è recente per la radice della stima (le note lunghe contano di più, ma non in proporzione). */
-export const pesoMargine = (completatoTs: number, stimaMin: number, adesso: number = Date.now()) => pesoNota(completatoTs, adesso) * Math.sqrt(stimaMin);
+interface NotaMargine { stimaMin: number; scostamento: number; ts: number }
+
+/**
+ * Aggiorna il margine nota dopo nota (le note in ordine dalla più vecchia): la prima lo imposta, ogni altra lo sposta verso il proprio
+ * scostamento di `passoNota`, più forte se è passato molto tempo dalla nota precedente (il margine vecchio vale meno, emivita 21 giorni).
+ * Restituisce il margine e il contributo di ogni nota, che sommati danno 1 (la forza di quella nota nel margine di oggi).
+ */
+function calcolaMargine(note: NotaMargine[]): { margine: number; contributi: number[] } {
+  let m = 0;
+  const quote: number[] = [];
+  note.forEach((n, k) => {
+    const passo = k === 0 ? 1 : passoNota(n.stimaMin, n.scostamento);
+    const vecchio = k === 0 ? 0 : 1 - 0.5 ** (Math.max(0, n.ts - note[k - 1].ts) / 86_400_000 / EMIVITA_GIORNI); // quota di margine «scaduta»
+    const q = passo + (1 - passo) * vecchio;
+    m = (1 - q) * m + q * n.scostamento;
+    quote.push(q);
+  });
+  const contributi = new Array<number>(note.length).fill(0);
+  let resto = 1;
+  for (let k = note.length - 1; k >= 0; k--) { contributi[k] = quote[k] * resto; resto *= 1 - quote[k]; }
+  return { margine: m, contributi };
+}
+
+/** Le note misurate (con stima), dalla più vecchia alla più recente, pronte per il calcolo del margine. */
+const noteMargine = (items: Item[]): { item: Item; n: NotaMargine }[] =>
+  misurate(items)
+    .filter((i) => !!i.sforzoMin)
+    .map((i) => ({ item: i, n: { stimaMin: i.sforzoMin!, scostamento: scostamento(i.sforzoMin!, i.durataRealeMin!), ts: i.completatoTs ?? i.aggiornato } }))
+    .sort((a, b) => a.n.ts - b.n.ts);
 
 /** Sotto questa differenza (minuti) una nota non può essere «sbagliata», al massimo «media»; sotto la metà è «buona». */
 export const MINUTI_NOTA_SBAGLIATA = 10;
@@ -83,29 +122,23 @@ export interface NotaStorico { item: Item; stimaMin: number; realeMin: number; s
  * Con `quante` (> 0) solo le ultime `quante`.
  */
 export function storicoNote(items: Item[], adesso: number = Date.now(), quante = 0): NotaStorico[] {
-  const lista = misurate(items)
-    .filter((i) => !!i.sforzoMin)
-    .map((i) => {
-      const ts = i.completatoTs ?? i.aggiornato;
-      return { item: i, stimaMin: i.sforzoMin!, realeMin: i.durataRealeMin!, scostamento: scostamento(i.sforzoMin!, i.durataRealeMin!), differenzaMin: i.durataRealeMin! - i.sforzoMin!, livello: livelloNota(i.sforzoMin!, i.durataRealeMin!), completatoTs: ts, peso: pesoMargine(ts, i.sforzoMin!, adesso) };
-    })
-    .sort((a, b) => b.completatoTs - a.completatoTs);
+  void adesso; // il peso non dipende dall'ora attuale: è la forza della nota nel margine (somma 1), come in `calcolaMargine`
+  const ordinate = noteMargine(items);
+  const { contributi } = calcolaMargine(ordinate.map((x) => x.n));
+  const lista = ordinate
+    .map(({ item: i, n }, k) => ({ item: i, stimaMin: n.stimaMin, realeMin: i.durataRealeMin!, scostamento: n.scostamento, differenzaMin: i.durataRealeMin! - n.stimaMin, livello: livelloNota(n.stimaMin, i.durataRealeMin!), completatoTs: n.ts, peso: contributi[k] }))
+    .reverse();
   const massimo = Math.max(...lista.map((n) => n.peso), 0);
   const normalizzata = massimo > 0 ? lista.map((n) => ({ ...n, peso: n.peso / massimo })) : lista;
   return quante > 0 ? normalizzata.slice(0, quante) : normalizzata;
 }
 
-/** Margine atteso: media pesata degli scostamenti delle attività misurate con una stima; pesano di più le più recenti e le più lunghe (radice della stima). */
+/** Margine atteso: si aggiorna nota dopo nota, e una stima precisa ha più forza per riportarlo a zero (vedi l'intestazione del file). */
 export function margineAtteso(items: Item[], adesso = Date.now()): number {
-  let somma = 0;
-  let pesi = 0;
-  for (const i of misurate(items)) {
-    if (!i.sforzoMin) continue;
-    const peso = pesoMargine(i.completatoTs ?? i.aggiornato, i.sforzoMin, adesso);
-    somma += peso * scostamento(i.sforzoMin, i.durataRealeMin!);
-    pesi += peso;
-  }
-  return pesi > 0 ? Math.min(MARGINE_MAX, Math.max(MARGINE_MIN, somma / pesi)) : MARGINE_INIZIALE;
+  void adesso;
+  const note = noteMargine(items);
+  if (!note.length) return MARGINE_INIZIALE;
+  return Math.min(MARGINE_MAX, Math.max(MARGINE_MIN, calcolaMargine(note.map((x) => x.n)).margine));
 }
 
 /** Una barra del foglio del margine: scostamento in proporzione, differenza in minuti e giudizio sulla nota. */

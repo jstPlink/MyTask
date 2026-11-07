@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, livelloNota, margineAtteso, pesoNota, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
+import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, livelloNota, margineAtteso, passoNota, precisione, PASSO_MAX, PASSO_MIN, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
 
 let n = 0;
 const fatta = (titolo: string, sforzoMin: number | undefined, durataRealeMin: number | undefined): Item =>
@@ -12,7 +12,7 @@ test('stima: senza storico il margine è quello di partenza e non c\'è una stim
   assert.equal(stimaPer('Pagare il bollo', []), undefined);
 });
 
-test('stima: il margine è lo scostamento medio, con segno', () => {
+test('stima: con una sola nota il margine è il suo scostamento, con segno', () => {
   assert.equal(MARGINE_INIZIALE, 0);
   // stima 60, reale 30: −50% (verde); stima 60, reale 90: +50% (rosso); reale uguale: 0%
   assert.ok(Math.abs(margineAtteso([fatta('Uno', 60, 30)]) - (-0.5)) < 1e-9);
@@ -28,26 +28,41 @@ test('stima: stime troppo abbondanti portano il margine sotto zero, stime troppo
   assert.ok(margineAtteso(abbondanti) >= MARGINE_MIN && margineAtteso(corte) <= MARGINE_MAX);
 });
 
-test('stima: le attività recenti pesano di più (emivita)', () => {
-  const GG = 86_400_000;
-  const adesso = 100 * GG;
-  const vecchia = { ...fatta('Vecchia', 60, 90), completatoTs: adesso - EMIVITA_GIORNI * GG }; // +50%, peso 0,5
-  const recente = { ...fatta('Recente', 60, 54), completatoTs: adesso }; // −10%, peso 1
-  const m = margineAtteso([vecchia, recente], adesso);
-  assert.ok(Math.abs(m - (0.5 * 0.5 + 1 * -0.1) / 1.5) < 1e-9);
-  assert.ok(m < 0.25, 'meno della media semplice (+20%) perché la nota recente conta di più');
-  assert.ok(Math.abs(margineAtteso([vecchia, recente], adesso) - margineAtteso([recente, vecchia], adesso)) < 1e-12, 'non conta l ordine in lista');
+test('stima: una stima precisa ha più forza per riportare il margine a zero', () => {
+  assert.equal(precisione(0), 1);
+  assert.ok(precisione(0.1) > precisione(0.3) && precisione(0.3) > precisione(0.8));
+  assert.ok(Math.abs(precisione(0.2) - precisione(-0.2)) < 1e-12, 'in più o in meno è uguale');
+  assert.ok(passoNota(60, 0) > passoNota(60, 0.3) && passoNota(60, 0.3) > passoNota(60, 1));
+  assert.ok(passoNota(60, 0) <= PASSO_MAX && passoNota(60, 5) >= PASSO_MIN * 0.99);
 });
 
-test('stima: esempio con sei attività, emivita 21 giorni', () => {
+test('stima: prima un grosso eccesso e poi una stima giusta: il margine si corregge di molto', () => {
+  const m1 = margineAtteso([fatta('Uno', 60, 108)]); // +80%
+  const m2 = margineAtteso([fatta('Uno', 60, 108), fatta('Due', 60, 60)]); // poi 0%
+  assert.ok(Math.abs(m1 - 0.8) < 1e-9);
+  assert.ok(m2 < m1 * 0.5, `dopo la nota giusta il margine scende a meno della metà (${m2})`);
+  assert.ok(m2 > 0, 'ma non va a zero con una sola nota');
+});
+
+test('stima: un grosso eccesso e poi un grosso difetto lasciano il margine quasi sbagliato come prima, non lo annullano', () => {
+  const dopoEccesso = margineAtteso([fatta('Uno', 60, 108)]); // +80%
+  const dopoDifetto = margineAtteso([fatta('Uno', 60, 108), fatta('Due', 60, 12)]); // poi −80%
+  assert.ok(dopoDifetto > 0.4, `resta molto sbagliato (${dopoDifetto}), non torna vicino a 0`);
+  assert.ok(dopoDifetto < dopoEccesso, 'ma la seconda nota lo sposta un poco verso il suo scostamento');
+});
+
+test('stima: errori sempre dello stesso segno portano il margine verso quell errore', () => {
+  const corte = [1, 2, 3, 4, 5, 6].map((k) => fatta(`Corta ${k}`, 60, 96)); // +60% ogni volta
+  assert.ok(Math.abs(margineAtteso(corte) - 0.6) < 1e-9);
+});
+
+test('stima: dopo un lungo intervallo il margine precedente vale meno (emivita)', () => {
   const GG = 86_400_000;
-  const adesso = 100 * GG;
-  const dati: [number, number, number][] = [[30, 60, 90], [24, 30, 45], [18, 120, 130], [10, 45, 40], [4, 60, 55], [1, 30, 28]];
-  const items = dati.map(([giorni, st, re], k) => ({ ...fatta(`Es ${k}`, st, re), completatoTs: adesso - giorni * GG }));
-  let somma = 0, pesi = 0;
-  for (const [giorni, st, re] of dati) { const w = 0.5 ** (giorni / 21) * Math.sqrt(st); somma += w * (re - st) / st; pesi += w; } // peso = recenza × radice della stima
-  assert.ok(Math.abs(margineAtteso(items, adesso) - somma / pesi) < 1e-9);
-  assert.ok(margineAtteso(items, adesso) > 0.03 && margineAtteso(items, adesso) < 0.2);
+  const vecchia = { ...fatta('Vecchia', 60, 108), completatoTs: 0 }; // +80%
+  const vicina = { ...fatta('Vicina', 60, 60), completatoTs: 1 * GG };
+  const lontana = { ...fatta('Lontana', 60, 60), completatoTs: EMIVITA_GIORNI * GG };
+  assert.ok(margineAtteso([vecchia, lontana]) < margineAtteso([vecchia, vicina]), 'tra due note lontane la seconda (giusta) corregge di più');
+  assert.ok(Math.abs(margineAtteso([vicina, vecchia]) - margineAtteso([{ ...vicina, completatoTs: 1 * GG }, { ...vecchia, completatoTs: 0 }])) < 1e-12, 'conta l ordine nel tempo, non nella lista');
 });
 
 test('stima: percentuale con segno e tempo atteso', () => {
@@ -83,14 +98,10 @@ test('stima: ultimeNote dà scostamento, minuti e livello delle ultime note, dal
   assert.deepEqual(ultimeNote([fatta('Senza stima', undefined, 30)]), [], 'senza stima non conta');
 });
 
-test('stima: una nota lunga pesa più di una breve con lo stesso errore percentuale (radice della stima)', () => {
-  const breve = { ...fatta('Breve', 20, 30), completatoTs: 1000 }; // +50%
-  const lunga = { ...fatta('Lunga', 120, 120), completatoTs: 1000 }; // 0%
-  const m = margineAtteso([breve, lunga], 1000);
-  const attesoB = (Math.sqrt(20) * 0.5) / (Math.sqrt(20) + Math.sqrt(120));
-  assert.ok(Math.abs(m - attesoB) < 1e-9);
-  assert.ok(m < 0.25, 'meno della media semplice (25%) perché la nota lunga, giusta, pesa di più');
-  // con la media delle percentuali le due note avrebbero pesato uguale: 25%
+test('stima: una nota lunga sposta il margine un po' + "'" + ' di più di una breve con la stessa precisione', () => {
+  assert.ok(passoNota(120, 0.1) > passoNota(20, 0.1));
+  assert.ok(passoNota(120, 0.1) <= 0.85);
+  assert.ok(passoNota(20, 0.1) >= PASSO_MIN * 0.6);
 });
 
 test('stima: il giudizio sulla singola nota tiene conto anche dei minuti', () => {
@@ -117,15 +128,14 @@ test('stima: lo storico elenca le note misurate dalla più recente, con scostame
   const GG = 86_400_000;
   const adesso = 100 * GG;
   const a = { ...fatta('Vecchia', 60, 90), completatoTs: adesso - 21 * GG };
-  const b = { ...fatta('Recente', 60, 54), completatoTs: adesso };
+  const b = { ...fatta('Recente', 60, 60), completatoTs: adesso };
   const senza = fatta('Senza stima', undefined, 30);
   const st = storicoNote([a, b, senza], adesso);
   assert.deepEqual(st.map((n) => n.item.titolo), ['Recente', 'Vecchia']);
-  assert.ok(Math.abs(st[0].scostamento - (-0.1)) < 1e-9 && Math.abs(st[1].scostamento - 0.5) < 1e-9);
-  assert.equal(st[0].peso, 1);
-  assert.ok(Math.abs(st[1].peso - 0.5) < 1e-9, 'dopo 21 giorni il peso si dimezza');
+  assert.ok(Math.abs(st[0].scostamento) < 1e-9 && Math.abs(st[1].scostamento - 0.5) < 1e-9);
+  assert.equal(Math.max(...st.map((n) => n.peso)), 1);
+  assert.ok(st[0].peso > st[1].peso, 'la nota giusta e recente è quella che pesa di più');
   assert.equal(storicoNote([a, b], adesso, 1).length, 1);
-  assert.equal(pesoNota(adesso, adesso), 1);
 });
 
 test('stima: anche le curiosità completate con stima e tempo reale contano nel margine', () => {
