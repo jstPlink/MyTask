@@ -45,6 +45,8 @@ export function Sec({ a, b }: { a: string; b?: ReactNode }) {
 /** Proprietà di `Row`. */
 interface RowProps {
   titolo: string;
+  /** Forza l'icona «ha delle note» (di base si ricava da `voce.note`). */
+  conNote?: boolean;
   meta?: ReactNode;
   right?: ReactNode;
   /** Tipo della nota: la sua icona compare, piccola, a sinistra del titolo. */
@@ -136,7 +138,7 @@ function CasellaStato({ voce }: { voce: Item }) {
  * Riga di lista: priorità a sinistra (barra), titolo con riga grigia sotto, parte destra libera e casella.
  * Con `voce` la casella gestisce da sola gli stati della nota; senza, è una casella semplice comandata da `done`/`onCheck`.
  */
-export function Row({ titolo, meta, right, tipo, level, rank, segnaposto, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnaposto, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   // Una nota «in corso» o «in pausa» mostra al posto della riga grigia la barra del tempo (fissa; gialla in pausa, rossa oltre la stima) con «tempo lavorato / stima».
   const sessione = useSessione();
   const vs = voce ? statoVisto(voce.stato) : undefined;
@@ -144,6 +146,8 @@ export function Row({ titolo, meta, right, tipo, level, rank, segnaposto, intere
   const adesso = useAdesso(conTempo && sessione.stato === 'lavoro' && sessione.taskId === voce?.id);
   const ms = conTempo ? tempoDi(voce, adesso) : 0;
   const quota = conTempo && voce.sforzoMin ? ms / (voce.sforzoMin * 60_000) : undefined;
+  // la nota non si legge nella riga: se ha del testo si vede solo un'icona (pallino grigio) sopra la data, a destra
+  const haNote = conNote ?? !!voce?.note?.trim();
   const body = (
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
@@ -162,7 +166,16 @@ export function Row({ titolo, meta, right, tipo, level, rank, segnaposto, intere
           </div>
         ) : meta && <div className="t2">{meta}</div>}
       </div>
-      {right && <div className="right">{right}</div>}
+      {(right || haNote) && (
+        <div className={clsx('right', haNote && 'col-note')}>
+          {haNote && (
+            <span className="pn-nota" role="img" aria-label="Ha delle note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /></svg>
+            </span>
+          )}
+          {right}
+        </div>
+      )}
       {check !== 'none' && voce && <CasellaStato voce={voce} />}
       {check !== 'none' && !voce && (
         <span

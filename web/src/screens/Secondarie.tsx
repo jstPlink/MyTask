@@ -73,8 +73,8 @@ export function Inbox() {
       <div className="scroll">
         {lista.length === 0 && <Empty>Tutto smistato. Le idee catturate al volo arrivano qui.</Empty>}
         {lista.map((i) => (
-          <Row key={i.id} titolo={i.titolo} check="none" onOpen={() => nav.push({ k: 'item', id: i.id })}
-            meta={[i.piattaforma, i.consigliatoDa && `consigliato da ${i.consigliatoDa}`, i.note].filter(Boolean).join(' · ') || 'Apri per smistare'} />
+          <Row key={i.id} titolo={i.titolo} check="none" conNote={!!i.note?.trim()} onOpen={() => nav.push({ k: 'item', id: i.id })}
+            meta={[i.piattaforma, i.consigliatoDa && `consigliato da ${i.consigliatoDa}`].filter(Boolean).join(' · ') || 'Apri per smistare'} />
         ))}
       </div>
     </>
@@ -95,7 +95,7 @@ export function DaParte() {
       <div className="scroll">
         {lista.length === 0 && <Empty>Qui finiscono le voci che archivi. Aprine una per ripristinarla.</Empty>}
         {lista.map((i) => (
-          <Row key={i.id} titolo={i.titolo} check="none" onOpen={() => nav.push({ k: 'item', id: i.id })} meta={NOMI_TIPO[i.tipo]} />
+          <Row key={i.id} titolo={i.titolo} check="none" conNote={!!i.note?.trim()} onOpen={() => nav.push({ k: 'item', id: i.id })} meta={NOMI_TIPO[i.tipo]} />
         ))}
       </div>
     </>

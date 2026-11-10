@@ -37,7 +37,7 @@ export function Curiosita() {
             <Row
               key={i.id}
               titolo={i.titolo} tipo="curiosita"
-              meta={[i.sforzoMin ? nomeTempo(i.sforzoMin) : undefined, i.note?.split('\n')[0]].filter(Boolean).join(' · ') || undefined}
+              meta={i.sforzoMin ? nomeTempo(i.sforzoMin) : undefined}
               rank={pos.get(i.id)}
               interesse={i.interesse ?? 3}
               check="square"

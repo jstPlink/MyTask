@@ -131,7 +131,7 @@ export function Oggi() {
         <Row
           key={c.id}
           titolo={c.titolo} tipo="curiosita"
-          meta={[c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined, c.note?.split('\n')[0]].filter(Boolean).join(' · ') || undefined}
+          meta={c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
           rank={posCuriosita.get(c.id)}
           interesse={c.interesse ?? 3}
           check="square"
