@@ -25,6 +25,7 @@ import { segnaRoutine, statoVisto } from '../lib/actions.ts';
 import { tempoDi } from '../lib/sessione.ts';
 import { DataRiga, Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
 import { useNav } from '../ui/nav.tsx';
+import { PulsanteTema } from '../ui/PulsanteAspetto.tsx';
 import { margineAtteso, percentuale, stimeMisurate } from '../../../shared/stima.ts';
 import { clsx, nomeTempo } from '../lib/util.ts';
 
@@ -177,9 +178,7 @@ export function Oggi() {
         sub={formatLong(oggi)}
         right={
           <div className="header-circles">
-            <button className="circ" onClick={() => nav.push({ k: 'aspetto' })} aria-label="Stile e aspetto">
-              <Icona nome="aspetto" size={22} />
-            </button>
+            <PulsanteTema />
             <button className="circ" onClick={() => nav.push({ k: 'inbox' })} aria-label={`Inbox, ${v.inbox} da smistare`}>
               <Icona nome="inbox" size={22} />
               {v.inbox > 0 && <span className="circ-badge">{v.inbox > 99 ? '99+' : v.inbox}</span>}

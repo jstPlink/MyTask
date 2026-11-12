@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.97.0
+- **Versione documento:** 0.98.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -44,7 +44,7 @@ Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da v
 ### 2.1 Telefono (colonna singola)
 
 - **Cinque schede in basso** con icona e nome (Priorità, Attività, Intratten.[mento], Curiosità, Routine: «Intrattenimento» è abbreviato nella barra perché non entra), con una pillola dietro l'icona della scheda attiva; le icone ci sono solo sul telefono, la barra laterale del sito resta senza; e il pulsante tondo **«+»** (62 px) per la cattura rapida.
-- In cima a ogni scheda principale tre pulsanti tondi: **Stile e aspetto** (tavolozza: tema e colore), **Inbox** (con il numero di note da smistare) e **Altro** (tre pallini).
+- In cima a ogni scheda principale tre pulsanti tondi: **Tema** (interruttore chiaro/scuro: luna in chiaro, sole in scuro; il colore d'accento e il tema «Sistema» si scelgono in Altro › Aspetto, `PulsanteTema`), **Inbox** (con il numero di note da smistare) e **Altro** (tre pallini).
 - **Indietro (pila unica):** ogni spostamento è un livello di una pila: cambio di scheda o sotto-sezione, apertura di una schermata o di una voce, apertura di una finestra o di un menu a tendina (cattura rapida, scelta del mese, voto, Tipo, Sezione…). Il tasto indietro del telefono, quello del browser e il pulsante «Indietro» dell'app ripercorrono l'ordine inverso: prima si chiude la finestra aperta, poi si torna alla schermata precedente, poi alla scheda precedente. Sul sito la pila è agganciata alla cronologia del browser; nell'app Android è gestita dall'app stessa (la cronologia del WebView non era affidabile) e il tasto indietro del telefono arriva dal plugin `@capacitor/app`: a pila vuota esce dall'app (`web/src/App.tsx`, `useLayer` in `web/src/ui/nav.tsx`).
 - L'app Android resta sempre in verticale.
 
@@ -605,6 +605,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-10-31 | 0.95.0 | **In arrivo:** le attività con data fissa ancora futura escono dalla classifica e compaiono, entro 7 giorni, in una sezione «In arrivo» sotto le cinque attività (cerchio vuoto, lucchetto, data). **Ripeti finché non spunto:** una notifica al giorno dopo la data, senza scelta delle ore, acceso di base. **Progetti:** gruppo tutto in grigio (testata più scura, passi più chiari, linee sottili, tacche e testi grigi, «completato» a 4/4); mockup `docs/mockup-in-arrivo.html`, `docs/mockup-progetti-righe-4.html` |
 | 2026-11-07 | 0.96.0 | **Nuovo calcolo del margine:** si aggiorna nota dopo nota; più la stima è vicina a zero, più la nota ha forza per riportare il margine a zero (`passoNota`, `precisione`), una stima molto sbagliata lo sposta poco: +80% e poi 0% → circa +24%, +80% e poi −80% → resta circa +56%. Dopo un lungo intervallo il margine precedente vale meno (emivita 21 giorni). Nello storico la barretta è la forza della nota nel margine |
 | 2026-11-10 | 0.97.0 | **Icona delle note nelle righe:** il testo della nota non si legge più nelle righe (tolto da Curiosità, Priorità, Intrattenimento e Inbox); se la voce ha del testo compare solo un pallino grigio con l'icona delle righe di testo, a destra sopra la data (mockup `24-icona-note-pallino.html`) |
+| 2026-11-12 | 0.98.0 | **Tema con un tocco:** il pulsante tondo in cima alle schede passa dal tema chiaro a quello scuro e viceversa (luna / sole); il colore si cambia solo in Altro › Aspetto |
 
 ## Selettore del tempo a rotelle (0.65.3)
 
