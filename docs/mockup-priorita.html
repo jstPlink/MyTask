@@ -1,0 +1,110 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: segnale di priorità</title><style>
+:root[data-theme=light]{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--warn:#D1430B;--warn-soft:#FDEBE2;--amber:#B7791F;--amber-soft:#FBEBD0;--accent:#2F7D5B}
+:root[data-theme=dark]{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--warn:#FF9466;--warn-soft:#3A2218;--amber:#F0B866;--amber-soft:#3A2C14;--accent:#6FCF9B}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mid);margin:0 0 18px}
+.tg{border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surface)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 14px 10px}
+.card h2{font-size:13px;margin:10px 0 2px}.card p{font-size:12px;color:var(--mid);margin:0 0 6px}
+.row{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.row .t{flex:1;min-width:0}.row .t b{display:block;font-size:14px}.row .t span{font-size:12px;color:var(--mid)}
+.l1{--c:var(--soft);--cs:var(--surface2)}.l2{--c:var(--amber);--cs:var(--amber-soft)}.l3{--c:var(--warn);--cs:var(--warn-soft)}
+/* A: attuale */
+.A .n{width:30px;height:30px;border-radius:50%;border:2px solid var(--c);background:var(--cs);color:var(--c);display:grid;place-items:center;font-weight:800;font-size:12.5px}
+/* B: pallino pieno fermo */
+.B .n{width:30px;height:30px;border-radius:50%;background:var(--c);color:var(--surface);display:grid;place-items:center;font-weight:800;font-size:12.5px}
+.B .l1 .n{background:var(--surface2);color:var(--mid)}
+/* C: striscia laterale */
+.C .row{position:relative;padding-left:14px}.C .row::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:4px;border-radius:2px;background:var(--c)}
+.C .n{width:24px;text-align:center;font-weight:800;color:var(--mid);font-size:15px}
+/* D: numero e parola */
+.D .n{width:44px;text-align:center}.D .n b{display:block;font-size:20px;line-height:1;color:var(--c)}.D .n i{display:block;font-style:normal;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--c);margin-top:3px;font-weight:700}
+/* E: tre tacche */
+.E .n{width:34px}.E .n b{display:block;text-align:center;font-weight:800;font-size:14px;margin-bottom:3px}.E .n s{display:flex;gap:2px;text-decoration:none}.E .n s u{flex:1;height:4px;border-radius:2px;background:var(--surface2);text-decoration:none}
+.E .l1 u:nth-child(-n+1),.E .l2 u:nth-child(-n+2),.E .l3 u{background:var(--c)}
+/* F: anello a riempimento (punteggio) */
+.F .n{--p:50;width:32px;height:32px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--surface2) 0);display:grid;place-items:center;position:relative;font-weight:800;font-size:12px;color:var(--ink)}
+.F .n::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--surface);z-index:0}.F .n span{position:relative}
+/* G: numero grigio, pallino piccolo di livello accanto */
+.G .n{display:flex;align-items:center;gap:6px;width:40px;font-weight:800;color:var(--mid);font-size:15px}.G .n::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+
+/* forme */
+.sh{width:32px;height:32px;display:grid;place-items:center;font-weight:800;font-size:12.5px;color:var(--surface);background:var(--c)}
+.l1 .sh{background:var(--surface2);color:var(--mid)}
+.H .sh{border-radius:9px}
+.I .sh{width:28px;height:28px;border-radius:6px;transform:rotate(45deg);margin:2px}.I .sh span{transform:rotate(-45deg)}
+.J .sh{clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);width:34px;height:34px}
+.K .sh{width:34px;clip-path:polygon(0 0,100% 0,100% 62%,50% 100%,0 62%);height:36px;padding-bottom:6px}
+.L .sh{width:36px;height:30px;border-radius:15px 8px 8px 15px;clip-path:polygon(0 0,78% 0,100% 50%,78% 100%,0 100%);justify-content:start;padding-left:10px;display:flex;align-items:center}
+.M .sh{border-radius:50% 50% 50% 4px;transform:rotate(-45deg)}.M .sh span{transform:rotate(45deg)}
+.N .sh{background:none;color:var(--c);font-size:22px;width:34px;font-weight:850}
+.l1.N .sh,.N .l1 .sh{color:var(--soft);background:none}
+/* linguaggi */
+.chev{width:34px;text-align:center;color:var(--c);font-weight:900;font-size:22px;line-height:1;letter-spacing:-2px;font-family:Arial,sans-serif}
+.pill{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:5px 9px;border-radius:99px;background:var(--cs);color:var(--c);border:1.5px solid var(--c);min-width:62px;text-align:center}
+.sig{display:flex;align-items:flex-end;gap:2px;height:22px;width:26px}.sig u{flex:1;border-radius:1.5px;background:var(--surface2);text-decoration:none}.sig u:nth-child(1){height:35%}.sig u:nth-child(2){height:68%}.sig u:nth-child(3){height:100%}
+.l1 .sig u:nth-child(-n+1),.l2 .sig u:nth-child(-n+2),.l3 .sig u{background:var(--c)}
+.vert{width:10px;height:34px;border-radius:5px;background:var(--surface2);position:relative;overflow:hidden}.vert i{position:absolute;left:0;right:0;bottom:0;background:var(--c);border-radius:5px}
+.bang{width:34px;text-align:center;color:var(--c);font-weight:900;font-size:19px;letter-spacing:-1px}
+.ord{width:22px;text-align:right;color:var(--mid);font-weight:700;font-size:13px}
+.U .row{border-radius:12px;padding:11px 10px;margin:3px 0;border:0;background:var(--cs)}
+.U .row .sh2{width:26px;text-align:center;font-weight:800;color:var(--c)}
+.dotl{width:12px;height:12px;border-radius:50%;background:var(--c);flex:none}
+.dash{display:flex;flex-direction:column;gap:3px;width:22px}.dash u{height:3px;border-radius:2px;background:var(--surface2);text-decoration:none}
+.l1 .dash u:nth-child(3),.l2 .dash u:nth-child(n+2),.l3 .dash u{background:var(--c)}
+
+/* contorni, triangoli, stelle */
+.a .o{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12.5px;color:var(--c);border:solid var(--c)}
+.a .l1 .o{border-width:1.5px}.a .l2 .o{border-width:3px}.a .l3 .o{border-width:5px}
+.svg{width:34px;height:34px;flex:none;color:var(--c)}.svg text{font:800 11px system-ui;fill:currentColor;text-anchor:middle}
+.stars{width:44px;color:var(--c);font-size:13px;letter-spacing:-1px;font-family:Arial,sans-serif;flex:none}
+.stars em{font-style:normal;color:var(--surface2)}
+.j .dts{display:flex;gap:3px;width:34px}.j .dts u{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--c);text-decoration:none}
+.j .l1 u:nth-child(1),.j .l2 u:nth-child(-n+2),.j .l3 u{background:var(--c)}
+.k .row{position:relative;padding-left:14px}.k .row::before{content:"";position:absolute;left:0;top:9px;bottom:9px;border-left:4px var(--st) var(--c)}
+.k .l1{--st:dotted}.k .l2{--st:solid}.k .l3{--st:double}.k .l3::before{border-left-width:6px!important}
+.k .n{width:24px;text-align:center;font-weight:800;color:var(--mid);font-size:15px}
+.i .svg circle{fill:none;stroke:var(--surface2);stroke-width:2}
+.l1.i .r1,.i .l1 .r1,.i .l2 .r1,.i .l2 .r2,.i .l3 .r1,.i .l3 .r2,.i .l3 .r3{stroke:var(--c)}
+</style></head><body><div class="wrap"><h1>Segnale di priorità</h1><p class="sub">Tutte le varianti sono ferme (niente pulsazione). Livelli: grigio basso, ambra medio, rosso alto. <button class="tg" onclick="var d=document.documentElement;d.setAttribute('data-theme',d.getAttribute('data-theme')==='dark'?'light':'dark')">Chiaro / scuro</button></p><div class="grid" id="g"></div></div>
+<script>
+const righe=[[1,'Pagare la bolletta','domani',3,86],[2,'Chiamare il commercialista','20 min',3,71],[3,'Preparare la riunione','1 h',2,52],[4,'Ordinare le lenti','5 min',2,40],[5,'Riordinare la scrivania','30 min',1,22]];
+const v=[
+['A','Attuale: pallino con anello e tinta','Numero in un cerchio tinto. Oggi batte; qui fermo.',(r)=>`<span class="n">${r[0]}</span>`],
+['B','Pallino pieno','Il colore è pieno e forte, il grigio resta spento: si legge a colpo d’occhio anche piccolo.',(r)=>`<span class="n">${r[0]}</span>`],
+['C','Striscia laterale','Il colore passa in una striscia a sinistra come nei calendari; il numero resta sobrio.',(r)=>`<span class="n">${r[0]}</span>`],
+['D','Numero e parola','Nessun dubbio sul significato: Alta, Media, Bassa sotto al numero.',(r)=>`<span class="n"><b>${r[0]}</b><i>${['','bassa','media','alta'][r[3]]}</i></span>`],
+['E','Numero con tacche','Una, due o tre tacche come il segnale del telefono: il livello si conta.',(r)=>`<span class="n"><b>${r[0]}</b><s><u></u><u></u><u></u></s></span>`],
+['F','Anello che si riempie','L’anello è il punteggio (0-100): più è pieno, più è urgente. Dice anche quanto.',(r)=>`<span class="n" style="--p:${r[4]}"><span>${r[0]}</span></span>`],
+['G','Numero + pallino piccolo','Il numero è solo posizione, il pallino di colore è solo urgenza: due informazioni separate.',(r)=>`<span class="n">${r[0]}</span>`],
+['H','Quadrato arrotondato','Stessa idea del pallino ma quadrato: non si confonde con la casella rotonda dello stato.',(r)=>`<span class="sh"><span>${r[0]}</span></span>`],
+['I','Rombo','Forma a sé, riconoscibile: nessun’altra cosa nell’app è un rombo.',(r)=>`<span class="sh"><span>${r[0]}</span></span>`],
+['J','Esagono','Come un distintivo. Più “grafico”, un po’ più grande del pallino.',(r)=>`<span class="sh"><span>${r[0]}</span></span>`],
+['K','Segnalibro','Il numero in un segnalibro che pende: richiama “da tenere d’occhio”.',(r)=>`<span class="sh"><span>${r[0]}</span></span>`],
+['L','Freccia / etichetta','Una punta che indica la riga, come un cartellino.',(r)=>`<span class="sh"><span>${r[0]}</span></span>`],
+['M','Goccia / segnaposto','Goccia girata: forma morbida, diversa da cerchi e quadrati.',(r)=>`<span class="sh"><span>${r[0]}</span></span>`],
+['N','Solo numero colorato','Nessuna forma: il numero è grande e prende il colore del livello. Il più leggero.',(r)=>`<span class="sh"><span>${r[0]}</span></span>`],
+['P','Chevron ›  ››  ›››','Un solo segno, linguaggio delle frecce: più frecce, più urgente. La posizione va a destra.',(r)=>`<span class="chev">${['','›','››','›››'][r[3]]}</span>`],
+['Q','Punti esclamativi','Un solo segno: ! !! !!!. Immediato, ma può sembrare un errore.',(r)=>`<span class="bang">${['','!','!!','!!!'][r[3]]}</span>`],
+['R','Pillola con parola','Solo parole: Ora, Presto, Poi. Niente numero.',(r)=>`<span class="pill">${['','Poi','Presto','Ora'][r[3]]}</span>`],
+['S','Barre del segnale','Tre barre crescenti, come la rete. La posizione è un numero piccolo a sinistra.',(r)=>`<span class="ord">${r[0]}</span><span class="sig"><u></u><u></u><u></u></span>`],
+['T','Asta che si riempie','Un’asta verticale come un livello di carica: più è piena, più è urgente (punteggio).',(r)=>`<span class="vert"><i style="height:${r[4]}%"></i></span>`],
+['U','Riga tinta','Nessun segnale a parte: l’intera riga prende un fondo tenue del colore. Il numero resta in testa.',(r)=>`<span class="sh2">${r[0]}</span>`],
+['V','Pallino piccolo e basta','Il minimo: un punto di colore a sinistra, e il numero come testo grigio a destra.',(r)=>`<span class="dotl"></span>`],
+['W','Tre trattini','Tre linee impilate di cui si accendono 1, 2 o 3 (da dal basso): sa di “priorità” nelle app di liste.',(r)=>`<span class="dash"><u></u><u></u><u></u></span>`],
+['a','Contorno che si ispessisce','Solo il bordo cambia: sottile, medio, spesso. Nessun riempimento, il numero resta nero-colore.',(r)=>`<span class="o">${r[0]}</span>`],
+['b','Triangolo pieno','Triangolo di avviso col numero dentro: grigio, ambra, rosso.',(r)=>`<svg class="svg" viewBox="0 0 34 34"><path d="M17 4 L31 29 H3 Z" fill="${['','var(--surface2)','currentColor','currentColor'][r[3]]}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><text x="17" y="26" style="fill:${r[3]==1?'var(--mid)':'var(--surface)'}">${r[0]}</text></svg>`],
+['c','Triangolo contorno con !','Il triangolo è solo contorno e il simbolo cambia: nessun segno, !, !!.',(r)=>`<svg class="svg" viewBox="0 0 34 34"><path d="M17 4 L31 29 H3 Z" fill="none" stroke="currentColor" stroke-width="${[0,1.5,2.4,3.4][r[3]]}" stroke-linejoin="round"/><text x="17" y="25">${['','','!','!!'][r[3]]||''}</text></svg>`],
+['d','Stelle 1-3','Come le recensioni: da una a tre stelle piene su tre. La posizione va a destra.',(r)=>`<span class="stars">${'★'.repeat(r[3])}<em>${'★'.repeat(3-r[3])}</em></span>`],
+['e','Stella con numero','Una stella a cinque punte, il numero dentro. Piena col livello, contorno quando è basso.',(r)=>`<svg class="svg" viewBox="0 0 34 34"><polygon points="17,3 21,13 32,13.5 23.5,20.5 26.5,31 17,25 7.5,31 10.5,20.5 2,13.5 13,13" fill="${r[3]==1?'none':'currentColor'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><text x="17" y="23" style="fill:${r[3]==1?'var(--mid)':'var(--surface)'}">${r[0]}</text></svg>`],
+['f','Stella → esplosione','Contorno vuoto, stella piena, stella a otto punte: la forma stessa sale di livello.',(r)=>`<svg class="svg" viewBox="0 0 34 34">${r[3]==3?`<polygon points="17,2 20,10 28,6 24,14 32,17 24,20 28,28 20,24 17,32 14,24 6,28 10,20 2,17 10,14 6,6 14,10" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>`:`<polygon points="17,3 21,13 32,13.5 23.5,20.5 26.5,31 17,25 7.5,31 10.5,20.5 2,13.5 13,13" fill="${r[3]==2?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>`}</svg>`],
+['g','Cerchio con !','Il punto esclamativo c’è solo se serve: rosso pieno, ambra a contorno, grigio vuoto.',(r)=>`<svg class="svg" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="${r[3]==3?'currentColor':'none'}" stroke="currentColor" stroke-width="2" ${r[3]==1?'stroke-dasharray="3 3"':''}/><text x="17" y="22" style="font-size:15px;fill:${r[3]==3?'var(--surface)':'currentColor'}">${r[3]>1?'!':''}</text></svg>`],
+['h','Fulmine','Un fulmine per ciò che brucia: pieno rosso, contorno ambra, assente nel grigio (tratto sottile).',(r)=>`<svg class="svg" viewBox="0 0 34 34"><path d="M19 3 L7 19 H16 L14 31 L27 14 H18 Z" fill="${r[3]==3?'currentColor':'none'}" stroke="currentColor" stroke-width="${r[3]==1?1.2:2}" stroke-linejoin="round" ${r[3]==1?'opacity=".55"':''}/></svg>`],
+['i','Onde concentriche','Uno, due o tre anelli attorno al centro, come un bersaglio che si allarga.',(r)=>`<svg class="svg" viewBox="0 0 34 34"><circle class="r3" cx="17" cy="17" r="15"/><circle class="r2" cx="17" cy="17" r="10"/><circle class="r1" cx="17" cy="17" r="5" style="fill:currentColor"/></svg>`],
+['j','Tre puntini','●○○  ●●○  ●●●: il livello si conta come i punti di una valutazione.',(r)=>`<span class="dts"><u></u><u></u><u></u></span>`],
+['k','Tipo di linea','La striscia laterale cambia stile: punteggiata, piena, doppia e spessa.',(r)=>`<span class="n">${r[0]}</span>`],
+['l','Esagono contorno','Contorno esagonale col numero, spessore crescente.',(r)=>`<svg class="svg" viewBox="0 0 34 34"><path d="M9 4 H25 L32 17 L25 30 H9 L2 17 Z" fill="none" stroke="currentColor" stroke-width="${[0,1.5,2.6,4][r[3]]}" stroke-linejoin="round"/><text x="17" y="21">${r[0]}</text></svg>`],
+['m','Rombo contorno','Rombo vuoto col numero; riempito solo nel livello alto.',(r)=>`<svg class="svg" viewBox="0 0 34 34"><path d="M17 2 L32 17 L17 32 L2 17 Z" fill="${r[3]==3?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><text x="17" y="21" style="fill:${r[3]==3?'var(--surface)':'currentColor'}">${r[0]}</text></svg>`]];
+document.getElementById('g').innerHTML=v.map(([k,t,d,f])=>`<div class="card ${k}"><h2>${k} · ${t}</h2><p>${d}</p>${righe.map(r=>`<div class="row l${r[3]}">${f(r)}<span class="t"><b>${r[1]}</b><span>${r[2]}</span></span>${'PQRTVWdj'.includes(k)?`<span class="ord">${r[0]}</span>`:''}</div>`).join('')}</div>`).join('');
+</script></body></html>

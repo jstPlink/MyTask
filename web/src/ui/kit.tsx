@@ -14,7 +14,6 @@ import { GlifoTipo } from './Icone.tsx';
 import { avanzaStato, statoVisto } from '../lib/actions.ts';
 import { apriStatoMenu } from '../lib/statoMenu.ts';
 import type { Item, Stato, Tipo } from '../../../shared/types.ts';
-import { battito } from '../lib/battito.ts';
 import { etichettaData } from '../../../shared/dataNota.ts';
 import { formatShortYear } from '../../../shared/dates.ts';
 
@@ -69,8 +68,6 @@ interface RowProps {
   classe?: string;
   /** Attributi in più sulla riga (gestori del trascinamento). */
   extra?: React.HTMLAttributes<HTMLElement>;
-  /** Urgenza 0-100: il numero d'ordine batte a ritmo crescente con l'urgenza (fermo se 0 o assente). */
-  urgenza?: number;
   /** Forma della casella a destra (`none` la toglie). Con `voce` la casella è sempre quella a quattro stati. */
   check?: 'circle' | 'square' | 'none';
   /** Casella piena, per le righe senza `voce`. */
@@ -134,11 +131,14 @@ function CasellaStato({ voce }: { voce: Item }) {
   );
 }
 
+/** Contorno dell'etichetta di priorità (40 × 32, punta a destra, angoli stondati). */
+const ETICHETTA = 'M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z';
+
 /**
  * Riga di lista: priorità a sinistra (barra), titolo con riga grigia sotto, parte destra libera e casella.
  * Con `voce` la casella gestisce da sola gli stati della nota; senza, è una casella semplice comandata da `done`/`onCheck`.
  */
-export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnaposto, interesse, voce, maniglia, classe, extra, urgenza, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnaposto, interesse, voce, maniglia, classe, extra, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   // Una nota «in corso» o «in pausa» mostra al posto della riga grigia la barra del tempo (fissa; gialla in pausa, rossa oltre la stima) con «tempo lavorato / stima».
   const sessione = useSessione();
   const vs = voce ? statoVisto(voce.stato) : undefined;
@@ -152,7 +152,14 @@ export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnapost
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
       {/* con rank e interesse (le curiosità) il pallino è verde e fermo: il numero è la posizione, il riempimento è l'interesse */}
-      {rank !== undefined && <span className={clsx('rank', interesse !== undefined && 'rank-int', interesse !== undefined && `g${Math.round(interesse)}`)} style={urgenza && interesse === undefined ? battito(urgenza, rank) : undefined} aria-label={interesse !== undefined ? `Posizione ${rank}, interesse ${Math.round(interesse)} su 5` : `Posizione ${rank}`}>{rank}</span>}
+      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
+      {/* priorità: etichetta con la punta a destra (bordo sottile e fondo tenue del colore del livello), ferma */}
+      {rank !== undefined && interesse === undefined && (
+        <span className="rank et" aria-label={`Posizione ${rank}`}>
+          <svg width="40" height="32" viewBox="0 0 40 32" aria-hidden="true"><path d={ETICHETTA} /></svg>
+          <b>{rank}</b>
+        </span>
+      )}
       {segnaposto && rank === undefined && <span className="rank rank-vuoto" aria-hidden="true" />}
       {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
       <div className="grow">

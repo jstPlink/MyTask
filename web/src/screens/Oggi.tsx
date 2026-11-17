@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { formatLong, formatShortYear } from '../../../shared/dates.ts';
-import { livelloPriorita, dueDate, daysOverdue, intensitaBattito } from '../../../shared/priority.ts';
+import { livelloPriorita, dueDate, daysOverdue } from '../../../shared/priority.ts';
 import { classificaCuriosita, classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
@@ -35,6 +35,7 @@ export function Oggi() {
   const oggi = useOggi();
   const sync = useSyncStatus();
   const nav = useNav();
+  const [mostraAvviate, setMostraAvviate] = useState(false);
   const v = useMemo(() => vistaOggi(items, oggi), [items, oggi]);
   const margine = useMemo(() => margineAtteso(items), [items]);
   const nMisurate = useMemo(() => stimeMisurate(items), [items]);
@@ -77,7 +78,6 @@ export function Oggi() {
   const riga = (e: Entry) => (
     <Row
       rank={classifica.get(e.item.id)}
-      urgenza={intensitaBattito(e.item, oggi)}
       key={e.item.id}
       titolo={e.item.titolo} tipo={e.item.tipo}
       meta={meta(e)}
@@ -104,6 +104,17 @@ export function Oggi() {
       {raggruppaPerProgetto(v.fare, items).map((g) => g.progetto
         ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
         : g.voci.map(riga))}
+      {v.avviate.length > 0 && (
+        <>
+          <button className="altre-avviate" aria-expanded={mostraAvviate} onClick={() => setMostraAvviate((x) => !x)}>
+            {mostraAvviate ? 'Nascondi le già avviate' : `Mostra ${v.avviate.length} ${v.avviate.length === 1 ? 'già avviata' : 'già avviate'}`}
+            <span aria-hidden="true">{mostraAvviate ? '⌃' : '⌄'}</span>
+          </button>
+          {mostraAvviate && raggruppaPerProgetto(v.avviate, items).map((g) => g.progetto
+            ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
+            : g.voci.map(riga))}
+        </>
+      )}
     </Sezione>
   );
 

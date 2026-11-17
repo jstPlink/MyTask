@@ -160,6 +160,8 @@ export interface VistaOggi {
   /** Le prime curiosità della loro classifica (tempo stimato e interesse), in un gruppo separato dalle attività con la loro numerazione. */
   curiosita: Item[];
   prossimi: Entry[];
+  /** Attività già avviate (in pausa o in corso) che non rientrano nelle prime 5: la pagina Priorità le mostra a richiesta sotto la quinta. */
+  avviate: Entry[];
   /** Note con la data fissa nei prossimi giorni (`inArrivo`): fuori dalla classifica, in una sezione a parte sotto le attività. */
   inArrivo: Entry[];
   inbox: number;
@@ -214,9 +216,15 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
     .map((i) => ({ item: i, punteggio: chiavePriorita(i, today, now) }))
     .sort((a, b) => (dueDate(a.item) ?? '').localeCompare(dueDate(b.item) ?? ''));
 
+  const nelleCinque = new Set(fare.map((e) => e.item.id));
+  const avviate = cand
+    .filter((e) => (e.item.stato === 'in_pausa' || e.item.stato === 'in_corso') && !nelleCinque.has(e.item.id))
+    .sort(perClassifica);
+
   return {
     routine: routineDueToday(items, today),
     fare,
+    avviate,
     curiosita: curiositaDaSmaltire(items),
     prossimi,
     inArrivo: candidatiOggi(items, today, now, true)

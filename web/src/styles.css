@@ -14,7 +14,9 @@
   --bg: #F1F0EC; --surface: #FFFFFF; --surface2: #E3E1DC; --ink: #111115; --mid: #65656E; --soft: #919199; --line: #DDDAD4;
   --warn: #D1430B; --warn-soft: #FDEBE2; --shadow: 0 6px 20px rgba(30,30,40,.10); --on-accent: #FFFFFF;
   --accent: var(--accent-l); --accent-soft: var(--accent-soft-l);
-  --amber: #B7791F; --amber-soft: #FBEBD0; --giallo: #D9A400; --bordo-campo: #9A9AA2;
+  --amber: #B7791F; --amber-soft: #FBEBD0; --giallo: #D9A400;
+  /* livelli di priorità (etichetta nelle righe): basso, medio, alto */
+  --p1: #8A93A0; --p2: #D9A400; --p3: #D32F2F; --bordo-campo: #9A9AA2;
   /* tinte dei tipi di nota (icone nei quadrati tinti: `TINTA_TIPO` in ui/Icone.tsx) */
   --c1: #2F7D5B; --c1s: #E3F1EA; --c2: #9A5B0B; --c2s: #FBEBD0; --c3: #4F46E5; --c3s: #ECEBFD; --c4: #B03A6E; --c4s: #FADFEB; --c5: #0E7490; --c5s: #DDF1F6;
 }
@@ -23,7 +25,8 @@
   --bg: #0E0F12; --surface: #1D1F23; --surface2: #272930; --ink: #F3F3F6; --mid: #A5A5B0; --soft: #72737D; --line: #2F3138;
   --warn: #FF9466; --warn-soft: #3A2218; --shadow: 0 6px 24px rgba(0,0,0,.55); --on-accent: #0E0F12;
   --accent: var(--accent-d); --accent-soft: var(--accent-soft-d);
-  --amber: #F0B866; --amber-soft: #3A2C14; --giallo: #F4C542; --bordo-campo: #5B5D68;
+  --amber: #F0B866; --amber-soft: #3A2C14; --giallo: #F4C542;
+  --p1: #7B8493; --p2: #F4C542; --p3: #FF6B6B; --bordo-campo: #5B5D68;
   /* tinte dei tipi di nota (icone nei quadrati tinti: `TINTA_TIPO` in ui/Icone.tsx) */
   --c1: #6FCF9B; --c1s: #17332A; --c2: #F0B866; --c2s: #3A2C14; --c3: #9A9EFF; --c3s: #25274F; --c4: #F08DB8; --c4s: #3D1B2B; --c5: #4FC3DD; --c5s: #12323B;
 }
@@ -308,12 +311,18 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .row .line .t1 { flex: 1 1 130px; min-width: 0; overflow-wrap: break-word; }
 
 /* ---------- Riga con priorità: colori per livello e pallino numerato con contorno ---------- */
-.row.p3 { --c: var(--warn); --cs: var(--warn-soft); }
-.row.p2 { --c: var(--amber); --cs: var(--amber-soft); }
-.row.p1 { --c: var(--soft); --cs: var(--surface2); }
+.row.p3 { --c: var(--p3); --cs: var(--warn-soft); }
+.row.p2 { --c: var(--p2); --cs: var(--amber-soft); }
+.row.p1 { --c: var(--p1); --cs: var(--surface2); }
 .row.p1, .row.p2, .row.p3 { border-left: 0; padding: 12px 0; align-items: center; }
 .row.p1 .cb, .row.p2 .cb, .row.p3 .cb { margin-top: 0; }
 .row .rank { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 800; font-size: 12.5px; }
+/* etichetta di priorità: contorno sottile e fondo tenue del colore del livello, numero spostato verso il corpo (la punta sta a destra); ferma */
+.row .rank.et { width: 40px; height: 32px; border: 0; border-radius: 0; background: none; position: relative; padding-right: 4px; }
+.row .rank.et svg { position: absolute; inset: 0; overflow: visible; }
+.row .rank.et path { fill: color-mix(in srgb, var(--c, var(--soft)) 16%, transparent); stroke: var(--c, var(--soft)); stroke-width: 1.2; stroke-linejoin: round; }
+.row.p1 .rank.et path { fill: var(--surface2); }
+.row .rank.et b { position: relative; font-weight: 800; font-size: 13px; }
 .row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }
 
 /* ---------- Giorno scelto (finestra del mese) e barra in basso a cinque schede ---------- */
@@ -322,7 +331,9 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 
 /* ---------- Attività raggruppate sotto il progetto ---------- */
 /* Il progetto è tutto in grigio (niente bianco, che è dei titoli di sezione): testata su un grigio più scuro, passi su uno più chiaro, stesse linee sottili delle altre note */
-.gp { --gl: color-mix(in srgb, var(--ink) 11%, var(--surface2)); background: color-mix(in srgb, var(--surface2) 50%, transparent); border-radius: 14px; overflow: hidden; margin: 12px -4px; animation: entra .26s ease-out backwards; }
+.gp { --gl: color-mix(in srgb, var(--ink) 11%, var(--surface2)); background: color-mix(in srgb, var(--surface2) 50%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); border-radius: 14px; overflow: hidden; margin: 12px -5px; animation: entra .26s ease-out backwards; }
+.altre-avviate { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; margin: 6px 0; border-radius: 12px; border: 1px dashed var(--line); font-size: 13px; font-weight: 650; color: var(--mid); }
+.altre-avviate:hover, .altre-avviate:active { background: var(--surface2); }
 .gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 8px 11px 10px; background: var(--surface2); border-bottom: 1px solid var(--gl); text-align: left; }
 .gp-h b { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
 /* barra a tacchette del progetto: una tacca per attività */
@@ -347,8 +358,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 
 /* ---------- Blocco di priorità nella scheda di una voce ---------- */
 .prio { --c: var(--soft); --cs: var(--surface2); background: var(--surface); border: 2px solid var(--c); border-radius: 16px; padding: 14px 16px 12px; margin: 6px 0 14px; }
-.prio.p3 { --c: var(--warn); --cs: var(--warn-soft); }
-.prio.p2 { --c: var(--amber); --cs: var(--amber-soft); }
+.prio.p3 { --c: var(--p3); --cs: var(--warn-soft); }
+.prio.p2 { --c: var(--p2); --cs: var(--amber-soft); }
 .prio-testa { display: flex; align-items: center; gap: 14px; }
 .prio-n { width: 56px; height: 56px; flex: none; border-radius: 50%; border: 3px solid var(--c); background: var(--cs); color: var(--c); display: grid; place-items: center; font-size: 24px; font-weight: 800; }
 .prio-t { display: flex; flex-direction: column; min-width: 0; flex: 1; }

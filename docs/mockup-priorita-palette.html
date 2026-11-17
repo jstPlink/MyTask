@@ -1,0 +1,32 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: palette di priorità</title><style>
+body{margin:0;background:#E9E8E3;color:#111115;font:14px/1.4 system-ui,sans-serif}.wrap{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:22px;margin:0 0 4px}.sub{color:#65656E;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.card{background:#fff;border-radius:16px;padding:10px 12px 12px;border:1px solid #DDDAD4}.card h2{font-size:14px;margin:4px 0 2px}.card p{font-size:12px;color:#65656E;margin:0 0 8px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pane{border-radius:12px;padding:2px 10px;background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.row b{font-size:13px;display:block}.row span.m{font-size:11px;color:var(--mid)}
+.et{position:relative;width:40px;height:32px;flex:none;display:grid;place-items:center;padding-right:4px;color:var(--c)}
+.et svg{position:absolute;inset:0;overflow:visible}.et path{fill:var(--f);stroke:var(--c);stroke-width:1.2;stroke-linejoin:round}.et i{position:relative;font-style:normal;font-weight:800;font-size:13px}
+.sw{display:flex;gap:4px;margin-top:8px;font:11px ui-monospace,monospace;color:#65656E;flex-wrap:wrap}.sw span{display:inline-flex;align-items:center;gap:4px}.sw u{width:12px;height:12px;border-radius:3px;display:inline-block;text-decoration:none}
+</style></head><body><div class="wrap"><h1>Palette per le priorità</h1><p class="sub">Etichetta a bordo sottile con fondo al 16%. Per ogni palette: livello alto, medio, basso, in chiaro e in scuro.</p><div class="grid" id="g"></div></div>
+<script>
+const P=[
+['1','Attuale','Grigio, ambra, arancio-rosso (quella oggi nell’app).',{L:['#919199','#B7791F','#D1430B'],D:['#72737D','#F0B866','#FF9466']}],
+['2','Semaforo','Grigio freddo, giallo-oro, rosso pieno: il più immediato.',{L:['#8A93A0','#D9A400','#D32F2F'],D:['#7B8493','#F4C542','#FF6B6B']}],
+['3','Caldo progressivo','Sabbia, arancio, rosso cremisi: una sola famiglia calda.',{L:['#A39A8B','#E07A1F','#C21F3A'],D:['#8F8878','#FFAA55','#FF6F86']}],
+['4','Freddo → caldo','Azzurro, viola, magenta: non evoca allarme ma si distingue bene.',{L:['#5B8DB8','#8A4FD3','#D6336C'],D:['#7DB0DD','#B58CF0','#FF7AA8']}],
+['5','Blu e arancio (daltonici)','Blu, ambra, arancio acceso: leggibile anche con deuteranopia.',{L:['#4A7FB5','#C98A00','#E8590C'],D:['#7DB0DD','#F2B33D','#FF8A4C']}],
+['6','Verde accento','Tre intensità del verde dell’app: calma, ma l’alto vale meno di un rosso.',{L:['#7FA894','#3E9A70','#1D6B4A'],D:['#7FB89B','#6FCF9B','#9CF0C2']}],
+['7','Viola','Lilla, viola, indaco profondo: tutto in un solo colore, solo la saturazione cambia.',{L:['#9A96B8','#6B5CE0','#3D2FB0'],D:['#8E8AAE','#9A8CFF','#C0B8FF']}],
+['8','Corallo e rosa','Grigio caldo, pesca, corallo: morbida, quasi nessun rosso allarmante.',{L:['#A89E98','#E8895C','#D9435B'],D:['#948B85','#FFA982','#FF7088']}],
+['9','Tramonto','Oro, arancio, magenta: più vivace, calda e un po’ da festa.',{L:['#B0A27A','#E8691E','#C2185B'],D:['#9B8F6E','#FF9A4D','#FF5C9A']}],
+['10','Solo bordo diverso','Un solo colore (accento rosso-arancio): il livello si vede dall’intensità del fondo.',{L:['#919199','#E5764A','#D1430B'],D:['#72737D','#FF9466','#FF7849']}]
+];
+const F={L:[8,16,26],D:[8,18,30]};
+const th={L:{bg:'#F5F4F0',ink:'#111115',mid:'#65656E',line:'#DDDAD4',s2:'#E3E1DC'},D:{bg:'#16171B',ink:'#F3F3F6',mid:'#A5A5B0',line:'#2F3138',s2:'#272930'}};
+const TAG='M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z';
+const nomi=[['Pagare la bolletta','domani'],['Preparare la riunione','1 h'],['Riordinare la scrivania','30 min']];
+const pane=(m,c,t)=>`<div class="pane" style="--bg:${t.bg};--ink:${t.ink};--mid:${t.mid};--line:${t.line}">${[0,1,2].map(i=>{const k=2-i;const col=c[k];const f=k==0?t.s2:`color-mix(in srgb, ${col} 16%, transparent)`;return `<div class="row"><span class="et" style="--c:${col};--f:${f}"><svg width="40" height="32" viewBox="0 0 40 32"><path d="${TAG}"/></svg><i style="${k==0?`color:${t.mid}`:''}">${i+1}</i></span><span><b>${nomi[i][0]}</b><span class="m">${nomi[i][1]}</span></span></div>`}).join('')}</div>`;
+document.getElementById('g').innerHTML=P.map(([k,n,d,c])=>`<div class="card"><h2>${k} · ${n}</h2><p>${d}</p><div class="pair">${pane(0,c.L,th.L)}${pane(1,c.D,th.D)}</div><div class="sw">${['alto','medio','basso'].map((l,i)=>`<span><u style="background:${c.L[2-i]}"></u>${c.L[2-i]}</span>`).join('')}</div></div>`).join('');
+</script></body></html>

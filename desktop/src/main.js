@@ -41,7 +41,7 @@ async function apriServer(url) {
 
 function creaFinestra() {
   finestra = new BrowserWindow({
-    width: 1280, height: 860, minWidth: 420, minHeight: 600,
+    width: 420, height: 860, minWidth: 420, minHeight: 600,
     title: 'MyTask', backgroundColor: '#F1F0EC', autoHideMenuBar: true,
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true },

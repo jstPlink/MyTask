@@ -1,0 +1,40 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: etichette stondate</title><style>
+:root[data-theme=light]{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--warn:#D1430B;--warn-soft:#FDEBE2;--amber:#B7791F;--amber-soft:#FBEBD0;--accent:#2F7D5B}
+:root[data-theme=dark]{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--warn:#FF9466;--warn-soft:#3A2218;--amber:#F0B866;--amber-soft:#3A2C14;--accent:#6FCF9B}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mid);margin:0 0 18px}
+.tg{border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surface)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 14px 10px}
+.card h2{font-size:13px;margin:10px 0 2px}.card p{font-size:12px;color:var(--mid);margin:0 0 6px}
+.row{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.row .t{flex:1;min-width:0}.row .t b{display:block;font-size:14px}.row .t span{font-size:12px;color:var(--mid)}
+.l1{--c:var(--soft);--cs:var(--surface2)}.l2{--c:var(--amber);--cs:var(--amber-soft)}.l3{--c:var(--warn);--cs:var(--warn-soft)}
+
+.sv{flex:none;color:var(--c)}.sv text{font:800 12.5px system-ui;text-anchor:middle;fill:currentColor}
+.ord{width:22px;text-align:right;color:var(--mid);font-weight:700;font-size:13px}
+</style></head><body><div class="wrap"><h1>Etichetta stondata</h1><p class="sub">Forma a etichetta (L) con angoli stondati (I), in versione piena, a contorno e mista. Tutto fermo. <button class="tg" onclick="var d=document.documentElement;d.setAttribute('data-theme',d.getAttribute('data-theme')==='dark'?'light':'dark')">Chiaro / scuro</button></p><div class="grid" id="g"></div></div>
+<script>
+const righe=[[1,'Pagare la bolletta','domani',3],[2,'Chiamare il commercialista','20 min',3],[3,'Preparare la riunione','1 h',2],[4,'Ordinare le lenti','5 min',2],[5,'Riordinare la scrivania','30 min',1]];
+const TAG='M8 3 H25 Q28 3 30 5.5 L36.5 14 Q38 16 36.5 18 L30 26.5 Q28 29 25 29 H8 Q3 29 3 24 V8 Q3 3 8 3 Z';
+const TAGS='M7 3 H22 Q25.5 3 27.5 6 L36 14 Q38 16 36 18 L27.5 26 Q25.5 29 22 29 H7 Q3 29 3 25 V7 Q3 3 7 3 Z';
+const sv=(inner,w=40,h=32)=>`<svg class="sv" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${inner}</svg>`;
+const mid='var(--mid)',sf='var(--surface)',s2='var(--surface2)';
+const num=(r,x=19,fill)=>`<text x="${x}" y="20" ${fill?`style="fill:${fill}"`:''}>${r[0]}</text>`;
+const v=[
+['1','Etichetta piena','Il numero in negativo su colore pieno; il grigio resta spento.',r=>sv(`<path d="${TAG}" fill="${r[3]==1?s2:'currentColor'}"/>${num(r,18,r[3]==1?mid:sf)}`)],
+['2','Etichetta contorno','Solo bordo colorato, numero colorato, dentro trasparente.',r=>sv(`<path d="${TAG}" fill="none" stroke="currentColor" stroke-width="2"/>${num(r,18)}`)],
+['3','Contorno che si ispessisce','Bordo 1,5 / 2,5 / 4 px: il livello è lo spessore.',r=>sv(`<path d="${TAG}" fill="none" stroke="currentColor" stroke-width="${[0,1.5,2.6,4][r[3]]}"/>${num(r,18)}`)],
+['4','Contorno + fondo tenue','Bordo pieno e dentro una tinta chiara dello stesso colore.',r=>sv(`<path d="${TAG}" fill="${r[3]==1?s2:'var(--cs)'}" stroke="currentColor" stroke-width="2"/>${num(r,18)}`)],
+['5','Piena / contorno / tratteggiata','La forma cambia con il livello: piena alta, contorno media, tratteggiata bassa.',r=>sv(`<path d="${TAG}" fill="${r[3]==3?'currentColor':'none'}" stroke="currentColor" stroke-width="2" ${r[3]==1?'stroke-dasharray="3.5 3"':''}/>${num(r,18,r[3]==3?sf:'')}`)],
+['6','Doppio contorno','Un bordo sottile esterno e l’etichetta piena rimpicciolita dentro.',r=>sv(`<path d="${TAG}" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="${TAG}" transform="translate(4.2 4.2) scale(.78 .73)" fill="${r[3]==1?s2:'currentColor'}"/>${num(r,17,r[3]==1?mid:sf)}`)],
+['7','Etichetta con foro','Come un cartellino col buco: il foro a sinistra, il numero a destra.',r=>sv(`<path d="${TAG}" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="16" r="2.4" fill="currentColor"/>${num(r,23)}`)],
+['8','Etichetta con tacche','Contorno e, dentro sotto al numero, una, due o tre lineette.',r=>sv(`<path d="${TAG}" fill="none" stroke="currentColor" stroke-width="2"/><text x="18" y="17">${r[0]}</text><g stroke="currentColor" stroke-width="2" stroke-linecap="round">${[0,1,2].filter(i=>i<r[3]).map(i=>`<path d="M${12+i*6} 23 H${15+i*6}"/>`).join('')}</g>`)],
+['9','Rombo stondato pieno','Da I: quadrato girato con gli angoli molto arrotondati.',r=>sv(`<rect x="7" y="7" width="22" height="22" rx="7" transform="rotate(45 18 18)" fill="${r[3]==1?s2:'currentColor'}"/><text x="18" y="22" style="fill:${r[3]==1?mid:sf}">${r[0]}</text>`,36,36)],
+['10','Rombo stondato contorno','Lo stesso rombo, solo bordo.',r=>sv(`<rect x="7" y="7" width="22" height="22" rx="7" transform="rotate(45 18 18)" fill="none" stroke="currentColor" stroke-width="2"/><text x="18" y="22">${r[0]}</text>`,36,36)],
+['11','Rombo con coda a etichetta','Mix vero: rombo che a destra si allunga in punta.',r=>sv(`<path d="M13 3 Q16 3 18 5 L33 14 Q36 16 33 18 L18 27 Q16 29 13 29 H8 Q3 29 3 24 V8 Q3 3 8 3 Z" transform="rotate(0)" fill="${r[3]==1?s2:'currentColor'}"/>${num(r,17,r[3]==1?mid:sf)}`)],
+['12','Mix: contorno sottile, numero pieno','Bordo sottile colorato e il numero dentro un tondino pieno.',r=>sv(`<path d="${TAG}" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="16" cy="16" r="8" fill="${r[3]==1?s2:'currentColor'}"/>${num(r,16,r[3]==1?mid:sf)}`)]
+];
+const lv=['','l1','l2','l3'];
+document.getElementById('g').innerHTML=v.map(([k,t,d,f])=>`<div class="card"><h2>${k} · ${t}</h2><p>${d}</p>${righe.map(r=>`<div class="row ${lv[r[3]]}">${f(r)}<span class="t"><b>${r[1]}</b><span>${r[2]}</span></span></div>`).join('')}</div>`).join('');
+</script></body></html>

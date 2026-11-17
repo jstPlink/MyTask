@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { formatShortYear } from '../../../shared/dates.ts';
 import type { Item } from '../../../shared/types.ts';
-import { livelloPriorita, dueDate, isOverdue, chiavePriorita, intensitaBattito, withInheritance } from '../../../shared/priority.ts';
+import { livelloPriorita, dueDate, isOverdue, chiavePriorita, withInheritance } from '../../../shared/priority.ts';
 import { cercaVoci, classificaPriorita, figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto } from '../../../shared/views.ts';
 import { listaGameDesign } from '../../../shared/gamedesign.ts';
 import { ordinaPerTe } from '../../../shared/esperienze.ts';
@@ -109,7 +109,6 @@ function Azioni({ filtro }: { filtro: Filtro }) {
         right={d ? <DataRiga item={item} oggi={oggi} /> : null}
         level={item.stato === 'parcheggiato' ? 1 : livelloPriorita(item, oggi)}
         rank={classifica.get(item.id)}
-        urgenza={item.stato === 'parcheggiato' ? 0 : intensitaBattito(item, oggi)}
         light={item.stato === 'parcheggiato'}
         voce={item}
         selected={nav.openId === item.id} onOpen={() => nav.push({ k: 'item', id: item.id })}
