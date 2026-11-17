@@ -130,7 +130,9 @@ public class WidgetService extends RemoteViewsService {
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
                 v.setViewVisibility(R.id.rank, View.VISIBLE);
                 v.setViewPadding(R.id.rank, 0, 0, Math.round(3 * c.getResources().getDisplayMetrics().density), 0); // il numero sta verso il corpo: la punta è a destra
-                v.setTextViewText(R.id.rank, String.valueOf(rank));
+                SpannableString esclamativo = new SpannableString("! " + rank); // «!» tenue davanti alla posizione, come nell'app
+                esclamativo.setSpan(new RelativeSizeSpan(0.95f), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                v.setTextViewText(R.id.rank, esclamativo);
                 v.setInt(R.id.rank, "setBackgroundResource", (s ? sfondiS : sfondiC)[livello - 1]);
                 v.setTextColor(R.id.rank, Color.parseColor((s ? tintaS : tintaC)[livello - 1]));
             } else if ("c".equals(o.optString("k"))) {

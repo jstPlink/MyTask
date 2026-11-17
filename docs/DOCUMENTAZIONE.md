@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.103.0
+- **Versione documento:** 0.104.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -611,6 +611,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-17 | 0.101.0 | **GitHub senza APK:** il workflow fa solo test, immagine Docker e installer Windows (che ora crea lui la release); l'APK si costruisce sempre in locale con codice versione `900000 + x*10000 + y*100 + z` (0.101.0 = 910100). Aggiornati CLAUDE.md, documentazione e README. |
 | 2026-11-17 | 0.102.0 | **Stati senza colore:** casella da avviare vuota; avviata (in corso o in pausa) con bordo e pallino neri e un'onda che si espande (anello 2 px, centrato); completata nera con il pallino bianco; barra del tempo stile D (65 px, 8 px di altezza, grigio chiaro sul beige della pagina, scura oltre la stima, 30% più corta di prima); la priorità resta colorata. Curiosità: nuova scala dell'interesse (grigio 1-2, verde medio 3, verde scuro 4-5, come l'etichetta delle attività). Barra delle tab di Attività con bordo 1 px e angoli 12 come la ricerca, tre pulsanti uguali, barra «Indietro» bianca nella pagina nota; tolto Game design dai tipi e dalle sotto-schede; testo nero #404040; widget allineato. |
 | 2026-11-17 | 0.103.0 | **Curiosità in pillola «?» (proposta F1):** la curiosità in classifica ha una pillola 44 × 30 px con il «?» a sinistra e la posizione a destra, nella scala dell'interesse (grigio 1-2, verde medio 3, verde scuro 4-5); l'etichetta delle attività è larga 44 px come la pillola, in app e nel widget (nel widget il «?» e il numero sono centrati insieme). |
+| 2026-11-17 | 0.104.0 | **Punto esclamativo sulle attività:** l'etichetta di priorità (44 px) ha un «!» tenue davanti al numero, come il «?» delle curiosità; «!» o «?» e numero sono un'unica scritta centrata (distanza uguale con una o due cifre), in app e nel widget. |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

@@ -340,6 +340,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .row .rank.et path { fill: color-mix(in srgb, var(--c, var(--soft)) 22%, transparent); stroke: var(--c, var(--soft)); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .row.p1 .rank.et path { fill: var(--surface2); }
 .row .rank.et b { position: relative; font-weight: 900; font-size: 15.5px; }
+/* «!» tenue a sinistra (come il «?» delle curiosità), numero a destra */
+.row .rank.et b::before { content: "!"; margin-right: 4px; opacity: .7; } /* «!» e numero formano un'unica scritta centrata, come nel widget */
 .row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }
 
 /* ---------- Giorno scelto (finestra del mese) e barra in basso a cinque schede ---------- */
@@ -603,8 +605,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 :root[data-theme=dark] .rank-int.g3 { --c: #5FAE8D; --cf: color-mix(in srgb, #5FAE8D 22%, transparent); }
 :root[data-theme=dark] .rank-int.g4, :root[data-theme=dark] .rank-int.g5 { --c: #6FCF9B; --cf: color-mix(in srgb, #6FCF9B 30%, transparent); }
 /* curiosità in classifica: pillola larga come l'etichetta delle attività, con il «?» a sinistra e la posizione a destra */
-.row .rank-int.dom { position: relative; width: 44px; border-radius: 15px; padding-left: 14px; }
-.row .rank-int.dom::before { content: "?"; position: absolute; left: 9px; top: 50%; transform: translateY(-52%); font-size: 15px; font-weight: 900; line-height: 1; opacity: .7; }
+.row .rank-int.dom { display: flex; align-items: center; justify-content: center; width: 44px; border-radius: 15px; }
+.row .rank-int.dom::before { content: "?"; margin-right: 4px; opacity: .7; }
 
 /* margine d'errore sulla stima: coda tratteggiata del segmento (il segmento dura già stima + margine) */
 
