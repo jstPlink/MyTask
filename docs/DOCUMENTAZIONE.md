@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.102.0
+- **Versione documento:** 0.103.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -360,7 +360,7 @@ Un solo cronometro alla volta, che corre su un task. Stati: **ferma**, **lavoro*
 Le curiosità hanno due soli parametri, il **tempo stimato** e l'**interesse**, e una loro classifica (separata da quella delle attività). Il punteggio va da 0 a 100: **55% tempo stimato** (stessa scala delle attività: fino a 15 min 100, fino a 30 min 60, fino a 60 min 30, oltre 0; senza stima 30) e **45% interesse** (da 1 a 5 su 0-100; senza interesse vale 3), quindi il tempo pesa poco più dell'interesse. Esempi: 10 minuti e interesse 5 → 100; 20 minuti e interesse 3 → 56; senza stima e interesse 4 → 50; 2 ore e interesse 5 → 45.
 
 - **Ordine:** punteggio più alto prima; a parità l'interesse più alto e la curiosità aggiornata da più tempo (`curiositaPerPriorita`). Il numero accanto alla riga è la posizione in questa classifica (1 = la prima da approfondire), in Priorità, nella scheda Curiosità e nel widget.
-- **Pallino:** numerato con la posizione, fermo, con la scala dell'interesse (grigio 1-2, verde medio 3, verde scuro 4-5; fondo tenue, contorno 1 px, numero nel colore), senza i colori del livello delle attività. Il punteggio serve solo per l'ordine.
+- **Pillola «?»:** larga 44 px come l'etichetta delle attività, con il «?» a sinistra e la posizione a destra, ferma, con la scala dell'interesse (grigio 1-2, verde medio 3, verde scuro 4-5; fondo tenue, contorno 1 px, numero nel colore), senza i colori del livello delle attività. Il punteggio serve solo per l'ordine.
 - Le curiosità parcheggiate non hanno posizione (in fondo alla scheda, senza numero).
 
 ## 7. Architettura
@@ -610,6 +610,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-17 | 0.100.0 | **Rifinitura grafica:** etichetta di priorità 30 × 30 px con numero a 15,5 px, anche nella scheda della nota e nel widget (senza battito); tutti i contorni a 1 px come le cartelle dei progetti (etichetta, pallino delle curiosità, blocco priorità, pillola della scheda attiva, icona delle note, barra di ricerca e di scelta, pulsanti tondi); intestazione e barra in alto bianche con altezza fissa, senza il giorno in Priorità; barra di stato del telefono bianca; pulsante «+» più grande (71 px) e centrato, anche nel widget; scheda attiva della barra in basso con pillola attorno a icona e nome; note che crescono da sole; testo scuro #404040. |
 | 2026-11-17 | 0.101.0 | **GitHub senza APK:** il workflow fa solo test, immagine Docker e installer Windows (che ora crea lui la release); l'APK si costruisce sempre in locale con codice versione `900000 + x*10000 + y*100 + z` (0.101.0 = 910100). Aggiornati CLAUDE.md, documentazione e README. |
 | 2026-11-17 | 0.102.0 | **Stati senza colore:** casella da avviare vuota; avviata (in corso o in pausa) con bordo e pallino neri e un'onda che si espande (anello 2 px, centrato); completata nera con il pallino bianco; barra del tempo stile D (65 px, 8 px di altezza, grigio chiaro sul beige della pagina, scura oltre la stima, 30% più corta di prima); la priorità resta colorata. Curiosità: nuova scala dell'interesse (grigio 1-2, verde medio 3, verde scuro 4-5, come l'etichetta delle attività). Barra delle tab di Attività con bordo 1 px e angoli 12 come la ricerca, tre pulsanti uguali, barra «Indietro» bianca nella pagina nota; tolto Game design dai tipi e dalle sotto-schede; testo nero #404040; widget allineato. |
+| 2026-11-17 | 0.103.0 | **Curiosità in pillola «?» (proposta F1):** la curiosità in classifica ha una pillola 44 × 30 px con il «?» a sinistra e la posizione a destra, nella scala dell'interesse (grigio 1-2, verde medio 3, verde scuro 4-5); l'etichetta delle attività è larga 44 px come la pillola, in app e nel widget (nel widget il «?» e il numero sono centrati insieme). |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

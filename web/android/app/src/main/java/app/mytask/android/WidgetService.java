@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.style.RelativeSizeSpan;
 import android.text.style.StrikethroughSpan;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -140,7 +141,10 @@ public class WidgetService extends RemoteViewsService {
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
                 v.setViewVisibility(R.id.rank, View.VISIBLE);
                 v.setViewPadding(R.id.rank, 0, 0, 0, 0);
-                v.setTextViewText(R.id.rank, String.valueOf(rank > 0 ? rank : interesse)); // la posizione nella classifica delle curiosità
+                String posizione = String.valueOf(rank > 0 ? rank : interesse); // la posizione nella classifica delle curiosità, preceduta dal «?»
+                SpannableString domanda = new SpannableString("? " + posizione);
+                domanda.setSpan(new RelativeSizeSpan(0.95f), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                v.setTextViewText(R.id.rank, domanda);
                 v.setInt(R.id.rank, "setBackgroundResource", (s ? pieniS : pieniC)[interesse - 1]);
                 String[] numC = {"#8A93A0", "#8A93A0", "#4E9A78", "#1F7A52", "#1F7A52"};
                 String[] numS = {"#7B8493", "#7B8493", "#5FAE8D", "#6FCF9B", "#6FCF9B"};

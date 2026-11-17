@@ -152,7 +152,7 @@ export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnapost
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
       {/* con rank e interesse (le curiosità) il pallino è verde e fermo: il numero è la posizione, il riempimento è l'interesse */}
-      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
+      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', 'dom', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
       {/* priorità: etichetta con la punta a destra (bordo sottile e fondo tenue del colore del livello), ferma */}
       {rank !== undefined && interesse === undefined && (
         <span className="rank et" aria-label={`Posizione ${rank}`}>
