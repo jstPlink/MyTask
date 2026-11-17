@@ -35,7 +35,7 @@ function aggiornaBarraStato(scuro: boolean) {
   if (!Capacitor.isNativePlatform()) return;
   // Style.Dark = icone chiare (per sfondi scuri), Style.Light = icone scure (per sfondi chiari)
   void StatusBar.setStyle({ style: scuro ? Style.Dark : Style.Light }).catch(() => undefined);
-  void StatusBar.setBackgroundColor({ color: scuro ? '#0E0F12' : '#F1F0EC' }).catch(() => undefined);
+  void StatusBar.setBackgroundColor({ color: scuro ? '#1D1F23' : '#FFFFFF' }).catch(() => undefined);
 }
 
 /** Applica tema e colore al documento (e alla barra di stato nell'app). */

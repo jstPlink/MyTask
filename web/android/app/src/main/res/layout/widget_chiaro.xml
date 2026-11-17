@@ -33,17 +33,14 @@
         android:textColor="#65656E"
         android:textSize="14sp" />
 
-    <TextView
+    <ImageView
         android:id="@+id/nota"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_gravity="bottom|end"
         android:layout_margin="2dp"
-        android:gravity="center"
         android:background="@drawable/piu_bg_c"
         android:contentDescription="@string/widget_scrivi"
-        android:text="+"
-        android:textColor="#FFFFFF"
-        android:textSize="32sp"
-        android:textStyle="bold" />
+        android:padding="15dp"
+        android:src="@drawable/ic_piu" />
 </FrameLayout>

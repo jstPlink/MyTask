@@ -7,7 +7,7 @@
  * selettore dello stato, blocco della priorità, titolo e tipo, poi i gruppi di campi del tipo scelto
  * (vedi sotto), note e allegati, cronologia, riepilogo di ciò che è stato completato, Elimina.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type TipoData, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
 import { diffDays, formatLong, formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { inizioPromemoria, tipoDataDi } from '../../../shared/dataNota.ts';
@@ -21,7 +21,7 @@ import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
-import { Back, ClasseCasella, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, Seg, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
+import { Back, ClasseCasella, ETICHETTA, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, Seg, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { AllegatiNote } from '../ui/AllegatiNote.tsx';
@@ -238,7 +238,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         {puntegg !== undefined && d.stato !== 'fatto' && (
           <div className={clsx('prio', `p${livello}`, prioAperta && 'aperta')} aria-label={`Priorità ${['', 'bassa', 'media', 'alta'][livello]}, ${posizione.pos}ª da fare su ${posizione.tot}`}>
             <button type="button" className="prio-testa" aria-expanded={prioAperta} aria-controls="prio-dettagli" onClick={alternaPrio}>
-              <span className="prio-n">{posizione.pos}</span>
+              <span className="prio-n"><svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg><b>{posizione.pos}</b></span>
               <div className="prio-t">
                 <b>{posizione.pos}ª da fare</b>
                 <span>su {posizione.tot}</span>
@@ -476,7 +476,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
         )}
 
         <Gruppo titolo="Note">
-          <textarea className="textarea" value={d.note ?? ''} placeholder="Appunti" onChange={(e) => up({ note: e.target.value || undefined })} />
+          <AreaNote valore={d.note ?? ''} onChange={(v) => up({ note: v || undefined })} />
           <AllegatiNote link={d.link} immagini={d.immagini} onChange={(p) => up(p)} />
         </Gruppo>
 
@@ -527,6 +527,18 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
 }
 
 /** Campo con pulsante «Aggiungi» per inserire una riga di checklist. */
+/** Campo delle note: non si ridimensiona a mano, cresce da solo e mostra sempre tutto il testo. */
+function AreaNote({ valore, onChange }: { valore: string; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [valore]);
+  return <textarea ref={ref} className="textarea textarea-auto" value={valore} placeholder="Appunti" onChange={(e) => onChange(e.target.value)} />;
+}
+
 function AggiungiRiga({ placeholder, onAdd }: { placeholder: string; onAdd: (v: string) => void }) {
   const [v, setV] = useState('');
   const invia = () => { const x = v.trim(); if (x) { onAdd(x); setV(''); } };

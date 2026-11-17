@@ -178,7 +178,7 @@ public class NotaRapidaActivity extends Activity {
         boolean scuro = getIntent().getBooleanExtra("scuro", false);
         sfondo = Color.parseColor(scuro ? "#0E0F12" : "#F1F0EC");
         campoBg = Color.parseColor(scuro ? "#1D1F23" : "#FFFFFF");
-        inchiostro = Color.parseColor(scuro ? "#F3F3F6" : "#111115");
+        inchiostro = Color.parseColor(scuro ? "#F3F3F6" : "#404040");
         suggerimento = Color.parseColor(scuro ? "#72737D" : "#919199");
         linea = Color.parseColor(scuro ? "#2F3138" : "#DDDAD4");
         accento = Color.parseColor(scuro ? "#6FCF9B" : "#2F7D5B");

@@ -132,7 +132,7 @@ function CasellaStato({ voce }: { voce: Item }) {
 }
 
 /** Contorno dell'etichetta di priorità (40 × 32, punta a destra, angoli stondati). */
-const ETICHETTA = 'M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z';
+export const ETICHETTA = 'M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z';
 
 /**
  * Riga di lista: priorità a sinistra (barra), titolo con riga grigia sotto, parte destra libera e casella.
@@ -156,7 +156,7 @@ export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnapost
       {/* priorità: etichetta con la punta a destra (bordo sottile e fondo tenue del colore del livello), ferma */}
       {rank !== undefined && interesse === undefined && (
         <span className="rank et" aria-label={`Posizione ${rank}`}>
-          <svg width="40" height="32" viewBox="0 0 40 32" aria-hidden="true"><path d={ETICHETTA} /></svg>
+          <svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg>
           <b>{rank}</b>
         </span>
       )}
@@ -369,8 +369,10 @@ export function TabBar() {
     <nav className="tabs" aria-label="Sezioni">
       {TAB_NOMI.map((t) => (
         <button key={t.id} className={clsx(tab === t.id && stack.length === 0 && 'on')} onClick={() => setTab(t.id)} aria-label={t.nome} aria-current={tab === t.id && stack.length === 0 ? 'page' : undefined}>
-          <span className="ic"><Icona nome={t.id} size={22} /></span>
-          <span className="tab-nome">{t.breve ?? t.nome}</span>
+          <span className="tab-in">
+            <span className="ic"><Icona nome={t.id} size={22} /></span>
+            <span className="tab-nome">{t.breve ?? t.nome}</span>
+          </span>
         </button>
       ))}
     </nav>
@@ -380,7 +382,7 @@ export function TabBar() {
 /** Pulsante "+": da ogni schermata apre la cattura rapida ("Cosa ti è venuto in mente?"). */
 export function Fab() {
   const nav = useNav();
-  return <button className="fab" onClick={() => nav.openCapture(true)} aria-label="Cattura rapida">+</button>;
+  return <button className="fab" onClick={() => nav.openCapture(true)} aria-label="Cattura rapida"><svg width="30" height="30" viewBox="0 0 26 26" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true"><path d="M13 3.5v19M3.5 13h19" /></svg></button>;
 }
 
 interface VoceScelta<T extends string> { id: T; nome: string; icona: ReactNode | null }

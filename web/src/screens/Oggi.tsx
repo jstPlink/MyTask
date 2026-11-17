@@ -14,7 +14,7 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Item } from '../../../shared/types.ts';
-import { formatLong, formatShortYear } from '../../../shared/dates.ts';
+import { formatShortYear } from '../../../shared/dates.ts';
 import { livelloPriorita, dueDate, daysOverdue } from '../../../shared/priority.ts';
 import { classificaCuriosita, classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
@@ -170,7 +170,7 @@ export function Oggi() {
   if (nav.wide) {
     return (
       <>
-        <Top title="Priorità" sub={`${formatLong(oggi)} · ${v.routine.length} routine, ${v.fare.length} attività, ${v.curiosita.length} curiosità`} />
+        <Top title="Priorità" sub={`${v.routine.length} routine, ${v.fare.length} attività, ${v.curiosita.length} curiosità`} />
         <div className="fisso senza-ombra">{accuratezza}</div>
         <div className="scroll wide-dash">
           <div className="dash">
@@ -186,7 +186,6 @@ export function Oggi() {
     <>
       <Top
         title="Priorità"
-        sub={formatLong(oggi)}
         right={
           <div className="header-circles">
             <PulsanteTema />
