@@ -86,13 +86,12 @@ docker compose pull && docker compose up -d
 
 ## App Android
 
-A ogni aggiornamento GitHub costruisce anche l'APK e lo pubblica nelle *Releases*. Dal telefono:
+L'APK non si costruisce su GitHub: si costruisce in locale (vedi `docs/DOCUMENTAZIONE.md`, «Costruzione») e si installa dal PC con il debug wireless (`adb install -r`), oppure si copia sul telefono e si apre. Alla prima installazione:
 
-1. Apri https://github.com/jstPlink/MyTask/releases/latest e scarica `mytask.apk`.
-2. Aprilo. Se Android lo chiede, consenti l'installazione da questa fonte (una volta, per il browser o il gestore di file che usi).
-3. Apri MyTask, scrivi l'indirizzo del server (quello del tunnel Cloudflare), email e password, e consenti le notifiche.
+1. Consenti l'installazione da questa fonte, se Android lo chiede.
+2. Apri MyTask, scrivi l'indirizzo del server (quello del tunnel Cloudflare), email e password, e consenti le notifiche.
 
-Per aggiornare scarichi il nuovo `mytask.apk` e lo apri: si installa sopra il precedente e i dati restano. Le notifiche
+Per aggiornare si installa il nuovo APK: si mette sopra il precedente e i dati restano. Le notifiche
 (scadenze, insistenza, routine) sono programmate nel telefono e arrivano anche ad app chiusa; dopo un riavvio del telefono
 si riattivano da sole.
 
