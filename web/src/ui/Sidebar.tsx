@@ -17,7 +17,7 @@ function Link({ nome, on, sub, main, n, warn, onClick }: { nome: string; on?: bo
   );
 }
 
-const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }, { id: 'gamedesign', nome: 'Game design' }];
+const SUB_FARE: { id: SubFare; nome: string }[] = [{ id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }];
 const SUB_SCOPRIRE: { id: SubScoprire; nome: string }[] = [
   { id: 'film', nome: 'Film' }, { id: 'serie', nome: 'Serie' }, { id: 'anime', nome: 'Anime' }, { id: 'gioco', nome: 'Giochi' },
   { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' },

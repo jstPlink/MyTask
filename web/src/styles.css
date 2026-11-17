@@ -60,8 +60,8 @@ a { color: var(--accent); }
 .row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); border-left: 0; width: 100%; }
 .row .grow { flex: 1; min-width: 0; }
 .cb { width: 23px; height: 23px; flex: none; border: 2px solid var(--soft); border-radius: 7px; margin-top: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--on-accent); }
-.cb.done { background: var(--accent); border-color: var(--accent); }
-.cb.done::after { content: ""; box-sizing: border-box; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--on-accent); }
+.cb.done { background: var(--ink); border-color: var(--ink); }
+.cb.done::after { content: ""; box-sizing: border-box; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); }
 .t1 { font-size: 15px; font-weight: 620; overflow-wrap: anywhere; }
 .t1.light { font-weight: 420; }
 .t1.struck { text-decoration: line-through; color: var(--mid); }
@@ -290,7 +290,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .top:not(:has(+ .fisso)) { border-bottom: 1px solid var(--line); }
 /* barre e pulsanti dentro il blocco bianco in alto: in chiaro il grigio caldo della pagina, con un filo di contorno; in scuro restano come sono */
 :root[data-theme=light] .fisso .seg, :root[data-theme=light] .fisso .cerca, :root[data-theme=light] .fisso .chip:not(.on) { background: var(--bg); border-color: color-mix(in srgb, var(--ink) 22%, var(--surface2)); }
-:root[data-theme=light] .fisso .seg, :root[data-theme=light] .top .circ { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 22%, var(--surface2)); } /* stesso contorno delle cartelle dei progetti (.gp) */
+:root[data-theme=light] .fisso .seg { border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); border-radius: 12px; padding: 2px; box-shadow: none; }
+:root[data-theme=light] .top .circ { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 22%, var(--surface2)); } /* stesso contorno delle cartelle dei progetti (.gp) */
 :root[data-theme=light] .fisso .seg button.on { box-shadow: 0 1px 4px rgba(0,0,0,.15), 0 0 0 1px color-mix(in srgb, var(--ink) 22%, var(--surface2)); }
 /* pulsanti tondi dell'intestazione (tema, Inbox, Altro): sul bianco della barra superiore il grigio caldo di fondo; in scuro restano come sono */
 :root[data-theme=light] .top .circ { background: var(--bg); }
@@ -460,14 +461,13 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .cron-lavorato .lv-barra { width: 150px; margin: 0; }
 .lv-live { color: var(--accent); font-size: 11.5px; font-weight: 700; }
 /* Nota in lavorazione: sotto il nome, al posto della riga grigia, la barra fissa con il tempo lavorato e la stima. */
-.row.lav { --acc: var(--accent); }
-.row.lav.pausa-lav { --acc: var(--giallo, var(--amber)); }
-.row.lav.oltre-lav { --acc: var(--warn); }
+.row.lav { --bf: color-mix(in srgb, var(--ink) 38%, var(--bg)); --bt: color-mix(in srgb, var(--ink) 14%, var(--bg)); --acc: var(--mid); }
+.row.lav.oltre-lav { --bf: var(--ink); --bt: color-mix(in srgb, var(--ink) 22%, var(--bg)); --acc: var(--ink); } /* barra chiara finché è in tempo, scura oltre la stima */
 .sr-riga { display: flex; align-items: center; gap: 9px; margin-top: 5px; }
 .sr-tt { font: 700 12px ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; color: var(--mid); white-space: nowrap; }
 .sr-tt b { color: var(--acc); font: inherit; font-weight: 800; }
-.sr-barra { display: block; flex: none; width: 110px; height: 5px; border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--acc) 22%, transparent); }
-.sr-barra i { display: block; height: 100%; border-radius: 3px; background: var(--acc); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.sr-barra { display: block; flex: none; width: 65px; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bt); }
+.sr-barra i { display: block; height: 100%; border-radius: 4px; background: var(--bf); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
 .tm { font: 700 13px ui-monospace, Consolas, monospace; color: var(--accent); }
 
 /* campo «nuova nota»: contorno grigio sempre visibile, verde e più spesso (con alone) mentre si scrive */
@@ -597,19 +597,21 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .riordinabile .row:not(.sollevata) { transition: transform .15s; }
 
 /* ---------- Interesse: pallino verde, la saturazione cresce da 1 (quasi vuoto) a 5 (pieno); nessuna animazione ---------- */
-.row .rank-int { --f: 8%; border: 1px solid color-mix(in srgb, var(--accent) calc(40% + var(--f) * .6), transparent); background: color-mix(in srgb, var(--accent) var(--f), transparent); color: var(--accent); animation: none; }
-.rank-int.g2 { --f: 28%; } .rank-int.g3 { --f: 52%; color: var(--bg); } .rank-int.g4 { --f: 76%; color: var(--bg); } .rank-int.g5 { --f: 100%; color: var(--bg); }
+.row .rank-int { --c: var(--p1); --cf: var(--surface2); border: 1px solid var(--c); background: var(--cf); color: var(--c); animation: none; } /* come l'etichetta delle attività: grigio (interesse 1-2), verde medio (3), verde scuro (4-5) */
+.rank-int.g3 { --c: #4E9A78; --cf: color-mix(in srgb, #4E9A78 22%, transparent); }
+.rank-int.g4, .rank-int.g5 { --c: #1F7A52; --cf: color-mix(in srgb, #1F7A52 30%, transparent); }
+:root[data-theme=dark] .rank-int.g3 { --c: #5FAE8D; --cf: color-mix(in srgb, #5FAE8D 22%, transparent); }
+:root[data-theme=dark] .rank-int.g4, :root[data-theme=dark] .rank-int.g5 { --c: #6FCF9B; --cf: color-mix(in srgb, #6FCF9B 30%, transparent); }
 
 /* margine d'errore sulla stima: coda tratteggiata del segmento (il segmento dura già stima + margine) */
 
 /* ---------- Stati di una nota: da fare, in corso (giallo, mezza casella), fatta, archiviata (tratteggiata) ---------- */
-.cb.viva { --c0: var(--accent); border-color: var(--accent); animation: pulso-cb 1.6s ease-in-out infinite; }
-.cb.viva::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
-.cb.dafare::after { content: ""; box-sizing: border-box; width: 8px; height: 8px; border-radius: 50%; border: 1.5px dashed color-mix(in srgb, var(--soft) 40%, transparent); }
-.cb.pausa { border-color: var(--giallo); }
-.cb.pausa::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--giallo); }
-@keyframes pulso-cb { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c0) 55%, transparent); } 50% { box-shadow: 0 0 0 7px transparent; } }
-@media (prefers-reduced-motion: reduce) { .cb.viva { animation: none; } }
+.cb.viva, .cb.pausa { position: relative; border-color: var(--ink); } /* avviata almeno una volta: stesso stile, in corso o in pausa */
+.cb.viva::after, .cb.pausa::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); position: relative; z-index: 1; }
+.cb.viva::before, .cb.pausa::before { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; border: 2px solid var(--ink); opacity: 0; pointer-events: none; animation: onda-cb 2s ease-out infinite; }
+.cb.dafare::after { content: none; }
+@keyframes onda-cb { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(3.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cb.viva::before, .cb.pausa::before { animation: none; } }
 .cb.arch { border-style: dashed; background: transparent; color: var(--soft); }
 .cb.arch::after { content: ""; box-sizing: border-box; width: 8px; height: 8px; border-radius: 50%; border: 1.6px dashed var(--soft); }
 .row.st-arch { opacity: .6; }
@@ -808,7 +810,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .ic-az { display: flex; gap: 12px; padding: 12px 0 calc(env(safe-area-inset-bottom) + 28px); }
 .ic-btn { flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 10px; height: calc(54px * var(--k)); border-radius: 20px; font-weight: 750; font-size: calc(15px * var(--k)); transition: transform .15s; }
 .ic-btn:active { transform: scale(.96); } .ic-btn.ic-sec { background: var(--surface2); } .ic-btn.ic-pri { background: var(--accent); color: var(--on-accent); }
-.ic-btn .cb { width: 22px; height: 22px; } .ic-btn .cb.done { background: transparent; border-color: var(--on-accent); }
+.ic-btn .cb { width: 22px; height: 22px; } .ic-btn .cb.done { background: transparent; border-color: var(--on-accent); } .ic-btn .cb.done::after { background: var(--on-accent); }
 .incorso-verde { background: var(--accent); color: var(--on-accent); flex-direction: column; align-items: center; animation: iv-appare .3s ease-out; }
 @keyframes iv-appare { from { opacity: 0; } to { opacity: 1; } }
 .iv-segno { font-size: 84px; font-weight: 800; line-height: 1; animation: cmp-pop .5s ease-out .1s both; } .iv-testo { font-size: 26px; font-weight: 800; margin-top: 10px; }

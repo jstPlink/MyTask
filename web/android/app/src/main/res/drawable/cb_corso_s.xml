@@ -4,13 +4,13 @@
     <item>
         <shape android:shape="rectangle">
             <size android:width="22dp" android:height="22dp" />
-            <stroke android:width="2dp" android:color="#6FCF9B" />
+            <stroke android:width="2dp" android:color="#F3F3F6" />
             <corners android:radius="7dp" />
         </shape>
     </item>
     <item android:gravity="center" android:width="9dp" android:height="9dp">
         <shape android:shape="oval">
-            <solid android:color="#6FCF9B" />
+            <solid android:color="#F3F3F6" />
         </shape>
     </item>
 </layer-list>

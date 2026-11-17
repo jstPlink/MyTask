@@ -33,7 +33,7 @@ export function Top({ title, sub, right }: { title: string; sub?: string; right?
 /** Freccia «‹ etichetta» in cima alle schermate aperte sopra una scheda: torna alla schermata precedente della pila. */
 export function Back({ label = 'Indietro' }: { label?: string }) {
   const { pop } = useNav();
-  return <div style={{ padding: 'calc(env(safe-area-inset-top) + 6px) 18px 0' }}><button className="back" onClick={pop} aria-label={label}><span aria-hidden="true" style={{ fontSize: 24, lineHeight: 1 }}>‹</span>{label}</button></div>;
+  return <div style={{ padding: 'calc(env(safe-area-inset-top) + 6px) 18px 0', background: 'var(--surface)' }}><button className="back" onClick={pop} aria-label={label}><span aria-hidden="true" style={{ fontSize: 24, lineHeight: 1 }}>‹</span>{label}</button></div>;
 }
 
 /** Intestazione di sezione piccola (grigia, maiuscola): testo a sinistra `a` e un dettaglio opzionale `b` a destra. */

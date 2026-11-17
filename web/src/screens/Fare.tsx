@@ -13,7 +13,6 @@ import { formatShortYear } from '../../../shared/dates.ts';
 import type { Item } from '../../../shared/types.ts';
 import { livelloPriorita, dueDate, isOverdue, chiavePriorita, withInheritance } from '../../../shared/priority.ts';
 import { cercaVoci, classificaPriorita, figli, listaAzioni, listaEsperienze, listaProgetti, raggruppaPerProgetto } from '../../../shared/views.ts';
-import { listaGameDesign } from '../../../shared/gamedesign.ts';
 import { ordinaPerTe } from '../../../shared/esperienze.ts';
 import { chiediPosizione, posizioneRecente, posizioneSalvata, type EsitoPosizione, type Posizione } from '../lib/posizione.ts';
 import { cercaLuoghi, coordinateNote, leggiCacheLuoghi, luoghiDaCercare } from '../lib/luoghi.ts';
@@ -24,8 +23,7 @@ import { useNav, type SubFare } from '../ui/nav.tsx';
 import { clsx, mapsUrl, nomeGiorniOre, nomeTempo } from '../lib/util.ts';
 
 const SUB: { id: SubFare; nome: string }[] = [
-  { id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }, { id: 'gamedesign', nome: 'Game design' },
-];
+  { id: 'azioni', nome: 'Tutte le attività' }, { id: 'progetti', nome: 'Progetti' }, { id: 'esperienze', nome: 'Esperienze' }];
 
 /** Scheda Attività: intestazione con i conteggi, selettore delle sotto-schede, ricerca e la lista scelta. */
 export function Fare() {
@@ -45,14 +43,13 @@ export function Fare() {
     <>
       <Top title="Attività" sub={`${nAttivita} attività · ${nProgetti} ${nProgetti === 1 ? 'progetto' : 'progetti'} · ${nEsperienze} ${nEsperienze === 1 ? 'esperienza' : 'esperienze'}`} right={<PulsanteAspetto />} />
       <div className="fisso">
-        <Seg nav compatto voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
+        <Seg nav uguali compatto voci={SUB} attivo={nav.fareSub} onChange={nav.setFareSub} />
         {!nav.wide && <Cerca valore={q} onChange={setQ} placeholder="Cerca nelle attività" />}
       </div>
       <div className="scroll">
-        {nav.fareSub === 'azioni' && <Azioni filtro={filtro} />}
+        {(nav.fareSub === 'azioni' || nav.fareSub === 'gamedesign') && <Azioni filtro={filtro} />}
         {nav.fareSub === 'progetti' && <Progetti filtro={filtro} />}
         {nav.fareSub === 'esperienze' && <Esperienze filtro={filtro} />}
-        {nav.fareSub === 'gamedesign' && <GameDesign filtro={filtro} />}
       </div>
       <Fab />
     </>
@@ -62,25 +59,6 @@ export function Fare() {
 /** Id ammessi dalla ricerca, o null se non si sta cercando. */
 type Filtro = Set<string> | null;
 const NESSUN_RISULTATO = 'Nessun risultato: prova con altre parole.';
-
-/** Idee di videogiochi (tipo «Game design») in ordine di priorità: interesse (peso maggiore), tempo stimato e difficoltà. Non hanno scadenza e non finiscono in Oggi. */
-function GameDesign({ filtro }: { filtro: Filtro }) {
-  const nav = useNav();
-  const items = useItems();
-  const tutte = useMemo(() => listaGameDesign(items), [items]);
-  const lista = useMemo(() => (filtro ? tutte.filter((e) => filtro.has(e.item.id)) : tutte), [tutte, filtro]);
-  if (lista.length === 0) return <Empty>{filtro ? NESSUN_RISULTATO : 'Nessuna idea di gioco. Scrivi una nota con il pulsante + e scegli il tipo «Game design».'}</Empty>;
-  return (
-    <Sezione titolo="Idee di gioco" dettaglio={lista.length}>
-      {lista.map(({ item: i, punteggio }) => (
-        <Row key={i.id} titolo={i.titolo} tipo="gamedesign"
-          meta={[i.sforzoMin ? nomeTempo(i.sforzoMin) : undefined, i.difficolta ? `difficoltà ${i.difficolta}/5` : undefined, `priorità ${Math.round(punteggio)}`].filter(Boolean).join(' · ')}
-          interesse={i.interesse ?? 3} check="square" centrato voce={i}
-          selected={nav.openId === i.id} onOpen={() => nav.push({ k: 'item', id: i.id })} />
-      ))}
-    </Sezione>
-  );
-}
 
 /** Tutte le attività aperte in ordine di priorità; il numero nel pallino è la posizione nella classifica completa, anche con la ricerca attiva. */
 function Azioni({ filtro }: { filtro: Filtro }) {

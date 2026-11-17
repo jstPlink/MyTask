@@ -36,7 +36,7 @@ import { margineAtteso, stimaPer, tempoAtteso } from '../../../shared/stima.ts';
 // Un tipo fuori elenco (per esempio «nota», la bozza non assegnata dell'Inbox) viene aggiunto alle voci
 // finché la voce lo ha, così la tendina mostra sempre il valore reale.
 type GruppoTipo = Tipo | 'intrattenimento';
-const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita', 'gamedesign'];
+const GRUPPI_TIPO: GruppoTipo[] = ['azione', 'progetto', 'esperienza', 'routine', 'intrattenimento', 'ricetta', 'curiosita'];
 const NOMI_GRUPPO: Record<string, string> = { ...NOMI_TIPO, intrattenimento: 'Intrattenimento' };
 const IS_INTRATT = (t: Tipo) => TIPI_INTRATTENIMENTO.includes(t);
 const gruppoDi = (t: Tipo): GruppoTipo => (IS_INTRATT(t) ? 'intrattenimento' : t);
