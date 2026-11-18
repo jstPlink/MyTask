@@ -1,0 +1,45 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: simbolo e numero separati</title><style>
+:root[data-theme=light]{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--p1:#8A93A0;--p2:#D9A400;--p3:#D32F2F;--g1:#8A93A0;--g3:#4E9A78;--g5:#1F7A52}
+:root[data-theme=dark]{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--p1:#7B8493;--p2:#F4C542;--p3:#FF6B6B;--g1:#7B8493;--g3:#5FAE8D;--g5:#6FCF9B}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mid);margin:0 0 18px}
+.tg{border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surface);color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 14px 10px}
+.card h2{font-size:13px;margin:10px 0 2px}.card p{font-size:12px;color:var(--mid);margin:0 0 4px}
+.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.row .t{flex:1;min-width:0}.row .t b{display:block;font-size:14px}.row .t span{font-size:12px;color:var(--mid)}
+.sep{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);font-weight:700;margin:8px 0 0}
+.grp{display:inline-flex;align-items:center;gap:3px;flex:none;color:var(--c)}
+.sv{display:block;overflow:visible;flex:none}.sv text{font-family:system-ui;font-weight:900;text-anchor:middle;fill:currentColor}
+.p1{--c:var(--p1);--f:var(--surface2)}.p2{--c:var(--p2)}.p3{--c:var(--p3)}.g1{--c:var(--g1);--f:var(--surface2)}.g3{--c:var(--g3)}.g5{--c:var(--g5)}
+.p2,.p3,.g3,.g5{--f:color-mix(in srgb,var(--c) 22%,transparent)}
+.row{color:var(--c)}.row .t{color:var(--ink)}
+</style></head><body><div class="wrap"><h1>Simbolo e numero separati</h1><p class="sub">Oggi «!» (attività) e «?» (curiosità) stanno dentro la stessa targhetta del numero. Qui sono pezzi distinti. Sopra le attività (grigio, oro, rosso), sotto le curiosità (grigio, verde medio, verde scuro). <button class="tg" onclick="var d=document.documentElement;d.setAttribute('data-theme',d.getAttribute('data-theme')==='dark'?'light':'dark')">Chiaro / scuro</button></p><div class="grid" id="g"></div></div>
+<script>
+const H=30;
+const tagP=(w,h=H,tip=9,r=5)=>`M${r} 1 H${w-tip-1} L${w-3.5} ${h/2-3.2} Q${w-1} ${h/2} ${w-3.5} ${h/2+3.2} L${w-tip-1} ${h-1} H${r} Q1 ${h-1} 1 ${h-r} V${r} Q1 1 ${r} 1 Z`;
+const pillP=(w,h=H)=>{const r=h/2-1;return `M${1+r} 1 H${w-1-r} A${r} ${r} 0 0 1 ${w-1-r} ${h-1} H${1+r} A${r} ${r} 0 0 1 ${1+r} 1 Z`};
+const circP=(d)=>{const r=d/2-1;return `M${d/2} 1 A${r} ${r} 0 1 1 ${d/2} ${d-1} A${r} ${r} 0 1 1 ${d/2} 1 Z`};
+const leftP=(w,h=H,r=5)=>`M${r} 1 H${w} V${h-1} H${r} Q1 ${h-1} 1 ${h-r} V${r} Q1 1 ${r} 1 Z`;
+const leftPill=(w,h=H)=>{const r=h/2-1;return `M${1+r} 1 H${w} V${h-1} H${1+r} A${r} ${r} 0 0 1 ${1+r} 1 Z`};
+const rightTag=(w,h=H,tip=9)=>`M0 1 H${w-tip-1} L${w-3.5} ${h/2-3.2} Q${w-1} ${h/2} ${w-3.5} ${h/2+3.2} L${w-tip-1} ${h-1} H0 Z`;
+const rightPill=(w,h=H)=>{const r=h/2-1;return `M0 1 H${w-1-r} A${r} ${r} 0 0 1 ${w-1-r} ${h-1} H0 Z`};
+const svg=(w,h,inner)=>`<svg class="sv" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${inner}</svg>`;
+const fillOf=()=>`fill="var(--f)" stroke="currentColor" stroke-width="1" stroke-linejoin="round"`;
+const solid=`fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"`;
+const txt=(x,t,fs=15.5,extra='')=>`<text x="${x}" y="${H/2+fs*.36}" style="font-size:${fs}px;${extra}">${t}</text>`;
+const V=[
+['A · Com’è oggi','«!» e numero nella stessa targhetta, separati da 4 px.',(k,s,n)=>svg(44,H,`<path d="${k=='a'?tagP(44):pillP(44)}" ${fillOf()}/>${txt(k=='a'?20:22,`<tspan style="opacity:.7">${s}</tspan> ${n}`)}`)],
+['B · Due targhette staccate','Un tondino col simbolo e, a 3 px, la targhetta col solo numero.',(k,s,n)=>`<span class="grp">${svg(24,24,`<path d="${circP(24)}" ${fillOf()}/><text x="12" y="17" style="font-size:13px">${s}</text>`)}${svg(k=='a'?38:34,H,`<path d="${k=='a'?tagP(38):pillP(34)}" ${fillOf()}/>${txt(17,n)}`)}</span>`],
+['C · Divisore interno','Una sola forma, ma una linea verticale separa simbolo e numero.',(k,s,n)=>svg(56,H,`<path d="${k=='a'?tagP(56):pillP(56)}" ${fillOf()}/><path d="M20 6 V${H-6}" stroke="currentColor" stroke-width="1" opacity=".55"/>${txt(10.5,s,14,'opacity:.8')}${txt(k=='a'?34:38,n)}`)],
+['D · Due metà con spazietto','La forma è tagliata in due pezzi con una fessura di 3 px.',(k,s,n)=>`<span class="grp">${svg(22,H,`<path d="${k=='a'?leftP(22):leftPill(22)}" ${fillOf()}/>${txt(12,s,14,'opacity:.85')}`)}${svg(k=='a'?34:32,H,`<path d="${k=='a'?rightTag(34):rightPill(32)}" ${fillOf()}/>${txt(k=='a'?15:16,n)}`)}</span>`],
+['E · Simbolo pieno, numero tenue','Le due metà sono fuse: il simbolo su colore pieno, il numero su fondo tenue.',(k,s,n)=>`<span class="grp" style="gap:0">${svg(22,H,`<path d="${k=='a'?leftP(22):leftPill(22)}" ${solid}/><text x="12" y="${H/2+5}" style="font-size:14px;fill:var(--surface)">${s}</text>`)}${svg(k=='a'?34:32,H,`<path d="${k=='a'?rightTag(34):rightPill(32)}" ${fillOf()}/>${txt(k=='a'?15:16,n)}`)}</span>`],
+['F · Simbolo nudo, targhetta col numero','Il simbolo non ha forma: sta fuori, a sinistra, colorato.',(k,s,n)=>`<span class="grp" style="gap:4px"><b style="font-size:17px;font-weight:900;width:10px;text-align:center;opacity:.85">${s}</b>${svg(k=='a'?38:34,H,`<path d="${k=='a'?tagP(38):pillP(34)}" ${fillOf()}/>${txt(17,n)}`)}</span>`],
+['G · Apice sull’angolo','Il simbolo è un tondino che sporge dall’angolo alto sinistro della targhetta.',(k,s,n)=>`<span class="grp" style="position:relative;margin-left:6px">${svg(k=='a'?40:36,H,`<path d="${k=='a'?tagP(40):pillP(36)}" ${fillOf()}/>${txt(k=='a'?19:18,n)}`)}<i style="position:absolute;left:-7px;top:-6px;width:17px;height:17px;border-radius:50%;background:var(--c);color:var(--surface);font:900 11px/17px system-ui;text-align:center;font-style:normal;box-shadow:0 0 0 2px var(--surface)">${s}</i></span>`],
+['H · Simbolo nella targhetta, numero fuori','La targhetta ha solo il simbolo; la posizione è un numero grigio a destra.',(k,s,n)=>`<span class="grp" style="gap:6px">${svg(k=='a'?34:30,H,`<path d="${k=='a'?tagP(34):pillP(30)}" ${fillOf()}/>${txt(15,s,17)}`)}<b style="font-size:15px;font-weight:800;color:var(--mid);min-width:14px">${n}</b></span>`],
+];
+const att=[['Pagare la bolletta','domani','p3'],['Preparare la riunione','1 h','p2'],['Riordinare la scrivania','30 min','p1']];
+const cur=[['Documentario sulle api','45 min','g5'],['Capire come funzionano i bit','20 min','g3'],['Podcast sui treni','1 h','g1']];
+document.getElementById('g').innerHTML=V.map(([t,d,f])=>`<div class="card"><h2>${t}</h2><p>${d}</p><div class="sep">Attività</div>${att.map((r,i)=>`<div class="row ${r[2]}">${f('a','!',i+1)}<span class="t"><b>${r[0]}</b><span>${r[1]}</span></span></div>`).join('')}<div class="sep">Curiosità</div>${cur.map((r,i)=>`<div class="row ${r[2]}">${f('c','?',i+1)}<span class="t"><b>${r[0]}</b><span>${r[1]}</span></span></div>`).join('')}</div>`).join('');
+</script></body></html>

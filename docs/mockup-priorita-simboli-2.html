@@ -1,0 +1,53 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: stile diviso, più saturo</title><style>
+:root[data-theme=light]{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#111115;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--p1:#8A93A0;--p2:#D9A400;--p3:#D32F2F;--g1:#8A93A0;--g3:#4E9A78;--g5:#1F7A52}
+:root[data-theme=dark]{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--p1:#7B8493;--p2:#F4C542;--p3:#FF6B6B;--g1:#7B8493;--g3:#5FAE8D;--g5:#6FCF9B}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mid);margin:0 0 18px}
+.tg{border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surface);color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 14px 10px}
+.card h2{font-size:13px;margin:10px 0 2px}.card p{font-size:12px;color:var(--mid);margin:0 0 4px}
+.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);color:var(--c)}.row:last-child{border:0}
+.row .t{flex:1;min-width:0;color:var(--ink)}.row .t b{display:block;font-size:14px}.row .t span{font-size:12px;color:var(--mid)}
+.sep{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);font-weight:700;margin:8px 0 0}
+.grp{display:inline-flex;align-items:center;flex:none}
+.sv{display:block;overflow:visible;flex:none}.sv text{font-family:system-ui;font-weight:900;text-anchor:middle}
+.p1{--c:var(--p1);--on:#fff}.p2{--c:var(--p2);--on:#1b1500}.p3{--c:var(--p3);--on:#fff}.g1{--c:var(--g1);--on:#fff}.g3{--c:var(--g3);--on:#fff}.g5{--c:var(--g5);--on:#fff}
+:root[data-theme=dark] .p1,:root[data-theme=dark] .p3,:root[data-theme=dark] .g1,:root[data-theme=dark] .g3,:root[data-theme=dark] .g5{--on:#0E0F12}
+</style></head><body><div class="wrap"><h1>Stile diviso (D) più saturo</h1><p class="sub">Due pezzi separati da una fessura: a sinistra il simbolo («!» attività, «?» curiosità), a destra il numero. Qui si cambiano saturazione dei due pezzi e ampiezza della fessura. Il grigio (livello basso) resta sempre tenue. <button class="tg" onclick="var d=document.documentElement;d.setAttribute('data-theme',d.getAttribute('data-theme')==='dark'?'light':'dark')">Chiaro / scuro</button></p><div class="grid" id="g"></div></div>
+<script>
+const H=30;
+const leftP=(w,h=H,r=5)=>`M${r} 1 H${w} V${h-1} H${r} Q1 ${h-1} 1 ${h-r} V${r} Q1 1 ${r} 1 Z`;
+const leftPill=(w,h=H)=>{const r=h/2-1;return `M${1+r} 1 H${w} V${h-1} H${1+r} A${r} ${r} 0 0 1 ${1+r} 1 Z`};
+const rightTag=(w,h=H,tip=9)=>`M0 1 H${w-tip-1} L${w-3.5} ${h/2-3.2} Q${w-1} ${h/2} ${w-3.5} ${h/2+3.2} L${w-tip-1} ${h-1} H0 Z`;
+const rightPill=(w,h=H)=>{const r=h/2-1;return `M0 1 H${w-1-r} A${r} ${r} 0 0 1 ${w-1-r} ${h-1} H0 Z`};
+const svg=(w,inner)=>`<svg class="sv" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}">${inner}</svg>`;
+/* fill: 'solid' | 'none' | numero (% di colore) | [basso,medio,alto] per livello; il grigio (lvl 1) è sempre surface2 salvo "solid" */
+function fillAttr(spec,lvl){
+  const f=Array.isArray(spec)?spec[lvl-1]:spec;
+  if(f==='solid')return {fill:'var(--c)',solid:true};
+  if(f==='none')return {fill:'none'};
+  if(lvl===1)return {fill:'var(--surface2)'};
+  return {fill:`color-mix(in srgb,var(--c) ${f}%,transparent)`};
+}
+const piece=(path,w,spec,lvl,label,x,fs,sw=1)=>{const a=fillAttr(spec,lvl);return svg(w,`<path d="${path}" fill="${a.fill}" stroke="currentColor" stroke-width="${sw}" stroke-linejoin="round"/><text x="${x}" y="${H/2+fs*.36}" style="font-size:${fs}px;fill:${a.solid?'var(--on)':'currentColor'}">${label}</text>`)};
+function build(p){return (k,s,n,lvl)=>{const a=k==='a';
+  return `<span class="grp" style="gap:${p.gap??3}px">${piece(a?leftP(22):leftPill(22),22,p.sym,lvl,s,12,14,p.swS??1)}${piece(a?rightTag(34):rightPill(32),a?34:32,p.num,lvl,n,a?15:16,15.5,p.swN??1)}</span>`}}
+const V=[
+['1 · D di partenza','Simbolo e numero al 22%, fessura 3 px.',{sym:22,num:22}],
+['2 · Simbolo più saturo','Simbolo al 45%, numero al 22%.',{sym:45,num:22}],
+['3 · Simbolo pieno','Simbolo a colore pieno con testo in negativo, numero al 22%.',{sym:'solid',num:22}],
+['4 · Simbolo pieno, numero medio','Simbolo pieno, numero al 38%.',{sym:'solid',num:38}],
+['5 · Tutti e due al 45%','Più colore ovunque, niente pieno.',{sym:45,num:45}],
+['6 · Numero pieno, simbolo tenue','Inverso: il numero ha il peso e il simbolo fa da cornice.',{sym:22,num:'solid'}],
+['7 · Tutti e due pieni','Due blocchi pieni separati da una fessura.',{sym:'solid',num:'solid'}],
+['8 · Simbolo pieno, numero a contorno','Il numero resta vuoto: solo bordo, nessun fondo.',{sym:'solid',num:'none'}],
+['9 · Cresce col livello','Simbolo: grigio / 50% / pieno. Numero: grigio / 22% / 38%.',{sym:['none',50,'solid'],num:[0,22,38]}],
+['10 · Fessura stretta (2 px)','Simbolo pieno, numero 30%, pezzi quasi uniti.',{sym:'solid',num:30,gap:2}],
+['11 · Fessura larga (5 px)','Simbolo pieno, numero 30%, pezzi più distinti.',{sym:'solid',num:30,gap:5}],
+['12 · Bordo spesso (1,6 px)','Simbolo pieno, numero 30% con bordo più marcato.',{sym:'solid',num:30,swS:1.6,swN:1.6}]
+];
+const att=[['Pagare la bolletta','domani','p3',3],['Preparare la riunione','1 h','p2',2],['Riordinare la scrivania','30 min','p1',1]];
+const cur=[['Documentario sulle api','45 min','g5',3],['Capire come funzionano i bit','20 min','g3',2],['Podcast sui treni','1 h','g1',1]];
+document.getElementById('g').innerHTML=V.map(([t,d,p])=>{const f=build(p);return `<div class="card"><h2>${t}</h2><p>${d}</p><div class="sep">Attività</div>${att.map((r,i)=>`<div class="row ${r[2]}">${f('a','!',i+1,r[3])}<span class="t"><b>${r[0]}</b><span>${r[1]}</span></span></div>`).join('')}<div class="sep">Curiosità</div>${cur.map((r,i)=>`<div class="row ${r[2]}">${f('c','?',i+1,r[3])}<span class="t"><b>${r[0]}</b><span>${r[1]}</span></span></div>`).join('')}</div>`}).join('');
+</script></body></html>
