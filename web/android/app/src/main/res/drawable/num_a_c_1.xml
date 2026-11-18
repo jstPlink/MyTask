@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Numero della targhetta di posizione (livello 1): pezzo destro con la punta, fondo al 22%. -->
+<!-- Numero della targhetta: fondo grigio neutro, contorno nel colore del livello senza il lato sinistro (la linea di giunzione è nel pezzo del simbolo). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="34dp"
     android:height="30dp"
@@ -7,8 +7,10 @@
     android:viewportHeight="30">
     <path
         android:fillColor="#E3E1DC"
+        android:pathData="M0 1 H24 L30.5 11.8 Q33 15 30.5 18.2 L24 29 H0 Z" />
+    <path
         android:strokeColor="#8A93A0"
         android:strokeWidth="1"
         android:strokeLineJoin="round"
-        android:pathData="M0.5 1 H24 L30.5 11.8 Q33 15 30.5 18.2 L24 29 H0.5 Z" />
+        android:pathData="M0 1 H24 L30.5 11.8 Q33 15 30.5 18.2 L24 29 H0" />
 </vector>

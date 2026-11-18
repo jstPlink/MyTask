@@ -118,7 +118,7 @@ public class WidgetService extends RemoteViewsService {
             v.setTextViewText(R.id.tempo, WidgetDati.cronometro(lavorato));
             v.setTextColor(R.id.tempo, colore("#65656E", "#A5A5B0"));
 
-            // targhetta della posizione, come nell'app: due pezzi separati da 2 dp, a sinistra il simbolo («!» attività, «?» curiosità) più carico, a destra il numero con fondo tenue; ferma
+            // targhetta della posizione, come nell'app: due pezzi attaccati con una linea di 1 dp, a sinistra il simbolo («!» attività, «?» curiosità) con la tinta del livello, a destra il numero su fondo grigio neutro con il contorno nel colore del livello; ferma
             int rank = o.optInt("r", 0);
             if (rank > 0 && !"c".equals(o.optString("k"))) {
                 int livello = Math.max(1, Math.min(3, o.optInt("l", 1)));
@@ -130,13 +130,13 @@ public class WidgetService extends RemoteViewsService {
                 String[] tintaS = {"#7B8493", "#F4C542", "#FF6B6B"};
                 String tinta = (s ? tintaS : tintaC)[livello - 1];
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
-                v.setViewPadding(R.id.rank, 0, 0, Math.round(3 * c.getResources().getDisplayMetrics().density), 0); // il numero sta verso il corpo: la punta è a destra
+                v.setViewPadding(R.id.rank, 0, 0, Math.round(6 * c.getResources().getDisplayMetrics().density), 0); // il numero sta verso il corpo: la punta è a destra
                 v.setTextViewText(R.id.rank_s, "!");
                 v.setInt(R.id.rank_s, "setBackgroundResource", (s ? simS : simC)[livello - 1]);
                 v.setTextColor(R.id.rank_s, Color.parseColor(tinta));
                 v.setTextViewText(R.id.rank, String.valueOf(rank));
                 v.setInt(R.id.rank, "setBackgroundResource", (s ? numS : numC)[livello - 1]);
-                v.setTextColor(R.id.rank, Color.parseColor(tinta));
+                v.setTextColor(R.id.rank, Color.parseColor(s ? "#F3F3F6" : "#404040")); // il numero resta neutro: il colore sta solo nel simbolo e nel contorno
             } else if ("c".equals(o.optString("k"))) {
                 // curiosità: due pezzi con l'interesse (1-5): grigio (1-2), verde medio (3), verde scuro (4-5); fermo, senza battito
                 int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
@@ -148,13 +148,13 @@ public class WidgetService extends RemoteViewsService {
                 String[] tintaS = {"#7B8493", "#7B8493", "#5FAE8D", "#6FCF9B", "#6FCF9B"};
                 String tinta = (s ? tintaS : tintaC)[interesse - 1];
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
-                v.setViewPadding(R.id.rank, 0, 0, 0, 0);
+                v.setViewPadding(R.id.rank, 0, 0, Math.round(2 * c.getResources().getDisplayMetrics().density), 0);
                 v.setTextViewText(R.id.rank_s, "?");
                 v.setInt(R.id.rank_s, "setBackgroundResource", (s ? simS : simC)[interesse - 1]);
                 v.setTextColor(R.id.rank_s, Color.parseColor(tinta));
                 v.setTextViewText(R.id.rank, String.valueOf(rank > 0 ? rank : interesse)); // la posizione nella classifica delle curiosità
                 v.setInt(R.id.rank, "setBackgroundResource", (s ? numS : numC)[interesse - 1]);
-                v.setTextColor(R.id.rank, Color.parseColor(tinta));
+                v.setTextColor(R.id.rank, Color.parseColor(s ? "#F3F3F6" : "#404040")); // il numero resta neutro: il colore sta solo nel simbolo e nel contorno
             } else {
                 v.setViewVisibility(R.id.rankbox, View.GONE);
             }

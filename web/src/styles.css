@@ -334,17 +334,17 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .row.p1, .row.p2, .row.p3 { border-left: 0; padding: 12px 0; align-items: center; }
 .row.p1 .cb, .row.p2 .cb, .row.p3 .cb { margin-top: 0; }
 .row .rank { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 900; font-size: 15.5px; }
-/* targhetta di posizione in due pezzi (simbolo + numero) separati da 2 px: simbolo più carico (45%), numero tenue (22%); grigio nel livello basso; ferma */
-.row .rank.dv { --a: color-mix(in srgb, var(--c, var(--soft)) 45%, transparent); --b: color-mix(in srgb, var(--c, var(--soft)) 22%, transparent); width: auto; height: 30px; border: 0; border-radius: 0; background: none; display: inline-flex; gap: 2px; place-items: initial; font-size: 15.5px; }
-.row.p1 .rank.dv, .row .rank-int.dv.g1, .row .rank-int.dv.g2 { --a: var(--surface2); --b: var(--surface2); }
-.row .rank-int.dv.g3, .row .rank-int.dv.g4, .row .rank-int.dv.g5 { --a: color-mix(in srgb, var(--c) 45%, transparent); --b: var(--cf); }
+/* targhetta di posizione in due pezzi attaccati (simbolo + numero) con una linea di mezzo da 1 px: a sinistra il simbolo («!» attività, «?» curiosità) con la tinta del livello e il simbolo nel colore, a destra il numero su fondo grigio neutro, numero sempre inchiostro; contorno nel colore del livello; ferma */
+.row .rank.dv { --a: color-mix(in srgb, var(--c, var(--soft)) 45%, transparent); --b: var(--surface2); width: auto; height: 30px; border: 0; border-radius: 0; background: none; display: inline-flex; gap: 0; place-items: initial; font-size: 15.5px; color: var(--c, var(--soft)); }
 .rank.dv .dv-s, .rank.dv .dv-n { position: relative; height: 30px; display: grid; place-items: center; }
-.rank.dv .dv-s { width: 14px; } .rank.dv .dv-n { width: 34px; padding-right: 3px; } .rank.dv.pil .dv-n { width: 32px; padding-right: 0; }
+.rank.dv .dv-s { width: 14px; } .rank.dv .dv-n { width: 34px; padding-right: 6px; } .rank.dv.pil .dv-n { width: 32px; padding-right: 2px; }
+.rank.dv .dv-s::after { content: ""; position: absolute; right: 0; top: 1px; bottom: 1px; width: 1px; background: var(--c, var(--soft)); z-index: 2; }
 .rank.dv svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.rank.dv path { stroke: var(--c, var(--soft)); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.rank.dv .dv-s path { fill: var(--a); } .rank.dv .dv-n path { fill: var(--b); }
+.rank.dv path.f { stroke: none; }
+.rank.dv path.l { fill: none; stroke: var(--c, var(--soft)); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.rank.dv .dv-s path.f { fill: var(--a); } .rank.dv .dv-n path.f { fill: var(--b); }
 .rank.dv i, .rank.dv b { position: relative; font-style: normal; font-weight: 900; }
-.rank.dv i { font-size: 15.5px; opacity: .85; } .rank.dv b { font-size: 15.5px; }
+.rank.dv i { font-size: 15.5px; } .rank.dv b { font-size: 15.5px; color: var(--ink); }
 .row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }
 
 /* ---------- Giorno scelto (finestra del mese) e barra in basso a cinque schede ---------- */
@@ -843,6 +843,12 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .incorso .ic-alto, .incorso .ic-az, .incorso .ic-nome, .incorso .ic-info, .incorso .ic-prev { transition: opacity .8s ease; }
 .incorso.solo .ic-alto, .incorso.solo .ic-az, .incorso.solo .ic-nome, .incorso.solo .ic-info, .incorso.solo .ic-prev { opacity: 0; }
 .incorso.solo .ic-az { pointer-events: none; }
+/* note della nota dentro la schermata «in corso»: un pulsante che apre il testo (scorre se è lungo), così non serve mettere in pausa */
+.ic-notebox { margin: -10px 0 18px; transition: opacity .8s ease; } .ic-notebox.nascosto { opacity: 0; pointer-events: none; }
+.ic-note-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 14px; background: var(--surface2); color: var(--ink); font-size: calc(12.5px * var(--k)); font-weight: 650; }
+.ic-note-freccia { display: inline-block; font-size: 1.2em; line-height: 1; transition: transform .2s; } .ic-note-freccia.su { transform: rotate(180deg); }
+.ic-note-testo { margin-top: 10px; max-height: 32vh; overflow-y: auto; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); border-radius: 14px; background: var(--bg); white-space: pre-wrap; overflow-wrap: anywhere; font-size: calc(13.5px * var(--k)); line-height: 1.4; color: var(--ink); -webkit-overflow-scrolling: touch; }
+
 .ic-timer { align-self: flex-start; white-space: nowrap; transform-origin: center; transition: transform 1.1s cubic-bezier(.3, .8, .2, 1); position: relative; z-index: 3; }
 .ic-barra { transition: transform 1.1s cubic-bezier(.3, .8, .2, 1), width 1.1s cubic-bezier(.3, .8, .2, 1), height 1.1s cubic-bezier(.3, .8, .2, 1), border-radius 1.1s; position: relative; z-index: 3; }
 .ic-timer { transition: transform 1.1s cubic-bezier(.3, .8, .2, 1), color .9s; } .incorso.solo .ic-timer { color: #6A6A73; }
@@ -866,7 +872,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* Data nelle righe delle liste (bandierina = scadenza, lucchetto = data fissa) e nota verde del blocco Promemoria */
 .data-riga { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .nota-verde { margin: 6px 0 8px; padding: 9px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); font-size: 13px; line-height: 1.4; }
-.row .rank-vuoto { width: 50px; border: 1px dashed var(--line); border-radius: 15px; background: transparent; animation: none; }
+.row .rank-vuoto { width: 48px; border: 1px dashed var(--line); border-radius: 15px; background: transparent; animation: none; }
 
 /* icona «ha delle note»: pallino grigio sopra la data, a destra (la nota non si legge nella riga) */
 .row .right.col-note { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; }

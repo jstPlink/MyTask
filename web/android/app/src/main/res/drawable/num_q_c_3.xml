@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Numero della targhetta di una curiosità (interesse 3): pezzo destro a pillola. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <corners android:topRightRadius="15dp" android:bottomRightRadius="15dp" />
-    <size android:width="34dp" android:height="30dp" />
-    <solid android:color="#384E9A78" />
-    <stroke android:width="1dp" android:color="#4E9A78" />
-</shape>
+<!-- Numero della targhetta: fondo grigio neutro, contorno nel colore del livello senza il lato sinistro (la linea di giunzione è nel pezzo del simbolo). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="34dp"
+    android:height="30dp"
+    android:viewportWidth="34"
+    android:viewportHeight="30">
+    <path
+        android:fillColor="#E3E1DC"
+        android:pathData="M0 1 H19 A14 14 0 0 1 19 29 H0 Z" />
+    <path
+        android:strokeColor="#4E9A78"
+        android:strokeWidth="1"
+        android:strokeLineJoin="round"
+        android:pathData="M0 1 H19 A14 14 0 0 1 19 29 H0" />
+</vector>

@@ -41,6 +41,7 @@ export function InCorso() {
   const [nascosto, setNascosto] = useState(false);
   const [tocchi, setTocchi] = useState(0);
   const [uscita, setUscita] = useState(false);
+  const [noteAperte, setNoteAperte] = useState(false); // il testo delle note della nota, da leggere senza mettere in pausa
   const [ridim, setRidim] = useState(0); // cambia quando lo schermo cambia misura (per esempio quando le barre di sistema spariscono)
   const timerRef = useRef<HTMLDivElement>(null);
   const barraRef = useRef<HTMLDivElement>(null);
@@ -60,7 +61,7 @@ export function InCorso() {
 
   // il nome sparisce dopo 5 secondi senza tocchi; una nota nuova lo mostra di nuovo
   const id = nota?.id;
-  useEffect(() => { setNascosto(false); setUscita(false); }, [id]);
+  useEffect(() => { setNascosto(false); setUscita(false); setNoteAperte(false); }, [id]);
   useEffect(() => {
     if (!id) return;
     const t = setTimeout(() => setNascosto(true), NASCONDI_NOME_MS);
@@ -131,6 +132,7 @@ export function InCorso() {
   const ritardo = daysOverdue(nota, oggi);
   const data = d && d !== oggi ? (ritardo > 0 ? (ritardo === 1 ? 'ieri' : `${ritardo} gg fa`) : formatShortYear(d, oggi)) : d === oggi ? 'oggi' : '';
 
+  const testoNote = nota.note?.trim() ?? '';
   const fatta = () => {
     if (verde) return;
     tocco('medio');
@@ -163,6 +165,16 @@ export function InCorso() {
             {progetto && <span>· {progetto.titolo}</span>}
             {data && <span className={clsx('ic-data', ritardo > 0 && 'hard')}>{data}</span>}
           </div>
+          {testoNote && (
+            <div className={clsx('ic-notebox', nascosto && 'nascosto')}>
+              <button type="button" className="ic-note-btn" aria-expanded={noteAperte} aria-controls="ic-note-testo" onClick={() => setNoteAperte((v) => !v)}>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /></svg>
+                <span>Note</span>
+                <span className={clsx('ic-note-freccia', noteAperte && 'su')} aria-hidden="true">⌄</span>
+              </button>
+              {noteAperte && <div id="ic-note-testo" className="ic-note-testo">{testoNote}</div>}
+            </div>
+          )}
           <div ref={timerRef} className={clsx('ic-timer', sessione.stato === 'pausa' && 'fermo')} aria-live="off">{formatoCronometro(ms)}</div>
           {stimaMs > 0 ? (
             <>
