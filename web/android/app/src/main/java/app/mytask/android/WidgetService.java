@@ -118,7 +118,7 @@ public class WidgetService extends RemoteViewsService {
             v.setTextViewText(R.id.tempo, WidgetDati.cronometro(lavorato));
             v.setTextColor(R.id.tempo, colore("#65656E", "#A5A5B0"));
 
-            // targhetta della posizione, come nell'app: due pezzi separati da 3 dp, a sinistra il simbolo («!» attività, «?» curiosità) più carico, a destra il numero con fondo tenue; ferma
+            // targhetta della posizione, come nell'app: due pezzi separati da 2 dp, a sinistra il simbolo («!» attività, «?» curiosità) più carico, a destra il numero con fondo tenue; ferma
             int rank = o.optInt("r", 0);
             if (rank > 0 && !"c".equals(o.optString("k"))) {
                 int livello = Math.max(1, Math.min(3, o.optInt("l", 1)));

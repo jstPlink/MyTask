@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Simbolo «!» della targhetta di posizione (livello 2): pezzo sinistro, colore al 45%. -->
+<!-- Simbolo «!» della targhetta di posizione (livello 2): pezzo sinistro di 14 dp, colore al 45%. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="22dp"
+    android:width="14dp"
     android:height="30dp"
-    android:viewportWidth="22"
+    android:viewportWidth="14"
     android:viewportHeight="30">
     <path
         android:fillColor="#73D9A400"
         android:strokeColor="#D9A400"
         android:strokeWidth="1"
         android:strokeLineJoin="round"
-        android:pathData="M5 1 H21.5 V29 H5 Q1 29 1 25 V5 Q1 1 5 1 Z" />
+        android:pathData="M5 1 H13.5 V29 H5 Q1 29 1 25 V5 Q1 1 5 1 Z" />
 </vector>

@@ -334,17 +334,17 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .row.p1, .row.p2, .row.p3 { border-left: 0; padding: 12px 0; align-items: center; }
 .row.p1 .cb, .row.p2 .cb, .row.p3 .cb { margin-top: 0; }
 .row .rank { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 900; font-size: 15.5px; }
-/* targhetta di posizione in due pezzi (simbolo + numero) separati da 3 px: simbolo più carico (45%), numero tenue (22%); grigio nel livello basso; ferma */
-.row .rank.dv { --a: color-mix(in srgb, var(--c, var(--soft)) 45%, transparent); --b: color-mix(in srgb, var(--c, var(--soft)) 22%, transparent); width: auto; height: 30px; border: 0; border-radius: 0; background: none; display: inline-flex; gap: 3px; place-items: initial; font-size: 15.5px; }
+/* targhetta di posizione in due pezzi (simbolo + numero) separati da 2 px: simbolo più carico (45%), numero tenue (22%); grigio nel livello basso; ferma */
+.row .rank.dv { --a: color-mix(in srgb, var(--c, var(--soft)) 45%, transparent); --b: color-mix(in srgb, var(--c, var(--soft)) 22%, transparent); width: auto; height: 30px; border: 0; border-radius: 0; background: none; display: inline-flex; gap: 2px; place-items: initial; font-size: 15.5px; }
 .row.p1 .rank.dv, .row .rank-int.dv.g1, .row .rank-int.dv.g2 { --a: var(--surface2); --b: var(--surface2); }
 .row .rank-int.dv.g3, .row .rank-int.dv.g4, .row .rank-int.dv.g5 { --a: color-mix(in srgb, var(--c) 45%, transparent); --b: var(--cf); }
 .rank.dv .dv-s, .rank.dv .dv-n { position: relative; height: 30px; display: grid; place-items: center; }
-.rank.dv .dv-s { width: 22px; } .rank.dv .dv-n { width: 34px; padding-right: 3px; } .rank.dv.pil .dv-n { width: 32px; padding-right: 0; }
+.rank.dv .dv-s { width: 14px; } .rank.dv .dv-n { width: 34px; padding-right: 3px; } .rank.dv.pil .dv-n { width: 32px; padding-right: 0; }
 .rank.dv svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .rank.dv path { stroke: var(--c, var(--soft)); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .rank.dv .dv-s path { fill: var(--a); } .rank.dv .dv-n path { fill: var(--b); }
 .rank.dv i, .rank.dv b { position: relative; font-style: normal; font-weight: 900; }
-.rank.dv i { font-size: 14px; opacity: .85; } .rank.dv b { font-size: 15.5px; }
+.rank.dv i { font-size: 15.5px; opacity: .85; } .rank.dv b { font-size: 15.5px; }
 .row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }
 
 /* ---------- Giorno scelto (finestra del mese) e barra in basso a cinque schede ---------- */
@@ -612,11 +612,10 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 
 /* ---------- Stati di una nota: da fare, in corso (giallo, mezza casella), fatta, archiviata (tratteggiata) ---------- */
 .cb.viva, .cb.pausa { position: relative; border-color: var(--ink); } /* avviata almeno una volta: stesso stile, in corso o in pausa */
-.cb.viva::after, .cb.pausa::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); position: relative; z-index: 1; }
-.cb.viva::before, .cb.pausa::before { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; border: 2px solid var(--ink); opacity: 0; pointer-events: none; animation: onda-cb 2s ease-out infinite; }
+.cb.viva::after, .cb.pausa::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); position: relative; z-index: 1; animation: onda-cb 2s ease-out infinite; }
 .cb.dafare::after { content: none; }
-@keyframes onda-cb { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(3.4); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .cb.viva::before, .cb.pausa::before { animation: none; } }
+@keyframes onda-cb { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 50%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } } /* l'onda è l'ombra del pallino stesso: sempre concentrica, a qualunque scala dello schermo */
+@media (prefers-reduced-motion: reduce) { .cb.viva::after, .cb.pausa::after { animation: none; } }
 .cb.arch { border-style: dashed; background: transparent; color: var(--soft); }
 .cb.arch::after { content: ""; box-sizing: border-box; width: 8px; height: 8px; border-radius: 50%; border: 1.6px dashed var(--soft); }
 .row.st-arch { opacity: .6; }
@@ -867,7 +866,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* Data nelle righe delle liste (bandierina = scadenza, lucchetto = data fissa) e nota verde del blocco Promemoria */
 .data-riga { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .nota-verde { margin: 6px 0 8px; padding: 9px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); font-size: 13px; line-height: 1.4; }
-.row .rank-vuoto { width: 59px; border: 1px dashed var(--line); border-radius: 15px; background: transparent; animation: none; }
+.row .rank-vuoto { width: 50px; border: 1px dashed var(--line); border-radius: 15px; background: transparent; animation: none; }
 
 /* icona «ha delle note»: pallino grigio sopra la data, a destra (la nota non si legge nella riga) */
 .row .right.col-note { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; }

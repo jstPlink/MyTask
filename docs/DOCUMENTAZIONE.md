@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.106.0
+- **Versione documento:** 0.107.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -614,6 +614,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-17 | 0.104.0 | **Punto esclamativo sulle attività:** l'etichetta di priorità (44 px) ha un «!» tenue davanti al numero, come il «?» delle curiosità; «!» o «?» e numero sono un'unica scritta centrata (distanza uguale con una o due cifre), in app e nel widget. |
 | 2026-11-18 | 0.105.0 | **Targhetta di posizione in due pezzi:** il «!» (attività) e il «?» (curiosità) non stanno più dentro la stessa targhetta del numero ma in un pezzo a sé a sinistra (22 px, colore al 45%), separato da 3 px dal numero (fondo al 22%, con la punta nelle attività, a pillola nelle curiosità); grigio nel livello basso; ferma. Mockup in `docs/mockup-priorita-simboli*.html` |
 | 2026-11-18 | 0.106.0 | **Targhetta in due pezzi anche nel widget:** simbolo («!» o «?», colore al 45%) e numero (fondo al 22%, punta o pillola) separati da 3 dp, come nell'app; nuovi sfondi `sim_*` e `num_*` al posto di `tag_*` e `rank_int_*` |
+| 2026-11-18 | 0.107.0 | **Targhetta più compatta e fix grafici:** simbolo «!» / «?» largo 14 px con fessura di 2 px (targhetta di 50 px invece di 59) e glifo grande come il numero, nell'app e nel widget; nel widget i due pezzi non si allineano più sulla linea di base del testo (`baselineAligned=false`); l'onda della casella «in corso» è l'ombra animata del pallino, quindi sempre concentrica. Mockup in `docs/mockup-priorita-simboli-3.html` |
 
 ## Selettore del tempo a rotelle (0.65.3)
 
