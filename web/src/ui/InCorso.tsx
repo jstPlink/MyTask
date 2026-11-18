@@ -41,7 +41,6 @@ export function InCorso() {
   const [nascosto, setNascosto] = useState(false);
   const [tocchi, setTocchi] = useState(0);
   const [uscita, setUscita] = useState(false);
-  const [noteAperte, setNoteAperte] = useState(false); // il testo delle note della nota, da leggere senza mettere in pausa
   const [ridim, setRidim] = useState(0); // cambia quando lo schermo cambia misura (per esempio quando le barre di sistema spariscono)
   const timerRef = useRef<HTMLDivElement>(null);
   const barraRef = useRef<HTMLDivElement>(null);
@@ -61,7 +60,7 @@ export function InCorso() {
 
   // il nome sparisce dopo 5 secondi senza tocchi; una nota nuova lo mostra di nuovo
   const id = nota?.id;
-  useEffect(() => { setNascosto(false); setUscita(false); setNoteAperte(false); }, [id]);
+  useEffect(() => { setNascosto(false); setUscita(false); }, [id]);
   useEffect(() => {
     if (!id) return;
     const t = setTimeout(() => setNascosto(true), NASCONDI_NOME_MS);
@@ -157,7 +156,7 @@ export function InCorso() {
       }}>
       <div className="ic-col">
         <div className="ic-alto"><span className="ic-stato"><span className="cb viva" aria-hidden="true" /><span>In corso</span></span></div>
-        <div className="ic-centro">
+        <div className="ic-scroll"><div className="ic-centro">
           <div className={clsx('ic-nome', nascosto && 'nascosto')}><h1 className="ic-titolo">{nota.titolo}</h1></div>
           <div className={clsx('ic-info', 'ic-vela', nascosto && 'nascosto')}>
             <span className="ic-tipo" aria-hidden="true"><GlifoTipo tipo={nota.tipo} size={18} /></span>
@@ -165,16 +164,6 @@ export function InCorso() {
             {progetto && <span>· {progetto.titolo}</span>}
             {data && <span className={clsx('ic-data', ritardo > 0 && 'hard')}>{data}</span>}
           </div>
-          {testoNote && (
-            <div className={clsx('ic-notebox', nascosto && 'nascosto')}>
-              <button type="button" className="ic-note-btn" aria-expanded={noteAperte} aria-controls="ic-note-testo" onClick={() => setNoteAperte((v) => !v)}>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /></svg>
-                <span>Note</span>
-                <span className={clsx('ic-note-freccia', noteAperte && 'su')} aria-hidden="true">⌄</span>
-              </button>
-              {noteAperte && <div id="ic-note-testo" className="ic-note-testo">{testoNote}</div>}
-            </div>
-          )}
           <div ref={timerRef} className={clsx('ic-timer', sessione.stato === 'pausa' && 'fermo')} aria-live="off">{formatoCronometro(ms)}</div>
           {stimaMs > 0 ? (
             <>
@@ -182,7 +171,16 @@ export function InCorso() {
               <div className={clsx('ic-prev', 'ic-vela', nascosto && 'nascosto')}><span className={clsx(oltre && 'oltre')}>{oltre ? 'Oltre il previsto' : 'lavorato'}</span><span>previsto {durataLavoro(stimaMs)}</span></div>
             </>
           ) : <div className={clsx('ic-prev', 'ic-vela', nascosto && 'nascosto')}><span>Nessun tempo previsto</span></div>}
-        </div>
+          {testoNote && (
+            <div className={clsx('ic-note', nascosto && 'nascosto')}>
+              <h2>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /></svg>
+                Note
+              </h2>
+              <p>{testoNote}</p>
+            </div>
+          )}
+        </div></div>
         <div className="ic-az">
           <button className="ic-btn ic-sec" onClick={pausa} disabled={uscita}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
