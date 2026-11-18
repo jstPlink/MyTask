@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Numero della targhetta di posizione (livello 1): pezzo destro con la punta, fondo al 22%. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="34dp"
+    android:height="30dp"
+    android:viewportWidth="34"
+    android:viewportHeight="30">
+    <path
+        android:fillColor="#272930"
+        android:strokeColor="#7B8493"
+        android:strokeWidth="1"
+        android:strokeLineJoin="round"
+        android:pathData="M0.5 1 H24 L30.5 11.8 Q33 15 30.5 18.2 L24 29 H0.5 Z" />
+</vector>

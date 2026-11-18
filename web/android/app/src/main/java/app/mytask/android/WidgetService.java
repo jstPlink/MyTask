@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.style.RelativeSizeSpan;
 import android.text.style.StrikethroughSpan;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -119,38 +118,43 @@ public class WidgetService extends RemoteViewsService {
             v.setTextViewText(R.id.tempo, WidgetDati.cronometro(lavorato));
             v.setTextColor(R.id.tempo, colore("#65656E", "#A5A5B0"));
 
-            // etichetta della posizione, come nell'app (fondo tenue e contorno nel colore del livello, punta a destra); ferma
+            // targhetta della posizione, come nell'app: due pezzi separati da 3 dp, a sinistra il simbolo («!» attività, «?» curiosità) più carico, a destra il numero con fondo tenue; ferma
             int rank = o.optInt("r", 0);
             if (rank > 0 && !"c".equals(o.optString("k"))) {
                 int livello = Math.max(1, Math.min(3, o.optInt("l", 1)));
-                int[] sfondiC = {R.drawable.tag_c_1, R.drawable.tag_c_2, R.drawable.tag_c_3};
-                int[] sfondiS = {R.drawable.tag_s_1, R.drawable.tag_s_2, R.drawable.tag_s_3};
+                int[] simC = {R.drawable.sim_a_c_1, R.drawable.sim_a_c_2, R.drawable.sim_a_c_3};
+                int[] simS = {R.drawable.sim_a_s_1, R.drawable.sim_a_s_2, R.drawable.sim_a_s_3};
+                int[] numC = {R.drawable.num_a_c_1, R.drawable.num_a_c_2, R.drawable.num_a_c_3};
+                int[] numS = {R.drawable.num_a_s_1, R.drawable.num_a_s_2, R.drawable.num_a_s_3};
                 String[] tintaC = {"#8A93A0", "#D9A400", "#D32F2F"};
                 String[] tintaS = {"#7B8493", "#F4C542", "#FF6B6B"};
+                String tinta = (s ? tintaS : tintaC)[livello - 1];
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
-                v.setViewVisibility(R.id.rank, View.VISIBLE);
                 v.setViewPadding(R.id.rank, 0, 0, Math.round(3 * c.getResources().getDisplayMetrics().density), 0); // il numero sta verso il corpo: la punta è a destra
-                SpannableString esclamativo = new SpannableString("! " + rank); // «!» tenue davanti alla posizione, come nell'app
-                esclamativo.setSpan(new RelativeSizeSpan(0.95f), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                v.setTextViewText(R.id.rank, esclamativo);
-                v.setInt(R.id.rank, "setBackgroundResource", (s ? sfondiS : sfondiC)[livello - 1]);
-                v.setTextColor(R.id.rank, Color.parseColor((s ? tintaS : tintaC)[livello - 1]));
+                v.setTextViewText(R.id.rank_s, "!");
+                v.setInt(R.id.rank_s, "setBackgroundResource", (s ? simS : simC)[livello - 1]);
+                v.setTextColor(R.id.rank_s, Color.parseColor(tinta));
+                v.setTextViewText(R.id.rank, String.valueOf(rank));
+                v.setInt(R.id.rank, "setBackgroundResource", (s ? numS : numC)[livello - 1]);
+                v.setTextColor(R.id.rank, Color.parseColor(tinta));
             } else if ("c".equals(o.optString("k"))) {
-                // curiosità: pallino con l'interesse (1-5): grigio (1-2), verde medio (3), verde scuro (4-5); fermo, senza battito
+                // curiosità: due pezzi con l'interesse (1-5): grigio (1-2), verde medio (3), verde scuro (4-5); fermo, senza battito
                 int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
-                int[] pieniC = {R.drawable.rank_int_c_1, R.drawable.rank_int_c_2, R.drawable.rank_int_c_3, R.drawable.rank_int_c_4, R.drawable.rank_int_c_5};
-                int[] pieniS = {R.drawable.rank_int_s_1, R.drawable.rank_int_s_2, R.drawable.rank_int_s_3, R.drawable.rank_int_s_4, R.drawable.rank_int_s_5};
+                int[] simC = {R.drawable.sim_q_c_1, R.drawable.sim_q_c_2, R.drawable.sim_q_c_3, R.drawable.sim_q_c_4, R.drawable.sim_q_c_5};
+                int[] simS = {R.drawable.sim_q_s_1, R.drawable.sim_q_s_2, R.drawable.sim_q_s_3, R.drawable.sim_q_s_4, R.drawable.sim_q_s_5};
+                int[] numC = {R.drawable.num_q_c_1, R.drawable.num_q_c_2, R.drawable.num_q_c_3, R.drawable.num_q_c_4, R.drawable.num_q_c_5};
+                int[] numS = {R.drawable.num_q_s_1, R.drawable.num_q_s_2, R.drawable.num_q_s_3, R.drawable.num_q_s_4, R.drawable.num_q_s_5};
+                String[] tintaC = {"#8A93A0", "#8A93A0", "#4E9A78", "#1F7A52", "#1F7A52"};
+                String[] tintaS = {"#7B8493", "#7B8493", "#5FAE8D", "#6FCF9B", "#6FCF9B"};
+                String tinta = (s ? tintaS : tintaC)[interesse - 1];
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
-                v.setViewVisibility(R.id.rank, View.VISIBLE);
                 v.setViewPadding(R.id.rank, 0, 0, 0, 0);
-                String posizione = String.valueOf(rank > 0 ? rank : interesse); // la posizione nella classifica delle curiosità, preceduta dal «?»
-                SpannableString domanda = new SpannableString("? " + posizione);
-                domanda.setSpan(new RelativeSizeSpan(0.95f), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                v.setTextViewText(R.id.rank, domanda);
-                v.setInt(R.id.rank, "setBackgroundResource", (s ? pieniS : pieniC)[interesse - 1]);
-                String[] numC = {"#8A93A0", "#8A93A0", "#4E9A78", "#1F7A52", "#1F7A52"};
-                String[] numS = {"#7B8493", "#7B8493", "#5FAE8D", "#6FCF9B", "#6FCF9B"};
-                v.setTextColor(R.id.rank, Color.parseColor((s ? numS : numC)[interesse - 1]));
+                v.setTextViewText(R.id.rank_s, "?");
+                v.setInt(R.id.rank_s, "setBackgroundResource", (s ? simS : simC)[interesse - 1]);
+                v.setTextColor(R.id.rank_s, Color.parseColor(tinta));
+                v.setTextViewText(R.id.rank, String.valueOf(rank > 0 ? rank : interesse)); // la posizione nella classifica delle curiosità
+                v.setInt(R.id.rank, "setBackgroundResource", (s ? numS : numC)[interesse - 1]);
+                v.setTextColor(R.id.rank, Color.parseColor(tinta));
             } else {
                 v.setViewVisibility(R.id.rankbox, View.GONE);
             }
