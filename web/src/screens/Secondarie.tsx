@@ -17,7 +17,7 @@ import { VERSIONE } from '../version.ts';
 import { aggiornaApp } from '../lib/aggiornamento.ts';
 import { sync } from '../lib/sync.ts';
 import { isNative } from '../lib/native.ts';
-import { impostaAspetto, type Colore, type Tema } from '../lib/theme.ts';
+import { impostaAspetto, PALETTE, type Colore, type Palette, type Stile, type Tema } from '../lib/theme.ts';
 import { impostaPromemoriaTimer } from '../lib/promemoriaTimer.ts';
 import { chiediPermessoSito, permessoSito, type PermessoSito } from '../lib/notificaTimerSito.ts';
 import { INTERVALLI_PROMEMORIA_MIN } from '../../../shared/sessione.ts';
@@ -150,6 +150,38 @@ export function Archivio() {
 // ------------------------------------------------------------------ Aspetto
 
 // Colori d'accento a scelta (le tinte stanno in styles.css, variabili --o-*).
+const NOMI_PALETTE: Record<Palette, { nome: string; colore: string }> = {
+  grafite: { nome: 'Grafite', colore: '#e9ebef' }, ambra: { nome: 'Ambra', colore: '#f0b45a' }, salvia: { nome: 'Salvia', colore: '#9fd8b8' },
+  ghiaccio: { nome: 'Ghiaccio', colore: '#a9c8e8' }, lime: { nome: 'Lime', colore: '#c9f36b' }, turchese: { nome: 'Turchese', colore: '#5ee6d0' },
+  arancio: { nome: 'Arancio', colore: '#ff8a3d' }, smeraldo: { nome: 'Smeraldo', colore: '#3ddc97' },
+};
+/** Ruoli dei colori dello stile vetro, con la variabile CSS da cui si legge il valore della palette scelta. */
+const RUOLI_PALETTE: [string, string, string][] = [
+  ['Sfondo', '--v-g0', 'base, in alto'], ['Sfondo 2', '--v-g1', 'metà pagina'], ['Sfondo 3', '--v-g2', 'in basso, menu'],
+  ['Accento primario', '--acc', 'scelte attive, barre, pulsante'], ['Accento secondario', '--acc2', 'passaggio nelle barre'], ['Testo su accento', '--onacc', 'scritte sopra l’accento'],
+  ['Entrate', '--good', 'importi positivi'], ['Avviso', '--bad', 'arretrati, errori'], ['Testo secondario', '--mute', 'etichette, note'], ['Testo', '--ink', 'testo principale'],
+];
+
+/** Elenco dei colori della palette in uso (stile vetro), letti dal CSS: cambiano con la palette e col tema. */
+function RuoliPalette({ chiave }: { chiave: string }) {
+  const [valori, setValori] = useState<string[]>([]);
+  useEffect(() => {
+    const cs = getComputedStyle(document.documentElement);
+    setValori(RUOLI_PALETTE.map(([, v]) => cs.getPropertyValue(v).trim().toUpperCase()));
+  }, [chiave]);
+  return (
+    <div className="ruoli-pal">
+      {RUOLI_PALETTE.map(([nome, , d], i) => (
+        <div key={nome} className="opt">
+          <span className="sw2" style={{ background: valori[i] || 'transparent', borderRadius: 10, border: '1px solid rgba(128,128,128,.4)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}><div className="t1">{nome}</div><div className="t2">{d}</div></div>
+          <span className="t2">{valori[i]}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const COLORI: { id: Colore; nome: string }[] = [{ id: 'verde', nome: 'Verde' }, { id: 'petrolio', nome: 'Petrolio' }, { id: 'indaco', nome: 'Indaco' }];
 
 /** Tema (sistema, chiaro, scuro) e colore d'accento: si applicano subito e restano salvati sul dispositivo. */
@@ -163,8 +195,25 @@ export function Aspetto() {
         <Sec a="Tema" />
         <Seg<Tema> voci={[{ id: 'sistema', nome: 'Sistema' }, { id: 'chiaro', nome: 'Chiaro' }, { id: 'scuro', nome: 'Scuro' }]} attivo={a.tema} onChange={(tema) => impostaAspetto({ tema })} />
         <div className="t2">Segue il tema del telefono, oppure ne scegli uno fisso.</div>
-        <Sec a="Colore" />
-        {COLORI.map((c) => (
+        <Sec a="Stile" />
+        <Seg<Stile> voci={[{ id: 'classico', nome: 'Classico' }, { id: 'vetro', nome: 'Vetro' }]} attivo={a.stile} onChange={(stile) => impostaAspetto({ stile })} />
+        <div className="t2">Classico è lo stile di sempre; Vetro usa pannelli di vetro con testate a fascia e una palette a scelta.</div>
+        {a.stile === 'vetro' && (
+          <>
+            <Sec a={`Palette · ${NOMI_PALETTE[a.palette].nome}`} />
+            {PALETTE.map((p) => (
+              <button key={p} className={clsx('opt', a.palette === p && 'sel')} onClick={() => impostaAspetto({ palette: p })} aria-pressed={a.palette === p}>
+                <span className="sw2" style={{ background: NOMI_PALETTE[p].colore }} />
+                <span className="grow t1">{NOMI_PALETTE[p].nome}</span>
+                {a.palette === p && <span className="ok">✓</span>}
+              </button>
+            ))}
+            <Sec a="Ruoli dei colori" />
+            <RuoliPalette chiave={`${a.palette}-${a.tema}-${a.stile}`} />
+          </>
+        )}
+        {a.stile === 'classico' && <Sec a="Colore" />}
+        {a.stile === 'classico' && COLORI.map((c) => (
           <button key={c.id} className={clsx('opt', a.colore === c.id && 'sel')} onClick={() => impostaAspetto({ colore: c.id })} aria-pressed={a.colore === c.id}>
             <span className="sw2" style={{ background: `var(--o-${c.id})` }} />
             <span className="grow t1">{c.nome}</span>

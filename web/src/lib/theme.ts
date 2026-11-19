@@ -5,11 +5,16 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 
 export type Tema = 'sistema' | 'chiaro' | 'scuro';
 export type Colore = 'verde' | 'petrolio' | 'indaco';
+/** Stile grafico: «classico» (quello di sempre) o «vetro» (pannelli di vetro, mockup stile-riassunto). */
+export type Stile = 'classico' | 'vetro';
+/** Palette dello stile vetro (solo con `stile: 'vetro'`). */
+export type Palette = 'grafite' | 'ambra' | 'salvia' | 'ghiaccio' | 'lime' | 'turchese' | 'arancio' | 'smeraldo';
+export const PALETTE: Palette[] = ['grafite', 'ghiaccio', 'salvia', 'turchese', 'smeraldo', 'lime', 'ambra', 'arancio']; // in ordine cromatico, come nel mockup
 
-export interface Aspetto { tema: Tema; colore: Colore }
+export interface Aspetto { tema: Tema; colore: Colore; stile: Stile; palette: Palette }
 
 const KEY = 'mytask.aspetto';
-let corrente: Aspetto = { tema: 'chiaro', colore: 'verde' };
+let corrente: Aspetto = { tema: 'chiaro', colore: 'verde', stile: 'classico', palette: 'salvia' };
 const listeners = new Set<() => void>();
 
 /** Legge l'aspetto salvato (valori sconosciuti tornano ai predefiniti). */
@@ -21,10 +26,12 @@ function leggiAspetto(): Aspetto {
       return {
         tema: p.tema === 'sistema' || p.tema === 'chiaro' || p.tema === 'scuro' ? p.tema : 'chiaro',
         colore: p.colore === 'petrolio' || p.colore === 'indaco' ? p.colore : 'verde',
+        stile: p.stile === 'vetro' ? 'vetro' : 'classico',
+        palette: PALETTE.includes(p.palette as Palette) ? (p.palette as Palette) : 'salvia',
       };
     }
   } catch { /* spazio di archiviazione non disponibile */ }
-  return { tema: 'chiaro', colore: 'verde' };
+  return { tema: 'chiaro', colore: 'verde', stile: 'classico', palette: 'salvia' };
 }
 
 /** Colore della barra del browser (meta theme-color) per ogni colore d'accento. */
@@ -44,6 +51,8 @@ function applica() {
   const el = document.documentElement;
   el.dataset.theme = scuro ? 'dark' : 'light';
   el.dataset.accent = corrente.colore;
+  el.dataset.stile = corrente.stile;
+  el.dataset.pal = corrente.palette;
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', COLORI_BARRA[corrente.colore]);
   aggiornaBarraStato(scuro);
 }
