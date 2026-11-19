@@ -155,8 +155,6 @@ html[data-stile=vetro] .week i.today { border-color: var(--acc2) !important; }
 html[data-stile=vetro] .bar, html[data-stile=vetro] .sr-barra, html[data-stile=vetro] .lv-barra, html[data-stile=vetro] .cmp-bar, html[data-stile=vetro] .ic-barra, html[data-stile=vetro] .prio-bar { background: rgba(255, 255, 255, .10); border-radius: 999px; }
 html[data-stile=vetro] .bar i, html[data-stile=vetro] .sr-barra i, html[data-stile=vetro] .ic-barra i { background: linear-gradient(90deg, var(--acc), var(--acc2)); border-radius: 999px; }
 html[data-stile=vetro] .bar.oltre i, html[data-stile=vetro] .oltre .sr-barra i, html[data-stile=vetro] .ic-barra.oltre i { background: var(--bad); }
-html[data-stile=vetro] .rank.dv { --a: color-mix(in srgb, var(--c, var(--mute)) 45%, transparent); --b: var(--v-g2); }
-html[data-stile=vetro] .rank.dv b { color: var(--ink); }
 html[data-stile=vetro] .pn-nota { border: 1px solid var(--v-hair) !important; background: var(--v-chip) !important; color: var(--mute); }
 html[data-stile=vetro] .cb { border-color: var(--mute); }
 html[data-stile=vetro] .cb.done { background: var(--ink) !important; border-color: var(--ink) !important; }
@@ -186,9 +184,9 @@ html[data-stile=vetro] .login-brand i { background: var(--acc); }
 html[data-stile=vetro] .login-ver, html[data-stile=vetro] .login-sub { color: var(--mute); }
 
 html[data-stile=vetro] .row .rank-int { --c: var(--mute); --cf: var(--v-g2); }
-html[data-stile=vetro] .rank-int.g3 { --c: var(--acc); --cf: rgba(var(--acc-rgb), .22); }
-html[data-stile=vetro] .rank-int.g4, html[data-stile=vetro] .rank-int.g5 { --c: var(--good); --cf: color-mix(in srgb, var(--good) 30%, transparent); }
-html[data-stile=vetro][data-theme=dark] .rank-int.g3, html[data-stile=vetro][data-theme=light] .rank-int.g3 { --c: var(--acc); --cf: rgba(var(--acc-rgb), .22); }
-html[data-stile=vetro][data-theme=dark] .rank-int.g4, html[data-stile=vetro][data-theme=dark] .rank-int.g5, html[data-stile=vetro][data-theme=light] .rank-int.g4, html[data-stile=vetro][data-theme=light] .rank-int.g5 { --c: var(--good); --cf: color-mix(in srgb, var(--good) 30%, transparent); }
+html[data-stile=vetro] .rank-int.g3 { --c: var(--acc); --cf: rgba(var(--acc-rgb), .16); }
+html[data-stile=vetro] .rank-int.g4, html[data-stile=vetro] .rank-int.g5 { --c: var(--good); --cf: color-mix(in srgb, var(--good) 20%, transparent); }
+html[data-stile=vetro][data-theme=dark] .rank-int.g3, html[data-stile=vetro][data-theme=light] .rank-int.g3 { --c: var(--acc); --cf: rgba(var(--acc-rgb), .16); }
+html[data-stile=vetro][data-theme=dark] .rank-int.g4, html[data-stile=vetro][data-theme=dark] .rank-int.g5, html[data-stile=vetro][data-theme=light] .rank-int.g4, html[data-stile=vetro][data-theme=light] .rank-int.g5 { --c: var(--good); --cf: color-mix(in srgb, var(--good) 20%, transparent); }
 /* banner, pillole e barre con i tre colori di significato */
 html[data-stile=vetro] .oltre .sr-barra i, html[data-stile=vetro] .oltre-lav .sr-barra i { background: var(--bad); }

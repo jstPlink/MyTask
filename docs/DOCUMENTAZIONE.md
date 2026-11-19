@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.111.0
+- **Versione documento:** 0.112.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -371,7 +371,7 @@ Un solo cronometro alla volta, che corre su un task. Stati: **ferma**, **lavoro*
 Le curiosità hanno due soli parametri, il **tempo stimato** e l'**interesse**, e una loro classifica (separata da quella delle attività). Il punteggio va da 0 a 100: **55% tempo stimato** (stessa scala delle attività: fino a 15 min 100, fino a 30 min 60, fino a 60 min 30, oltre 0; senza stima 30) e **45% interesse** (da 1 a 5 su 0-100; senza interesse vale 3), quindi il tempo pesa poco più dell'interesse. Esempi: 10 minuti e interesse 5 → 100; 20 minuti e interesse 3 → 56; senza stima e interesse 4 → 50; 2 ore e interesse 5 → 45.
 
 - **Ordine:** punteggio più alto prima; a parità l'interesse più alto e la curiosità aggiornata da più tempo (`curiositaPerPriorita`). Il numero accanto alla riga è la posizione in questa classifica (1 = la prima da approfondire), in Priorità, nella scheda Curiosità e nel widget.
-- **Pillola «?»:** larga 44 px come l'etichetta delle attività, con il «?» a sinistra e la posizione a destra, ferma, con la scala dell'interesse (grigio 1-2, verde medio 3, verde scuro 4-5; fondo tenue, contorno 1 px, numero nel colore), senza i colori del livello delle attività. Il punteggio serve solo per l'ordine.
+- **Pallino della curiosità (0.112.0):** 30 × 30 px, fermo, con la posizione al centro nel colore dell'interesse (grigio 1-2, verde medio 3, verde scuro 4-5), fondo appena colorato e contorno di 1 px. Niente più «?».
 - Le curiosità parcheggiate non hanno posizione (in fondo alla scheda, senza numero).
 
 ## 7. Architettura
@@ -630,6 +630,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-18 | 0.109.0 | **Note sempre aperte nella nota in corso:** tolto il pulsante «Note» della 0.108.0; il testo della nota è sempre visibile sotto il blocco del timer e, se è lungo, scorre la parte centrale della schermata (Pausa e Fatta restano in basso). |
 | 2026-11-19 | 0.110.0 | **Stile «Vetro»:** secondo stile grafico scelto in Altro › Aspetto (Classico / Vetro) con otto palette scure e chiare; pannelli di vetro con testate a fascia, scala del testo e spaziature del mockup; tre colori di significato (positivo, avvertenza gialla uguale in ogni palette, negativo) usati per priorità e interesse. File `web/src/stile-vetro.css`; il classico resta quello di sempre. |
 | 2026-11-19 | 0.111.0 | **Widget con lo stile Vetro e nuovo ordine delle palette:** il widget segue lo stile e la palette scelti nell'app (sfondo, testi, targhetta di posizione e pulsante «+» con i colori della palette, scuro e chiaro); palette ordinate Grafite, Ghiaccio, Turchese, Smeraldo, Salvia, Lime, Ambra, Arancio. |
+| 2026-11-19 | 0.112.0 | **Targhetta di posizione semplificata:** tolti il «!» e il «?» e i due pezzi; l'attività torna a una freccetta 32 × 30 px e la curiosità a un pallino 30 × 30 px, con fondo appena colorato (16%) e numero nel colore della priorità (o dell'interesse), in app, in entrambi gli stili, e nel widget (anche con lo stile Vetro). |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

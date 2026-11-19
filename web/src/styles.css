@@ -334,17 +334,11 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .row.p1, .row.p2, .row.p3 { border-left: 0; padding: 12px 0; align-items: center; }
 .row.p1 .cb, .row.p2 .cb, .row.p3 .cb { margin-top: 0; }
 .row .rank { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--c, var(--soft)); color: var(--c, var(--mid)); background: var(--cs, var(--surface2)); display: grid; place-items: center; font-weight: 900; font-size: 15.5px; }
-/* targhetta di posizione in due pezzi attaccati (simbolo + numero) con una linea di mezzo da 1 px: a sinistra il simbolo («!» attività, «?» curiosità) con la tinta del livello e il simbolo nel colore, a destra il numero su fondo grigio neutro, numero sempre inchiostro; contorno nel colore del livello; ferma */
-.row .rank.dv { --a: color-mix(in srgb, var(--c, var(--soft)) 45%, transparent); --b: var(--surface2); width: auto; height: 30px; border: 0; border-radius: 0; background: none; display: inline-flex; gap: 0; place-items: initial; font-size: 15.5px; color: var(--c, var(--soft)); }
-.rank.dv .dv-s, .rank.dv .dv-n { position: relative; height: 30px; display: grid; place-items: center; }
-.rank.dv .dv-s { width: 14px; } .rank.dv .dv-n { width: 34px; padding-right: 6px; } .rank.dv.pil .dv-n { width: 32px; padding-right: 2px; }
-.rank.dv .dv-s::after { content: ""; position: absolute; right: 0; top: 1px; bottom: 1px; width: 1px; background: var(--c, var(--soft)); z-index: 2; }
-.rank.dv svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.rank.dv path.f { stroke: none; }
-.rank.dv path.l { fill: none; stroke: var(--c, var(--soft)); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.rank.dv .dv-s path.f { fill: var(--a); } .rank.dv .dv-n path.f { fill: var(--b); }
-.rank.dv i, .rank.dv b { position: relative; font-style: normal; font-weight: 900; }
-.rank.dv i { font-size: 15.5px; } .rank.dv b { font-size: 15.5px; color: var(--ink); }
+/* targhetta di posizione: attività = freccetta 32 x 30 con fondo appena colorato e numero nel colore della priorità; curiosità = pallino 30 x 30 (vedi .rank-int); ferma */
+.row .rank.et { width: 32px; height: 30px; border: 0; border-radius: 0; background: none; position: relative; padding-right: 4px; color: var(--c, var(--soft)); }
+.row .rank.et svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.row .rank.et path { fill: color-mix(in srgb, var(--c, var(--soft)) 16%, transparent); stroke: var(--c, var(--soft)); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.row .rank.et b { position: relative; font-weight: 900; font-size: 15.5px; color: var(--c, var(--soft)); }
 .row.sel.p1, .row.sel.p2, .row.sel.p3 { background: var(--accent-soft); }
 
 /* ---------- Giorno scelto (finestra del mese) e barra in basso a cinque schede ---------- */
@@ -603,8 +597,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 
 /* ---------- Interesse: pallino verde, la saturazione cresce da 1 (quasi vuoto) a 5 (pieno); nessuna animazione ---------- */
 .row .rank-int { --c: var(--p1); --cf: var(--surface2); border: 1px solid var(--c); background: var(--cf); color: var(--c); animation: none; } /* come l'etichetta delle attività: grigio (interesse 1-2), verde medio (3), verde scuro (4-5) */
-.rank-int.g3 { --c: #4E9A78; --cf: color-mix(in srgb, #4E9A78 22%, transparent); }
-.rank-int.g4, .rank-int.g5 { --c: #1F7A52; --cf: color-mix(in srgb, #1F7A52 30%, transparent); }
+.rank-int.g3 { --c: #4E9A78; --cf: color-mix(in srgb, #4E9A78 16%, transparent); }
+.rank-int.g4, .rank-int.g5 { --c: #1F7A52; --cf: color-mix(in srgb, #1F7A52 20%, transparent); }
 :root[data-theme=dark] .rank-int.g3 { --c: #5FAE8D; --cf: color-mix(in srgb, #5FAE8D 22%, transparent); }
 :root[data-theme=dark] .rank-int.g4, :root[data-theme=dark] .rank-int.g5 { --c: #6FCF9B; --cf: color-mix(in srgb, #6FCF9B 30%, transparent); }
 
@@ -873,7 +867,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* Data nelle righe delle liste (bandierina = scadenza, lucchetto = data fissa) e nota verde del blocco Promemoria */
 .data-riga { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .nota-verde { margin: 6px 0 8px; padding: 9px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); font-size: 13px; line-height: 1.4; }
-.row .rank-vuoto { width: 48px; border: 1px dashed var(--line); border-radius: 15px; background: transparent; animation: none; }
+.row .rank-vuoto { width: 32px; border: 1px dashed var(--line); border-radius: 15px; background: transparent; animation: none; }
 
 /* icona «ha delle note»: pallino grigio sopra la data, a destra (la nota non si legge nella riga) */
 .row .right.col-note { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; }

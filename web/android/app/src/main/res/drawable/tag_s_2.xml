@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Etichetta di priorità: freccetta 32 x 30 dp con fondo appena colorato e contorno nel colore del livello, punta a destra. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="30dp"
+    android:viewportWidth="32"
+    android:viewportHeight="30">
+    <path
+        android:fillColor="#29F4C542"
+        android:strokeColor="#F4C542"
+        android:strokeWidth="1"
+        android:strokeLineJoin="round"
+        android:pathData="M4.5 1.5 H23.3 L29.6 12.19 Q30.8 15 29.6 17.81 L23.3 28.5 H4.5 Q1.2 28.5 1.2 24.4 V5.6 Q1.2 1.5 4.5 1.5 Z" />
+</vector>

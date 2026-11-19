@@ -134,14 +134,6 @@ function CasellaStato({ voce }: { voce: Item }) {
 /** Contorni dei due pezzi della targhetta di posizione (30 px di altezza): simbolo a sinistra (14 px, angoli sinistri stondati), numero a destra (con la punta per le attività, a pillola per le curiosità). */
 /** Contorno dell'etichetta intera (40 × 32, punta a destra): lo usa il numero di posizione nella scheda di una nota. */
 export const ETICHETTA = 'M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z';
-const SIMBOLO_ETICHETTA = 'M5 1 H14 V29 H5 Q1 29 1 25 V5 Q1 1 5 1 Z'; // pezzo del simbolo: riempimento chiuso e contorno aperto sul lato di giunzione (la linea di mezzo è disegnata a parte)
-const SIMBOLO_ETICHETTA_L = 'M14 1 H5 Q1 1 1 5 V25 Q1 29 5 29 H14';
-const NUMERO_ETICHETTA = 'M0 1 H24 L30.5 11.8 Q33 15 30.5 18.2 L24 29 H0 Z';
-const NUMERO_ETICHETTA_L = 'M0 1 H24 L30.5 11.8 Q33 15 30.5 18.2 L24 29 H0';
-const SIMBOLO_PILLOLA = 'M14 1 H13 Q1 1 1 13 V17 Q1 29 13 29 H14 Z';
-const SIMBOLO_PILLOLA_L = 'M14 1 H13 Q1 1 1 13 V17 Q1 29 13 29 H14';
-const NUMERO_PILLOLA = 'M0 1 H17 A14 14 0 0 1 17 29 H0 Z';
-const NUMERO_PILLOLA_L = 'M0 1 H17 A14 14 0 0 1 17 29 H0';
 
 /**
  * Riga di lista: priorità a sinistra (barra), titolo con riga grigia sotto, parte destra libera e casella.
@@ -162,16 +154,11 @@ export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnapost
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
       {/* con rank e interesse (le curiosità) il pallino è verde e fermo: il numero è la posizione, il riempimento è l'interesse */}
       {/* priorità e posizione: due pezzi separati da 2 px, a sinistra il simbolo («!» attività, «?» curiosità) con colore più carico, a destra il numero con fondo tenue; l'attività ha la punta a destra, la curiosità la pillola */}
-      {rank !== undefined && interesse !== undefined && (
-        <span className={clsx('rank', 'rank-int', 'dv', 'pil', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>
-          <span className="dv-s"><svg viewBox="0 0 14 30" preserveAspectRatio="none" aria-hidden="true"><path className="f" d={SIMBOLO_PILLOLA} /><path className="l" d={SIMBOLO_PILLOLA_L} /></svg><i>?</i></span>
-          <span className="dv-n"><svg viewBox="0 0 32 30" preserveAspectRatio="none" aria-hidden="true"><path className="f" d={NUMERO_PILLOLA} /><path className="l" d={NUMERO_PILLOLA_L} /></svg><b>{rank}</b></span>
-        </span>
-      )}
+      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
       {rank !== undefined && interesse === undefined && (
-        <span className="rank dv" aria-label={`Posizione ${rank}`}>
-          <span className="dv-s"><svg viewBox="0 0 14 30" preserveAspectRatio="none" aria-hidden="true"><path className="f" d={SIMBOLO_ETICHETTA} /><path className="l" d={SIMBOLO_ETICHETTA_L} /></svg><i>!</i></span>
-          <span className="dv-n"><svg viewBox="0 0 34 30" preserveAspectRatio="none" aria-hidden="true"><path className="f" d={NUMERO_ETICHETTA} /><path className="l" d={NUMERO_ETICHETTA_L} /></svg><b>{rank}</b></span>
+        <span className="rank et" aria-label={`Posizione ${rank}`}>
+          <svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg>
+          <b>{rank}</b>
         </span>
       )}
       {segnaposto && rank === undefined && <span className="rank rank-vuoto" aria-hidden="true" />}

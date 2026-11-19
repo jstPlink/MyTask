@@ -130,58 +130,43 @@ public class WidgetService extends RemoteViewsService {
             if (vt != null && (curiosita || rank > 0)) {
                 // stile Vetro: la targhetta è un'unica immagine disegnata con i colori della palette
                 int col;
-                String simbolo;
                 String numero;
                 if (curiosita) {
                     int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
                     col = vt.interesse(interesse);
-                    simbolo = "?";
                     numero = String.valueOf(rank > 0 ? rank : interesse);
                 } else {
                     col = vt.livello(Math.max(1, Math.min(3, o.optInt("l", 1))));
-                    simbolo = "!";
                     numero = String.valueOf(rank);
                 }
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
-                v.setViewVisibility(R.id.rank_s, View.GONE);
                 v.setViewVisibility(R.id.rank, View.GONE);
                 v.setViewVisibility(R.id.rank_img, View.VISIBLE);
-                v.setImageViewBitmap(R.id.rank_img, vt.targhetta(c, curiosita, col, simbolo, numero));
+                v.setImageViewBitmap(R.id.rank_img, vt.targhetta(c, curiosita, col, numero));
             } else if (rank > 0 && !curiosita) {
+                // attività: freccetta 32 x 30 con fondo appena colorato; il numero ha il colore della priorità
                 int livello = Math.max(1, Math.min(3, o.optInt("l", 1)));
-                int[] simC = {R.drawable.sim_a_c_1, R.drawable.sim_a_c_2, R.drawable.sim_a_c_3};
-                int[] simS = {R.drawable.sim_a_s_1, R.drawable.sim_a_s_2, R.drawable.sim_a_s_3};
-                int[] numC = {R.drawable.num_a_c_1, R.drawable.num_a_c_2, R.drawable.num_a_c_3};
-                int[] numS = {R.drawable.num_a_s_1, R.drawable.num_a_s_2, R.drawable.num_a_s_3};
+                int[] tagC = {R.drawable.tag_c_1, R.drawable.tag_c_2, R.drawable.tag_c_3};
+                int[] tagS = {R.drawable.tag_s_1, R.drawable.tag_s_2, R.drawable.tag_s_3};
                 String[] tintaC = {"#8A93A0", "#D9A400", "#D32F2F"};
                 String[] tintaS = {"#7B8493", "#F4C542", "#FF6B6B"};
-                String tinta = (s ? tintaS : tintaC)[livello - 1];
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
-                v.setViewPadding(R.id.rank, 0, 0, Math.round(6 * c.getResources().getDisplayMetrics().density), 0); // il numero sta verso il corpo: la punta è a destra
-                v.setTextViewText(R.id.rank_s, "!");
-                v.setInt(R.id.rank_s, "setBackgroundResource", (s ? simS : simC)[livello - 1]);
-                v.setTextColor(R.id.rank_s, Color.parseColor(tinta));
+                v.setViewPadding(R.id.rank, 0, 0, Math.round(4 * c.getResources().getDisplayMetrics().density), 0); // il numero sta verso il corpo: la punta è a destra
                 v.setTextViewText(R.id.rank, String.valueOf(rank));
-                v.setInt(R.id.rank, "setBackgroundResource", (s ? numS : numC)[livello - 1]);
-                v.setTextColor(R.id.rank, Color.parseColor(s ? "#F3F3F6" : "#404040")); // il numero resta neutro: il colore sta solo nel simbolo e nel contorno
+                v.setInt(R.id.rank, "setBackgroundResource", (s ? tagS : tagC)[livello - 1]);
+                v.setTextColor(R.id.rank, Color.parseColor((s ? tintaS : tintaC)[livello - 1]));
             } else if (curiosita) {
-                // curiosità: due pezzi con l'interesse (1-5): grigio (1-2), verde medio (3), verde scuro (4-5); fermo, senza battito
+                // curiosità: pallino 30 x 30 con l'interesse (1-5): grigio (1-2), verde medio (3), verde scuro (4-5); fermo, senza battito
                 int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
-                int[] simC = {R.drawable.sim_q_c_1, R.drawable.sim_q_c_2, R.drawable.sim_q_c_3, R.drawable.sim_q_c_4, R.drawable.sim_q_c_5};
-                int[] simS = {R.drawable.sim_q_s_1, R.drawable.sim_q_s_2, R.drawable.sim_q_s_3, R.drawable.sim_q_s_4, R.drawable.sim_q_s_5};
-                int[] numC = {R.drawable.num_q_c_1, R.drawable.num_q_c_2, R.drawable.num_q_c_3, R.drawable.num_q_c_4, R.drawable.num_q_c_5};
-                int[] numS = {R.drawable.num_q_s_1, R.drawable.num_q_s_2, R.drawable.num_q_s_3, R.drawable.num_q_s_4, R.drawable.num_q_s_5};
+                int[] pieniC = {R.drawable.rank_int_c_1, R.drawable.rank_int_c_2, R.drawable.rank_int_c_3, R.drawable.rank_int_c_4, R.drawable.rank_int_c_5};
+                int[] pieniS = {R.drawable.rank_int_s_1, R.drawable.rank_int_s_2, R.drawable.rank_int_s_3, R.drawable.rank_int_s_4, R.drawable.rank_int_s_5};
                 String[] tintaC = {"#8A93A0", "#8A93A0", "#4E9A78", "#1F7A52", "#1F7A52"};
                 String[] tintaS = {"#7B8493", "#7B8493", "#5FAE8D", "#6FCF9B", "#6FCF9B"};
-                String tinta = (s ? tintaS : tintaC)[interesse - 1];
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
-                v.setViewPadding(R.id.rank, 0, 0, Math.round(2 * c.getResources().getDisplayMetrics().density), 0);
-                v.setTextViewText(R.id.rank_s, "?");
-                v.setInt(R.id.rank_s, "setBackgroundResource", (s ? simS : simC)[interesse - 1]);
-                v.setTextColor(R.id.rank_s, Color.parseColor(tinta));
+                v.setViewPadding(R.id.rank, 0, 0, 0, 0);
                 v.setTextViewText(R.id.rank, String.valueOf(rank > 0 ? rank : interesse)); // la posizione nella classifica delle curiosità
-                v.setInt(R.id.rank, "setBackgroundResource", (s ? numS : numC)[interesse - 1]);
-                v.setTextColor(R.id.rank, Color.parseColor(s ? "#F3F3F6" : "#404040")); // il numero resta neutro: il colore sta solo nel simbolo e nel contorno
+                v.setInt(R.id.rank, "setBackgroundResource", (s ? pieniS : pieniC)[interesse - 1]);
+                v.setTextColor(R.id.rank, Color.parseColor((s ? tintaS : tintaC)[interesse - 1]));
             } else {
                 v.setViewVisibility(R.id.rankbox, View.GONE);
             }

@@ -90,60 +90,37 @@ final class StileVetro {
     }
 
     /**
-     * Targhetta di posizione 48 x 30 dp: a sinistra il pezzo del simbolo («!» o «?») con la tinta al 45%, a destra il pezzo del numero
-     * su fondo neutro con la punta (attività) o la pillola (curiosità); contorno e linea di mezzo da 1 dp nel colore del livello.
+     * Targhetta di posizione: attività = freccetta 32 x 30 dp con la punta a destra, curiosità = pallino 30 x 30 dp; fondo appena colorato
+     * (16%), contorno di 1 dp e numero nel colore del livello.
      */
-    Bitmap targhetta(Context c, boolean curiosita, int colore, String simbolo, String numero) {
+    Bitmap targhetta(Context c, boolean curiosita, int colore, String numero) {
         float d = dp(c, 1);
-        Bitmap b = Bitmap.createBitmap(Math.round(48 * d), Math.round(30 * d), Bitmap.Config.ARGB_8888);
+        Bitmap b = Bitmap.createBitmap(Math.round(32 * d), Math.round(30 * d), Bitmap.Config.ARGB_8888);
         Canvas cv = new Canvas(b);
         float u = d;
-        Path simbolo_ = new Path();
-        Path num = new Path();
+        Path forma = new Path();
         if (curiosita) {
-            simbolo_.moveTo(14 * u, 1 * u);
-            simbolo_.lineTo(13 * u, 1 * u);
-            simbolo_.quadTo(1 * u, 1 * u, 1 * u, 13 * u);
-            simbolo_.lineTo(1 * u, 17 * u);
-            simbolo_.quadTo(1 * u, 29 * u, 13 * u, 29 * u);
-            simbolo_.lineTo(14 * u, 29 * u);
-            simbolo_.close();
-            num.moveTo(14 * u, 1 * u);
-            num.lineTo(31 * u, 1 * u);
-            num.arcTo(new RectF(17 * u, 1 * u, 45 * u, 29 * u), -90, 180);
-            num.lineTo(14 * u, 29 * u);
-            num.close();
+            forma.addOval(new RectF(1.5f * u, 1 * u, 30.5f * u, 29 * u), Path.Direction.CW);
         } else {
-            simbolo_.moveTo(14 * u, 1 * u);
-            simbolo_.lineTo(5 * u, 1 * u);
-            simbolo_.quadTo(1 * u, 1 * u, 1 * u, 5 * u);
-            simbolo_.lineTo(1 * u, 25 * u);
-            simbolo_.quadTo(1 * u, 29 * u, 5 * u, 29 * u);
-            simbolo_.lineTo(14 * u, 29 * u);
-            simbolo_.close();
-            num.moveTo(14 * u, 1 * u);
-            num.lineTo(38 * u, 1 * u);
-            num.lineTo(44.5f * u, 11.8f * u);
-            num.quadTo(47 * u, 15 * u, 44.5f * u, 18.2f * u);
-            num.lineTo(38 * u, 29 * u);
-            num.lineTo(14 * u, 29 * u);
-            num.close();
+            forma.moveTo(4.5f * u, 1.5f * u);
+            forma.lineTo(23.3f * u, 1.5f * u);
+            forma.lineTo(29.6f * u, 12.19f * u);
+            forma.quadTo(30.8f * u, 15 * u, 29.6f * u, 17.81f * u);
+            forma.lineTo(23.3f * u, 28.5f * u);
+            forma.lineTo(4.5f * u, 28.5f * u);
+            forma.quadTo(1.2f * u, 28.5f * u, 1.2f * u, 24.4f * u);
+            forma.lineTo(1.2f * u, 5.6f * u);
+            forma.quadTo(1.2f * u, 1.5f * u, 4.5f * u, 1.5f * u);
+            forma.close();
         }
-        cv.drawPath(simbolo_, pennello(Color.argb(0x73, Color.red(colore), Color.green(colore), Color.blue(colore)), Paint.Style.FILL, 0));
-        cv.drawPath(num, pennello(sfondo3, Paint.Style.FILL, 0));
-        cv.drawPath(simbolo_, pennello(colore, Paint.Style.STROKE, d));
-        cv.drawPath(num, pennello(colore, Paint.Style.STROKE, d));
-        Paint ts = pennello(colore, Paint.Style.FILL, 0);
-        ts.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        ts.setTextAlign(Paint.Align.CENTER);
-        ts.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 15.5f, c.getResources().getDisplayMetrics()));
-        float y = 15 * u - (ts.ascent() + ts.descent()) / 2;
-        cv.drawText(simbolo, 7 * u, y, ts);
-        Paint tn = pennello(testo, Paint.Style.FILL, 0);
-        tn.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        tn.setTextAlign(Paint.Align.CENTER);
-        tn.setTextSize(ts.getTextSize());
-        cv.drawText(numero, (curiosita ? 30 : 28) * u, y, tn);
+        cv.drawPath(forma, pennello(Color.argb(0x29, Color.red(colore), Color.green(colore), Color.blue(colore)), Paint.Style.FILL, 0));
+        cv.drawPath(forma, pennello(colore, Paint.Style.STROKE, d));
+        Paint t = pennello(colore, Paint.Style.FILL, 0);
+        t.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        t.setTextAlign(Paint.Align.CENTER);
+        t.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 15.5f, c.getResources().getDisplayMetrics()));
+        float y = 15 * u - (t.ascent() + t.descent()) / 2;
+        cv.drawText(numero, (curiosita ? 16 : 14) * u, y, t);
         return b;
     }
 
