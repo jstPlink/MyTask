@@ -51,6 +51,17 @@ public abstract class WidgetBase extends AppWidgetProvider {
         PendingIntent apriApp = PendingIntent.getActivity(c, 20 + k, apri, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         v.setOnClickPendingIntent(R.id.vuoto, apriApp);
         v.setOnClickPendingIntent(R.id.radice, apriApp); // sfondo e margini del widget
+
+        // stile Vetro (scelto nell'app): sfondo, messaggio a lista vuota e pulsante + con i colori della palette
+        StileVetro vt = StileVetro.leggi(c, s);
+        if (vt != null) {
+            int bg = vt.sfondoWidget(c);
+            if (bg != 0) v.setInt(R.id.radice, "setBackgroundResource", bg);
+            v.setTextColor(R.id.vuoto, vt.secondario);
+            v.setInt(R.id.nota, "setBackgroundResource", 0);
+            v.setViewPadding(R.id.nota, 0, 0, 0, 0);
+            v.setImageViewBitmap(R.id.nota, vt.piu(c));
+        }
         return v;
     }
 }

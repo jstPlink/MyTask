@@ -10,6 +10,7 @@ import { archivioWidget, lavoroWidget, righeWidget } from '../../../shared/widge
 import { completaVoce, nuovaVoce } from './actions.ts';
 import { finisciSessione, getSessione, iniziaLavoro, mettiInPausa, passaA, riprendi, subscribeSessione } from './sessione.ts';
 import { getItem, getItems, saveItem, subscribe } from './store.ts';
+import { getAspetto, subscribeAspetto } from './theme.ts';
 import { debounce } from './util.ts';
 
 /** Azione accodata dal widget mentre l'app era chiusa. `ts` è il momento in cui è stata fatta. */
@@ -19,7 +20,7 @@ type AzioneWidget =
   | { tipo: 'avvia'; id: string; ts: number }
   | { tipo: 'pausa' | 'riprendi' | 'fine'; ts: number }
   | { tipo: 'priorita'; ts: number };
-const Widget = registerPlugin<{ aggiorna(o: { righe: string; archivio?: string; lavoro?: string }): Promise<void>; coda(): Promise<{ azioni: AzioneWidget[] }> }>('Widget');
+const Widget = registerPlugin<{ aggiorna(o: { righe: string; archivio?: string; lavoro?: string; stile?: string }): Promise<void>; coda(): Promise<{ azioni: AzioneWidget[] }> }>('Widget');
 
 /** Un tocco sul widget chiede la pagina Priorità: il flag serve se l'app non ha ancora montato l'interfaccia, l'evento se è già aperta. */
 let richiestaPriorita = false;
@@ -60,12 +61,15 @@ async function applicaAzioni() {
   }
 }
 
+/** Stile del widget: il nome della palette con lo stile Vetro, testo vuoto con quello classico. */
+function stileWidget(): string { const a = getAspetto(); return a.stile === 'vetro' ? a.palette : ''; }
+
 /** Manda al widget le righe di oggi, la sessione di lavoro e l'archivio (per la ricerca nel widget). */
 async function spingiLista() {
   try {
     const items = getItems();
     const lavoro = lavoroWidget(items, getSessione());
-    await Widget.aggiorna({ righe: JSON.stringify(righeWidget(items, today())), archivio: JSON.stringify(archivioWidget(items)), lavoro: lavoro ? JSON.stringify(lavoro) : '' });
+    await Widget.aggiorna({ righe: JSON.stringify(righeWidget(items, today())), archivio: JSON.stringify(archivioWidget(items)), lavoro: lavoro ? JSON.stringify(lavoro) : '', stile: stileWidget() });
   } catch (e) {
     console.warn('Widget: aggiornamento non riuscito', e);
   }
@@ -78,6 +82,7 @@ export function avviaWidget() {
   const ciclo = async () => { await applicaAzioni(); spingi(); };
   subscribe(spingi);
   subscribeSessione(spingi);
+  subscribeAspetto(spingi); // cambio di stile o di palette: il widget si ridisegna con i nuovi colori
   void CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) void ciclo(); });
   setInterval(spingi, 5 * 60_000);
   void ciclo();

@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.110.0
+- **Versione documento:** 0.111.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -90,7 +90,8 @@ Secondo stile grafico, alternativo a quello classico, scelto in **Altro › Aspe
 - **Palette** (`data-pal`), in ordine cromatico: Grafite, Ghiaccio, Salvia, Turchese, Smeraldo, Lime, Ambra, Arancio. Ognuna ha la versione scura e quella chiara (tema Sistema/Chiaro/Scuro come prima); sotto la scelta c'è l'elenco dei ruoli dei colori col valore esadecimale.
 - **Colori di significato:** valore positivo (verde della palette), **avvertenza** (giallo, uguale in tutte le palette: `#f4c542` scuro, `#b9811a` chiaro) e valore negativo (rosso della palette). Le priorità seguono questi ruoli: bassa = grigio, media = giallo, alta = rosso; l'interesse delle curiosità: grigio (1-2), accento (3), positivo (4-5).
 - **Pannelli:** ogni «Sezione» è un pannello di vetro con testata a fascia (sfumatura d'accento e filetto sottile), schede/gruppi con angoli 22, cartelle 16, campi 14 e altezza minima 44. Sul sito largo la colonna centrale resta quella del layout (760 px).
-- Il widget Android e lo stile classico non cambiano.
+- **Widget Android:** segue lo stile scelto. L'app scrive il nome della palette nel widget (`stile`, vedi `lib/widget.ts` e `WidgetPlugin.aggiorna`); con lo stile Vetro il widget usa i colori della palette (tema scuro nel widget scuro, chiaro in quello chiaro): sfondo (`widget_bg_v_<palette>_<c|s>`), testi, targhetta di posizione disegnata a runtime (`StileVetro.java`: simbolo «!»/«?» più il numero) e pulsante «+». Con lo stile classico il widget è quello di sempre.
+- Ordine delle palette: Grafite, Ghiaccio, Turchese, Smeraldo, Salvia, Lime, Ambra, Arancio.
 
 ### 2.4 Componenti comuni delle liste
 
@@ -628,6 +629,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-18 | 0.108.0 | **Targhetta stile D e note nella nota in corso:** targhetta di posizione con i due pezzi attaccati e una linea di mezzo da 1 px (nel colore del livello); a sinistra il simbolo («!» o «?») con la tinta del livello, a destra il numero su fondo grigio neutro, sempre color inchiostro, con il contorno nel colore del livello (app e widget; larghezza totale 48 px); numero centrato verso il corpo. Nella schermata «in corso» a tutto schermo, se la nota ha del testo, compare sotto la riga del tipo il pulsante «Note» che apre il testo (scorre se è lungo) senza mettere in pausa; con solo timer e barra sparisce come il resto. |
 | 2026-11-18 | 0.109.0 | **Note sempre aperte nella nota in corso:** tolto il pulsante «Note» della 0.108.0; il testo della nota è sempre visibile sotto il blocco del timer e, se è lungo, scorre la parte centrale della schermata (Pausa e Fatta restano in basso). |
 | 2026-11-19 | 0.110.0 | **Stile «Vetro»:** secondo stile grafico scelto in Altro › Aspetto (Classico / Vetro) con otto palette scure e chiare; pannelli di vetro con testate a fascia, scala del testo e spaziature del mockup; tre colori di significato (positivo, avvertenza gialla uguale in ogni palette, negativo) usati per priorità e interesse. File `web/src/stile-vetro.css`; il classico resta quello di sempre. |
+| 2026-11-19 | 0.111.0 | **Widget con lo stile Vetro e nuovo ordine delle palette:** il widget segue lo stile e la palette scelti nell'app (sfondo, testi, targhetta di posizione e pulsante «+» con i colori della palette, scuro e chiaro); palette ordinate Grafite, Ghiaccio, Turchese, Smeraldo, Salvia, Lime, Ambra, Arancio. |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

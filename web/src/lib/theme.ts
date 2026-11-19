@@ -9,7 +9,7 @@ export type Colore = 'verde' | 'petrolio' | 'indaco';
 export type Stile = 'classico' | 'vetro';
 /** Palette dello stile vetro (solo con `stile: 'vetro'`). */
 export type Palette = 'grafite' | 'ambra' | 'salvia' | 'ghiaccio' | 'lime' | 'turchese' | 'arancio' | 'smeraldo';
-export const PALETTE: Palette[] = ['grafite', 'ghiaccio', 'salvia', 'turchese', 'smeraldo', 'lime', 'ambra', 'arancio']; // in ordine cromatico, come nel mockup
+export const PALETTE: Palette[] = ['grafite', 'ghiaccio', 'turchese', 'smeraldo', 'salvia', 'lime', 'ambra', 'arancio']; // nell'ordine scelto dall'utente
 
 export interface Aspetto { tema: Tema; colore: Colore; stile: Stile; palette: Palette }
 

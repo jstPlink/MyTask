@@ -31,6 +31,7 @@ public class WidgetService extends RemoteViewsService {
     static class Fabbrica implements RemoteViewsFactory {
         private final Context c;
         private final boolean s;
+        private StileVetro vt; // stile Vetro scelto nell'app (null = classico)
         private JSONArray righe = new JSONArray();
         /** Le voci della lista: intestazioni di sezione (con «h») e righe, nell'ordine in cui compaiono. */
         private final List<JSONObject> voci = new ArrayList<>();
@@ -43,6 +44,7 @@ public class WidgetService extends RemoteViewsService {
         @Override public void onCreate() { }
         @Override public void onDataSetChanged() {
             righe = WidgetDati.righe(c);
+            vt = StileVetro.leggi(c, s);
             voci.clear();
             aggiungi("Attività", false);
             aggiungi("Curiosità", true);
@@ -77,7 +79,7 @@ public class WidgetService extends RemoteViewsService {
         private RemoteViews sezione(JSONObject o) {
             RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.riga_sezione);
             v.setTextViewText(R.id.sez_nome, o.optString("h"));
-            v.setTextColor(R.id.sez_nome, colore("#65656E", "#A5A5B0"));
+            v.setTextColor(R.id.sez_nome, cSec());
             v.setTextViewText(R.id.sez_tempo, ""); // nessuna stima del tempo totale: la compili una nota alla volta
             v.setTextColor(R.id.sez_tempo, colore("#2F7D5B", "#6FCF9B"));
             v.setOnClickFillInIntent(R.id.sez_riga, new Intent().putExtra("azione", "apri")); // anche l'intestazione apre l'app
@@ -88,6 +90,10 @@ public class WidgetService extends RemoteViewsService {
         private int colore(String chiaro, String scuro) {
             return Color.parseColor(s ? scuro : chiaro);
         }
+
+        /** Testo secondario e testo principale: della palette con lo stile Vetro, altrimenti quelli classici. */
+        private int cSec() { return vt != null ? vt.secondario : colore("#65656E", "#A5A5B0"); }
+        private int cInk() { return vt != null ? vt.testo : colore("#404040", "#F3F3F6"); }
 
         @Override
         public RemoteViews getViewAt(int pos) {
@@ -109,18 +115,39 @@ public class WidgetService extends RemoteViewsService {
             long previsto = o.optLong("p", 0);
             v.setViewVisibility(R.id.sub, previsto > 0 ? View.VISIBLE : View.GONE);
             v.setTextViewText(R.id.sub, WidgetDati.durata(previsto));
-            v.setTextColor(R.id.sub, colore("#65656E", "#A5A5B0"));
+            v.setTextColor(R.id.sub, cSec());
 
             // tempo già lavorato accanto alla casella
             long lavorato = o.optLong("w", 0);
             boolean mostraTempo = lavorato >= 1000 && !fatto;
             v.setViewVisibility(R.id.tempo, mostraTempo ? View.VISIBLE : View.GONE);
             v.setTextViewText(R.id.tempo, WidgetDati.cronometro(lavorato));
-            v.setTextColor(R.id.tempo, colore("#65656E", "#A5A5B0"));
+            v.setTextColor(R.id.tempo, cSec());
 
             // targhetta della posizione, come nell'app: due pezzi attaccati con una linea di 1 dp, a sinistra il simbolo («!» attività, «?» curiosità) con la tinta del livello, a destra il numero su fondo grigio neutro con il contorno nel colore del livello; ferma
             int rank = o.optInt("r", 0);
-            if (rank > 0 && !"c".equals(o.optString("k"))) {
+            boolean curiosita = "c".equals(o.optString("k"));
+            if (vt != null && (curiosita || rank > 0)) {
+                // stile Vetro: la targhetta è un'unica immagine disegnata con i colori della palette
+                int col;
+                String simbolo;
+                String numero;
+                if (curiosita) {
+                    int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
+                    col = vt.interesse(interesse);
+                    simbolo = "?";
+                    numero = String.valueOf(rank > 0 ? rank : interesse);
+                } else {
+                    col = vt.livello(Math.max(1, Math.min(3, o.optInt("l", 1))));
+                    simbolo = "!";
+                    numero = String.valueOf(rank);
+                }
+                v.setViewVisibility(R.id.rankbox, View.VISIBLE);
+                v.setViewVisibility(R.id.rank_s, View.GONE);
+                v.setViewVisibility(R.id.rank, View.GONE);
+                v.setViewVisibility(R.id.rank_img, View.VISIBLE);
+                v.setImageViewBitmap(R.id.rank_img, vt.targhetta(c, curiosita, col, simbolo, numero));
+            } else if (rank > 0 && !curiosita) {
                 int livello = Math.max(1, Math.min(3, o.optInt("l", 1)));
                 int[] simC = {R.drawable.sim_a_c_1, R.drawable.sim_a_c_2, R.drawable.sim_a_c_3};
                 int[] simS = {R.drawable.sim_a_s_1, R.drawable.sim_a_s_2, R.drawable.sim_a_s_3};
@@ -137,7 +164,7 @@ public class WidgetService extends RemoteViewsService {
                 v.setTextViewText(R.id.rank, String.valueOf(rank));
                 v.setInt(R.id.rank, "setBackgroundResource", (s ? numS : numC)[livello - 1]);
                 v.setTextColor(R.id.rank, Color.parseColor(s ? "#F3F3F6" : "#404040")); // il numero resta neutro: il colore sta solo nel simbolo e nel contorno
-            } else if ("c".equals(o.optString("k"))) {
+            } else if (curiosita) {
                 // curiosità: due pezzi con l'interesse (1-5): grigio (1-2), verde medio (3), verde scuro (4-5); fermo, senza battito
                 int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
                 int[] simC = {R.drawable.sim_q_c_1, R.drawable.sim_q_c_2, R.drawable.sim_q_c_3, R.drawable.sim_q_c_4, R.drawable.sim_q_c_5};
@@ -162,7 +189,7 @@ public class WidgetService extends RemoteViewsService {
             SpannableString titolo = new SpannableString(o.optString("t", ""));
             if (fatto) titolo.setSpan(new StrikethroughSpan(), 0, titolo.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             v.setTextViewText(R.id.titolo, titolo);
-            v.setTextColor(R.id.titolo, fatto ? colore("#65656E", "#A5A5B0") : colore("#404040", "#F3F3F6"));
+            v.setTextColor(R.id.titolo, fatto ? cSec() : cInk());
 
             // «in pausa»: nota avviata e messa da parte (campo «z»), a meno che il cronometro sia proprio su di lei
             boolean inPausa = !fatto && !inCorso && o.optInt("z", 0) == 1;

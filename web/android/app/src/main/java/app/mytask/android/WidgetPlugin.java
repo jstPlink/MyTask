@@ -25,6 +25,7 @@ public class WidgetPlugin extends Plugin {
         String archivio = call.getString("archivio");
         if (archivio != null) WidgetDati.salvaArchivio(getContext(), archivio);
         if (call.hasOption("lavoro")) WidgetDati.salvaLavoro(getContext(), call.getString("lavoro", ""));
+        if (call.hasOption("stile")) WidgetDati.salvaStile(getContext(), call.getString("stile", ""));
         WidgetDati.salvaRighe(getContext(), righe);
         call.resolve();
     }

@@ -170,6 +170,16 @@ final class WidgetDati {
         }
     }
 
+    /** Nome della palette dello stile Vetro scelto nell'app, o null con lo stile classico (scritto dall'app, vedi WidgetPlugin.aggiorna). */
+    static String stile(Context c) {
+        String n = prefs(c).getString("stile", "");
+        return n.isEmpty() ? null : n;
+    }
+
+    static void salvaStile(Context c, String nome) {
+        prefs(c).edit().putString("stile", nome == null ? "" : nome).apply();
+    }
+
     static void salvaArchivio(Context c, String json) {
         prefs(c).edit().putString("archivio", json).apply();
     }
