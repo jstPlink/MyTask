@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.113.0
+- **Versione documento:** 0.114.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -92,6 +92,7 @@ Secondo stile grafico, alternativo a quello classico, scelto in **Altro › Aspe
 - **Pannelli:** ogni «Sezione» è un pannello di vetro con testata a fascia (sfumatura d'accento e filetto sottile), schede/gruppi con angoli 22, cartelle 16, campi 14 e altezza minima 44. Sul sito largo la colonna centrale resta quella del layout (760 px).
 - **Widget Android:** segue lo stile scelto. L'app scrive il nome della palette nel widget (`stile`, vedi `lib/widget.ts` e `WidgetPlugin.aggiorna`); con lo stile Vetro il widget usa i colori della palette (tema scuro nel widget scuro, chiaro in quello chiaro): sfondo (`widget_bg_v_<palette>_<c|s>`), testi, targhetta di posizione disegnata a runtime (`StileVetro.java`: simbolo «!»/«?» più il numero) e pulsante «+». Con lo stile classico il widget è quello di sempre.
 - Ordine delle palette: Grafite, Ghiaccio, Turchese, Smeraldo, Salvia, Lime, Ambra, Arancio.
+- **Scheda aggiornata (0.114.0):** allineato alla «Scheda stile Vetro» v2. Testate delle sezioni non cliccabili («fix»: niente sfondo, titolo nel colore secondario, filetto sottile); targhetta di posizione **a due pezzi** (simbolo «!» attività / «?» curiosità con tinta al 45%, numero su fondo neutro, contorno nel colore del livello; solo nello stile Vetro, anche nel widget); casella «fatta» riempita d'accento con il segno; modalità chiara **piatta** (sfondo unico, schede bianche con un filetto, senza sfocatura né ombra); tempi di movimento fissi e anello di focus d'accento; targhetta del margine come pannellino con tinta d'accento; pulsanti tondi con contatore, gradi e chip nelle misure della scheda.
 
 ### 2.4 Componenti comuni delle liste
 
@@ -632,6 +633,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-19 | 0.111.0 | **Widget con lo stile Vetro e nuovo ordine delle palette:** il widget segue lo stile e la palette scelti nell'app (sfondo, testi, targhetta di posizione e pulsante «+» con i colori della palette, scuro e chiaro); palette ordinate Grafite, Ghiaccio, Turchese, Smeraldo, Salvia, Lime, Ambra, Arancio. |
 | 2026-11-19 | 0.112.0 | **Targhetta di posizione semplificata:** tolti il «!» e il «?» e i due pezzi; l'attività torna a una freccetta 32 × 30 px e la curiosità a un pallino 30 × 30 px, con fondo appena colorato (16%) e numero nel colore della priorità (o dell'interesse), in app, in entrambi gli stili, e nel widget (anche con lo stile Vetro). |
 | 2026-11-20 | 0.113.0 | **Coerenza dello stile classico e schede in riga:** barra delle schede in basso con icona e nome affiancati (46 px invece di 62; «+» e avvisi più in basso; «Intratt.»); testi portati sulla scala 11/12/13/14/15/16/18 (+ 20/26/34), angoli su 16 (schede), 26 (fogli e finestre), 12, 14 e 999 (pillole), niente bianco fisso sopra i colori dei livelli, colori dell'interesse nei token (`--i3`, `--i4`), velo e ombre uniformi. Nuova «scheda stile» dello stile classico in `docs/scheda-stile-base.html` (parallela a quella Vetro, colonne affiancate) |
+| 2026-11-20 | 0.114.0 | **Stile Vetro allineato alla scheda aggiornata:** testate «fix», targhetta di posizione a due pezzi con «!» e «?» (solo in Vetro, anche nel widget), casella fatta d'accento con il segno, chiaro piatto, tempi e focus della scheda, targhetta del margine come pannellino con tinta, contatore e gradi nelle misure della scheda (`stile-vetro.css`, `StileVetro.java`, layout del widget) |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

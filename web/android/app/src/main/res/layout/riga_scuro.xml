@@ -13,12 +13,12 @@
 
     <FrameLayout
         android:id="@+id/rankbox"
-        android:layout_width="32dp"
+        android:layout_width="wrap_content"
         android:layout_height="30dp">
 
         <ImageView
             android:id="@+id/rank_img"
-            android:layout_width="32dp"
+            android:layout_width="wrap_content"
             android:layout_height="30dp"
             android:contentDescription="@null"
             android:scaleType="fitCenter"

@@ -27,7 +27,7 @@ html[data-stile=vetro][data-theme=dark] {
   --p1: var(--mute); --p2: var(--v-warn); --p3: var(--bad);
   --c1: var(--acc); --c1s: rgba(var(--acc-rgb), .16); --c2: var(--acc2); --c2s: rgba(var(--acc2-rgb), .16); --c3: var(--good); --c3s: color-mix(in srgb, var(--good) 16%, transparent);
   --c4: var(--bad); --c4s: rgba(var(--bad-rgb), .14); --c5: var(--mute); --c5s: color-mix(in srgb, var(--mute) 16%, transparent);
-  --v-chip: rgba(255, 255, 255, .065); --v-hair: rgba(255, 255, 255, .08); --v-sel: rgba(255, 255, 255, .12); --v-sheet: rgba(0, 0, 0, .6);
+  --v-chip: rgba(255, 255, 255, .065); --v-hair: rgba(255, 255, 255, .08); --v-sel: rgba(255, 255, 255, .10); --v-sheet: rgba(0, 0, 0, .6);
   --v-edge: 1px solid rgba(255, 255, 255, .15);
   --v-glass: linear-gradient(160deg, rgba(255, 255, 255, .075), rgba(255, 255, 255, .05));
   --v-glass-sh: inset 0 1px 0 rgba(255, 255, 255, .105), 0 10px 28px rgba(0, 0, 0, .29);
@@ -190,3 +190,56 @@ html[data-stile=vetro][data-theme=dark] .rank-int.g3, html[data-stile=vetro][dat
 html[data-stile=vetro][data-theme=dark] .rank-int.g4, html[data-stile=vetro][data-theme=dark] .rank-int.g5, html[data-stile=vetro][data-theme=light] .rank-int.g4, html[data-stile=vetro][data-theme=light] .rank-int.g5 { --c: var(--good); --cf: color-mix(in srgb, var(--good) 20%, transparent); }
 /* banner, pillole e barre con i tre colori di significato */
 html[data-stile=vetro] .oltre .sr-barra i, html[data-stile=vetro] .oltre-lav .sr-barra i { background: var(--bad); }
+
+/* ================= Aggiornamento alla scheda «Vetro» v2 (tempi, testate, targhetta, chiaro piatto, controlli) ================= */
+html[data-stile=vetro] { --t-fast: .15s; --t-base: .2s; --t-slow: .45s; --ease: cubic-bezier(.2, .8, .2, 1); }
+html[data-stile=vetro] :focus-visible { outline: 2px solid rgba(var(--acc-rgb), .6); outline-offset: 2px; }
+
+/* testata di una sezione non cliccabile («fix»): nessuno sfondo, titolo 15 px nel colore secondario, filetto sottile sotto, conteggio in etichetta */
+html[data-stile=vetro] .sz-t { background: none !important; border-bottom: 1px solid var(--v-hair) !important; color: var(--mute); font-weight: 800; }
+html[data-stile=vetro] .sz-t b, html[data-stile=vetro] .sz-tempi { font-size: 11px; }
+
+/* targhetta di posizione a due pezzi: simbolo («!» attività, «?» curiosità) con tinta del 45% e numero su fondo neutro, contorno nel colore del livello */
+html[data-stile=vetro] .row .rank.et { position: relative; display: grid; place-items: center; width: 46px; height: 30px; padding: 0 0 0 14px; overflow: hidden; border: 1px solid var(--c, var(--mute)); border-radius: 9px; background: var(--v-g2); color: var(--ink); }
+html[data-stile=vetro] .row .rank.et svg { display: none; }
+html[data-stile=vetro] .row .rank.et b { color: var(--ink); font-size: 15px; font-weight: 900; }
+html[data-stile=vetro] .row .rank.et::before, html[data-stile=vetro] .row .rank-int.pos::before { position: absolute; left: 0; top: 0; bottom: 0; width: 14px; display: grid; place-items: center; background: color-mix(in srgb, var(--c, var(--mute)) 45%, transparent); color: var(--c, var(--mute)); border-right: 1px solid var(--c, var(--mute)); font-size: 15px; font-weight: 900; }
+html[data-stile=vetro] .row .rank.et::before { content: "!"; }
+html[data-stile=vetro] .row .rank-int.pos { position: relative; display: grid; place-items: center; width: 46px; height: 30px; padding: 0 0 0 14px; overflow: hidden; border-radius: 15px; background: var(--v-g2); color: var(--ink); font-size: 15px; font-weight: 900; }
+html[data-stile=vetro] .row .rank-int.pos::before { content: "?"; }
+html[data-stile=vetro] .row .rank-vuoto { width: 46px; }
+
+/* casella spuntata: come la casella di spunta della scheda (riempita d'accento con il segno) */
+html[data-stile=vetro] .cb.done { background: var(--acc) !important; border-color: var(--acc) !important; }
+html[data-stile=vetro] .cb.done::after { width: 5px; height: 10px; margin-top: -2px; border-radius: 0; background: none !important; border: solid var(--onacc); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); box-sizing: content-box; }
+
+/* pulsanti tondi con contatore, chip, gradi, avvisi, stato vuoto */
+html[data-stile=vetro] .circ { transition: background var(--t-fast), transform var(--t-fast); }
+html[data-stile=vetro] .circ:active { transform: scale(.94); }
+html[data-stile=vetro] .circ-badge { top: -4px; right: -4px; min-width: 20px; height: 20px; border: 0; font-size: 11px; font-weight: 800; }
+html[data-stile=vetro] .chips { gap: 8px; }
+html[data-stile=vetro] .imp-gradi button { height: 40px; min-height: 40px; border-radius: 12px; font-size: 15px; font-weight: 700; border: var(--v-edge); }
+html[data-stile=vetro] .toast { font-size: 13px; }
+html[data-stile=vetro] .empty { padding: 28px 12px; }
+html[data-stile=vetro] .right, html[data-stile=vetro] .acc-s { font-size: 13px; }
+html[data-stile=vetro] .acc-t { font-size: 11px; font-weight: 600; letter-spacing: .05em; }
+html[data-stile=vetro] .btn, html[data-stile=vetro] .btn.solid { transition: background var(--t-fast), transform var(--t-fast), opacity var(--t-fast); }
+html[data-stile=vetro] .btn:active { transform: scale(.97); }
+html[data-stile=vetro] .btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* targhetta del margine: pannellino con tinta d'accento (come «.vt-card-big») */
+html[data-stile=vetro] .acc { padding: 16px; border: var(--v-edge); border-radius: 22px; background: linear-gradient(150deg, rgba(var(--acc-rgb), .10), rgba(255, 255, 255, .07)); box-shadow: var(--v-glass-sh); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+
+/* ---- modalità chiara: sfondo piatto, schede bianche con un solo filetto (niente sfocatura né ombra) ---- */
+html[data-stile=vetro][data-theme=light] body { background: var(--v-g1) !important; }
+html[data-stile=vetro][data-theme=light] body::before { content: none; }
+html[data-stile=vetro][data-theme=light] .sezione, html[data-stile=vetro][data-theme=light] .card, html[data-stile=vetro][data-theme=light] .gruppo, html[data-stile=vetro][data-theme=light] .day, html[data-stile=vetro][data-theme=light] .sm-card, html[data-stile=vetro][data-theme=light] .acc { background: #fff !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; border: 1px solid rgba(0, 0, 0, .12) !important; }
+html[data-stile=vetro][data-theme=light] .acc { background: linear-gradient(150deg, rgba(var(--acc-rgb), .12), #fff) !important; }
+html[data-stile=vetro][data-theme=light] .prio { background: #fff !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
+html[data-stile=vetro][data-theme=light] input:not([type=checkbox]):not([type=radio]):not([type=range]), html[data-stile=vetro][data-theme=light] textarea, html[data-stile=vetro][data-theme=light] select, html[data-stile=vetro][data-theme=light] .input, html[data-stile=vetro][data-theme=light] .textarea { border: 1px solid rgba(0, 0, 0, .14) !important; background: rgba(255, 255, 255, .7) !important; }
+html[data-stile=vetro][data-theme=light] .field input:not([type=checkbox]), html[data-stile=vetro][data-theme=light] .field select { border: 0 !important; background: transparent !important; }
+html[data-stile=vetro][data-theme=light] .toggle.off { background: rgba(0, 0, 0, .06) !important; border-color: rgba(0, 0, 0, .22); }
+html[data-stile=vetro][data-theme=light] .btn:hover, html[data-stile=vetro][data-theme=light] .circ:hover { background: rgba(0, 0, 0, .08) !important; }
+html[data-stile=vetro][data-theme=light] .scelta-menu { background: #fff !important; box-shadow: 0 12px 28px rgba(40, 50, 70, .18) !important; }
+html[data-stile=vetro][data-theme=light] .scelta-menu button:hover { background: rgba(0, 0, 0, .05) !important; }
+html[data-stile=vetro][data-theme=light] .bar, html[data-stile=vetro][data-theme=light] .sr-barra, html[data-stile=vetro][data-theme=light] .lv-barra, html[data-stile=vetro][data-theme=light] .cmp-bar, html[data-stile=vetro][data-theme=light] .ic-barra, html[data-stile=vetro][data-theme=light] .prio-bar { background: rgba(0, 0, 0, .09); }

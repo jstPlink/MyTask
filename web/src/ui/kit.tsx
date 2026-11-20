@@ -154,7 +154,7 @@ export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnapost
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
       {/* con rank e interesse (le curiosità) il pallino è verde e fermo: il numero è la posizione, il riempimento è l'interesse */}
       {/* priorità e posizione: due pezzi separati da 2 px, a sinistra il simbolo («!» attività, «?» curiosità) con colore più carico, a destra il numero con fondo tenue; l'attività ha la punta a destra, la curiosità la pillola */}
-      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
+      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', 'pos', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
       {rank !== undefined && interesse === undefined && (
         <span className="rank et" aria-label={`Posizione ${rank}`}>
           <svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg>
