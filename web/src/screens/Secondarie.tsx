@@ -196,8 +196,8 @@ export function Aspetto() {
         <Seg<Tema> voci={[{ id: 'sistema', nome: 'Sistema' }, { id: 'chiaro', nome: 'Chiaro' }, { id: 'scuro', nome: 'Scuro' }]} attivo={a.tema} onChange={(tema) => impostaAspetto({ tema })} />
         <div className="t2">Segue il tema del telefono, oppure ne scegli uno fisso.</div>
         <Sec a="Stile" />
-        <Seg<Stile> voci={[{ id: 'classico', nome: 'Morbido' }, { id: 'vetro', nome: 'Vetro' }]} attivo={a.stile} onChange={(stile) => impostaAspetto({ stile })} />
-        <div className="t2">Morbido è lo stile di base, con note come schede morbide e ombre; Vetro usa pannelli di vetro con testate a fascia e una palette a scelta.</div>
+        <Seg<Stile> voci={[{ id: 'morbido', nome: 'Morbido' }, { id: 'vetro', nome: 'Vetro' }, { id: 'base', nome: 'Base' }]} attivo={a.stile} onChange={(stile) => impostaAspetto({ stile })} />
+        <div className="t2">Morbido: note come schede morbide con ombra. Vetro: pannelli di vetro con testate a fascia e una palette a scelta. Base: lo stile di prima, righe con filetti e sezioni a fascia.</div>
         {a.stile === 'vetro' && (
           <>
             <Sec a={`Palette · ${NOMI_PALETTE[a.palette].nome}`} />
@@ -212,8 +212,8 @@ export function Aspetto() {
             <RuoliPalette chiave={`${a.palette}-${a.tema}-${a.stile}`} />
           </>
         )}
-        {a.stile === 'classico' && <Sec a="Colore" />}
-        {a.stile === 'classico' && COLORI.map((c) => (
+        {a.stile !== 'vetro' && <Sec a="Colore" />}
+        {a.stile !== 'vetro' && COLORI.map((c) => (
           <button key={c.id} className={clsx('opt', a.colore === c.id && 'sel')} onClick={() => impostaAspetto({ colore: c.id })} aria-pressed={a.colore === c.id}>
             <span className="sw2" style={{ background: `var(--o-${c.id})` }} />
             <span className="grow t1">{c.nome}</span>

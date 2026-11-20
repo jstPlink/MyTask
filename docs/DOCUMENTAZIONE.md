@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.115.0
+- **Versione documento:** 0.116.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -83,9 +83,13 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sotto i
 | Accento Indaco | #4F46E5 | #9A9EFF |
 | Avviso | #D1430B | #FF9466 |
 
-#### Stile «Morbido» (lo stile base, da 0.115.0)
+#### Stili grafici (Aspetto › Stile): Morbido, Vetro, Base
 
-È lo stile di base dell'app (nel selettore Aspetto › Stile si chiama **Morbido**, internamente `classico`). Scheda di riferimento: `docs/scheda-stile-morbido.html` (colonne affiancate, come la scheda Vetro). Codice: ultimo blocco di `web/src/styles.css` (tutto sotto `html:not([data-stile=vetro])`, quindi Vetro non cambia).
+Tre stili a scelta, salvati sul dispositivo (`data-stile` su `<html>`: `morbido`, `vetro`, `base`). **Base** è lo stile di prima del Morbido (note in righe con filetti, sezioni a fascia, schede in basso con icona sopra il nome; scheda di riferimento `docs/scheda-stile-base.html`). Le schede di stile dei tre stili stanno anche nella cartella `D:\Seafile\Drive\Stile` (Vetro, Morbido, Base).
+
+#### Stile «Morbido» (predefinito, da 0.115.0)
+
+È lo stile predefinito dell'app (nel selettore Aspetto › Stile si chiama **Morbido**, internamente `morbido`; il vecchio valore salvato `classico` diventa `morbido`). Scheda di riferimento: `docs/scheda-stile-morbido.html` (colonne affiancate, come la scheda Vetro). Codice: ultimo blocco di `web/src/styles.css` (tutto sotto `html:not([data-stile=vetro])`, quindi Vetro non cambia).
 
 - **Schede morbide:** note, riquadri e gruppi hanno fondo `--card` (35% di bianco sullo sfondo; 60% nel tema scuro), nessun bordo e un'ombra marcata (`--card-sh`); la barra delle schede in basso ha lo stesso fondo e un'ombra verso l'alto, senza filetto.
 - **Righe:** titolo e riga grigia a sinistra, poi data, **freccia di priorità** (28 × 28, punta verso il titolo; si ottiene girando l'immagine con CSS) e **casella** (28 × 28) all'estrema destra; l'ordine è dato da `order` nei CSS, senza cambiare il markup. Timer già avviato: barra di 3 px senza colore (nera su grigio) con «tempo lavorato / stima».
@@ -645,6 +649,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-20 | 0.113.0 | **Coerenza dello stile classico e schede in riga:** barra delle schede in basso con icona e nome affiancati (46 px invece di 62; «+» e avvisi più in basso; «Intratt.»); testi portati sulla scala 11/12/13/14/15/16/18 (+ 20/26/34), angoli su 16 (schede), 26 (fogli e finestre), 12, 14 e 999 (pillole), niente bianco fisso sopra i colori dei livelli, colori dell'interesse nei token (`--i3`, `--i4`), velo e ombre uniformi. Nuova «scheda stile» dello stile classico in `docs/scheda-stile-base.html` (parallela a quella Vetro, colonne affiancate) |
 | 2026-11-20 | 0.114.0 | **Stile Vetro allineato alla scheda aggiornata:** testate «fix», targhetta di posizione a due pezzi con «!» e «?» (solo in Vetro, anche nel widget), casella fatta d'accento con il segno, chiaro piatto, tempi e focus della scheda, targhetta del margine come pannellino con tinta, contatore e gradi nelle misure della scheda (`stile-vetro.css`, `StileVetro.java`, layout del widget) |
 | 2026-11-20 | 0.115.0 | **Stile «Morbido» come stile base:** note e riquadri come schede appena più chiare dello sfondo con ombra marcata, titolo a sinistra e a destra freccia di priorità (punta verso il titolo) e casella da 28 px, barra del timer sottile senza colore, cartelle con testata grigia piccola, pulsanti in alto e scheda attiva con lo stesso grigio, barra delle schede con ombra e icona sopra il nome, sezioni come titoletti; widget allineato; nuova scheda stile `docs/scheda-stile-morbido.html`; nel selettore lo stile «Classico» si chiama «Morbido» |
+| 2026-11-20 | 0.116.0 | **Terzo stile «Base»:** Aspetto › Stile ora ha Morbido, Vetro e Base; Base è lo stile di prima del Morbido (righe con filetti, sezioni a fascia, schede in basso con icona sopra il nome); il valore salvato `classico` diventa `morbido`; il colore d'accento si sceglie con Morbido e Base; le regole del Morbido valgono solo con `data-stile=morbido` |
 
 ## Selettore del tempo a rotelle (0.65.3)
 
