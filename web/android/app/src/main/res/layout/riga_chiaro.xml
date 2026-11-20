@@ -11,28 +11,6 @@
     android:paddingEnd="4dp"
     android:paddingBottom="7dp">
 
-    <FrameLayout
-        android:id="@+id/rankbox"
-        android:layout_width="wrap_content"
-        android:layout_height="30dp">
-
-        <ImageView
-            android:id="@+id/rank_img"
-            android:layout_width="wrap_content"
-            android:layout_height="30dp"
-            android:contentDescription="@null"
-            android:scaleType="fitCenter"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/rank"
-            android:layout_width="32dp"
-            android:layout_height="30dp"
-            android:gravity="center"
-            android:textSize="15.5sp"
-            android:textStyle="bold" />
-    </FrameLayout>
-
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -70,6 +48,30 @@
         android:textSize="12sp"
         android:textStyle="bold"
         android:visibility="gone" />
+
+    <FrameLayout
+        android:id="@+id/rankbox"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp">
+
+        <ImageView
+            android:id="@+id/rank_img"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/rank"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:textSize="15.5sp"
+            android:textStyle="bold" />
+    </FrameLayout>
 
     <ImageView
         android:id="@+id/cb"

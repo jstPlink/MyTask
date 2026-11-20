@@ -880,3 +880,70 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .row .right.col-note { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; }
 .pn-nota { width: 24px; height: 24px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); background: var(--surface2); color: var(--mid); display: grid; place-items: center; flex: none; }
 .pn-nota svg { width: 14px; height: 14px; display: block; }
+
+/* ================= Stile «Morbido» (lo stile base dell'app dalla 0.115.0) =================
+   Note e riquadri come schede poco più chiare dello sfondo, staccate da un'ombra marcata; titolo e contenuto a sinistra, a destra la freccia di
+   priorità (punta verso il titolo) e la casella, della stessa misura (28 px); sezioni come titoletti, cartelle dei progetti con testata grigia piccola;
+   pulsanti in alto e scheda attiva in basso con lo stesso fondo grigio e lo stesso filetto; barra delle schede staccata dall'ombra. Lo stile Vetro non cambia. */
+:root:not([data-stile=vetro]) { --card: color-mix(in srgb, var(--surface) 35%, var(--bg)); --card-sh: 0 3px 14px rgba(30, 30, 40, .15); --ctl-bg: var(--surface2); --ctl-bd: color-mix(in srgb, var(--ink) 12%, transparent); --head-bg: color-mix(in srgb, var(--ink) 10%, var(--surface2)); --tag: 28px; }
+:root[data-theme=dark]:not([data-stile=vetro]) { --card: color-mix(in srgb, var(--surface) 60%, var(--bg)); --card-sh: 0 3px 14px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .04); }
+
+/* sezioni: titoletto sopra le note, senza fascia */
+html:not([data-stile=vetro]) .sezione { margin: 14px 0 0; }
+html:not([data-stile=vetro]) .sezione:first-child { margin-top: 8px; }
+html:not([data-stile=vetro]) .sz-t { padding: 0 4px; margin: 0 0 7px; background: none; border: 0; font-size: 14px; font-weight: 700; letter-spacing: 0; color: var(--mid); }
+html:not([data-stile=vetro]) .sz-t b { font-size: 12px; font-weight: 600; color: var(--mid); }
+html:not([data-stile=vetro]) .sz-corpo { padding: 0; }
+
+/* note: schede morbide; titolo a sinistra, a destra data, freccia di priorità e casella */
+html:not([data-stile=vetro]) .row:not(:is(.gruppo, .gp, .card, .sheet, .modal-voce, .scelta-menu, .prio-corpo) *) { background: var(--card); border: 0; border-radius: 16px; padding: 10px 12px 10px 14px; margin-bottom: 8px; box-shadow: var(--card-sh); }
+html:not([data-stile=vetro]) .row:not(:is(.gruppo, .gp, .card, .sheet, .modal-voce, .scelta-menu, .prio-corpo) *).sel { background: var(--accent-soft); }
+html:not([data-stile=vetro]) .row > .grow { order: 1; }
+html:not([data-stile=vetro]) .row > .right { order: 2; }
+html:not([data-stile=vetro]) .row > .rank { order: 3; }
+html:not([data-stile=vetro]) .row > .cb { order: 4; }
+html:not([data-stile=vetro]) .row > .maniglia { order: 0; }
+/* freccia di priorità e pallino delle curiosità: 28 × 28 come la casella; la freccia punta a sinistra, verso il titolo */
+html:not([data-stile=vetro]) .row .rank.et { width: var(--tag); height: var(--tag); padding: 0 0 0 4px; }
+html:not([data-stile=vetro]) .row .rank.et svg { transform: scaleX(-1); }
+html:not([data-stile=vetro]) .row .rank.et b, html:not([data-stile=vetro]) .row .rank-int { font-size: 15px; }
+html:not([data-stile=vetro]) .row .rank-int, html:not([data-stile=vetro]) .row .rank-vuoto { width: var(--tag); height: var(--tag); }
+html:not([data-stile=vetro]) .row > .cb { width: var(--tag); height: var(--tag); border-radius: 8px; }
+html:not([data-stile=vetro]) .row > .cb.viva::after, html:not([data-stile=vetro]) .row > .cb.pausa::after, html:not([data-stile=vetro]) .row > .cb.done::after { width: 11px; height: 11px; }
+/* timer già avviato: barra sottile e senza colore */
+html:not([data-stile=vetro]) .row.lav { --bf: var(--ink); --bt: color-mix(in srgb, var(--ink) 14%, var(--card)); }
+html:not([data-stile=vetro]) .sr-barra { flex: 1; width: auto; min-width: 40px; max-width: 120px; height: 3px; }
+html:not([data-stile=vetro]) .sr-barra i { border-radius: 3px; }
+
+/* cartella del progetto: scheda con testata piccola grigia (senza icona) e note separate da un filetto */
+html:not([data-stile=vetro]) .gp { background: var(--card); border: 0; border-radius: 18px; box-shadow: var(--card-sh); margin: 0 0 8px; }
+html:not([data-stile=vetro]) .gp-h { padding: 7px 14px; background: var(--head-bg); border-bottom: 0; }
+html:not([data-stile=vetro]) .gp-ic { display: none; }
+html:not([data-stile=vetro]) .gp-h b { font-size: 12.5px; }
+html:not([data-stile=vetro]) .gp-h span { font-size: 11.5px; }
+html:not([data-stile=vetro]) .gp .tacche { background: var(--head-bg); }
+html:not([data-stile=vetro]) .gp .tacche i { background: color-mix(in srgb, var(--ink) 16%, var(--head-bg)); }
+html:not([data-stile=vetro]) .gp .tacche i.on { background: var(--ink); }
+html:not([data-stile=vetro]) .gp .row { padding: 9px 12px 9px 14px; border-bottom: 0; border-top: 1px solid var(--line); }
+html:not([data-stile=vetro]) .gp-h + .row, html:not([data-stile=vetro]) .gp .tacche + .row { border-top: 0; }
+html:not([data-stile=vetro]) .gp .row:last-child { border-bottom: 0; }
+
+/* altri riquadri: stessa scheda morbida */
+html:not([data-stile=vetro]) .card:not(.strong), html:not([data-stile=vetro]) .gruppo, html:not([data-stile=vetro]) .acc { background: var(--card); border: 0; box-shadow: var(--card-sh); }
+html:not([data-stile=vetro]) .fisso { background: var(--bg); border-bottom: 0; box-shadow: none; padding-bottom: 6px; }
+
+/* pulsanti in alto e scheda attiva in basso: stesso fondo grigio con filetto */
+html:not([data-stile=vetro]) .circ { background: var(--ctl-bg); box-shadow: inset 0 0 0 1px var(--ctl-bd); }
+html:not([data-stile=vetro]) .circ:active { background: var(--ctl-bg); color: var(--ink); }
+html:not([data-stile=vetro]) .tabs { padding: 0 6px; gap: 4px; background: var(--card); border-top: 0; border-radius: 22px 22px 0 0; box-shadow: 0 -4px 16px rgba(30, 30, 40, .13), 0 -1px 3px rgba(30, 30, 40, .07); }
+:root[data-theme=dark]:not([data-stile=vetro]) .tabs { box-shadow: 0 -4px 16px rgba(0, 0, 0, .5), 0 -1px 0 rgba(255, 255, 255, .05); }
+html:not([data-stile=vetro]) .tabs button { height: 62px; padding: 6px 2px 0; justify-content: flex-start; }
+html:not([data-stile=vetro]) .tabs button .tab-in { flex-direction: column; gap: 2px; padding: 4px 12px 3px; border-radius: 18px; }
+html:not([data-stile=vetro]) .tabs button .ic, html:not([data-stile=vetro]) .tabs button.on .ic { width: 36px; height: 26px; }
+html:not([data-stile=vetro]) .tabs button .ic svg { width: 22px; height: 22px; }
+html:not([data-stile=vetro]) .tabs button.on { color: var(--ink); }
+html:not([data-stile=vetro]) .tabs button.on .tab-in { background: var(--ctl-bg); box-shadow: inset 0 0 0 1px var(--ctl-bd); border-color: transparent; }
+html:not([data-stile=vetro]) .fab { bottom: calc(env(safe-area-inset-bottom) + 78px); }
+html:not([data-stile=vetro]) .toast { bottom: calc(env(safe-area-inset-bottom) + 78px); }
+html:not([data-stile=vetro]) .top { background: var(--bg); border-bottom: 0; }
+html:not([data-stile=vetro]) .top .sub { font-size: 12.5px; }

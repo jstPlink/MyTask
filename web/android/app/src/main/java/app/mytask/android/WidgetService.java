@@ -151,7 +151,7 @@ public class WidgetService extends RemoteViewsService {
                 String[] tintaC = {"#8A93A0", "#D9A400", "#D32F2F"};
                 String[] tintaS = {"#7B8493", "#F4C542", "#FF6B6B"};
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
-                v.setViewPadding(R.id.rank, 0, 0, Math.round(4 * c.getResources().getDisplayMetrics().density), 0); // il numero sta verso il corpo: la punta è a destra
+                v.setViewPadding(R.id.rank, Math.round(4 * c.getResources().getDisplayMetrics().density), 0, 0, 0); // il numero sta verso il corpo: la punta è a sinistra, verso il titolo
                 v.setTextViewText(R.id.rank, String.valueOf(rank));
                 v.setInt(R.id.rank, "setBackgroundResource", (s ? tagS : tagC)[livello - 1]);
                 v.setTextColor(R.id.rank, Color.parseColor((s ? tintaS : tintaC)[livello - 1]));

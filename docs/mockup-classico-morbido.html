@@ -1,0 +1,70 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: stile morbido, varianti delle righe</title><style>
+:root[data-theme=light]{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#2a2a2e;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--accent:#2F7D5B;--accent-soft:#E3F1EA;--on:#fff;--p1:#8A93A0;--p2:#D9A400;--p3:#D32F2F;--shadow:0 6px 20px rgba(30,30,40,.10);--page:#E7E5DF}
+:root[data-theme=dark]{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--accent:#6FCF9B;--accent-soft:#17332A;--on:#0E0F12;--p1:#7B8493;--p2:#F4C542;--p3:#FF6B6B;--shadow:0 6px 24px rgba(0,0,0,.55);--page:#050506}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.wrap{padding:20px 24px 40px}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mid);margin:0 0 4px;max-width:820px}.tg{border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surface);color:var(--ink);margin-left:6px}
+.row6{display:flex;gap:26px;overflow-x:auto;padding:18px 4px 24px;align-items:flex-start}
+.cell{flex:none;width:393px}.cell h2{font-size:15px;margin:0 0 2px}.cell p{font-size:12.5px;color:var(--mid);margin:0 0 10px;min-height:54px}
+/* ---- telefono ---- */
+.ph{position:relative;width:393px;height:760px;background:var(--bg);border:1px solid var(--line);border-radius:28px;overflow:hidden;display:flex;flex-direction:column}
+.top{padding:22px 18px 6px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.title{font-size:26px;font-weight:750;letter-spacing:-.015em;line-height:1.15;margin:0}.date{font-size:12.5px;color:var(--mid);margin-top:3px}
+.circs{display:flex;gap:8px}.circ{width:44px;height:44px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;position:relative}.circ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.circ i{position:absolute;top:-3px;right:-3px;min-width:21px;height:21px;border-radius:999px;background:var(--accent);color:var(--on);font:700 11px/21px system-ui;font-style:normal;text-align:center;border:2px solid var(--bg)}
+.scroll{flex:1;overflow:hidden;padding:0 14px}
+.fab{position:absolute;right:18px;bottom:88px;width:62px;height:62px;border-radius:20px;background:var(--accent);color:var(--on);font-size:34px;line-height:1;display:grid;place-items:center;box-shadow:var(--shadow)}
+/* barra delle schede: icona sopra il nome */
+.tabs{display:flex;gap:4px;padding:0 6px;border-top:1px solid var(--line);background:var(--surface);height:62px}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--soft);font-size:10.5px;font-weight:600}
+.tabs .tab-in{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px 3px;border-radius:16px;border:1px solid transparent}
+.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.on{color:var(--accent);font-weight:700}.tabs button.on .tab-in{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+.acc{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:11px 14px;margin:6px 0 8px}.acc b{font:800 26px/1.1 ui-monospace,Consolas,monospace;color:var(--accent)}.acc .t{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);font-weight:700}.acc .s{font-size:12px;color:var(--mid)}
+.sez{margin-top:16px}.sez h3{margin:0 4px 8px;font-size:14px;font-weight:700;color:var(--mid);display:flex;gap:8px}.sez h3 b{margin-left:auto;font-weight:600}
+/* riga: titolo a sinistra; a destra priorità e casella */
+.row{display:flex;gap:12px;align-items:center;padding:11px 12px 11px 14px;margin-bottom:8px;border-radius:16px;background:var(--surface)}.row .g{flex:1;min-width:0}.t1{font-size:15px;font-weight:620}.t2{font-size:12px;color:var(--mid);margin-top:1px}
+.cb{width:23px;height:23px;flex:none;border:2px solid var(--soft);border-radius:7px;display:grid;place-items:center}.cb.go{border-color:var(--ink)}.cb.go::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--ink)}
+.l1{--c:var(--p1)}.l2{--c:var(--p2)}.l3{--c:var(--p3)}
+.tg0{position:relative;width:32px;height:30px;flex:none;display:grid;place-items:center;padding-right:4px;color:var(--c);font-weight:900;font-size:15.5px}.tg0 svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.tg0 path{fill:color-mix(in srgb,var(--c) 16%,transparent);stroke:var(--c);stroke-width:1;stroke-linejoin:round;vector-effect:non-scaling-stroke}.tg0 b{position:relative}.l1 .tg0 path{fill:var(--surface2)}
+.int{width:30px;height:30px;border-radius:50%;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);display:grid;place-items:center;font-weight:900;font-size:15.5px;flex:none}.int.cg{--c:#1F7A52}.int.cz{--c:var(--p1);background:var(--surface2)}
+.proj{background:var(--surface);border-radius:18px;margin:0 0 8px;overflow:hidden}.proj .ph2{display:flex;gap:10px;padding:11px 14px 4px;font-weight:700;font-size:14px}.proj .ph2 span{margin-left:auto;font-size:12px;color:var(--mid)}.proj .row{margin:0;border-radius:0;background:none;padding:9px 12px 9px 14px}
+.proj .row+.row{border-top:1px solid var(--line)}
+/* ============ varianti delle righe ============ */
+/* A · foglio appena più chiaro del fondo, nessun bordo né ombra */
+.vA .row,.vA .proj{background:color-mix(in srgb,var(--surface) 55%,var(--bg))}
+/* B · bianco con filetto sottile, niente ombra */
+.vB .row,.vB .proj,.vB .acc{background:var(--surface);border:1px solid color-mix(in srgb,var(--line) 70%,transparent)}.vB .proj .row{border:0}.vB .proj .row+.row{border-top:1px solid var(--line)}
+/* C · bianco con ombra morbida e larga, quasi invisibile */
+.vC .row,.vC .proj,.vC .acc{background:var(--surface);border:0;box-shadow:0 4px 18px rgba(30,30,40,.06)}.vC .proj .row{box-shadow:none}
+/* D · riga vuota con solo il contorno, trasparente sul fondo */
+.vD .row,.vD .proj,.vD .acc{background:transparent;border:1px solid var(--line)}.vD .proj .row{border:0}.vD .proj .row+.row{border-top:1px solid var(--line)}
+/* E · tinta calda: fondo carta più scuro dello sfondo, riga chiara con bordino interno */
+.vE .scroll{background:color-mix(in srgb,var(--bg) 88%,var(--ink))}.vE .row,.vE .proj,.vE .acc{background:var(--surface);border:0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 5%,transparent)}.vE .proj .row{box-shadow:none}
+/* F · riga con barretta di priorità sottilissima a sinistra e ombra minima */
+.vF .row{position:relative;background:var(--surface);box-shadow:0 1px 2px rgba(30,30,40,.07);padding-left:18px}.vF .row::before{content:"";position:absolute;left:6px;top:12px;bottom:12px;width:3px;border-radius:2px;background:var(--c,var(--line))}.vF .proj{background:var(--surface);box-shadow:0 1px 2px rgba(30,30,40,.07)}.vF .proj .row{box-shadow:none}.vF .acc{border:0;box-shadow:0 1px 2px rgba(30,30,40,.07)}
+</style></head><body><div class="wrap"><h1>Stile «Morbido»: righe più delicate</h1><p class="sub">Titolo a sinistra, a destra la targhetta di priorità e la casella (nell'ordine). Barra delle schede con l'icona sopra il nome. Sei modi di staccare le righe dallo sfondo senza il peso dell'ombra attuale. <button class="tg" onclick="var d=document.documentElement;d.setAttribute('data-theme',d.getAttribute('data-theme')==='dark'?'light':'dark')">Chiaro / scuro</button></p>
+<div class="row6" id="g"></div></div>
+<script>
+const ARROW='M6 1.6 H22 L29.6 13 Q31 16 29.6 19 L22 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z';
+const ic={sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/>',chk:'<rect x="3.5" y="4" width="17" height="16" rx="4.5"/><path d="M8 12.2l3 3 5-6"/>',cmp:'<circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z"/>',bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',rep:'<path d="M17 2.5l3.5 3.5L17 9.5"/><path d="M3.5 11V9.5A3.5 3.5 0 0 1 7 6h13.5"/><path d="M7 21.5L3.5 18 7 14.5"/><path d="M20.5 13v1.5A3.5 3.5 0 0 1 17 18H3.5"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',inb:'<path d="M3.5 13.5L6.2 5.6A1.5 1.5 0 0 1 7.6 4.5h8.8a1.5 1.5 0 0 1 1.4 1.1l2.7 7.9"/><path d="M3.5 13.5v4.2a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-4.2h-5.2l-1 2.2H9.7l-1-2.2z"/>',dots:'<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'};
+const S=k=>`<svg viewBox="0 0 24 24">${ic[k]}</svg>`;
+const tag=n=>`<span class="tg0"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="${ARROW}"/></svg><b>${n}</b></span>`;
+const row=(l,n,t,m,go)=>`<div class="row l${l}"><div class="g"><div class="t1">${t}</div><div class="t2">${m}</div></div>${tag(n)}<span class="cb ${go?'go':''}"></span></div>`;
+const cur=(c,n,t,m)=>`<div class="row"><div class="g"><div class="t1">${t}</div><div class="t2">${m}</div></div><span class="int ${c}">${n}</span><span class="cb"></span></div>`;
+const proj=`<div class="proj"><div class="ph2">Trasloco<span>1 / 3</span></div>${row(2,3,'Contratto della luce','prossimo passo')}${row(1,4,'Prenotare il furgone','1 h')}</div>`;
+const body=`<div class="acc"><div><div class="t">Correzione alle tue stime</div><div class="s">Stime centrate</div></div><b>+4%</b></div>
+<div class="sez"><h3>Attività<b>4</b></h3>${row(3,1,'Pagare la bolletta','20 min · domani')}${row(2,2,'Preparare la riunione','1 h',true)}${proj}</div>
+<div class="sez"><h3>Curiosità<b>2</b></h3>${cur('cg',1,'Documentario sulle api','45 min')}${cur('cz',2,'Podcast sui treni','1 h')}</div>`;
+const tabs=`<nav class="tabs"><button class="on"><span class="tab-in">${S('sun')}<span>Priorità</span></span></button><button><span class="tab-in">${S('chk')}<span>Attività</span></span></button><button><span class="tab-in">${S('cmp')}<span>Intratt.</span></span></button><button><span class="tab-in">${S('bulb')}<span>Curiosità</span></span></button><button><span class="tab-in">${S('rep')}<span>Routine</span></span></button></nav>`;
+const testa=`<div class="top"><div><h1 class="title">Priorità</h1><div class="date">venerdì 20 novembre</div></div><div class="circs"><span class="circ">${S('moon')}</span><span class="circ">${S('inb')}<i>3</i></span><span class="circ">${S('dots')}</span></div></div>`;
+const phone=v=>`<div class="ph ${v}">${testa}<div class="scroll">${body}</div><span class="fab">+</span>${tabs}</div>`;
+const V=[
+['vA','A · Foglio appena più chiaro','Niente bordo né ombra: la riga è bianca al 55% mescolata allo sfondo. Delicatissima; si stacca poco ma si vede il rettangolo.'],
+['vB','B · Filetto sottile','Riga bianca con un filetto sottile e senza ombra: contorno nitido, leggerezza da carta. Il più «pulito».'],
+['vC','C · Ombra larga e tenue','Come oggi ma con un\'ombra molto più larga e trasparente (6%): le righe galleggiano senza pesare.'],
+['vD','D · Solo contorno','La riga è vuota, trasparente, con il solo filetto: l\'aria dello sfondo passa attraverso. Il più leggero.'],
+['vE','E · Fondo carta più scuro','L\'area delle note è un po\' più scura dello sfondo e le righe restano bianche con un bordino interno: stacco netto senza ombre.'],
+['vF','F · Barretta di priorità','Riga bianca con ombra minima e una barretta sottile del colore del livello a sinistra: la priorità si vede anche senza leggere la targhetta.']
+];
+document.getElementById('g').innerHTML=V.map(([k,t,d])=>`<div class="cell"><h2>${t}</h2><p>${d}</p>${phone(k)}</div>`).join('');
+</script></body></html>

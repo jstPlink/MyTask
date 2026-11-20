@@ -1,0 +1,102 @@
+<!doctype html><html lang="it" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup: stile classico ripulito</title><style>
+:root[data-theme=light]{--bg:#F1F0EC;--surface:#fff;--surface2:#E3E1DC;--ink:#2a2a2e;--mid:#65656E;--soft:#919199;--line:#DDDAD4;--accent:#2F7D5B;--accent-soft:#E3F1EA;--on:#fff;--p1:#8A93A0;--p2:#D9A400;--p3:#D32F2F;--shadow:0 6px 20px rgba(30,30,40,.10);--page:#E7E5DF}
+:root[data-theme=dark]{--bg:#0E0F12;--surface:#1D1F23;--surface2:#272930;--ink:#F3F3F6;--mid:#A5A5B0;--soft:#72737D;--line:#2F3138;--accent:#6FCF9B;--accent-soft:#17332A;--on:#0E0F12;--p1:#7B8493;--p2:#F4C542;--p3:#FF6B6B;--shadow:0 6px 24px rgba(0,0,0,.55);--page:#050506}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.wrap{padding:20px 24px 40px}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mid);margin:0 0 4px;max-width:760px}.tg{border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surface);color:var(--ink);margin-left:6px}
+.row6{display:flex;gap:26px;overflow-x:auto;padding:18px 4px 24px;align-items:flex-start}
+.cell{flex:none;width:393px}.cell h2{font-size:15px;margin:0 0 2px}.cell p{font-size:12.5px;color:var(--mid);margin:0 0 10px;min-height:54px}
+/* ------- telefono ------- */
+.ph{position:relative;width:393px;height:790px;background:var(--bg);border:1px solid var(--line);border-radius:28px;overflow:hidden;display:flex;flex-direction:column}
+.top{padding:22px 18px 6px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.title{font-size:26px;font-weight:750;letter-spacing:-.015em;line-height:1.15;margin:0}.date{font-size:12.5px;color:var(--mid);margin-top:3px}
+.circs{display:flex;gap:8px}.circ{width:44px;height:44px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;position:relative}.circ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.circ i{position:absolute;top:-3px;right:-3px;min-width:21px;height:21px;border-radius:999px;background:var(--accent);color:var(--on);font:700 11px/21px system-ui;font-style:normal;text-align:center;border:2px solid var(--bg)}
+.scroll{flex:1;overflow:hidden;padding:0 18px}
+.fab{position:absolute;right:18px;bottom:78px;width:62px;height:62px;border-radius:20px;background:var(--accent);color:var(--on);font-size:34px;line-height:1;display:grid;place-items:center;box-shadow:var(--shadow)}
+.tabs{display:flex;gap:2px;padding:0 6px;border-top:1px solid var(--line);background:var(--surface);height:58px}
+.tabs button{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;color:var(--soft);font-size:10.5px;font-weight:600;border-radius:14px;margin:6px 0}
+.tabs button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.tabs button.on{color:var(--accent);background:var(--accent-soft);font-weight:700}
+.acc{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:11px 14px;margin:6px 0 8px}.acc b{font:800 26px/1.1 ui-monospace,Consolas,monospace;color:var(--accent)}.acc .t{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);font-weight:700}.acc .s{font-size:12px;color:var(--mid)}
+.sez h3{margin:0;font-size:16px;font-weight:750;display:flex;gap:8px;align-items:baseline}.sez h3 b{margin-left:auto;font-size:12px;color:var(--accent)}
+.row{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.row .g{flex:1;min-width:0}.t1{font-size:15px;font-weight:620}.t2{font-size:12px;color:var(--mid);margin-top:1px}
+.cb{width:23px;height:23px;flex:none;border:2px solid var(--soft);border-radius:7px;display:grid;place-items:center}.cb.go{border-color:var(--ink)}.cb.go::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--ink)}
+.l1{--c:var(--p1)}.l2{--c:var(--p2)}.l3{--c:var(--p3)}
+.tg0{position:relative;width:32px;height:30px;flex:none;display:grid;place-items:center;padding-right:4px;color:var(--c);font-weight:900;font-size:15.5px}.tg0 svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.tg0 path{fill:color-mix(in srgb,var(--c) 16%,transparent);stroke:var(--c);stroke-width:1;stroke-linejoin:round;vector-effect:non-scaling-stroke}.tg0 b{position:relative}
+.l1 .tg0 path{fill:var(--surface2)}
+.int{width:30px;height:30px;border-radius:50%;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);display:grid;place-items:center;font-weight:900;font-size:15.5px;flex:none}.int.cg{--c:#1F7A52}.int.cm{--c:#4E9A78}.int.cz{--c:var(--p1);background:var(--surface2)}
+.proj{background:color-mix(in srgb,var(--surface2) 50%,transparent);border:1px solid color-mix(in srgb,var(--ink) 22%,var(--surface2));border-radius:14px;overflow:hidden;margin:10px -4px}.proj .ph2{display:flex;gap:10px;padding:10px;background:var(--surface2);font-weight:700;font-size:14px}.proj .ph2 span{margin-left:auto;font-size:12px;color:var(--mid)}.proj .row{padding:10px;border-color:color-mix(in srgb,var(--ink) 11%,var(--surface2))}
+.chip{display:inline-block;background:var(--surface2);border-radius:14px;padding:5px 12px;font-size:12.5px;color:var(--mid);margin-right:6px}
+
+/* ============ 1 · Pulito: meno scatole, niente fasce, tanta aria ============ */
+.v1 .acc{background:none;border:0;padding:0;margin:2px 0 14px;justify-content:flex-start;gap:10px}.v1 .acc .t{display:none}.v1 .acc .s{order:2}.v1 .acc b{font-size:15px}
+.v1 .sez{margin-top:20px}.v1 .sez h3{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);font-weight:700;margin-bottom:2px}.v1 .sez h3 b{color:var(--soft)}
+.v1 .row{border-bottom:0;padding:11px 0}.v1 .t2{display:none}.v1 .row .t1{font-weight:560}
+.v1 .proj{background:none;border:0;margin:0}.v1 .proj .ph2{background:none;padding:10px 0 2px;color:var(--mid);font-size:12px}.v1 .proj .row{padding:11px 0 11px 14px;border-left:2px solid var(--line)}
+.v1 .tabs{background:none;border:0;padding-bottom:6px}.v1 .tabs button span{display:none}.v1 .tabs button.on{background:none}.v1 .tabs button.on span{display:inline}
+.v1 .circ{background:none}.v1 .fab{border-radius:50%;width:56px;height:56px;box-shadow:none}
+
+/* ============ 2 · Carta: un solo foglio bianco su fondo caldo ============ */
+.v2{background:var(--bg)}.v2 .scroll{padding:0 12px}.v2 .top{padding-left:24px}
+.v2 .acc{display:none}.v2 .sheet{background:var(--surface);border-radius:24px;padding:6px 18px 8px;box-shadow:0 1px 0 var(--line)}
+.v2 .sez{padding-top:12px}.v2 .sez h3{font-size:19px;font-weight:800;letter-spacing:-.02em}.v2 .sez h3 b{font-size:11px;background:var(--accent-soft);padding:2px 9px;border-radius:10px;font-weight:700}
+.v2 .row:last-child{border-bottom:0}.v2 .proj{margin:8px 0}
+.v2 .minacc{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mid);padding:8px 0 0}.v2 .minacc b{color:var(--accent);font-family:ui-monospace,Consolas,monospace}
+.v2 .tabs{border:0;background:none;margin:0 12px 10px;border-radius:22px}
+
+/* ============ 3 · Carattere: titolo grande, numeri grandi, accento deciso ============ */
+.v3 .title{font-size:36px;font-weight:850;letter-spacing:-.03em;line-height:1}.v3 .title::after{content:".";color:var(--accent)}.v3 .date{margin-top:6px;text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:600}
+.v3 .acc{background:var(--ink);color:var(--bg);border:0;border-radius:18px}.v3 .acc .t,.v3 .acc .s{color:color-mix(in srgb,var(--bg) 70%,var(--ink))}.v3 .acc b{color:var(--accent)}
+.v3 .sez{margin-top:18px}.v3 .sez h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;padding-bottom:8px;border-bottom:3px solid var(--ink)}.v3 .sez h3 b{color:var(--ink)}
+.v3 .tg0 svg,.v3 .int{display:none}.v3 .tg0{width:34px;height:auto;font-size:30px;font-weight:900;letter-spacing:-.04em;padding:0}.v3 .int{display:grid;border:0;background:none;width:34px;font-size:30px;letter-spacing:-.04em;color:var(--c)}
+.v3 .row{padding:13px 0}.v3 .t1{font-weight:700}
+.v3 .proj{background:none;border:0;margin:0}.v3 .proj .ph2{background:none;padding:12px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mid)}.v3 .proj .row{padding:13px 0}
+.v3 .tabs{background:var(--ink);border:0;margin:0 12px 12px;border-radius:20px}.v3 .tabs button{color:color-mix(in srgb,var(--bg) 55%,var(--ink))}.v3 .tabs button.on{background:var(--accent);color:var(--on)}.v3 .fab{border-radius:50%;bottom:86px}
+
+/* ============ 4 · Morbido: ogni nota è una scheda con ombra leggera ============ */
+.v4 .acc{border:0;box-shadow:var(--shadow);border-radius:18px}
+.v4 .sez{margin-top:16px}.v4 .sez h3{font-size:14px;font-weight:700;color:var(--mid);margin:0 4px 8px}.v4 .sez h3 b{color:var(--mid);font-weight:600}
+.v4 .row{background:var(--surface);border:0;border-radius:16px;padding:11px 12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.v4 .proj{background:var(--surface);border:0;border-radius:18px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin:0 0 8px}.v4 .proj .ph2{background:none;font-size:14px}.v4 .proj .row{box-shadow:none;border-radius:0;margin:0;border-top:1px solid var(--line);padding:10px 12px}
+.v4 .tabs{border:0;background:var(--surface);margin:0 10px 10px;border-radius:22px;box-shadow:var(--shadow)}
+
+/* ============ 5 · Barra di priorità: il colore è una striscia, il numero è piccolo ============ */
+.v5 .acc{background:none;border:0;border-left:4px solid var(--accent);border-radius:0;padding:2px 0 2px 12px;margin:4px 0 10px}.v5 .acc b{font-size:20px}
+.v5 .sez{margin-top:14px}.v5 .sez h3{font-size:17px;font-weight:800}.v5 .sez h3 b{color:var(--mid)}
+.v5 .row{position:relative;padding:12px 0 12px 14px;border-bottom:1px solid var(--line)}.v5 .row::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:2px;background:var(--c,var(--line))}
+.v5 .tg0{width:auto;height:auto;padding:0;order:3;font-size:13px;color:var(--soft);font-weight:700}.v5 .tg0 svg{display:none}.v5 .int{order:3;width:auto;height:auto;border:0;background:none;font-size:13px;color:var(--soft)}
+.v5 .proj{background:none;border:0;margin:0}.v5 .proj .ph2{background:none;padding:10px 0 4px 14px;color:var(--mid)}.v5 .proj .row{padding-left:14px}.v5 .proj .ph2{border-left:4px solid var(--ink);margin-top:6px}
+.v5 .tabs{background:none}.v5 .tabs button.on{background:none;box-shadow:inset 0 -3px 0 var(--accent);border-radius:0}
+
+/* ============ 6 · Denso: più note a colpo d'occhio, riga unica ============ */
+.v6 .acc{padding:7px 12px;margin:2px 0 6px}.v6 .acc b{font-size:17px}.v6 .acc .t{display:none}.v6 .acc .s{font-size:12px}
+.v6 .sez{margin-top:10px}.v6 .sez h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mid);padding:4px 0;border-bottom:1px solid var(--ink)}.v6 .sez h3 b{color:var(--ink)}
+.v6 .row{padding:7px 0;gap:10px}.v6 .t2{display:inline;margin:0 0 0 6px}.v6 .g{display:flex;align-items:baseline;gap:6px;overflow:hidden;white-space:nowrap}.v6 .t1{font-size:14px;overflow:hidden;text-overflow:ellipsis}
+.v6 .cb{width:19px;height:19px;border-radius:6px}.v6 .tg0{width:28px;height:24px;font-size:13px}.v6 .int{width:24px;height:24px;font-size:13px}
+.v6 .proj{margin:6px -2px}.v6 .proj .ph2{padding:6px 10px;font-size:13px}.v6 .proj .row{padding:6px 10px}
+.v6 .tabs{height:50px}.v6 .fab{width:52px;height:52px;bottom:62px;border-radius:17px}
+</style></head><body><div class="wrap"><h1>Stile classico: proposte per ripulirlo</h1><p class="sub">Stessa schermata «Priorità», stessi dati e stessi colori dell'app: cambia solo il modo di costruirla. Sei direzioni, dalla più sobria alla più decisa. <button class="tg" onclick="var d=document.documentElement;d.setAttribute('data-theme',d.getAttribute('data-theme')==='dark'?'light':'dark')">Chiaro / scuro</button></p>
+<div class="row6" id="g"></div></div>
+<script>
+const ARROW='M6 1.6 H22 L29.6 13 Q31 16 29.6 19 L22 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z';
+const ic={sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/>',chk:'<rect x="3.5" y="4" width="17" height="16" rx="4.5"/><path d="M8 12.2l3 3 5-6"/>',cmp:'<circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z"/>',bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',rep:'<path d="M17 2.5l3.5 3.5L17 9.5"/><path d="M3.5 11V9.5A3.5 3.5 0 0 1 7 6h13.5"/><path d="M7 21.5L3.5 18 7 14.5"/><path d="M20.5 13v1.5A3.5 3.5 0 0 1 17 18H3.5"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',inb:'<path d="M3.5 13.5L6.2 5.6A1.5 1.5 0 0 1 7.6 4.5h8.8a1.5 1.5 0 0 1 1.4 1.1l2.7 7.9"/><path d="M3.5 13.5v4.2a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-4.2h-5.2l-1 2.2H9.7l-1-2.2z"/>',dots:'<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'};
+const S=(k)=>`<svg viewBox="0 0 24 24">${ic[k]}</svg>`;
+const tag=(n)=>`<span class="tg0"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="${ARROW}"/></svg><b>${n}</b></span>`;
+const row=(l,n,t,m,go)=>`<div class="row l${l}"><span class="cb ${go?'go':''}"></span>${tag(n)}<div class="g"><div class="t1">${t}</div><div class="t2">${m}</div></div></div>`;
+const cur=(c,n,t,m)=>`<div class="row"><span class="cb"></span><span class="int ${c}">${n}</span><div class="g"><div class="t1">${t}</div><div class="t2">${m}</div></div></div>`;
+const proj=`<div class="proj"><div class="ph2">Trasloco<span>1 / 3</span></div>${row(2,3,'Contratto della luce','prossimo passo')}</div>`;
+const attivita=`<div class="sez"><h3>Attività<b>4</b></h3>${row(3,1,'Pagare la bolletta','20 min · domani')}${row(2,2,'Preparare la riunione','1 h',true)}${proj}${row(1,4,'Riordinare la scrivania','30 min')}</div>`;
+const curios=`<div class="sez"><h3>Curiosità<b>2</b></h3>${cur("cg",1,'Documentario sulle api','45 min')}${cur("cz",2,'Podcast sui treni','1 h')}</div>`;
+const acc=`<div class="acc"><div><div class="t">Correzione alle tue stime</div><div class="s">Stime centrate</div></div><b>+4%</b></div>`;
+const tabs=`<nav class="tabs"><button class="on">${S('sun')}<span>Priorità</span></button><button>${S('chk')}<span>Attività</span></button><button>${S('cmp')}<span>Intratt.</span></button><button>${S('bulb')}<span>Curiosità</span></button><button>${S('rep')}<span>Routine</span></button></nav>`;
+const testa=`<div class="top"><div><h1 class="title">Priorità</h1><div class="date">venerdì 20 novembre</div></div><div class="circs"><span class="circ">${S('moon')}</span><span class="circ">${S('inb')}<i>3</i></span><span class="circ">${S('dots')}</span></div></div>`;
+const phone=(v,inner)=>`<div class="ph ${v}">${testa}<div class="scroll">${inner}</div><span class="fab">+</span>${tabs}</div>`;
+const V=[
+['v1','1 · Pulito','Via fasce, scatole e righe grigie sotto i titoli: restano titolo, un filo di contesto e tanta aria. Le sezioni diventano piccole etichette, il margine una riga, le schede in basso mostrano il nome solo per quella attiva.',phone('v1',acc+attivita+curios)],
+['v2','2 · Carta','Un solo foglio bianco stondato su fondo caldo: le sezioni sono titoli più grandi dentro il foglio e il margine di stima sparisce dalla testa (lo si trova in Altro). Meno bordi, più sensazione di quaderno.',phone('v2','<div class="sheet">'+attivita+curios+'</div><div class="minacc">Correzione alle stime <b>+4%</b></div>')],
+['v3','3 · Carattere','Titolo grande col punto d\'accento, sezioni in maiuscolo con filo spesso, priorità come numero grande senza forma, barra delle schede scura e pulsante «+» tondo. Il più deciso.',phone('v3',acc+attivita+curios)],
+['v4','4 · Morbido','Ogni nota è una scheda stondata con ombra appena visibile, niente righe; titoli di sezione piccoli e discreti; barra delle schede fluttuante. Facile da toccare, più «app».',phone('v4',acc+attivita+curios)],
+['v5','5 · Striscia di priorità','Il livello è una striscia colorata a sinistra di ogni nota (come nei calendari); il numero diventa un piccolo testo grigio a destra. Pulitissimo, la priorità si legge a distanza.',phone('v5',acc+attivita+curios)],
+['v6','6 · Denso','Una riga per nota (titolo e stima affiancati), caselle e targhette più piccole, margine compatto: più note nella stessa schermata per chi ne ha tante.',phone('v6',acc+attivita+curios)]
+];
+document.getElementById('g').innerHTML=V.map(([k,t,d,h])=>`<div class="cell"><h2>${t}</h2><p>${d}</p>${h}</div>`).join('');
+</script></body></html>

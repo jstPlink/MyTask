@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="it"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Stile morbido · riassunto</title>
+<style>/* Stile «Morbido» di MyTask (lo stile base dell'app dalla 0.115.0), estratto per altre app. Parallelo delle schede «Vetro» e «Base».
+   Uso: <link rel="stylesheet" href="tema.css">, poi <body class="mb" data-pal="verde"> (palette: verde, petrolio, indaco); per il tema scuro aggiungi la classe «dark» al body (<body class="mb dark" data-pal="indaco">).
+   Idea: le note e i riquadri sono schede appena più chiare dello sfondo (35% di bianco), staccate da un'ombra marcata e non da bordi; titolo e contenuto a sinistra, a destra la freccia di priorità (punta verso il titolo) e la casella, della stessa misura; i pulsanti in alto e la scheda attiva in basso hanno lo stesso fondo grigio con filetto.
+   Tutto sta in variabili: palette (--acc-l, --acc-soft-l, --acc-d, --acc-soft-d) e ruoli (--bg, --surface, --ink…); la scheda morbida è --card con l'ombra --card-sh.
+   Classi pronte: mb-page, mb-top, mb-title, mb-label, mb-muted, mb-sec, mb-card, mb-group, mb-row, mb-t1, mb-t2, mb-due, mb-timer, mb-cb, mb-tag, mb-int, mb-proj, mb-btn, mb-btns, mb-field, mb-toggle, mb-input, mb-textarea, mb-chips, mb-chip, mb-seg, mb-tabs, mb-ctl, mb-fab, mb-acc, mb-tacche, mb-sheet, mb-toast, mb-empty, mb-num.
+   Carattere di sistema (system-ui, Segoe UI, Roboto). Scala del testo: 11 / 12 / 13 / 14 / 15 / 16 / 18 px, più 20 / 26 / 34 per cifre e titoli grandi (12,5 solo per chip e sottotitoli, 15 per i numeri delle targhette, 10,5 solo per i nomi della barra delle schede). */
+
+/* ---- palette d'accento (la prima è la predefinita) ---- */
+.mb, .mb[data-pal="verde"]    { --acc-l: #2F7D5B; --acc-soft-l: #E3F1EA; --acc-d: #6FCF9B; --acc-soft-d: #17332A; }
+.mb[data-pal="petrolio"] { --acc-l: #0E7490; --acc-soft-l: #DDF1F6; --acc-d: #4FC3DD; --acc-soft-d: #12323B; }
+.mb[data-pal="indaco"]   { --acc-l: #4F46E5; --acc-soft-l: #ECEBFD; --acc-d: #9A9EFF; --acc-soft-d: #25274F; }
+
+/* ---- tema chiaro (predefinito) e scuro (classe «dark») ---- */
+.mb {
+  --bg: #F1F0EC; --surface: #FFFFFF; --surface2: #E3E1DC; --ink: #404040; --mid: #65656E; --soft: #919199; --line: #DDDAD4;
+  --warn: #D1430B; --warn-soft: #FDEBE2; --on-accent: #FFFFFF; --shadow: 0 6px 20px rgba(30, 30, 40, .10);
+  --accent: var(--acc-l); --accent-soft: var(--acc-soft-l);
+  --p1: #8A93A0; --p2: #D9A400; --p3: #D32F2F;            /* livelli di priorità: basso, medio, alto */
+  --i3: #4E9A78; --i4: #1F7A52;                            /* interesse: verde medio (3), verde scuro (4-5); 1-2 usano --p1 */
+  /* la scheda morbida e i controlli grigi */
+  --card: color-mix(in srgb, var(--surface) 35%, var(--bg)); --card-sh: 0 3px 14px rgba(30, 30, 40, .15);
+  --ctl-bg: var(--surface2); --ctl-bd: color-mix(in srgb, var(--ink) 12%, transparent);
+  --head-bg: color-mix(in srgb, var(--ink) 10%, var(--surface2)); --tag: 28px;
+  color-scheme: light;
+}
+.mb.dark {
+  --bg: #0E0F12; --surface: #1D1F23; --surface2: #272930; --ink: #F3F3F6; --mid: #A5A5B0; --soft: #72737D; --line: #2F3138;
+  --warn: #FF9466; --warn-soft: #3A2218; --on-accent: #0E0F12; --shadow: 0 6px 24px rgba(0, 0, 0, .55);
+  --accent: var(--acc-d); --accent-soft: var(--acc-soft-d);
+  --p1: #7B8493; --p2: #F4C542; --p3: #FF6B6B; --i3: #5FAE8D; --i4: #6FCF9B;
+  --card: color-mix(in srgb, var(--surface) 60%, var(--bg)); --card-sh: 0 3px 14px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .04);
+  color-scheme: dark;
+}
+
+/* ---- base ---- */
+.mb { --r-card: 16px; --r-proj: 18px; --r-btn: 12px; --r-chip: 14px; --r-seg: 13px; --r-field: 15px; --r-sheet: 26px; --r-toast: 14px;
+  margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 400 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.mb *, .mb *::before, .mb *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:where(.mb) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+:where(.mb) input, :where(.mb) select, :where(.mb) textarea { font: inherit; color: inherit; }
+:where(.mb) a { color: var(--accent); }
+.mb :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 2px; }
+.mb-page { max-width: 520px; margin: 0 auto; padding: 18px 14px 48px; }
+.mb-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 0 4px 6px; }
+.mb-title { font-size: 26px; font-weight: 750; letter-spacing: -.015em; line-height: 1.15; margin: 0; }
+.mb-sub { font-size: 12.5px; color: var(--mid); margin-top: 3px; }
+.mb-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+.mb-muted { font-size: 12px; color: var(--mid); }
+.mb-num { font-family: ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; font-weight: 800; }
+
+/* sezione: titoletto sopra le schede (14/700 nel colore secondario) con il conteggio a destra, senza fascia */
+.mb-sec { margin: 14px 0 0; }
+.mb-sec-t { margin: 0 4px 7px; display: flex; align-items: baseline; gap: 8px; font-size: 14px; font-weight: 700; color: var(--mid); }
+.mb-sec-t b { margin-left: auto; font-size: 12px; font-weight: 600; }
+
+/* scheda morbida: fondo --card (35% di bianco sul fondo), nessun bordo, ombra marcata */
+.mb-card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--card-sh); padding: 13px 14px; margin: 8px 0; }
+.mb-card.strong { box-shadow: var(--card-sh), inset 0 0 0 1.5px var(--accent); }
+.mb-group { background: var(--card); border-radius: var(--r-card); box-shadow: var(--card-sh); padding: 4px 14px 2px; margin: 12px 0; }
+.mb-group-t { margin: 0; padding: 12px 0 2px; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--soft); font-weight: 700; }
+.mb-group .mb-field:last-child { border-bottom: 0; }
+
+/* nota: una scheda morbida; a sinistra titolo e riga grigia, a destra (nell'ordine) data, freccia di priorità e casella */
+.mb-row { display: flex; gap: 12px; align-items: center; padding: 10px 12px 10px 14px; margin-bottom: 8px; border-radius: var(--r-card); background: var(--card); box-shadow: var(--card-sh); width: 100%; }
+.mb-row > .grow { flex: 1; min-width: 0; }
+.mb-t1 { font-size: 15px; font-weight: 620; overflow-wrap: anywhere; } .mb-t1.struck { text-decoration: line-through; color: var(--mid); }
+.mb-t2 { font-size: 12px; color: var(--mid); margin-top: 1px; }
+.mb-right { font-size: 12px; color: var(--mid); white-space: nowrap; }
+.mb-due { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 650; color: var(--mid); } .mb-due.soon { color: var(--accent); } .mb-due.late { color: var(--warn); }
+.mb-due svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+/* timer già avviato: barra sottile (3 px), senza colore, con «tempo lavorato / stima» in monospazio */
+.mb-timer { display: flex; align-items: center; gap: 9px; margin-top: 5px; }
+.mb-timer i { display: block; flex: 1; max-width: 120px; min-width: 40px; height: 3px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 14%, var(--card)); overflow: hidden; }
+.mb-timer i u { display: block; height: 100%; background: var(--ink); text-decoration: none; }
+.mb-timer span { font: 700 12px ui-monospace, Consolas, monospace; color: var(--mid); white-space: nowrap; } .mb-timer span b { color: var(--ink); font: inherit; font-weight: 800; }
+
+/* casella (28 px, come la targhetta): da fare = vuota; in corso / in pausa = pallino scuro (in corso con l'onda); fatta = piena con pallino chiaro; archiviata = tratteggiata */
+.mb-cb { position: relative; width: var(--tag); height: var(--tag); flex: none; border: 2px solid var(--soft); border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s; }
+.mb-cb.viva, .mb-cb.pausa { border-color: var(--ink); }
+.mb-cb.viva::after, .mb-cb.pausa::after { content: ""; width: 11px; height: 11px; border-radius: 50%; background: var(--ink); }
+.mb-cb.viva::after { animation: mb-onda 2s ease-out infinite; }
+.mb-cb.done { background: var(--ink); border-color: var(--ink); animation: mb-spunta .3s ease-out; }
+.mb-cb.done::after { content: ""; width: 11px; height: 11px; border-radius: 50%; background: var(--surface); }
+.mb-cb.arch { border-style: dashed; } .mb-cb.arch::after { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.6px dashed var(--soft); }
+
+/* freccia di priorità: 28 × 28, la punta guarda il titolo (a sinistra); fondo al 16% e numero nel colore del livello.
+   <span class="mb-tag p3"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>1</b></span>
+   curiosità: <span class="mb-int g3">1</span> (pallino 28 × 28) */
+.mb-tag { --c: var(--soft); position: relative; width: var(--tag); height: var(--tag); flex: none; display: grid; place-items: center; padding-left: 4px; color: var(--c); }
+.mb-tag.p1 { --c: var(--p1); } .mb-tag.p2 { --c: var(--p2); } .mb-tag.p3 { --c: var(--p3); }
+.mb-tag svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.mb-tag path { fill: color-mix(in srgb, var(--c) 16%, transparent); stroke: var(--c); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.mb-tag.p1 path { fill: var(--surface2); }
+.mb-tag b, .mb-int { position: relative; font-weight: 900; font-size: 15px; }
+.mb-int { --c: var(--p1); width: var(--tag); height: var(--tag); flex: none; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--c); color: var(--c); background: var(--surface2); }
+.mb-int.g3 { --c: var(--i3); background: color-mix(in srgb, var(--i3) 16%, transparent); }
+.mb-int.g4, .mb-int.g5 { --c: var(--i4); background: color-mix(in srgb, var(--i4) 20%, transparent); }
+
+/* cartella del progetto: scheda con testata piccola e grigia (10% di scuro sul grigio dei pulsanti), senza icona; le note si separano con un filetto */
+.mb-proj { margin: 0 0 8px; background: var(--card); border-radius: var(--r-proj); box-shadow: var(--card-sh); overflow: hidden; }
+.mb-proj-h { display: flex; align-items: center; gap: 8px; padding: 7px 14px; background: var(--head-bg); font-weight: 700; font-size: 12.5px; }
+.mb-proj-h span { margin-left: auto; font-size: 11.5px; font-weight: 700; color: var(--mid); }
+.mb-tacche { display: flex; gap: 3px; margin: 8px 0; }
+.mb-tacche i { flex: 1; min-width: 0; height: 5px; border-radius: 3px; background: var(--surface2); transition: background .3s; } .mb-tacche i.on { background: var(--accent); }
+.mb-proj .mb-tacche { margin: 0; padding: 0 14px 8px; background: var(--head-bg); } .mb-proj .mb-tacche i { background: color-mix(in srgb, var(--ink) 16%, var(--head-bg)); } .mb-proj .mb-tacche i.on { background: var(--ink); }
+.mb-proj .mb-row { margin: 0; border-radius: 0; box-shadow: none; background: none; padding: 9px 12px 9px 14px; border-top: 1px solid var(--line); }
+.mb-proj-h + .mb-row, .mb-proj .mb-tacche + .mb-row { border-top: 0; }
+
+/* pulsanti in alto e scheda attiva in basso: stesso fondo grigio con filetto. Pulsante «+» tondo d'accento */
+.mb-ctl { position: relative; width: 44px; height: 44px; border-radius: 50%; background: var(--ctl-bg); box-shadow: inset 0 0 0 1px var(--ctl-bd); color: var(--ink); display: grid; place-items: center; flex: none; }
+.mb-ctl svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.mb-ctl i { position: absolute; top: -3px; right: -3px; min-width: 21px; height: 21px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font: 700 11px/17px system-ui; font-style: normal; text-align: center; border: 2px solid var(--bg); }
+.mb-fab { width: 62px; height: 62px; border-radius: 20px; background: var(--accent); color: var(--on-accent); font-size: 34px; line-height: 1; display: grid; place-items: center; box-shadow: var(--shadow); padding: 0; transition: transform .15s; }
+.mb-fab:active { transform: scale(.92); }
+/* barra a cinque schede: icona sopra il nome, staccata dall'ombra verso l'alto (niente filetto) */
+.mb-tabs { display: flex; gap: 4px; padding: 0 6px; background: var(--card); border-radius: 22px 22px 0 0; box-shadow: 0 -4px 16px rgba(30, 30, 40, .13), 0 -1px 3px rgba(30, 30, 40, .07); }
+.mb.dark .mb-tabs { box-shadow: 0 -4px 16px rgba(0, 0, 0, .5), 0 -1px 0 rgba(255, 255, 255, .05); }
+.mb-tabs button { flex: 1; height: 62px; padding: 6px 2px 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; font-size: 10.5px; font-weight: 600; color: var(--soft); }
+.mb-tabs .tab-in { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px 3px; border-radius: 18px; border: 1px solid transparent; transition: background .15s; }
+.mb-tabs button.on { color: var(--ink); font-weight: 700; } .mb-tabs button.on .tab-in { background: var(--ctl-bg); box-shadow: inset 0 0 0 1px var(--ctl-bd); }
+.mb-tabs svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* pulsanti: contorno d'accento, pieno per l'azione principale, arancio per ciò che distrugge */
+.mb-btn { display: inline-block; border: 1.5px solid var(--accent); color: var(--accent); border-radius: var(--r-btn); padding: 9px 14px; font-weight: 650; font-size: 13px; text-align: center; transition: transform .12s; }
+.mb-btn.solid { background: var(--accent); color: var(--on-accent); } .mb-btn.danger { border-color: var(--warn); color: var(--warn); } .mb-btn[disabled] { opacity: .45; }
+.mb-btn:active { transform: scale(.97); }
+.mb-btns { display: flex; gap: 8px; margin-top: 11px; } .mb-btns .mb-btn { flex: 1; }
+/* campi, interruttore, chip, segmenti */
+.mb-field { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; min-height: 46px; }
+.mb-field > span:first-child { color: var(--mid); flex: none; }
+.mb-input { background: var(--card); border: 1.5px solid var(--accent); border-radius: var(--r-field); padding: 13px; font-size: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; }
+.mb-input input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; font-size: 16px; }
+.mb-textarea { width: 100%; min-height: 84px; background: var(--card); border: 0; box-shadow: var(--card-sh); border-radius: var(--r-btn); padding: 10px; resize: vertical; outline: none; }
+.mb-toggle { display: inline-block; width: 38px; height: 22px; border-radius: 11px; background: var(--accent); position: relative; flex: none; cursor: pointer; transition: background .15s; }
+.mb-toggle::after { content: ""; position: absolute; right: 2px; top: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--on-accent); transition: right .18s, background .15s; }
+.mb-toggle.off { background: var(--surface2); box-shadow: inset 0 0 0 1px var(--line); } .mb-toggle.off::after { right: 18px; background: var(--soft); }
+.mb-chips { display: flex; gap: 6px; margin: 11px 0 2px; flex-wrap: wrap; }
+.mb-chip { background: var(--surface2); border: 1px solid transparent; border-radius: var(--r-chip); padding: 5px 12px; font-size: 12.5px; color: var(--mid); white-space: nowrap; }
+.mb-chip.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 650; }
+.mb-seg { display: flex; background: var(--surface2); border-radius: var(--r-seg); padding: 3px; margin: 10px 0; }
+.mb-seg button { flex: 1 0 auto; text-align: center; padding: 7px 12px; font-size: 13px; color: var(--mid); border-radius: 10px; white-space: nowrap; }
+.mb-seg button.on { background: var(--surface); color: var(--accent); font-weight: 700; box-shadow: 0 1px 4px rgba(0, 0, 0, .15); }
+/* targhetta del margine e foglio, avviso, stato vuoto */
+.mb-acc { display: flex; justify-content: space-between; align-items: center; width: 100%; background: var(--card); box-shadow: var(--card-sh); border-radius: var(--r-card); padding: 10px 14px; margin: 4px 0 6px; text-align: left; }
+.mb-acc .t { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--soft); font-weight: 700; } .mb-acc .s { font-size: 12px; color: var(--mid); }
+.mb-acc .fig { font: 800 26px/1.1 ui-monospace, Consolas, monospace; color: var(--i4); } .mb.dark .mb-acc .fig { color: var(--i4); }
+.mb-sheet { background: var(--surface); border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: 16px 18px 18px; box-shadow: 0 -12px 34px rgba(0, 0, 0, .28); }
+.mb-grip { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 14px; }
+.mb-toast { background: var(--ink); color: var(--bg); border-radius: var(--r-toast); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; box-shadow: var(--shadow); }
+.mb-toast button { font-weight: 700; color: var(--acc-soft-l); } .mb.dark .mb-toast button { color: var(--acc-l); }
+.mb-empty { text-align: center; color: var(--mid); padding: 40px 10px; }
+
+/* ---- movimento ---- */
+@keyframes mb-entra { from { opacity: 0; transform: translateY(10px); } }
+@keyframes mb-spunta { 0% { transform: scale(.7); } 55% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes mb-onda { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 50%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } }
+.mb-card, .mb-group, .mb-row { animation: mb-entra .26s ease-out backwards; }
+@media (prefers-reduced-motion: reduce) { .mb *, .mb *::before, .mb *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; } }
+
+/* ============ solo per questa pagina dimostrativa ============ */
+body.mb { background: color-mix(in srgb, var(--bg) 93%, var(--ink)); }
+.wrap { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 28px; padding: 24px; align-items: flex-start; }
+.col { width: 393px; flex: none; padding: 18px 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; }
+.ph { margin: 22px 0 0; } .col > .ph:first-child, .col > .mb-top + .ph { margin-top: 10px; }
+.ph > .mb-label { display: block; margin: 0 4px 8px; color: var(--accent); }
+.ty { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); } .ty:last-child { border-bottom: 0; }
+.ty small { font-size: 12px; color: var(--mid); text-align: right; }
+.row3 { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.sw { width: 30px; height: 30px; border-radius: 10px; border: 1px solid var(--line); flex: none; }
+</style>
+<body class="mb" data-pal="verde">
+<div class="wrap">
+<div class="col">
+<div class="mb-top"><div><h1 class="mb-title">Stile morbido</h1><div class="mb-sub">Schede appena più chiare dello sfondo, staccate dall'ombra: poco rumore, tanta chiarezza.</div></div></div>
+
+<div class="ph"><span class="mb-label">Aspetto · palette e ruoli dei colori</span>
+<div class="mb-card"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">Aspetto</b><b id="palname" style="font-size:12px;color:var(--accent)">Verde</b></div>
+<div class="mb-seg"><button id="mdL" class="on" type="button">Chiaro</button><button id="mdD" type="button">Scuro</button></div>
+<div class="mb-chips" id="pal"></div><div id="roles" style="margin-top:6px"></div></div></div>
+
+<div class="ph"><span class="mb-label">Note · titolo a sinistra, priorità e casella a destra</span>
+<div class="mb-sec"><h3 class="mb-sec-t"><span>Attività</span><b>4</b></h3>
+<div class="mb-row"><div class="grow"><div class="mb-t1">Pagare la bolletta</div><div class="mb-t2">20 min · <span class="mb-due soon"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>domani</span></div></div><span class="mb-tag p3"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>1</b></span><button class="mb-cb" type="button" aria-label="Da fare"></button></div>
+<div class="mb-row"><div class="grow"><div class="mb-t1">Preparare la riunione</div><div class="mb-timer"><i><u style="width:40%"></u></i><span><b>00:24:10</b> / 1 h</span></div></div><span class="mb-tag p2"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>2</b></span><button class="mb-cb viva" type="button" aria-label="In corso"></button></div>
+<div class="mb-row"><div class="grow"><div class="mb-t1">Chiamare il commercialista</div><div class="mb-t2">15 min · <span class="mb-due late"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>scaduta ieri</span></div></div><span class="mb-tag p3"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>3</b></span><button class="mb-cb" type="button" aria-label="Da fare"></button></div>
+<div class="mb-proj"><div class="mb-proj-h">Trasloco<span>1 / 3</span></div><div class="mb-tacche"><i class="on"></i><i></i><i></i></div>
+<div class="mb-row"><div class="grow"><div class="mb-t1">Contratto della luce</div><div class="mb-t2">prossimo passo</div></div><span class="mb-tag p2"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>4</b></span><button class="mb-cb" type="button"></button></div>
+<div class="mb-row"><div class="grow"><div class="mb-t1">Prenotare il furgone</div><div class="mb-t2">1 h</div></div><span class="mb-tag p1"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>5</b></span><button class="mb-cb" type="button"></button></div></div></div>
+<div class="mb-sec"><h3 class="mb-sec-t"><span>Curiosità</span><b>2</b></h3>
+<div class="mb-row"><div class="grow"><div class="mb-t1">Documentario sulle api</div><div class="mb-t2">45 min</div></div><span class="mb-int g4">1</span><button class="mb-cb" type="button"></button></div></div></div>
+</div>
+
+<div class="col">
+<div class="ph"><span class="mb-label">Schede e gruppi</span>
+<button class="mb-acc" type="button"><div><div class="t">Correzione alle tue stime</div><div class="s">Stime centrate</div></div><span class="fig">+4%</span></button>
+<div class="mb-card"><span class="mb-label">Scheda morbida</span><div class="mb-muted" style="margin-top:6px">Fondo --card (35% di bianco sullo sfondo), niente bordo, ombra marcata (0 3 14 al 15%); angoli 16, spazio dentro 13 × 14 px.</div></div>
+<div class="mb-card strong"><span class="mb-label">In evidenza</span><div class="mb-muted" style="margin-top:6px">Con <b>.strong</b>: contorno d'accento da 1,5 px.</div></div>
+<div class="mb-group"><h4 class="mb-group-t">Gruppo</h4><div class="mb-field"><span>Scadenza</span><b>Domani</b></div><div class="mb-field"><span>Importanza</span><b>Alta</b></div><div class="mb-field"><span>Tempo stimato</span><b>20 min</b></div></div></div>
+
+<div class="ph"><span class="mb-label">Interruttori, campi, scelte</span>
+<div class="mb-group"><h4 class="mb-group-t">Notifiche</h4><div class="mb-field"><span>Promemoria</span><span class="mb-toggle" data-t></span></div><div class="mb-field"><span>Riepilogo del lunedì</span><span class="mb-toggle off" data-t></span></div></div>
+<div class="mb-input"><input placeholder="Nuova nota…"><span class="mb-muted">↵</span></div>
+<textarea class="mb-textarea" placeholder="Testo lungo…" style="margin-top:10px"></textarea>
+<div class="mb-chips" data-chips><button class="mb-chip on" type="button">Tutte</button><button class="mb-chip" type="button">Da fare</button><button class="mb-chip" type="button">In corso</button></div>
+<div class="mb-seg" data-seg><button class="on" type="button">Oggi</button><button type="button">Settimana</button><button type="button">Mese</button></div>
+<div class="mb-btns"><button class="mb-btn solid" type="button">Salva</button><button class="mb-btn" type="button">Annulla</button><button class="mb-btn danger" type="button">Elimina</button></div></div>
+
+<div class="ph"><span class="mb-label">Cifre e testo</span>
+<div class="mb-card"><div class="ty"><span style="font-size:34px;font-weight:800">1.284</span><small>34 · cifra grande</small></div><div class="ty"><span style="font-size:26px;font-weight:750;letter-spacing:-.015em">Titolo schermata</span><small>26 · titolo, cifre</small></div><div class="ty"><span style="font-size:20px;font-weight:700">Icone e segni</span><small>20</small></div><div class="ty"><span style="font-size:18px;font-weight:700">Titolo di foglio</span><small>18 · fogli e finestre</small></div><div class="ty"><span style="font-size:16px;font-weight:750">Titolo grande di riga</span><small>16 · campi di testo</small></div><div class="ty"><span style="font-size:15px;font-weight:620">Titolo di una nota</span><small>15 · titoli, numeri</small></div><div class="ty"><span style="font-size:14px;font-weight:700;color:var(--mid)">Titoletto di sezione</span><small>14 · testo, sezioni</small></div><div class="ty"><span style="font-size:13px;font-weight:650">Pulsanti</span><small>13 · 12,5 per chip</small></div><div class="ty"><span style="font-size:12px;color:var(--mid)">Riga grigia</span><small>12 · stime, date</small></div><div class="ty"><span class="mb-label">Etichetta</span><small>11 · etichette</small></div>
+<div class="mb-muted" style="margin-top:8px">Carattere di sistema; pesi 400 / 620 / 650 / 750 e 800-900 per i numeri; cifre in monospazio (timer, margine).</div></div></div>
+</div>
+
+<div class="col">
+<div class="ph"><span class="mb-label">Spaziature, angoli, rilievo</span>
+<div class="mb-card"><div class="ty"><span>Margini della pagina</span><small>14 px (18 per i titoli)</small></div><div class="ty"><span>Tra una nota e l'altra</span><small>8 px</small></div><div class="ty"><span>Dentro una nota</span><small>10 · 12 · 10 · 14 px</small></div><div class="ty"><span>Tra sezioni</span><small>14 px; titoletto → note 7 px</small></div><div class="ty"><span>Elementi a destra</span><small>12 px tra data, freccia e casella</small></div><div class="ty"><span>Altezza da toccare</span><small>44 px (28 la casella e la freccia)</small></div><div class="ty"><span>Angoli</span><small>16 schede · 18 cartelle · 12 pulsanti · 14 chip · 26 fogli · 8 casella · 999 pillole</small></div>
+<div class="ty"><span>1 · Sfondo</span><small>--bg</small></div><div class="ty"><span>2 · Schede e note</span><small>--card + ombra</small></div><div class="ty"><span>3 · Controlli, testate</span><small>--ctl-bg, --head-bg</small></div><div class="ty"><span>4 · Fogli, avvisi</span><small>ombra forte</small></div></div></div>
+
+<div class="ph"><span class="mb-label">Stati, priorità, interesse</span>
+<div class="mb-card"><div class="row3"><span class="row3" style="gap:8px"><i class="mb-cb"></i><span class="mb-muted">da fare</span></span><span class="row3" style="gap:8px"><i class="mb-cb viva"></i><span class="mb-muted">in corso</span></span><span class="row3" style="gap:8px"><i class="mb-cb done"></i><span class="mb-muted">fatta</span></span><span class="row3" style="gap:8px"><i class="mb-cb arch"></i><span class="mb-muted">archiviata</span></span></div>
+<div class="mb-muted" style="margin:10px 0">Un tocco avanza lo stato: da fare → in corso → fatta. Casella e freccia hanno la stessa misura (28 px).</div>
+<div class="row3"><span class="mb-tag p3"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>1</b></span><span class="mb-tag p2"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>12</b></span><span class="mb-tag p1"><svg viewBox="0 0 32 30" preserveAspectRatio="none"><path d="M27.5 1.5 H8.7 L2.4 12.19 Q1.2 15 2.4 17.81 L8.7 28.5 H27.5 Q30.8 28.5 30.8 24.4 V5.6 Q30.8 1.5 27.5 1.5 Z"/></svg><b>34</b></span><span class="mb-int g4">1</span><span class="mb-int g3">2</span><span class="mb-int">3</span></div>
+<div class="mb-muted" style="margin-top:10px">Freccia con la punta verso il titolo: alta (rosso), media (giallo), bassa (grigio). Curiosità: pallino verde scuro, verde medio o grigio. Fondo al 16%, numero nel colore.</div></div></div>
+
+<div class="ph"><span class="mb-label">Navigazione</span>
+<div class="mb-card" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="mb-ctl"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span><span class="mb-ctl"><svg viewBox="0 0 24 24"><path d="M3.5 13.5L6.2 5.6A1.5 1.5 0 0 1 7.6 4.5h8.8a1.5 1.5 0 0 1 1.4 1.1l2.7 7.9"/><path d="M3.5 13.5v4.2a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-4.2h-5.2l-1 2.2H9.7l-1-2.2z"/></svg><i>3</i></span><span class="mb-ctl"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></span><button class="mb-fab" type="button" aria-label="Nuova nota">+</button></div>
+<nav class="mb-tabs" data-tabs>
+<button class="on" type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></svg>Priorità</span></button>
+<button type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="4.5"/><path d="M8 12.2l3 3 5-6"/></svg>Attività</span></button>
+<button type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z"/></svg>Intratt.</span></button>
+<button type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>Curiosità</span></button>
+<button type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><path d="M17 2.5l3.5 3.5L17 9.5"/><path d="M3.5 11V9.5A3.5 3.5 0 0 1 7 6h13.5"/><path d="M7 21.5L3.5 18 7 14.5"/><path d="M20.5 13v1.5A3.5 3.5 0 0 1 17 18H3.5"/></svg>Routine</span></button></nav>
+<div class="mb-muted" style="margin-top:8px">Pulsanti in alto e scheda attiva in basso condividono fondo grigio (--ctl-bg) e filetto (12%). La barra delle schede non ha filetto: la stacca l'ombra.</div></div>
+
+<div class="ph"><span class="mb-label">Foglio, avviso, stato vuoto</span>
+<div class="mb-sheet"><div class="mb-grip"></div><b style="font-size:18px">Stato della nota</b><div class="mb-muted" style="margin-top:4px">Foglio dal basso: fondo pieno, angoli alti 26, ombra forte.</div></div>
+<div class="mb-toast" style="margin-top:12px"><span>Nota spostata in Archiviate</span><button type="button">Annulla</button></div>
+<div class="mb-card"><div class="mb-empty" style="padding:22px 10px">Niente di urgente.<br><span class="mb-muted">Puoi pescare qualcosa da «Attività».</span></div></div></div>
+
+<div class="ph"><span class="mb-label">Movimento</span>
+<div class="mb-card"><div class="ty"><span>Entrata di schede e note</span><small>.26 s, dal basso di 10 px</small></div><div class="ty"><span>Colori e stati premuti</span><small>.15 s; pulsanti .97, + .92</small></div><div class="ty"><span>Interruttore, spunta</span><small>.18 s · .30 s con rimbalzo</small></div><div class="ty"><span>Onda «in corso»</span><small>2 s, ripetuta (ombra del pallino)</small></div><div class="mb-muted" style="margin-top:8px">Con «riduci movimento» attivo del sistema ogni animazione si azzera.</div></div></div>
+</div>
+</div>
+<script>
+const body = document.body, $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const PAL = [['verde', 'Verde', '#2F7D5B'], ['petrolio', 'Petrolio', '#0E7490'], ['indaco', 'Indaco', '#4F46E5']];
+const ROLES = [['Sfondo', '--bg', 'pagina'], ['Scheda morbida', '--card', 'note e riquadri (+ ombra)'], ['Pannello', '--surface', 'fogli, interruttori'], ['Controlli', '--ctl-bg', 'pulsanti in alto, scheda attiva'], ['Testata cartella', '--head-bg', 'progetti'], ['Filetto', '--line', 'separatori'], ['Testo', '--ink', 'testo principale'], ['Testo secondario', '--mid', 'righe grigie'], ['Testo tenue', '--soft', 'caselle, etichette'], ['Accento', '--accent', 'azioni, scelte'], ['Accento tenue', '--accent-soft', 'fondo delle scelte'], ['Avvertenza', '--warn', 'elimina, scaduto'], ['Priorità alta', '--p3', 'rosso'], ['Priorità media', '--p2', 'giallo'], ['Priorità bassa', '--p1', 'grigio']];
+function paint() {
+  const cur = body.dataset.pal, cs = getComputedStyle(body);
+  $('#pal').innerHTML = PAL.map(([k, n, a]) => `<button type="button" class="mb-chip${k === cur ? ' on' : ''}" data-pal="${k}"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${a};margin-right:7px;vertical-align:-1px"></span>${n}</button>`).join('');
+  $('#palname').textContent = PAL.find(p => p[0] === cur)[1];
+  $('#roles').innerHTML = ROLES.map(([n, v, d]) => { const c = cs.getPropertyValue(v).trim(); return `<div class="ty" style="align-items:center"><span class="sw" style="background:${c}"></span><span style="flex:1"><b style="font-size:14px">${n}</b><br><small style="text-align:left">${d}</small></span><span class="mb-num mb-muted" style="font-size:12px">${c.toUpperCase().slice(0, 24)}</span></div>`; }).join('');
+}
+const setMode = d => { body.classList.toggle('dark', d); $('#mdL').classList.toggle('on', !d); $('#mdD').classList.toggle('on', d); paint(); };
+$('#mdL').onclick = () => setMode(false); $('#mdD').onclick = () => setMode(true);
+$('#pal').addEventListener('click', e => { const b = e.target.closest('[data-pal]'); if (b) { body.dataset.pal = b.dataset.pal; paint(); } });
+$$('[data-t]').forEach(t => t.onclick = () => t.classList.toggle('off'));
+$$('[data-chips]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('.mb-chip'); if (b) { $$('.mb-chip', g).forEach(x => x.classList.remove('on')); b.classList.add('on'); } }));
+$$('[data-seg],[data-tabs]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { $$('button', g).forEach(x => x.classList.remove('on')); b.classList.add('on'); } }));
+$$('.mb-row > button.mb-cb').forEach(c => c.onclick = () => { const s = c.classList.contains('done') ? 'dafare' : c.classList.contains('viva') ? 'done' : 'viva'; c.classList.remove('done', 'viva'); if (s !== 'dafare') c.classList.add(s); });
+paint();
+</script></body></html>

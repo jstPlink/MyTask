@@ -196,8 +196,8 @@ export function Aspetto() {
         <Seg<Tema> voci={[{ id: 'sistema', nome: 'Sistema' }, { id: 'chiaro', nome: 'Chiaro' }, { id: 'scuro', nome: 'Scuro' }]} attivo={a.tema} onChange={(tema) => impostaAspetto({ tema })} />
         <div className="t2">Segue il tema del telefono, oppure ne scegli uno fisso.</div>
         <Sec a="Stile" />
-        <Seg<Stile> voci={[{ id: 'classico', nome: 'Classico' }, { id: 'vetro', nome: 'Vetro' }]} attivo={a.stile} onChange={(stile) => impostaAspetto({ stile })} />
-        <div className="t2">Classico è lo stile di sempre; Vetro usa pannelli di vetro con testate a fascia e una palette a scelta.</div>
+        <Seg<Stile> voci={[{ id: 'classico', nome: 'Morbido' }, { id: 'vetro', nome: 'Vetro' }]} attivo={a.stile} onChange={(stile) => impostaAspetto({ stile })} />
+        <div className="t2">Morbido è lo stile di base, con note come schede morbide e ombre; Vetro usa pannelli di vetro con testate a fascia e una palette a scelta.</div>
         {a.stile === 'vetro' && (
           <>
             <Sec a={`Palette · ${NOMI_PALETTE[a.palette].nome}`} />

@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.114.0
+- **Versione documento:** 0.115.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -82,6 +82,16 @@ Il sito usa lo spazio degli schermi larghi (breakpoint a 900 e 1300 px); sotto i
 | Accento Petrolio | #0E7490 | #4FC3DD |
 | Accento Indaco | #4F46E5 | #9A9EFF |
 | Avviso | #D1430B | #FF9466 |
+
+#### Stile «Morbido» (lo stile base, da 0.115.0)
+
+È lo stile di base dell'app (nel selettore Aspetto › Stile si chiama **Morbido**, internamente `classico`). Scheda di riferimento: `docs/scheda-stile-morbido.html` (colonne affiancate, come la scheda Vetro). Codice: ultimo blocco di `web/src/styles.css` (tutto sotto `html:not([data-stile=vetro])`, quindi Vetro non cambia).
+
+- **Schede morbide:** note, riquadri e gruppi hanno fondo `--card` (35% di bianco sullo sfondo; 60% nel tema scuro), nessun bordo e un'ombra marcata (`--card-sh`); la barra delle schede in basso ha lo stesso fondo e un'ombra verso l'alto, senza filetto.
+- **Righe:** titolo e riga grigia a sinistra, poi data, **freccia di priorità** (28 × 28, punta verso il titolo; si ottiene girando l'immagine con CSS) e **casella** (28 × 28) all'estrema destra; l'ordine è dato da `order` nei CSS, senza cambiare il markup. Timer già avviato: barra di 3 px senza colore (nera su grigio) con «tempo lavorato / stima».
+- **Sezioni e cartelle:** il titolo di sezione è un titoletto (14/700 grigio) senza fascia; la cartella del progetto è una scheda con testata piccola grigia (`--head-bg`, 10% di scuro sul grigio dei pulsanti), senza icona, e note separate da un filetto.
+- **Controlli:** pulsanti tondi in alto e scheda attiva in basso hanno lo stesso fondo grigio (`--ctl-bg`) e lo stesso filetto (`--ctl-bd`). Barra delle schede con l'icona sopra il nome.
+- **Widget:** freccia 28 × 28 con la punta a sinistra e pallino 28 × 28, a destra del titolo prima della casella (anche con lo stile Vetro, la cui immagine disegnata a runtime è specchiata).
 
 #### Stile «Vetro» (da 0.110.0)
 
@@ -634,6 +644,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-19 | 0.112.0 | **Targhetta di posizione semplificata:** tolti il «!» e il «?» e i due pezzi; l'attività torna a una freccetta 32 × 30 px e la curiosità a un pallino 30 × 30 px, con fondo appena colorato (16%) e numero nel colore della priorità (o dell'interesse), in app, in entrambi gli stili, e nel widget (anche con lo stile Vetro). |
 | 2026-11-20 | 0.113.0 | **Coerenza dello stile classico e schede in riga:** barra delle schede in basso con icona e nome affiancati (46 px invece di 62; «+» e avvisi più in basso; «Intratt.»); testi portati sulla scala 11/12/13/14/15/16/18 (+ 20/26/34), angoli su 16 (schede), 26 (fogli e finestre), 12, 14 e 999 (pillole), niente bianco fisso sopra i colori dei livelli, colori dell'interesse nei token (`--i3`, `--i4`), velo e ombre uniformi. Nuova «scheda stile» dello stile classico in `docs/scheda-stile-base.html` (parallela a quella Vetro, colonne affiancate) |
 | 2026-11-20 | 0.114.0 | **Stile Vetro allineato alla scheda aggiornata:** testate «fix», targhetta di posizione a due pezzi con «!» e «?» (solo in Vetro, anche nel widget), casella fatta d'accento con il segno, chiaro piatto, tempi e focus della scheda, targhetta del margine come pannellino con tinta, contatore e gradi nelle misure della scheda (`stile-vetro.css`, `StileVetro.java`, layout del widget) |
+| 2026-11-20 | 0.115.0 | **Stile «Morbido» come stile base:** note e riquadri come schede appena più chiare dello sfondo con ombra marcata, titolo a sinistra e a destra freccia di priorità (punta verso il titolo) e casella da 28 px, barra del timer sottile senza colore, cartelle con testata grigia piccola, pulsanti in alto e scheda attiva con lo stesso grigio, barra delle schede con ombra e icona sopra il nome, sezioni come titoletti; widget allineato; nuova scheda stile `docs/scheda-stile-morbido.html`; nel selettore lo stile «Classico» si chiama «Morbido» |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

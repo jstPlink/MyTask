@@ -199,16 +199,6 @@ html[data-stile=vetro] :focus-visible { outline: 2px solid rgba(var(--acc-rgb), 
 html[data-stile=vetro] .sz-t { background: none !important; border-bottom: 1px solid var(--v-hair) !important; color: var(--mute); font-weight: 800; }
 html[data-stile=vetro] .sz-t b, html[data-stile=vetro] .sz-tempi { font-size: 11px; }
 
-/* targhetta di posizione a due pezzi: simbolo («!» attività, «?» curiosità) con tinta del 45% e numero su fondo neutro, contorno nel colore del livello */
-html[data-stile=vetro] .row .rank.et { position: relative; display: grid; place-items: center; width: 46px; height: 30px; padding: 0 0 0 14px; overflow: hidden; border: 1px solid var(--c, var(--mute)); border-radius: 9px; background: var(--v-g2); color: var(--ink); }
-html[data-stile=vetro] .row .rank.et svg { display: none; }
-html[data-stile=vetro] .row .rank.et b { color: var(--ink); font-size: 15px; font-weight: 900; }
-html[data-stile=vetro] .row .rank.et::before, html[data-stile=vetro] .row .rank-int.pos::before { position: absolute; left: 0; top: 0; bottom: 0; width: 14px; display: grid; place-items: center; background: color-mix(in srgb, var(--c, var(--mute)) 45%, transparent); color: var(--c, var(--mute)); border-right: 1px solid var(--c, var(--mute)); font-size: 15px; font-weight: 900; }
-html[data-stile=vetro] .row .rank.et::before { content: "!"; }
-html[data-stile=vetro] .row .rank-int.pos { position: relative; display: grid; place-items: center; width: 46px; height: 30px; padding: 0 0 0 14px; overflow: hidden; border-radius: 15px; background: var(--v-g2); color: var(--ink); font-size: 15px; font-weight: 900; }
-html[data-stile=vetro] .row .rank-int.pos::before { content: "?"; }
-html[data-stile=vetro] .row .rank-vuoto { width: 46px; }
-
 /* casella spuntata: come la casella di spunta della scheda (riempita d'accento con il segno) */
 html[data-stile=vetro] .cb.done { background: var(--acc) !important; border-color: var(--acc) !important; }
 html[data-stile=vetro] .cb.done::after { width: 5px; height: 10px; margin-top: -2px; border-radius: 0; background: none !important; border: solid var(--onacc); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); box-sizing: content-box; }

@@ -90,37 +90,40 @@ final class StileVetro {
     }
 
     /**
-     * Targhetta di posizione a due pezzi, come nell'app (scheda Vetro): 46 x 30 dp con il contorno di 1 dp nel colore del livello; a sinistra
-     * il simbolo («!» attività, «?» curiosità) su 14 dp con la tinta del 45% e una linea di separazione, a destra il numero su fondo neutro.
-     * Angoli 9 dp (attività) o 15 dp (curiosità).
+     * Targhetta di posizione: attività = freccetta 32 x 30 dp con la punta a destra, curiosità = pallino 30 x 30 dp; fondo appena colorato
+     * (16%), contorno di 1 dp e numero nel colore del livello.
      */
     Bitmap targhetta(Context c, boolean curiosita, int colore, String numero) {
         float d = dp(c, 1);
-        Bitmap b = Bitmap.createBitmap(Math.round(46 * d), Math.round(30 * d), Bitmap.Config.ARGB_8888);
+        Bitmap b = Bitmap.createBitmap(Math.round(32 * d), Math.round(30 * d), Bitmap.Config.ARGB_8888);
         Canvas cv = new Canvas(b);
-        float r = (curiosita ? 15 : 9) * d;
-        RectF tutto = new RectF(0.5f * d, 0.5f * d, 45.5f * d, 29.5f * d);
+        float u = d;
         Path forma = new Path();
-        forma.addRoundRect(tutto, r, r, Path.Direction.CW);
-        cv.save();
-        cv.clipPath(forma);
-        cv.drawRect(0, 0, 46 * d, 30 * d, pennello(sfondo3, Paint.Style.FILL, 0));
-        cv.drawRect(0, 0, 14 * d, 30 * d, pennello(Color.argb(0x73, Color.red(colore), Color.green(colore), Color.blue(colore)), Paint.Style.FILL, 0));
-        cv.drawLine(14 * d, 0, 14 * d, 30 * d, pennello(colore, Paint.Style.STROKE, d));
-        cv.restore();
+        if (curiosita) {
+            forma.addOval(new RectF(1.5f * u, 1 * u, 30.5f * u, 29 * u), Path.Direction.CW);
+        } else {
+            forma.moveTo(4.5f * u, 1.5f * u);
+            forma.lineTo(23.3f * u, 1.5f * u);
+            forma.lineTo(29.6f * u, 12.19f * u);
+            forma.quadTo(30.8f * u, 15 * u, 29.6f * u, 17.81f * u);
+            forma.lineTo(23.3f * u, 28.5f * u);
+            forma.lineTo(4.5f * u, 28.5f * u);
+            forma.quadTo(1.2f * u, 28.5f * u, 1.2f * u, 24.4f * u);
+            forma.lineTo(1.2f * u, 5.6f * u);
+            forma.quadTo(1.2f * u, 1.5f * u, 4.5f * u, 1.5f * u);
+            forma.close();
+        }
+        android.graphics.Matrix specchio = new android.graphics.Matrix();
+        specchio.setScale(-1, 1, 16 * u, 15 * u); // la punta guarda il titolo (a sinistra)
+        forma.transform(specchio);
+        cv.drawPath(forma, pennello(Color.argb(0x29, Color.red(colore), Color.green(colore), Color.blue(colore)), Paint.Style.FILL, 0));
         cv.drawPath(forma, pennello(colore, Paint.Style.STROKE, d));
-        float sp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 15f, c.getResources().getDisplayMetrics());
         Paint t = pennello(colore, Paint.Style.FILL, 0);
         t.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         t.setTextAlign(Paint.Align.CENTER);
-        t.setTextSize(sp);
-        float y = 15 * d - (t.ascent() + t.descent()) / 2;
-        cv.drawText(curiosita ? "?" : "!", 7 * d, y, t);
-        Paint n = pennello(testo, Paint.Style.FILL, 0);
-        n.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        n.setTextAlign(Paint.Align.CENTER);
-        n.setTextSize(sp);
-        cv.drawText(numero, 30 * d, y, n);
+        t.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 15.5f, c.getResources().getDisplayMetrics()));
+        float y = 15 * u - (t.ascent() + t.descent()) / 2;
+        cv.drawText(numero, (curiosita ? 16 : 18) * u, y, t);
         return b;
     }
 
