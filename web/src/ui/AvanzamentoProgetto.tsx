@@ -38,7 +38,7 @@ export function AvanzamentoProgetto() {
         style={{ ['--da' as string]: `${pct(a.prima)}%`, ['--a' as string]: `${pct(a.dopo)}%` }}>
         {!nav.wide && <div className="grip" />}
         <div className="t2">Progetto</div>
-        <div className="t1" style={{ fontSize: 20 }}>{a.padre.titolo}</div>
+        <div className="t1" style={{ fontSize: 18 }}>{a.padre.titolo}</div>
         <Tacche fatti={mostrate} totale={a.dopo.totale} anima />
         <div className="t2" style={{ marginBottom: 8 }}>
           <span className="avz-num"><span className="avz-n1">{testo(a.prima)}</span><span className="avz-n2">{testo(a.dopo)}</span></span> passi completati

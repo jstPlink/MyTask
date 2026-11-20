@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="it"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Stile base · riassunto</title>
+<style>/* Stile «base» (classico) di MyTask, estratto per altre app. Parallelo della scheda «Vetro».
+   Uso: <link rel="stylesheet" href="tema.css">, poi <body class="bs" data-pal="verde"> (palette in quest'ordine: verde, petrolio, indaco); per il tema scuro aggiungi la classe «dark» al body (<body class="bs dark" data-pal="indaco">).
+   Tutto sta in variabili: per cambiare i colori basta cambiare quelle della palette (--acc-l, --acc-soft-l, --acc-d, --acc-soft-d) o dei ruoli (--bg, --surface, --ink…).
+   Classi pronte: bs-page, bs-top, bs-title, bs-label, bs-muted, bs-section, bs-card, bs-group, bs-row, bs-t1, bs-t2, bs-right, bs-badge, bs-cb, bs-btn, bs-btns, bs-field, bs-toggle, bs-input, bs-textarea, bs-chips, bs-chip, bs-seg, bs-tabs, bs-fab, bs-circ, bs-tag, bs-int, bs-tacche, bs-acc, bs-proj, bs-sheet, bs-toast, bs-empty, bs-sync, bs-num.
+   Carattere: quello del sistema (system-ui, Segoe UI, Roboto), niente file di font. Scala del testo: 11 / 12 / 13 / 14 / 15 / 16 / 18 px, più 20 / 26 / 34 per cifre e titoli grandi (non usarne altre; 12,5 solo per chip, segmenti e sottotitoli, 15,5 solo per i numeri delle targhette, 10,5 solo per i nomi della barra delle schede). */
+
+/* ---- palette d'accento (la prima è la predefinita): ogni palette ha un accento chiaro e uno scuro, con la sua tinta tenue ---- */
+.bs, .bs[data-pal="verde"]    { --acc-l: #2F7D5B; --acc-soft-l: #E3F1EA; --acc-d: #6FCF9B; --acc-soft-d: #17332A; }
+.bs[data-pal="petrolio"] { --acc-l: #0E7490; --acc-soft-l: #DDF1F6; --acc-d: #4FC3DD; --acc-soft-d: #12323B; }
+.bs[data-pal="indaco"]   { --acc-l: #4F46E5; --acc-soft-l: #ECEBFD; --acc-d: #9A9EFF; --acc-soft-d: #25274F; }
+
+/* ---- tema chiaro (predefinito) e tema scuro (classe «dark»): stessi nomi, valori diversi ---- */
+.bs {
+  --bg: #F1F0EC; --surface: #FFFFFF; --surface2: #E3E1DC; --ink: #404040; --mid: #65656E; --soft: #919199; --line: #DDDAD4;
+  --warn: #D1430B; --warn-soft: #FDEBE2; --amber: #B7791F; --amber-soft: #FBEBD0; --giallo: #D9A400;
+  --shadow: 0 6px 20px rgba(30, 30, 40, .10); --on-accent: #FFFFFF; --campo: #9A9AA2;
+  --accent: var(--acc-l); --accent-soft: var(--acc-soft-l);
+  /* livelli di priorità: basso, medio, alto */
+  --p1: #8A93A0; --p2: #D9A400; --p3: #D32F2F;
+  /* interesse (pallino delle curiosità): grigio (1-2), verde medio (3), verde scuro (4-5) */
+  --i3: #4E9A78; --i4: #1F7A52;
+  color-scheme: light;
+}
+.bs.dark {
+  --bg: #0E0F12; --surface: #1D1F23; --surface2: #272930; --ink: #F3F3F6; --mid: #A5A5B0; --soft: #72737D; --line: #2F3138;
+  --warn: #FF9466; --warn-soft: #3A2218; --amber: #F0B866; --amber-soft: #3A2C14; --giallo: #F4C542;
+  --shadow: 0 6px 24px rgba(0, 0, 0, .55); --on-accent: #0E0F12; --campo: #5B5D68;
+  --accent: var(--acc-d); --accent-soft: var(--acc-soft-d);
+  --p1: #7B8493; --p2: #F4C542; --p3: #FF6B6B;
+  --i3: #5FAE8D; --i4: #6FCF9B;
+  color-scheme: dark;
+}
+
+/* ---- base: forme, testo, pagina ---- */
+.bs { --r-card: 16px; --r-btn: 12px; --r-chip: 14px; --r-seg: 13px; --r-field: 15px; --r-sheet: 26px; --r-toast: 14px;
+  margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 400 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.bs *, .bs *::before, .bs *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:where(.bs) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+:where(.bs) input, :where(.bs) select, :where(.bs) textarea { font: inherit; color: inherit; }
+:where(.bs) a { color: var(--accent); }
+.bs-page { max-width: 520px; margin: 0 auto; padding: 18px 18px 48px; }
+.bs-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 0 0 6px; }
+.bs-title { font-size: 26px; font-weight: 750; letter-spacing: -.015em; line-height: 1.15; margin: 0; }
+.bs-sub { font-size: 12.5px; color: var(--mid); margin-top: 3px; }
+.bs-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+.bs-muted { font-size: 12px; color: var(--mid); }
+.bs-num { font-family: ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; font-weight: 800; }
+.bs-ok { color: var(--accent); font-weight: 700; } .bs-bad { color: var(--warn); font-weight: 700; }
+
+/* sezione: fascia a tutta larghezza con filetti sopra e sotto, titolo 16/750 e, a destra, un dettaglio (di solito il conteggio) in accento; il contenuto sta sotto, senza riquadro */
+.bs-section { margin: 16px -18px 0; }
+.bs-section:first-child { margin-top: 8px; }
+.bs-section-t { margin: 0; padding: 9px 18px; background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 750; letter-spacing: -.005em; }
+.bs-section-t b { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--accent); }
+.bs-section-body { padding: 0 18px; }
+
+/* scheda e gruppo: riquadro bianco con filetto, angoli 16 */
+.bs-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 13px; margin: 11px 0; }
+.bs-card.strong { border: 1.5px solid var(--accent); box-shadow: var(--shadow); }
+.bs-group { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 4px 14px 2px; margin: 14px 0; }
+.bs-group-t { margin: 0; padding: 12px 0 2px; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--soft); font-weight: 700; }
+.bs-group .bs-row:last-child, .bs-group .bs-field:last-child { border-bottom: 0; }
+
+/* riga di lista: casella a sinistra, titolo 15/620 con riga grigia 12 sotto, parte destra libera */
+.bs-row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); width: 100%; }
+.bs-row > .grow { flex: 1; min-width: 0; }
+.bs-t1 { font-size: 15px; font-weight: 620; overflow-wrap: anywhere; } .bs-t1.light { font-weight: 420; } .bs-t1.struck { text-decoration: line-through; color: var(--mid); }
+.bs-t2 { font-size: 12px; color: var(--mid); margin-top: 1px; overflow-wrap: anywhere; }
+.bs-right { font-size: 12px; color: var(--mid); text-align: right; white-space: nowrap; }
+.bs-badge { display: inline-block; font-size: 11px; font-weight: 600; background: var(--accent-soft); color: var(--accent); padding: 2px 9px; border-radius: 10px; }
+
+/* casella di stato: quadrato stondato 23 px. da fare = vuota; in corso / in pausa = pallino scuro (in corso con l'onda); fatta = piena con pallino chiaro; archiviata = tratteggiata */
+.bs-cb { position: relative; width: 23px; height: 23px; flex: none; border: 2px solid var(--soft); border-radius: 7px; display: flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s, transform .15s; }
+.bs-cb.viva, .bs-cb.pausa { border-color: var(--ink); }
+.bs-cb.viva::after, .bs-cb.pausa::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.bs-cb.viva::after { animation: bs-onda 2s ease-out infinite; }
+.bs-cb.done { background: var(--ink); border-color: var(--ink); animation: bs-spunta .3s ease-out; }
+.bs-cb.done::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); }
+.bs-cb.arch { border-style: dashed; background: transparent; }
+.bs-cb.arch::after { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.6px dashed var(--soft); }
+
+/* pulsanti: sempre con contorno d'accento; pieno per l'azione principale, arancio per quella che distrugge */
+.bs-btn { display: inline-block; border: 1.5px solid var(--accent); color: var(--accent); border-radius: var(--r-btn); padding: 9px 14px; font-weight: 650; font-size: 13px; text-align: center; transition: transform .12s; }
+.bs-btn.solid { background: var(--accent); color: var(--on-accent); }
+.bs-btn.danger { border-color: var(--warn); color: var(--warn); }
+.bs-btn[disabled] { opacity: .5; }
+.bs-btn:active { transform: scale(.96); }
+.bs-btns { display: flex; gap: 8px; margin-top: 11px; } .bs-btns .bs-btn { flex: 1; }
+
+/* campi: riga etichetta + valore a destra, senza riquadro (dentro un gruppo); campo di testo con contorno d'accento; testo lungo */
+.bs-field { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; min-height: 46px; }
+.bs-field > span:first-child { color: var(--mid); flex: none; }
+.bs-field input:not([type=checkbox]), .bs-field select { background: transparent; border: 0; text-align: right; min-width: 0; flex: 1; outline: none; color: var(--ink); }
+.bs-field input::placeholder { color: var(--soft); }
+.bs-input { background: var(--surface); border: 1.5px solid var(--accent); border-radius: var(--r-field); padding: 13px; font-size: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; }
+.bs-input input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; font-size: 16px; }
+.bs-textarea { width: 100%; min-height: 84px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-btn); padding: 10px; resize: vertical; outline: none; }
+.bs-textarea:focus { border-color: var(--accent); }
+.bs-toggle { display: inline-block; width: 38px; height: 22px; border-radius: 11px; background: var(--accent); position: relative; flex: none; transition: background .15s; cursor: pointer; }
+.bs-toggle::after { content: ""; position: absolute; right: 2px; top: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--on-accent); transition: right .18s ease, background .15s; }
+.bs-toggle.off { background: var(--surface2); box-shadow: inset 0 0 0 1px var(--line); }
+.bs-toggle.off::after { right: 18px; background: var(--soft); }
+
+/* chip e controllo a segmenti */
+.bs-chips { display: flex; gap: 6px; margin: 11px 0 2px; flex-wrap: wrap; }
+.bs-chip { background: var(--surface2); border: 1px solid transparent; border-radius: var(--r-chip); padding: 5px 12px; font-size: 12.5px; color: var(--mid); white-space: nowrap; transition: background .15s, color .15s; }
+.bs-chip.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 650; }
+.bs-seg { display: flex; background: var(--surface2); border-radius: var(--r-seg); padding: 3px; margin: 10px 0; }
+.bs-seg button { flex: 1 0 auto; text-align: center; padding: 7px 12px; font-size: 13px; color: var(--mid); border-radius: 10px; white-space: nowrap; transition: background .15s, color .15s; }
+.bs-seg button.on { background: var(--surface); color: var(--accent); font-weight: 700; box-shadow: 0 1px 4px rgba(0, 0, 0, .15); }
+
+/* barra in basso a cinque schede: la scheda attiva ha una pillola tenue con contorno d'accento attorno a icona e nome */
+.bs-tabs { display: flex; gap: 4px; padding: 0 6px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+.bs-tabs button { flex: 1; height: 62px; padding: 6px 2px 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; font-size: 10.5px; font-weight: 600; color: var(--soft); }
+.bs-tabs .tab-in { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 12px 3px; border-radius: 16px; border: 1px solid transparent; transition: background .15s, border-color .15s; }
+.bs-tabs button.on { color: var(--accent); font-weight: 700; }
+.bs-tabs button.on .tab-in { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.bs-tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* pulsante «+» e pulsanti tondi con contatore */
+.bs-fab { width: 71px; height: 71px; border-radius: 23px; background: var(--accent); color: var(--on-accent); font-size: 36px; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); padding: 0; transition: transform .15s; }
+.bs-fab:active { transform: scale(.92); }
+.bs-circ { position: relative; width: 44px; height: 44px; border-radius: 50%; background: var(--surface2); color: var(--ink); display: flex; align-items: center; justify-content: center; flex: none; }
+.bs-circ:active { background: var(--accent-soft); color: var(--accent); }
+.bs-circ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.bs-circ-badge { position: absolute; top: -3px; right: -3px; min-width: 21px; height: 21px; padding: 0 6px; border-radius: 11px; background: var(--accent); color: var(--on-accent); font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); }
+
+/* targhetta di posizione: attività = freccetta 32 × 30 (punta a destra), curiosità = pallino 30 × 30; fondo al 16% e numero nel colore del livello (o dell'interesse); ferme.
+   <span class="bs-tag p3"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>1</b></span> · <span class="bs-int g3">1</span> */
+.bs-tag { --c: var(--soft); position: relative; width: 32px; height: 30px; flex: none; display: grid; place-items: center; padding-right: 4px; color: var(--c); }
+.bs-tag.p1 { --c: var(--p1); } .bs-tag.p2 { --c: var(--p2); } .bs-tag.p3 { --c: var(--p3); }
+.bs-tag svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.bs-tag path { fill: color-mix(in srgb, var(--c) 16%, transparent); stroke: var(--c); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.bs-tag.p1 path { fill: var(--surface2); }
+.bs-tag b, .bs-int { position: relative; font-weight: 900; font-size: 15.5px; }
+.bs-int { --c: var(--p1); width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--c); color: var(--c); background: var(--surface2); }
+.bs-int.g3 { --c: var(--i3); background: color-mix(in srgb, var(--i3) 16%, transparent); }
+.bs-int.g4, .bs-int.g5 { --c: var(--i4); background: color-mix(in srgb, var(--i4) 20%, transparent); }
+
+/* barra a tacche (una per passo) */
+.bs-tacche { display: flex; gap: 3px; margin: 8px 0; }
+.bs-tacche i { flex: 1; min-width: 0; height: 5px; border-radius: 3px; background: var(--surface2); transition: background .3s ease; }
+.bs-tacche i.on { background: var(--accent); }
+
+/* targhetta di riepilogo con cifra grande (es. margine di stima): colore della cifra = quanto va bene */
+.bs-acc { display: flex; justify-content: space-between; align-items: center; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 11px 14px; margin: 0 0 8px; text-align: left; }
+.bs-acc-t { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--soft); font-weight: 700; }
+.bs-acc-s { font-size: 11.5px; color: var(--mid); margin-top: 2px; }
+.bs-acc .fig { font: 800 26px/1.1 ui-monospace, Consolas, monospace; }
+.bs-acc .fig.ok { color: var(--i4); } .bs-acc .fig.mid { color: var(--amber); } .bs-acc .fig.ko { color: var(--warn); }
+.bs.dark .bs-acc .fig.ok { color: var(--i4); }
+
+/* progetto: tutto in grigio, con testata più scura, passi più chiari e tacche; bordo sottile che si stacca dal fondo */
+.bs-proj { --gl: color-mix(in srgb, var(--ink) 11%, var(--surface2)); background: color-mix(in srgb, var(--surface2) 50%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); border-radius: 14px; overflow: hidden; margin: 12px -5px; }
+.bs-proj-h { display: flex; align-items: center; gap: 10px; padding: 11px 8px 11px 10px; background: var(--surface2); border-bottom: 1px solid var(--gl); }
+.bs-proj-h b { flex: 1; min-width: 0; font-size: 14px; } .bs-proj-h span { font-size: 12px; font-weight: 700; color: var(--mid); white-space: nowrap; }
+.bs-proj .bs-tacche { margin: 0; padding: 0 10px 9px; background: var(--surface2); }
+.bs-proj .bs-tacche i { background: color-mix(in srgb, var(--ink) 14%, var(--surface2)); } .bs-proj .bs-tacche i.on { background: var(--mid); }
+.bs-proj .bs-row { padding-left: 10px; padding-right: 8px; border-bottom-color: var(--gl); } .bs-proj .bs-row:last-child { border-bottom: 0; }
+
+/* foglio dal basso, avviso e stato vuoto */
+.bs-sheet { background: var(--surface); border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: 16px 18px 18px; box-shadow: 0 -12px 34px rgba(0, 0, 0, .28); }
+.bs-grip { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 14px; }
+.bs-toast { background: var(--ink); color: var(--bg); border-radius: var(--r-toast); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; box-shadow: var(--shadow); }
+.bs-toast button { font-weight: 700; color: var(--acc-soft-l); white-space: nowrap; } .bs.dark .bs-toast button { color: var(--acc-l); }
+.bs-empty { text-align: center; color: var(--mid); padding: 40px 10px; }
+.bs-sync { font-size: 11px; color: var(--soft); display: inline-flex; align-items: center; gap: 5px; }
+.bs-sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); } .bs-sync.off::before { background: var(--warn); }
+
+/* ---- movimento ---- */
+@keyframes bs-entra { from { opacity: 0; transform: translateY(10px); } }
+@keyframes bs-spunta { 0% { transform: scale(.7); } 55% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes bs-onda { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 50%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } }
+@keyframes bs-sale { from { opacity: 0; transform: translateY(16px); } }
+@keyframes bs-scivola { from { transform: translateY(100%); } }
+.bs-card, .bs-group, .bs-row { animation: bs-entra .26s ease-out backwards; }
+.bs-toast { animation: bs-sale .22s ease-out; }
+@media (prefers-reduced-motion: reduce) { .bs *, .bs *::before, .bs *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; } }
+
+/* ============ solo per questa pagina dimostrativa ============ */
+.ph { margin: 22px 0 0; display: grid; gap: 0; }
+.ph > .bs-label { margin: 0 0 6px; }
+.ty { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); } .ty:last-child { border-bottom: 0; }
+.ty small { font-size: 12px; color: var(--mid); text-align: right; }
+.row3 { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.demo-band { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 14px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 11px 0; }
+.sw { width: 30px; height: 30px; border-radius: 10px; border: 1px solid var(--line); flex: none; }
+.rel { position: relative; }
+/* organizzazione della pagina (come nella scheda Vetro): colonne affiancate larghe come un telefono, scorrevoli in orizzontale */
+body.bs { background: color-mix(in srgb, var(--bg) 93%, var(--ink)); }
+.wrap { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 28px; padding: 24px; align-items: flex-start; }
+.col { width: 393px; flex: none; padding: 18px; background: var(--bg); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; }
+.col > .bs-top + .ph, .col > .ph:first-child { margin-top: 0; }
+.col > .ph > .bs-label { color: var(--accent); }
+</style>
+<body class="bs" data-pal="verde">
+<div class="wrap"><div class="col">
+
+<div class="bs-top"><div><h1 class="bs-title">Stile base</h1><div class="bs-sub">Quello «classico» di MyTask: sfondo caldo, pannelli bianchi con filetto, un solo accento.</div></div></div>
+
+<div class="ph"><span class="bs-label">Aspetto · palette e ruoli dei colori</span>
+<div class="bs-card"><div class="bs-section-t" style="margin:-13px -13px 0;border-radius:16px 16px 0 0;border-top:0"><span>Aspetto</span><b id="palname">Verde</b></div>
+<div class="bs-seg" style="margin-top:14px"><button id="mdL" class="on" type="button">Chiaro</button><button id="mdD" type="button">Scuro</button></div>
+<div class="bs-chips" id="pal"></div>
+<div id="roles" style="margin-top:8px"></div></div></div>
+
+<div class="ph"><span class="bs-label">Sezioni e riquadri</span>
+<div class="bs-section"><h3 class="bs-section-t"><span>Attività</span><b>3</b></h3>
+<div class="bs-section-body">
+<div class="bs-row"><button class="bs-cb" type="button" aria-label="Da fare"></button><div class="grow"><div class="bs-t1">Pagare la bolletta</div><div class="bs-t2">20 min · domani</div></div><span class="bs-tag p3"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>1</b></span></div>
+<div class="bs-row"><button class="bs-cb viva" type="button" aria-label="In corso"></button><div class="grow"><div class="bs-t1">Preparare la riunione</div><div class="bs-t2">1 h</div></div><span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>2</b></span></div>
+<div class="bs-row"><button class="bs-cb" type="button" aria-label="Da fare"></button><div class="grow"><div class="bs-t1">Riordinare la scrivania</div><div class="bs-t2">30 min</div></div><span class="bs-tag p1"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>3</b></span></div>
+</div></div>
+<div class="bs-card"><span class="bs-label">Scheda</span><div class="bs-muted" style="margin-top:6px">Riquadro bianco con filetto, angoli 16, 13 px di spazio dentro. Con <b>.strong</b> prende il contorno d'accento e un'ombra.</div></div>
+<div class="bs-card strong"><span class="bs-label">Scheda in evidenza</span><div class="bs-muted" style="margin-top:6px">Per la cosa che conta di più in una schermata.</div></div>
+<div class="bs-group"><h4 class="bs-group-t">Gruppo</h4>
+<div class="bs-field"><span>Scadenza</span><b>Domani</b></div><div class="bs-field"><span>Importanza</span><b>Alta</b></div><div class="bs-field"><span>Tempo stimato</span><b>20 min</b></div></div>
+<div class="bs-muted">Sezione: fascia a tutta larghezza con filetti sopra e sotto, titolo 16 px e dettaglio in accento a destra. Gruppo: riquadro con titoletto di 11 px maiuscolo e righe separate da filetti.</div></div>
+
+</div><div class="col">
+<div class="ph"><span class="bs-label">Interruttori, campi, scelte</span>
+<div class="bs-group"><h4 class="bs-group-t">Notifiche</h4>
+<div class="bs-field"><span>Promemoria</span><span class="bs-toggle" data-t></span></div>
+<div class="bs-field"><span>Riepilogo del lunedì</span><span class="bs-toggle off" data-t></span></div>
+<div class="bs-field"><span>Scadenze vicine</span><span class="bs-toggle" data-t></span></div></div>
+<div class="bs-input"><input placeholder="Nuova nota…"><span class="bs-muted">↵</span></div>
+<textarea class="bs-textarea" placeholder="Testo lungo…" style="margin-top:10px"></textarea>
+<div class="bs-chips" data-chips><button class="bs-chip on" type="button">Tutte</button><button class="bs-chip" type="button">Da fare</button><button class="bs-chip" type="button">In corso</button><button class="bs-chip" type="button">Fatte</button></div>
+<div class="bs-seg" data-seg><button class="on" type="button">Oggi</button><button type="button">Settimana</button><button type="button">Mese</button></div>
+<div class="bs-btns"><button class="bs-btn solid" type="button">Salva</button><button class="bs-btn" type="button">Annulla</button><button class="bs-btn danger" type="button">Elimina</button></div>
+<div class="demo-band"><span class="bs-badge">Etichetta</span><span class="bs-sync">Sincronizzato</span><span class="bs-sync off">Offline</span><span class="bs-btn" style="opacity:.5">Disabilitato</span></div></div>
+
+<div class="ph"><span class="bs-label">Cifre e testo</span>
+<button class="bs-acc" type="button"><div><div class="bs-acc-t">Correzione alle tue stime</div><div class="bs-acc-s">Stime centrate</div></div><span class="fig ok">+4%</span></button>
+<div class="bs-card"><div class="ty"><span style="font-size:34px;font-weight:800">1.284</span><small>34 · cifra grande (timer, totali)</small></div>
+<div class="ty"><span style="font-size:26px;font-weight:750;letter-spacing:-.015em">Titolo schermata</span><small>26 · titolo di schermata, cifre</small></div>
+<div class="ty"><span style="font-size:20px;font-weight:700">Icone e segni</span><small>20 · simboli, pulsanti +/−</small></div>
+<div class="ty"><span style="font-size:18px;font-weight:700">Titolo di foglio</span><small>18 · fogli, finestre, avvisi grandi</small></div>
+<div class="ty"><span style="font-size:16px;font-weight:750">Titolo di sezione</span><small>16 · sezioni, campi di testo</small></div>
+<div class="ty"><span style="font-size:15px;font-weight:620">Titolo di una riga</span><small>15 · titoli delle note</small></div>
+<div class="ty"><span style="font-size:14px">Testo e campi</span><small>14 · testo di base</small></div>
+<div class="ty"><span style="font-size:13px;font-weight:650">Pulsanti e segmenti</span><small>13 · pulsanti, segmenti; 12,5 per chip e sottotitoli</small></div>
+<div class="ty"><span style="font-size:12px;color:var(--mid)">Riga grigia e destra</span><small>12 · stime, date, note</small></div>
+<div class="ty"><span class="bs-label">Etichetta</span><small>11 · etichette, sempre maiuscole e spaziate</small></div>
+<div class="bs-muted" style="margin-top:8px">Carattere di sistema; pesi 420 / 620 / 650 / 750 e 800-900 per i numeri; cifre in monospazio (margine, tempi). Tre colori di significato: accento (fatto, attivo), arancio (<b class="bs-bad">avvertenza ed errore</b>) e i tre livelli di priorità.</div></div></div>
+
+</div><div class="col">
+<div class="ph"><span class="bs-label">Spaziature</span>
+<div class="bs-card">
+<div class="bs-muted" style="margin-bottom:8px">Base di 4 px con diversi valori «di mezzo» (11, 13) usati dal vivo; indicazioni, non obblighi.</div>
+<div class="ty"><span>Margini della pagina</span><small>18 px</small></div>
+<div class="ty"><span>Righe di elenco</span><small>12 px sopra e sotto, 12 px tra casella e testo</small></div>
+<div class="ty"><span>Scheda: spazio dentro</span><small>13 px; tra schede 11 px</small></div>
+<div class="ty"><span>Gruppo</span><small>14 px ai lati; tra gruppi 14 px</small></div>
+<div class="ty"><span>Campo (riga)</span><small>11 px sopra e sotto, minimo 46 px</small></div>
+<div class="ty"><span>Pulsanti vicini · chip</span><small>8 px · 6 px</small></div>
+<div class="ty"><span>Etichetta → contenuto</span><small>2–6 px</small></div>
+<div class="ty"><span>Altezza minima da toccare</span><small>44 px (pulsanti tondi, indietro)</small></div>
+<div class="ty"><span>Angoli</span><small>16 schede e cartelle · 12 pulsanti · 14 chip · 13 segmenti · 15 campo · 26 fogli e finestre · 7 casella · 999 pillole</small></div>
+<div class="bs-muted" style="margin-top:8px">Dentro un gruppo si sta stretti (2–8 px), tra gruppi larghi (14–18): la distanza dice cosa è legato a cosa.</div></div></div>
+
+<div class="ph"><span class="bs-label">Stati, livelli e targhette</span>
+<div class="bs-card">
+<div class="row3" id="cbs"><span class="row3" style="gap:8px"><i class="bs-cb"></i><span class="bs-muted">da fare</span></span><span class="row3" style="gap:8px"><i class="bs-cb viva"></i><span class="bs-muted">in corso</span></span><span class="row3" style="gap:8px"><i class="bs-cb pausa"></i><span class="bs-muted">in pausa</span></span><span class="row3" style="gap:8px"><i class="bs-cb done"></i><span class="bs-muted">fatta</span></span><span class="row3" style="gap:8px"><i class="bs-cb arch"></i><span class="bs-muted">archiviata</span></span></div>
+<div class="bs-muted" style="margin:10px 0">Un tocco sulla casella fa avanzare lo stato: da fare → in corso → fatta. «In corso» e «in pausa» hanno lo stesso aspetto; solo il primo ha l'onda.</div>
+<div class="row3" style="margin-top:6px">
+<span class="bs-tag p3"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>1</b></span>
+<span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>12</b></span>
+<span class="bs-tag p1"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>34</b></span>
+<span class="bs-int g4">1</span><span class="bs-int g3">2</span><span class="bs-int g1">3</span></div>
+<div class="bs-muted" style="margin-top:10px">Attività: freccetta con livello alto (rosso), medio (giallo) e basso (grigio). Curiosità: pallino verde scuro (interesse 4-5), verde medio (3) o grigio (1-2). Fondo al 16%, numero nel colore.</div></div>
+<div class="bs-proj"><div class="bs-proj-h"><b>Trasloco</b><span>completato 1 / 3</span></div><div class="bs-tacche"><i class="on"></i><i></i><i></i></div>
+<div class="bs-row"><button class="bs-cb done" type="button"></button><div class="grow"><div class="bs-t1 struck">Scatoloni</div></div></div>
+<div class="bs-row"><button class="bs-cb" type="button"></button><div class="grow"><div class="bs-t1">Contratto della luce</div><div class="bs-t2">prossimo passo</div></div><span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>5</b></span></div></div>
+<div class="bs-muted">Progetto: cartella grigia con bordo sottile, testata più scura e barra a tacche (una per passo).</div></div>
+
+</div><div class="col">
+<div class="ph"><span class="bs-label">Navigazione e pulsanti tondi</span>
+<div class="demo-band"><button class="bs-circ" type="button" aria-label="Tema"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+<button class="bs-circ" type="button" aria-label="Inbox"><svg viewBox="0 0 24 24"><path d="M3.5 13.5L6.2 5.6A1.5 1.5 0 0 1 7.6 4.5h8.8a1.5 1.5 0 0 1 1.4 1.1l2.7 7.9"/><path d="M3.5 13.5v4.2a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-4.2h-5.2l-1 2.2H9.7l-1-2.2z"/></svg><span class="bs-circ-badge">3</span></button>
+<button class="bs-circ" type="button" aria-label="Altro"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></button>
+<button class="bs-fab" type="button" aria-label="Nuova nota">+</button></div>
+<nav class="bs-tabs" data-tabs>
+<button class="on" type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></svg>Priorità</span></button>
+<button type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="4.5"/><path d="M8 12.2l3 3 5-6"/></svg>Attività</span></button>
+<button type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.1 5.5-5.5 2.1 2.1-5.5z"/></svg>Intratt.</span></button>
+<button type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>Curiosità</span></button>
+<button type="button"><span class="tab-in"><svg viewBox="0 0 24 24"><path d="M17 2.5l3.5 3.5L17 9.5"/><path d="M3.5 11V9.5A3.5 3.5 0 0 1 7 6h13.5"/><path d="M7 21.5L3.5 18 7 14.5"/><path d="M20.5 13v1.5A3.5 3.5 0 0 1 17 18H3.5"/></svg>Routine</span></button></nav></div>
+
+<div class="ph"><span class="bs-label">Foglio, avviso, stato vuoto</span>
+<div class="bs-sheet"><div class="bs-grip"></div><b style="font-size:16px">Stato della nota</b><div class="bs-muted" style="margin-top:4px">Foglio dal basso: fondo pieno, angoli alti 26, ombra forte verso l'alto, maniglia di 40 × 4.</div></div>
+<div class="bs-toast" style="margin-top:12px"><span>Nota spostata in Archiviate</span><button type="button">Annulla</button></div>
+<div class="bs-card"><div class="bs-empty" style="padding:22px 10px">Niente di urgente.<br><span class="bs-muted">Puoi pescare qualcosa da «Attività».</span></div></div></div>
+
+</div><div class="col">
+<div class="ph"><span class="bs-label">Livelli di rilievo, larghezze, movimento</span>
+<div class="bs-card"><div class="ty"><span>1 · Sfondo della pagina</span><small>--bg, caldo (#F1F0EC) o quasi nero</small></div><div class="ty"><span>2 · Pannelli e righe</span><small>--surface, con filetto --line</small></div><div class="ty"><span>3 · Incavi, chip, segmenti</span><small>--surface2</small></div><div class="ty"><span>4 · Fogli, menu, avvisi</span><small>ombra forte, avviso in --ink</small></div></div>
+<div class="bs-card"><div class="ty"><span>Telefono</span><small>colonna fino a 520 px</small></div><div class="ty"><span>Sito largo (≥ 900 px)</span><small>barra laterale di 288 px + colonna centrale</small></div></div>
+<div class="bs-card"><div class="ty"><span>Entrata di schede e righe</span><small>.26 s, dal basso di 10 px</small></div><div class="ty"><span>Colori e stati premuti</span><small>.15 s; pulsanti .96, + .92</small></div><div class="ty"><span>Interruttore e spunta</span><small>.18 s · .30 s con rimbalzo</small></div><div class="ty"><span>Fogli e avvisi</span><small>.28 s con cubic-bezier(.2,.8,.2,1) · .22 s</small></div><div class="ty"><span>Onda «in corso»</span><small>2 s, ripetuta</small></div>
+<div class="bs-muted" style="margin-top:8px">Con «riduci movimento» attivo del sistema ogni animazione si azzera.</div></div></div>
+
+</div></div>
+<script>
+const body = document.body, $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const PAL = [['verde', 'Verde', '#2F7D5B'], ['petrolio', 'Petrolio', '#0E7490'], ['indaco', 'Indaco', '#4F46E5']];
+const ROLES = [['Sfondo', '--bg', 'pagina'], ['Pannello', '--surface', 'righe, schede, fasce'], ['Pannello 2', '--surface2', 'incavi, chip, segmenti'], ['Filetto', '--line', 'linee sottili'], ['Testo', '--ink', 'testo principale'], ['Testo secondario', '--mid', 'righe grigie'], ['Testo tenue', '--soft', 'etichette, caselle'], ['Accento', '--accent', 'scelte attive, pulsanti, barre'], ['Accento tenue', '--accent-soft', 'fondo delle scelte'], ['Testo su accento', '--on-accent', 'scritte sopra l\'accento'], ['Avvertenza / errore', '--warn', 'elimina, offline, scaduto'], ['Priorità alta', '--p3', 'rosso'], ['Priorità media', '--p2', 'giallo'], ['Priorità bassa', '--p1', 'grigio']];
+function paint() {
+  const cur = body.dataset.pal, cs = getComputedStyle(body);
+  $('#pal').innerHTML = PAL.map(([k, n, a]) => `<button type="button" class="bs-chip${k === cur ? ' on' : ''}" data-pal="${k}"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${a};margin-right:7px;vertical-align:-1px"></span>${n}</button>`).join('');
+  $('#palname').textContent = PAL.find(p => p[0] === cur)[1];
+  $('#roles').innerHTML = ROLES.map(([n, v, d]) => { const c = cs.getPropertyValue(v).trim(); return `<div class="bs-row" style="padding:9px 0"><span class="sw" style="background:${c}"></span><div class="grow"><div class="bs-t1" style="font-size:14px">${n}</div><div class="bs-t2" style="font-size:11px">${d}</div></div><span class="bs-num bs-muted" style="font-size:12.5px">${c.toUpperCase()}</span></div>`; }).join('');
+}
+const setMode = d => { body.classList.toggle('dark', d); $('#mdL').classList.toggle('on', !d); $('#mdD').classList.toggle('on', d); paint(); };
+$('#mdL').onclick = () => setMode(false); $('#mdD').onclick = () => setMode(true);
+$('#pal').addEventListener('click', e => { const b = e.target.closest('[data-pal]'); if (b) { body.dataset.pal = b.dataset.pal; paint(); } });
+$$('[data-t]').forEach(t => t.onclick = () => t.classList.toggle('off'));
+$$('[data-chips]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('.bs-chip'); if (b) { $$('.bs-chip', g).forEach(x => x.classList.remove('on')); b.classList.add('on'); } }));
+$$('[data-seg]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { $$('button', g).forEach(x => x.classList.remove('on')); b.classList.add('on'); } }));
+$$('[data-tabs]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { $$('button', g).forEach(x => x.classList.remove('on')); b.classList.add('on'); } }));
+$$('.bs-row > button.bs-cb').forEach(c => c.onclick = () => { const s = c.classList.contains('done') ? 'dafare' : c.classList.contains('viva') ? 'done' : 'viva'; c.classList.remove('done', 'viva'); if (s !== 'dafare') c.classList.add(s); });
+paint();
+</script></body></html>

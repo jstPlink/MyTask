@@ -26,7 +26,7 @@ export function StatoMenu() {
       <div className="dim" onClick={chiudiStatoMenu} />
       <div className="sheet stato-menu" role="dialog" aria-label="Stato della nota">
         <div className="grip" />
-        <div className="t1" style={{ fontSize: 17, marginBottom: 2 }}>{item.titolo}</div>
+        <div className="t1" style={{ fontSize: 18, marginBottom: 2 }}>{item.titolo}</div>
         <div className="t2" style={{ marginBottom: 8 }}>Scegli lo stato</div>
         {STATI_NOTA.map((s) => (
           <button key={s.id} className={clsx('stato-voce', attuale === s.id && 'on')} onClick={() => { chiudiStatoMenu(); cambiaStato(item, s.id); }}>

@@ -360,7 +360,7 @@ export function Empty({ children }: { children: ReactNode }) {
 
 /** Nomi delle cinque schede; `breve` è il nome che sta nella barra del telefono, dove «Intrattenimento» non entra. */
 const TAB_NOMI: { id: Tab; nome: string; breve?: string }[] = [
-  { id: 'oggi', nome: 'Priorità' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Intrattenimento', breve: 'Intratten.' }, { id: 'curiosita', nome: 'Curiosità' }, { id: 'routine', nome: 'Routine' },
+  { id: 'oggi', nome: 'Priorità' }, { id: 'fare', nome: 'Attività' }, { id: 'scoprire', nome: 'Intrattenimento', breve: 'Intratt.' }, { id: 'curiosita', nome: 'Curiosità' }, { id: 'routine', nome: 'Routine' },
 ];
 
 /** Barra delle cinque schede in basso (solo telefono, con le icone: sul sito la barra laterale è senza). Nessuna scheda risulta attiva mentre è aperta una schermata sopra la pila. */

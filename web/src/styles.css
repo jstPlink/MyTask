@@ -17,6 +17,8 @@
   --amber: #B7791F; --amber-soft: #FBEBD0; --giallo: #D9A400;
   /* livelli di priorità (etichetta nelle righe): basso, medio, alto */
   --p1: #8A93A0; --p2: #D9A400; --p3: #D32F2F; --bordo-campo: #9A9AA2;
+  /* interesse (pallino delle curiosità): verde medio (3) e verde scuro (4-5); 1-2 usano il grigio --p1 */
+  --i3: #4E9A78; --i4: #1F7A52;
   /* tinte dei tipi di nota (icone nei quadrati tinti: `TINTA_TIPO` in ui/Icone.tsx) */
   --c1: #2F7D5B; --c1s: #E3F1EA; --c2: #9A5B0B; --c2s: #FBEBD0; --c3: #4F46E5; --c3s: #ECEBFD; --c4: #B03A6E; --c4s: #FADFEB; --c5: #0E7490; --c5s: #DDF1F6;
 }
@@ -27,6 +29,7 @@
   --accent: var(--accent-d); --accent-soft: var(--accent-soft-d);
   --amber: #F0B866; --amber-soft: #3A2C14; --giallo: #F4C542;
   --p1: #7B8493; --p2: #F4C542; --p3: #FF6B6B; --bordo-campo: #5B5D68;
+  --i3: #5FAE8D; --i4: #6FCF9B;
   /* tinte dei tipi di nota (icone nei quadrati tinti: `TINTA_TIPO` in ui/Icone.tsx) */
   --c1: #6FCF9B; --c1s: #17332A; --c2: #F0B866; --c2s: #3A2C14; --c3: #9A9EFF; --c3s: #25274F; --c4: #F08DB8; --c4s: #3D1B2B; --c5: #4FC3DD; --c5s: #12323B;
 }
@@ -54,7 +57,7 @@ a { color: var(--accent); }
 .tabs button i { width: 20px; height: 20px; border: 1.8px solid currentColor; border-radius: 7px; }
 .tabs button.on { color: var(--accent); font-weight: 700; }
 .tabs button.on i { background: var(--accent); }
-.fab { position: absolute; right: 18px; bottom: calc(env(safe-area-inset-bottom) + 76px); width: 71px; height: 71px; border-radius: 23px; background: var(--accent); color: var(--on-accent); font-size: 36px; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); z-index: 5; padding: 0; }
+.fab { position: absolute; right: 18px; bottom: calc(env(safe-area-inset-bottom) + 60px); width: 71px; height: 71px; border-radius: 23px; background: var(--accent); color: var(--on-accent); font-size: 36px; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); z-index: 5; padding: 0; }
 
 .sec { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); margin: 18px 0 2px; display: flex; justify-content: space-between; font-weight: 600; }
 .row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); border-left: 0; width: 100%; }
@@ -119,14 +122,14 @@ a { color: var(--accent); }
 .opt.sel .t1 { color: var(--accent); }
 .ok { color: var(--accent); font-weight: 700; }
 .empty { text-align: center; color: var(--mid); padding: 40px 10px; }
-.toast { position: absolute; left: 14px; right: 14px; bottom: calc(env(safe-area-inset-bottom) + 76px); background: var(--ink); color: var(--bg); border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; z-index: 30; box-shadow: var(--shadow); }
+.toast { position: absolute; left: 14px; right: 14px; bottom: calc(env(safe-area-inset-bottom) + 60px); background: var(--ink); color: var(--bg); border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; z-index: 30; box-shadow: var(--shadow); }
 .toast button { font-weight: 700; color: var(--accent-soft-l); white-space: nowrap; }
 :root[data-theme=dark] .toast button { color: var(--accent-l); }
 .pill-sync { font-size: 11px; color: var(--soft); display: inline-flex; align-items: center; gap: 5px; }
 .pill-sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 .pill-sync.off::before { background: var(--warn); }
 .login { max-width: 380px; width: 100%; margin: 0 auto; flex: 1; padding: 22px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
-.login-brand { display: flex; align-items: center; gap: 12px; font-weight: 750; font-size: 28px; letter-spacing: -.02em; }
+.login-brand { display: flex; align-items: center; gap: 12px; font-weight: 750; font-size: 26px; letter-spacing: -.02em; }
 .login-brand i { width: 40px; height: 40px; border-radius: 12px; background: var(--accent); display: inline-block; position: relative; }
 .login-brand i::after { content: ""; position: absolute; left: 14px; top: 9px; width: 9px; height: 17px; border: solid var(--on-accent); border-width: 0 3.5px 3.5px 0; transform: rotate(40deg); }
 .login-sub { font-size: 14px; color: var(--mid); margin: 0 0 10px; }
@@ -142,7 +145,7 @@ a { color: var(--accent); }
 .header-circles { display: flex; gap: 8px; align-items: center; }
 .circ { position: relative; width: 44px; height: 44px; border-radius: 50%; background: var(--surface2); color: var(--ink); display: flex; align-items: center; justify-content: center; flex: none; }
 .circ:active { background: var(--accent-soft); color: var(--accent); }
-.circ-badge { position: absolute; top: -3px; right: -3px; min-width: 21px; height: 21px; padding: 0 6px; border-radius: 11px; background: var(--accent); color: var(--on-accent); font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); }
+.circ-badge { position: absolute; top: -3px; right: -3px; min-width: 21px; height: 21px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); }
 
 /* ================= Layout per schermi larghi: barra laterale + area principale ================= */
 .pill { display: flex; align-items: center; gap: 7px; width: 100%; font-size: 12.5px; padding: 7px 10px; border-radius: 10px; background: var(--surface2); margin-bottom: 6px; text-align: left; color: var(--ink); }
@@ -162,7 +165,7 @@ a { color: var(--accent); }
 .sb-link.princ svg { color: var(--mid); }
 .sb-link.princ.on svg { color: var(--accent); }
 .sb-subs { margin: 4px 0 8px 25px; padding-left: 12px; border-left: 2px solid var(--line); }
-.sb-link.sub { padding: 8px 12px; font-size: 14.5px; color: var(--mid); }
+.sb-link.sub { padding: 8px 12px; font-size: 14px; color: var(--mid); }
 .sb-link.sub b { font-weight: 500; }
 .sb-link.sub.on { color: var(--accent); }
 .sb-link.sub.on b { font-weight: 650; }
@@ -193,7 +196,7 @@ a { color: var(--accent); }
 .day.today h4 { color: var(--accent); }
 .shell .row.sel { background: var(--accent-soft); border-radius: 0 10px 10px 0; }
 .row.sel { background: var(--accent-soft); }
-.shell .sheet { left: 50%; right: auto; bottom: auto; top: 14%; width: min(580px, 92%); transform: translateX(-50%); border-radius: 22px; padding-bottom: 18px; }
+.shell .sheet { left: 50%; right: auto; bottom: auto; top: 14%; width: min(580px, 92%); transform: translateX(-50%); border-radius: 26px; padding-bottom: 18px; }
 .shell .toast { left: auto; right: 24px; bottom: 24px; max-width: 420px; }
 .shell .card.tap { width: 100%; }
 
@@ -224,7 +227,7 @@ a { color: var(--accent); }
 /* i menu a tendina del browser (select) restano leggibili sul sito anche con il tema scuro */
 select option, select optgroup { background: var(--surface); color: var(--ink); }
 .passi-t { font-weight: 700; padding: 14px 0 0; }
-.scelta-menu button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border-radius: 10px; font-size: 14.5px; }
+.scelta-menu button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border-radius: 10px; font-size: 14px; }
 .scelta-menu button:hover { background: var(--surface2); }
 .scelta-menu button.on { background: var(--accent-soft); color: var(--accent); font-weight: 650; }
 .field.scelta-field { overflow: visible; }
@@ -344,6 +347,12 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* ---------- Giorno scelto (finestra del mese) e barra in basso a cinque schede ---------- */
 .tabs button { font-size: 10.5px; padding: 0 2px; }
 @media (max-width: 420px) { .tabs button { font-size: 10px; } .tabs button .ic { width: 36px; } }
+/* schede in basso con icona e nome affiancati (in riga), così la barra è più bassa e lascia più schermo */
+.tabs button { height: 46px; padding: 0 1px; justify-content: center; }
+.tabs button .tab-in { flex-direction: row; align-items: center; gap: 4px; padding: 6px 7px; }
+.tabs button .ic, .tabs button.on .ic { width: 20px; height: 20px; }
+.tabs button .ic svg { width: 20px; height: 20px; }
+@media (max-width: 420px) { .tabs button .tab-in { gap: 3px; padding: 6px 5px; } .tabs button .ic, .tabs button .ic svg { width: 19px; height: 19px; } }
 
 /* ---------- Attività raggruppate sotto il progetto ---------- */
 /* Il progetto è tutto in grigio (niente bianco, che è dei titoli di sezione): testata su un grigio più scuro, passi su uno più chiaro, stesse linee sottili delle altre note */
@@ -381,9 +390,9 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .prio-n svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .prio-n path { fill: color-mix(in srgb, var(--c) 22%, transparent); stroke: var(--c); stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .prio.p1 .prio-n path { fill: var(--surface2); }
-.prio-n b { position: relative; font-size: 24px; font-weight: 900; }
+.prio-n b { position: relative; font-size: 26px; font-weight: 900; }
 .prio-t { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-.prio-t b { font-size: 17px; }
+.prio-t b { font-size: 16px; }
 .prio-t span { font-size: 12px; color: var(--mid); }
 .prio-lvl { background: var(--cs); color: var(--c); font-weight: 700; border-radius: 12px; padding: 3px 12px; font-size: 13px; white-space: nowrap; }
 .prio-parti { display: grid; gap: 8px; margin: 14px 0 12px; }
@@ -396,7 +405,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* linea del piano: 24 ore con fasce cliccabili + barra a segmenti della fascia scelta */
 
 /* vista web: la voce si apre in una finestra in sovraimpressione */
-.modal-voce { position: fixed; z-index: 30; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(660px, 92vw); height: min(96vh, 1070px); background: var(--bg); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; animation: entra .2s ease-out backwards; }
+.modal-voce { position: fixed; z-index: 30; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(660px, 92vw); height: min(96vh, 1070px); background: var(--bg); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; animation: entra .2s ease-out backwards; }
 .modal-voce .scroll { max-width: none; padding: 0 22px 32px; }
 .modal-voce .back { margin: 6px 10px 0; }
 .shell .dim { position: fixed; }
@@ -414,7 +423,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .imp-t b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .imp-gradi { display: flex; gap: 6px; margin-bottom: 8px; }
 .imp-gradi button { flex: 1; height: 34px; border-radius: 10px; background: var(--surface2); color: var(--mid); display: grid; place-items: center; font-weight: 700; transition: background .2s, color .2s; text-align: center; }
-.imp-gradi button.on { background: var(--c); color: #fff; }
+.imp-gradi button.on { background: var(--c); color: var(--on-accent); }
 .imp-ag { display: flex; justify-content: space-between; font-size: 11px; color: var(--soft); }
 .slider-c input[type=range] { -webkit-appearance: none; appearance: none; position: absolute; inset: 0; width: 100%; height: 32px; background: transparent; margin: 0; cursor: pointer; z-index: 2; }
 .slider-c input[type=range]::-webkit-slider-runnable-track { height: 18px; background: transparent; }
@@ -425,9 +434,9 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 /* barra laterale web: nuova nota e ricerca in cima */
 .sb-top { display: grid; gap: 10px; margin-bottom: 16px; }
 /* «Inizia» (Oggi): pulsante di avvio, cronometro della sessione e riga del task in lavorazione */
-.avvia { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--accent); color: var(--on-accent); border-radius: 18px; padding: 15px 18px; font-weight: 800; font-size: 17px; margin: 6px 0 10px; text-align: left; box-shadow: var(--shadow); }
+.avvia { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--accent); color: var(--on-accent); border-radius: 16px; padding: 15px 18px; font-weight: 800; font-size: 18px; margin: 6px 0 10px; text-align: left; box-shadow: var(--shadow); }
 .avvia > span { font-size: 18px; }
-.lavoro { background: var(--surface); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, var(--line)); border-radius: 20px; padding: 14px 16px 10px; margin: 6px 0 10px; box-shadow: var(--shadow); }
+.lavoro { background: var(--surface); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, var(--line)); border-radius: 16px; padding: 14px 16px 10px; margin: 6px 0 10px; box-shadow: var(--shadow); }
 .lavoro.pausa { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 9%, var(--surface)); }
 .lv-top { display: flex; align-items: center; gap: 12px; }
 .lv-tt { flex: 1; min-width: 0; }
@@ -435,9 +444,9 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .lavoro.pausa .lv-stato { color: var(--amber); }
 .lv-tempo { font: 800 30px/1.15 ui-monospace, Consolas, monospace; color: var(--ink); font-variant-numeric: tabular-nums; }
 .lv-su { font: 600 13px system-ui, sans-serif; color: var(--mid); margin-left: 8px; }
-.lv-titolo { font-weight: 650; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lv-titolo { font-weight: 650; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lv-pl { width: 50px; height: 50px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 18px; font-weight: 800; flex: none; display: grid; place-items: center; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,.18); }
-.lavoro.pausa .lv-pl { background: var(--amber); color: #fff; }
+.lavoro.pausa .lv-pl { background: var(--amber); color: var(--on-accent); }
 .lv-barra { display: block; height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin: 12px 0 2px; }
 .lv-barra i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
 .lavoro.pausa .lv-barra i { background: var(--amber); }
@@ -458,7 +467,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 @media (prefers-reduced-motion: reduce) { .row.invita .cb { animation: none; border-color: var(--giallo, var(--amber)); } }
 .cron-lavorato > span:last-child { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 150px; }
 .cron-lavorato .lv-barra { width: 150px; margin: 0; }
-.lv-live { color: var(--accent); font-size: 11.5px; font-weight: 700; }
+.lv-live { color: var(--accent); font-size: 11px; font-weight: 700; }
 /* Nota in lavorazione: sotto il nome, al posto della riga grigia, la barra fissa con il tempo lavorato e la stima. */
 .row.lav { --bf: color-mix(in srgb, var(--ink) 38%, var(--bg)); --bt: color-mix(in srgb, var(--ink) 14%, var(--bg)); --acc: var(--mid); }
 .row.lav.oltre-lav { --bf: var(--ink); --bt: color-mix(in srgb, var(--ink) 22%, var(--bg)); --acc: var(--ink); } /* barra chiara finché è in tempo, scura oltre la stima */
@@ -509,7 +518,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .campo-tempo-valore em { font-style: normal; color: var(--soft); }
 .tempo-cols { display: flex; justify-content: center; gap: 26px; margin: 18px 0 8px; }
 .tempo-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.tempo-passo { width: 56px; height: 44px; border-radius: 14px; background: var(--surface2); font-size: 22px; text-align: center; }
+.tempo-passo { width: 56px; height: 44px; border-radius: 14px; background: var(--surface2); font-size: 20px; text-align: center; }
 .tempo-passo:active { transform: scale(.94); }
 .tempo-val { min-width: 64px; text-align: center; font-size: 34px; font-weight: 750; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .tempo-val small { display: block; font-size: 12px; font-weight: 600; color: var(--mid); }
@@ -521,10 +530,10 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .login-server input { flex: 1; min-width: 0; }
 
 /* ---------- Avanzamento del progetto al completamento di un passo (foglio sul telefono, finestra al centro sul web); i keyframes avz-* durano tutti 4,2 secondi ---------- */
-.avz-dim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); opacity: 0; animation: avz-dim 4.2s ease-in-out forwards; }
+.avz-dim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.4); opacity: 0; animation: avz-dim 4.2s ease-in-out forwards; }
 .avz-pannello { position: fixed; z-index: 41; background: var(--surface); }
 .avz-foglio { left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; border-radius: 26px 26px 0 0; padding: 16px 18px calc(env(safe-area-inset-bottom) + 22px); box-shadow: 0 -12px 34px rgba(0,0,0,.28); transform: translateY(105%); animation: avz-sale 4.2s cubic-bezier(.2,.8,.2,1) forwards; }
-.avz-modale { left: 50%; top: 50%; width: min(420px, 92vw); border-radius: 20px; padding: 20px 22px; box-shadow: 0 24px 60px rgba(0,0,0,.4); opacity: 0; transform: translate(-50%, -50%) scale(.9); animation: avz-modale 4.2s cubic-bezier(.2,.9,.3,1.1) forwards; }
+.avz-modale { left: 50%; top: 50%; width: min(420px, 92vw); border-radius: 26px; padding: 20px 22px; box-shadow: 0 24px 60px rgba(0,0,0,.4); opacity: 0; transform: translate(-50%, -50%) scale(.9); animation: avz-modale 4.2s cubic-bezier(.2,.9,.3,1.1) forwards; }
 .avz-num { display: inline-grid; font-weight: 800; color: var(--accent); }
 .avz-num > span { grid-area: 1 / 1; white-space: nowrap; }
 .avz-n1 { animation: avz-n1 4.2s steps(1) forwards; }
@@ -570,7 +579,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .acc { width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; }
 .acc-dx { display: inline-flex; align-items: center; gap: 8px; } .acc-freccia { color: var(--soft); font-size: 20px; line-height: 1; }
 .acc-t { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--soft); font-weight: 700; }
-.acc-s { font-size: 11.5px; color: var(--mid); margin-top: 2px; }
+.acc-s { font-size: 12px; color: var(--mid); margin-top: 2px; }
 .acc .mg { font: 800 26px/1.1 ui-monospace, Consolas, monospace; }
 @keyframes blk-entra { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
 .sz-tempi { display: inline-flex; align-items: baseline; gap: 7px; font-size: 12px; font-weight: 600; color: var(--mid); }
@@ -597,10 +606,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 
 /* ---------- Interesse: pallino verde, la saturazione cresce da 1 (quasi vuoto) a 5 (pieno); nessuna animazione ---------- */
 .row .rank-int { --c: var(--p1); --cf: var(--surface2); border: 1px solid var(--c); background: var(--cf); color: var(--c); animation: none; } /* come l'etichetta delle attività: grigio (interesse 1-2), verde medio (3), verde scuro (4-5) */
-.rank-int.g3 { --c: #4E9A78; --cf: color-mix(in srgb, #4E9A78 16%, transparent); }
-.rank-int.g4, .rank-int.g5 { --c: #1F7A52; --cf: color-mix(in srgb, #1F7A52 20%, transparent); }
-:root[data-theme=dark] .rank-int.g3 { --c: #5FAE8D; --cf: color-mix(in srgb, #5FAE8D 22%, transparent); }
-:root[data-theme=dark] .rank-int.g4, :root[data-theme=dark] .rank-int.g5 { --c: #6FCF9B; --cf: color-mix(in srgb, #6FCF9B 30%, transparent); }
+.rank-int.g3 { --c: var(--i3); --cf: color-mix(in srgb, var(--i3) 16%, transparent); }
+.rank-int.g4, .rank-int.g5 { --c: var(--i4); --cf: color-mix(in srgb, var(--i4) 20%, transparent); }
 
 /* margine d'errore sulla stima: coda tratteggiata del segmento (il segmento dura già stima + margine) */
 
@@ -619,8 +626,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .stato-voce.on { background: var(--accent-soft); color: var(--accent); }
 .stato-voce:active { background: var(--surface2); }
 .stati-seg { display: flex; background: var(--surface2); border-radius: 14px; padding: 3px; gap: 2px; margin: 4px 0 12px; }
-.stati-seg button { flex: 1; padding: 9px 2px; border-radius: 11px; font-size: 12.5px; font-weight: 700; color: var(--mid); }
-.stati-seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.stati-seg button { flex: 1; padding: 9px 2px; border-radius: 12px; font-size: 12.5px; font-weight: 700; color: var(--mid); }
+.stati-seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.15); }
 .stati-seg button.on.prog { color: var(--accent); }
 .stati-seg button.on.pausa-t { color: var(--giallo); }
 .stati-seg button.on.fatto { color: var(--accent); }
@@ -648,10 +655,10 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .riordinabile > .row:last-child { border-bottom: 0; }
 
 /* ---------- Opzioni sperimentali (gialle): pesi della priorità ---------- */
-.badge-sper { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--giallo); color: #1b1500; vertical-align: 1px; white-space: nowrap; }
+.badge-sper { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--giallo); color: #1b1500; vertical-align: 1px; white-space: nowrap; }
 .sper-voce { background: color-mix(in srgb, var(--giallo) 16%, transparent); border-radius: 12px; padding-left: 10px; padding-right: 10px; margin: 6px 0; }
 .sper-box { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--giallo); background: color-mix(in srgb, var(--giallo) 14%, transparent); font-size: 12.5px; color: var(--ink); margin: 6px 0 4px; }
-.sper-box b { font-size: 13.5px; }
+.sper-box b { font-size: 13px; }
 .peso { padding: 10px 0 8px; border-bottom: 1px solid var(--line); }
 .peso-testa { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
 .peso-val { font-weight: 800; color: var(--giallo); font-variant-numeric: tabular-nums; }
@@ -683,7 +690,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .shell .cmp-sheet { animation-name: cmp-modale; }
 @keyframes cmp-modale { 0% { opacity: 0; transform: translate(-50%, 24px); } 7.5%, 91% { opacity: 1; transform: translateX(-50%); } 100% { opacity: 0; transform: translate(-50%, 24px); } }
 .cmp-fatto { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; }
-.cmp-fatto b { font-size: 19px; }
+.cmp-fatto b { font-size: 18px; }
 .cmp-ok { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 20px; font-weight: 800; animation: cmp-pop .5s ease-out .4s both; }
 @keyframes cmp-pop { 0% { transform: scale(0); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .cmp-conf { display: grid; gap: 10px; margin: 6px 0 14px; }
@@ -697,12 +704,12 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .cmp-verdetto { font-size: 13px; color: var(--accent); font-weight: 700; animation: cmp-sale .5s ease-out 2.4s both; }
 .cmp-verdetto.oltre { color: var(--warn); }
 @keyframes cmp-sale { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.cmp-stima { background: var(--bg); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; animation: cmp-sale .7s ease-out 2.9s both; }
+.cmp-stima { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; animation: cmp-sale .7s ease-out 2.9s both; }
 .cmp-su { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--soft); font-weight: 700; }
 .cmp-nuova { display: flex; align-items: baseline; gap: 10px; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.cmp-vecchio { font-size: 17px; color: var(--mid); text-decoration: line-through; animation: cmp-compare .4s ease-out 3.6s both; }
+.cmp-vecchio { font-size: 16px; color: var(--mid); text-decoration: line-through; animation: cmp-compare .4s ease-out 3.6s both; }
 @keyframes cmp-compare { from { opacity: 0; } to { opacity: 1; } }
-.cmp-agg { position: relative; font-size: 28px; font-weight: 800; color: var(--accent); height: 34px; min-width: 110px; }
+.cmp-agg { position: relative; font-size: 26px; font-weight: 800; color: var(--accent); height: 34px; min-width: 110px; }
 .cmp-agg span { position: absolute; left: 0; top: 0; white-space: nowrap; }
 .cmp-agg .a1 { animation: cmp-via .3s ease-in 4.1s both; }
 .cmp-agg .a2 { animation: cmp-arriva .6s ease-out 4.2s both; }
@@ -808,7 +815,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .ic-barra { height: calc(8px * var(--k)); background: var(--surface2); border-radius: 6px; overflow: hidden; } .ic-barra i { display: block; height: 100%; background: var(--accent); border-radius: 6px; transition: width 1s linear; } .ic-barra.oltre i { background: var(--warn); }
 .ic-prev { display: flex; justify-content: space-between; font-size: calc(12px * var(--k)); color: var(--mid); margin-top: 7px; } .ic-prev .oltre { color: var(--warn); font-weight: 700; }
 .ic-az { display: flex; gap: 12px; padding: 12px 0 calc(env(safe-area-inset-bottom) + 28px); }
-.ic-btn { flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 10px; height: calc(54px * var(--k)); border-radius: 20px; font-weight: 750; font-size: calc(15px * var(--k)); transition: transform .15s; }
+.ic-btn { flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 10px; height: calc(54px * var(--k)); border-radius: 16px; font-weight: 750; font-size: calc(15px * var(--k)); transition: transform .15s; }
 .ic-btn:active { transform: scale(.96); } .ic-btn.ic-sec { background: var(--surface2); } .ic-btn.ic-pri { background: var(--accent); color: var(--on-accent); }
 .ic-btn .cb { width: 22px; height: 22px; } .ic-btn .cb.done { background: transparent; border-color: var(--on-accent); } .ic-btn .cb.done::after { background: var(--on-accent); }
 .incorso-verde { background: var(--accent); color: var(--on-accent); flex-direction: column; align-items: center; animation: iv-appare .3s ease-out; }
@@ -850,12 +857,12 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 @media (prefers-reduced-motion: reduce) { .ic-timer, .ic-barra { transition: none; } }
 
 /* ---------- Storico del margine di stima (screens/StoricoMargine.tsx) ---------- */
-.sm-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; }
+.sm-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
 .sm-su { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--soft); font-weight: 700; }
 .sm-grande { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; } .sm-n { font: 800 40px/1.1 ui-monospace, Consolas, monospace; } .sm-e { font-weight: 700; font-size: 13px; }
 .sm-fr { font-size: 12.5px; color: var(--mid); margin-top: 6px; }
 .sm-distr { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 10px 0 6px; } .sm-distr i { display: block; }
-.sm-leg { display: flex; gap: 12px; font-size: 11.5px; color: var(--mid); flex-wrap: wrap; } .sm-leg b { color: var(--ink); } .sm-leg span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; background: var(--c); }
+.sm-leg { display: flex; gap: 12px; font-size: 12px; color: var(--mid); flex-wrap: wrap; } .sm-leg b { color: var(--ink); } .sm-leg span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; background: var(--c); }
 .sm-card svg { display: block; width: 100%; overflow: visible; margin-top: 8px; }
 .sm-assi { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--soft); margin-top: 2px; } .sm-sp { font-size: 12px; color: var(--mid); margin-top: 6px; }
 .sm-range { display: flex; gap: 6px; margin: 2px 0 12px; } .sm-range button { padding: 6px 12px; border-radius: 999px; background: var(--surface2); font-size: 12.5px; font-weight: 700; color: var(--mid); } .sm-range button.on { background: var(--ink); color: var(--bg); }

@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.112.0
+- **Versione documento:** 0.113.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -631,6 +631,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-19 | 0.110.0 | **Stile «Vetro»:** secondo stile grafico scelto in Altro › Aspetto (Classico / Vetro) con otto palette scure e chiare; pannelli di vetro con testate a fascia, scala del testo e spaziature del mockup; tre colori di significato (positivo, avvertenza gialla uguale in ogni palette, negativo) usati per priorità e interesse. File `web/src/stile-vetro.css`; il classico resta quello di sempre. |
 | 2026-11-19 | 0.111.0 | **Widget con lo stile Vetro e nuovo ordine delle palette:** il widget segue lo stile e la palette scelti nell'app (sfondo, testi, targhetta di posizione e pulsante «+» con i colori della palette, scuro e chiaro); palette ordinate Grafite, Ghiaccio, Turchese, Smeraldo, Salvia, Lime, Ambra, Arancio. |
 | 2026-11-19 | 0.112.0 | **Targhetta di posizione semplificata:** tolti il «!» e il «?» e i due pezzi; l'attività torna a una freccetta 32 × 30 px e la curiosità a un pallino 30 × 30 px, con fondo appena colorato (16%) e numero nel colore della priorità (o dell'interesse), in app, in entrambi gli stili, e nel widget (anche con lo stile Vetro). |
+| 2026-11-20 | 0.113.0 | **Coerenza dello stile classico e schede in riga:** barra delle schede in basso con icona e nome affiancati (46 px invece di 62; «+» e avvisi più in basso; «Intratt.»); testi portati sulla scala 11/12/13/14/15/16/18 (+ 20/26/34), angoli su 16 (schede), 26 (fogli e finestre), 12, 14 e 999 (pillole), niente bianco fisso sopra i colori dei livelli, colori dell'interesse nei token (`--i3`, `--i4`), velo e ombre uniformi. Nuova «scheda stile» dello stile classico in `docs/scheda-stile-base.html` (parallela a quella Vetro, colonne affiancate) |
 
 ## Selettore del tempo a rotelle (0.65.3)
 
