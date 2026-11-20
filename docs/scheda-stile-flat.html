@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="it"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Stile base · riassunto</title>
-<style>/* Stile «base» (classico) di MyTask, estratto per altre app. Parallelo della scheda «Vetro».
+<html lang="it"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Stile Flat · riassunto</title>
+<style>/* Stile «Flat» (il vecchio «base», classico) di MyTask, estratto per altre app. Parallelo della scheda «Vetro».
    Uso: <link rel="stylesheet" href="tema.css">, poi <body class="bs" data-pal="verde"> (palette in quest'ordine: verde, petrolio, indaco); per il tema scuro aggiungi la classe «dark» al body (<body class="bs dark" data-pal="indaco">).
    Tutto sta in variabili: per cambiare i colori basta cambiare quelle della palette (--acc-l, --acc-soft-l, --acc-d, --acc-soft-d) o dei ruoli (--bg, --surface, --ink…).
-   Classi pronte: bs-page, bs-top, bs-title, bs-label, bs-muted, bs-section, bs-card, bs-group, bs-row, bs-t1, bs-t2, bs-right, bs-badge, bs-cb, bs-btn, bs-btns, bs-field, bs-toggle, bs-input, bs-textarea, bs-chips, bs-chip, bs-seg, bs-tabs, bs-fab, bs-circ, bs-tag, bs-int, bs-tacche, bs-acc, bs-proj, bs-sheet, bs-toast, bs-empty, bs-sync, bs-num.
+   Classi pronte: bs-page, bs-top, bs-title, bs-label, bs-muted, bs-section, bs-card, bs-group, bs-row, bs-t1, bs-t2, bs-right, bs-badge, bs-btn, bs-btns, bs-field, bs-toggle, bs-input, bs-textarea, bs-chips, bs-chip, bs-seg, bs-tabs, bs-fab, bs-circ, bs-tag, bs-int, bs-tacche, bs-acc, bs-proj, bs-sheet, bs-toast, bs-empty, bs-sync, bs-num.
    Carattere: quello del sistema (system-ui, Segoe UI, Roboto), niente file di font. Scala del testo: 11 / 12 / 13 / 14 / 15 / 16 / 18 px, più 20 / 26 / 34 per cifre e titoli grandi (non usarne altre; 12,5 solo per chip, segmenti e sottotitoli, 15,5 solo per i numeri delle targhette, 10,5 solo per i nomi della barra delle schede). */
 
 /* ---- palette d'accento (la prima è la predefinita): ogni palette ha un accento chiaro e uno scuro, con la sua tinta tenue ---- */
@@ -14,7 +14,7 @@
 /* ---- tema chiaro (predefinito) e tema scuro (classe «dark»): stessi nomi, valori diversi ---- */
 .bs {
   --bg: #F1F0EC; --surface: #FFFFFF; --surface2: #E3E1DC; --ink: #404040; --mid: #65656E; --soft: #919199; --line: #DDDAD4;
-  --warn: #D1430B; --warn-soft: #FDEBE2; --amber: #B7791F; --amber-soft: #FBEBD0; --giallo: #D9A400;
+  --warn: var(--p3); --warn-soft: color-mix(in srgb, var(--p3) 12%, transparent); --amber: #B7791F; --amber-soft: #FBEBD0; --giallo: #D9A400;
   --shadow: 0 6px 20px rgba(30, 30, 40, .10); --on-accent: #FFFFFF; --campo: #9A9AA2;
   --accent: var(--acc-l); --accent-soft: var(--acc-soft-l);
   /* livelli di priorità: basso, medio, alto */
@@ -25,7 +25,7 @@
 }
 .bs.dark {
   --bg: #0E0F12; --surface: #1D1F23; --surface2: #272930; --ink: #F3F3F6; --mid: #A5A5B0; --soft: #72737D; --line: #2F3138;
-  --warn: #FF9466; --warn-soft: #3A2218; --amber: #F0B866; --amber-soft: #3A2C14; --giallo: #F4C542;
+  --warn: var(--p3); --warn-soft: color-mix(in srgb, var(--p3) 12%, transparent); --amber: #F0B866; --amber-soft: #3A2C14; --giallo: #F4C542;
   --shadow: 0 6px 24px rgba(0, 0, 0, .55); --on-accent: #0E0F12; --campo: #5B5D68;
   --accent: var(--acc-d); --accent-soft: var(--acc-soft-d);
   --p1: #7B8493; --p2: #F4C542; --p3: #FF6B6B;
@@ -63,7 +63,7 @@
 .bs-group-t { margin: 0; padding: 12px 0 2px; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--soft); font-weight: 700; }
 .bs-group .bs-row:last-child, .bs-group .bs-field:last-child { border-bottom: 0; }
 
-/* riga di lista: casella a sinistra, titolo 15/620 con riga grigia 12 sotto, parte destra libera */
+/* riga di lista (versione semplice): titolo 15/620 con riga grigia 12 sotto, parte destra libera */
 .bs-row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); width: 100%; }
 .bs-row > .grow { flex: 1; min-width: 0; }
 .bs-t1 { font-size: 15px; font-weight: 620; overflow-wrap: anywhere; } .bs-t1.light { font-weight: 420; } .bs-t1.struck { text-decoration: line-through; color: var(--mid); }
@@ -71,15 +71,6 @@
 .bs-right { font-size: 12px; color: var(--mid); text-align: right; white-space: nowrap; }
 .bs-badge { display: inline-block; font-size: 11px; font-weight: 600; background: var(--accent-soft); color: var(--accent); padding: 2px 9px; border-radius: 10px; }
 
-/* casella di stato: quadrato stondato 23 px. da fare = vuota; in corso / in pausa = pallino scuro (in corso con l'onda); fatta = piena con pallino chiaro; archiviata = tratteggiata */
-.bs-cb { position: relative; width: 23px; height: 23px; flex: none; border: 2px solid var(--soft); border-radius: 7px; display: flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s, transform .15s; }
-.bs-cb.viva, .bs-cb.pausa { border-color: var(--ink); }
-.bs-cb.viva::after, .bs-cb.pausa::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
-.bs-cb.viva::after { animation: bs-onda 2s ease-out infinite; }
-.bs-cb.done { background: var(--ink); border-color: var(--ink); animation: bs-spunta .3s ease-out; }
-.bs-cb.done::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); }
-.bs-cb.arch { border-style: dashed; background: transparent; }
-.bs-cb.arch::after { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.6px dashed var(--soft); }
 
 /* pulsanti: sempre con contorno d'accento; pieno per l'azione principale, arancio per quella che distrugge */
 .bs-btn { display: inline-block; border: 1.5px solid var(--accent); color: var(--accent); border-radius: var(--r-btn); padding: 9px 14px; font-weight: 650; font-size: 13px; text-align: center; transition: transform .12s; }
@@ -107,9 +98,10 @@
 .bs-chips { display: flex; gap: 6px; margin: 11px 0 2px; flex-wrap: wrap; }
 .bs-chip { background: var(--surface2); border: 1px solid transparent; border-radius: var(--r-chip); padding: 5px 12px; font-size: 12.5px; color: var(--mid); white-space: nowrap; transition: background .15s, color .15s; }
 .bs-chip.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 650; }
-.bs-seg { display: flex; background: var(--surface2); border-radius: var(--r-seg); padding: 3px; margin: 10px 0; }
-.bs-seg button { flex: 1 0 auto; text-align: center; padding: 7px 12px; font-size: 13px; color: var(--mid); border-radius: 10px; white-space: nowrap; transition: background .15s, color .15s; }
-.bs-seg button.on { background: var(--surface); color: var(--accent); font-weight: 700; box-shadow: 0 1px 4px rgba(0, 0, 0, .15); }
+/* schede in alto come quelle in basso: tutte piatte, solo la scelta ha il fondo verdino con il contorno d'accento */
+.bs-seg { display: flex; gap: 4px; margin: 10px 0; }
+.bs-seg button { flex: 1 0 auto; text-align: center; min-height: 36px; padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--mid); border: 1px solid transparent; border-radius: 16px; white-space: nowrap; transition: background .15s, border-color .15s, color .15s; }
+.bs-seg button.on { background: var(--accent-soft); color: var(--accent); font-weight: 700; border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 
 /* barra in basso a cinque schede: la scheda attiva ha una pillola tenue con contorno d'accento attorno a icona e nome */
 .bs-tabs { display: flex; gap: 4px; padding: 0 6px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
@@ -152,12 +144,12 @@
 .bs-acc .fig.ok { color: var(--i4); } .bs-acc .fig.mid { color: var(--amber); } .bs-acc .fig.ko { color: var(--warn); }
 .bs.dark .bs-acc .fig.ok { color: var(--i4); }
 
-/* progetto: tutto in grigio, con testata più scura, passi più chiari e tacche; bordo sottile che si stacca dal fondo */
-.bs-proj { --gl: color-mix(in srgb, var(--ink) 11%, var(--surface2)); background: color-mix(in srgb, var(--surface2) 50%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); border-radius: 14px; overflow: hidden; margin: 12px -5px; }
-.bs-proj-h { display: flex; align-items: center; gap: 10px; padding: 11px 8px 11px 10px; background: var(--surface2); border-bottom: 1px solid var(--gl); }
+/* progetto: la testata ha il grigio che prima avevano i passi, i passi hanno lo sfondo delle altre note; niente icona; bordo sottile; barra a tacche */
+.bs-proj { --gl: color-mix(in srgb, var(--ink) 11%, var(--surface2)); --gp-head: color-mix(in srgb, var(--surface2) 50%, var(--bg)); background: transparent; border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); border-radius: 14px; overflow: hidden; margin: 12px -5px; }
+.bs-proj-h { display: flex; align-items: center; gap: 10px; padding: 11px 8px 11px 10px; background: var(--gp-head); border-bottom: 1px solid var(--gl); }
 .bs-proj-h b { flex: 1; min-width: 0; font-size: 14px; } .bs-proj-h span { font-size: 12px; font-weight: 700; color: var(--mid); white-space: nowrap; }
-.bs-proj .bs-tacche { margin: 0; padding: 0 10px 9px; background: var(--surface2); }
-.bs-proj .bs-tacche i { background: color-mix(in srgb, var(--ink) 14%, var(--surface2)); } .bs-proj .bs-tacche i.on { background: var(--mid); }
+.bs-proj .bs-tacche { margin: 0; padding: 0 10px 9px; background: var(--gp-head); }
+.bs-proj .bs-tacche i { background: color-mix(in srgb, var(--ink) 14%, var(--gp-head)); } .bs-proj .bs-tacche i.on { background: var(--mid); }
 .bs-proj .bs-row { padding-left: 10px; padding-right: 8px; border-bottom-color: var(--gl); } .bs-proj .bs-row:last-child { border-bottom: 0; }
 
 /* foglio dal basso, avviso e stato vuoto */
@@ -171,8 +163,6 @@
 
 /* ---- movimento ---- */
 @keyframes bs-entra { from { opacity: 0; transform: translateY(10px); } }
-@keyframes bs-spunta { 0% { transform: scale(.7); } 55% { transform: scale(1.18); } 100% { transform: scale(1); } }
-@keyframes bs-onda { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 50%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } }
 @keyframes bs-sale { from { opacity: 0; transform: translateY(16px); } }
 @keyframes bs-scivola { from { transform: translateY(100%); } }
 .bs-card, .bs-group, .bs-row { animation: bs-entra .26s ease-out backwards; }
@@ -194,11 +184,31 @@ body.bs { background: color-mix(in srgb, var(--bg) 93%, var(--ink)); }
 .col { width: 393px; flex: none; padding: 18px; background: var(--bg); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; }
 .col > .bs-top + .ph, .col > .ph:first-child { margin-top: 0; }
 .col > .ph > .bs-label { color: var(--accent); }
+
+/* ---- riga di nota con altezza fissa (stile Flat, dal mockup «barra C rifinita» e le rifiniture successive) ----
+   Niente casella di stato né icona di tipologia. Sotto il titolo: pallino delle note (contorno 1 px) e scadenza (solo testo, rossa se scaduta).
+   A destra: tempo corrente in risalto (13 px, 800), stima più piccola e sottile (11 px, 300) con un colore più vicino allo sfondo, e la barra verticale 8 x 40 px:
+   contorno e riempimento dello STESSO colore (nero nel tema chiaro, bianco nello scuro); in pausa e senza stima la barra intera è più tenue. */
+.bs-ra { display: flex; align-items: center; gap: 10px; height: 56px; box-sizing: border-box; border-bottom: 1px solid var(--line); overflow: hidden; }
+.bs-ra .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+.bs-ra .bs-t1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+.bs-bd { display: flex; align-items: center; gap: 6px; height: 20px; margin-top: 3px; font-size: 12px; color: var(--mid); white-space: nowrap; overflow: hidden; }
+.bs-nt { display: inline-grid; place-items: center; width: 20px; height: 20px; flex: none; border: 1px solid var(--ink); border-radius: 50%; color: var(--ink); background: var(--surface); }
+.bs-nt svg { width: 11px; height: 11px; }
+.bs-dt { display: inline-flex; align-items: center; gap: 3px; font-weight: 700; color: var(--ink); }
+.bs-dt svg { width: 11px; height: 11px; } .bs-dt.late { color: var(--warn); }
+.bs-r2 { flex: none; min-width: 58px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; text-align: right; }
+.bs-tc { font-size: 13px; font-weight: 800; color: var(--ink); line-height: 1.15; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bs-su { font-size: 11px; font-weight: 300; color: color-mix(in srgb, var(--ink) 52%, var(--bg)); line-height: 1.15; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bs-vb { flex: none; width: 8px; height: 40px; box-sizing: border-box; border: 1.5px solid var(--ink); border-radius: 4px; background: transparent; position: relative; overflow: hidden; }
+.bs-vb i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ink); }
+.bs-vb.pausa { opacity: .55; } .bs-vb.piena { background: var(--ink); opacity: .45; } .bs-vb.nasc { visibility: hidden; }
+.bs-ra.done .bs-t1 { text-decoration: line-through; color: var(--soft); }
 </style>
 <body class="bs" data-pal="verde">
 <div class="wrap"><div class="col">
 
-<div class="bs-top"><div><h1 class="bs-title">Stile base</h1><div class="bs-sub">Quello «classico» di MyTask: sfondo caldo, pannelli bianchi con filetto, un solo accento.</div></div></div>
+<div class="bs-top"><div><h1 class="bs-title">Stile Flat</h1><div class="bs-sub">Quello «classico» di MyTask: sfondo caldo, note in righe con filetti, un solo accento. Si chiama Flat (valore interno «base»).</div></div></div>
 
 <div class="ph"><span class="bs-label">Aspetto · palette e ruoli dei colori</span>
 <div class="bs-card"><div class="bs-section-t" style="margin:-13px -13px 0;border-radius:16px 16px 0 0;border-top:0"><span>Aspetto</span><b id="palname">Verde</b></div>
@@ -209,9 +219,9 @@ body.bs { background: color-mix(in srgb, var(--bg) 93%, var(--ink)); }
 <div class="ph"><span class="bs-label">Sezioni e riquadri</span>
 <div class="bs-section"><h3 class="bs-section-t"><span>Attività</span><b>3</b></h3>
 <div class="bs-section-body">
-<div class="bs-row"><button class="bs-cb" type="button" aria-label="Da fare"></button><div class="grow"><div class="bs-t1">Pagare la bolletta</div><div class="bs-t2">20 min · domani</div></div><span class="bs-tag p3"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>1</b></span></div>
-<div class="bs-row"><button class="bs-cb viva" type="button" aria-label="In corso"></button><div class="grow"><div class="bs-t1">Preparare la riunione</div><div class="bs-t2">1 h</div></div><span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>2</b></span></div>
-<div class="bs-row"><button class="bs-cb" type="button" aria-label="Da fare"></button><div class="grow"><div class="bs-t1">Riordinare la scrivania</div><div class="bs-t2">30 min</div></div><span class="bs-tag p1"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>3</b></span></div>
+<div class="bs-row"><span class="bs-tag p3"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>1</b></span><div class="grow"><div class="bs-t1">Pagare la bolletta</div><div class="bs-t2">20 min · domani</div></div></div>
+<div class="bs-row"><span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>2</b></span><div class="grow"><div class="bs-t1">Preparare la riunione</div><div class="bs-t2">1 h</div></div></div>
+<div class="bs-row"><span class="bs-tag p1"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>3</b></span><div class="grow"><div class="bs-t1">Riordinare la scrivania</div><div class="bs-t2">30 min</div></div></div>
 </div></div>
 <div class="bs-card"><span class="bs-label">Scheda</span><div class="bs-muted" style="margin-top:6px">Riquadro bianco con filetto, angoli 16, 13 px di spazio dentro. Con <b>.strong</b> prende il contorno d'accento e un'ombra.</div></div>
 <div class="bs-card strong"><span class="bs-label">Scheda in evidenza</span><div class="bs-muted" style="margin-top:6px">Per la cosa che conta di più in una schermata.</div></div>
@@ -251,30 +261,37 @@ body.bs { background: color-mix(in srgb, var(--bg) 93%, var(--ink)); }
 <div class="bs-card">
 <div class="bs-muted" style="margin-bottom:8px">Base di 4 px con diversi valori «di mezzo» (11, 13) usati dal vivo; indicazioni, non obblighi.</div>
 <div class="ty"><span>Margini della pagina</span><small>18 px</small></div>
-<div class="ty"><span>Righe di elenco</span><small>12 px sopra e sotto, 12 px tra casella e testo</small></div>
+<div class="ty"><span>Righe di elenco</span><small>12 px sopra e sotto (le righe di nota hanno altezza fissa 56 px)</small></div>
 <div class="ty"><span>Scheda: spazio dentro</span><small>13 px; tra schede 11 px</small></div>
 <div class="ty"><span>Gruppo</span><small>14 px ai lati; tra gruppi 14 px</small></div>
 <div class="ty"><span>Campo (riga)</span><small>11 px sopra e sotto, minimo 46 px</small></div>
 <div class="ty"><span>Pulsanti vicini · chip</span><small>8 px · 6 px</small></div>
 <div class="ty"><span>Etichetta → contenuto</span><small>2–6 px</small></div>
 <div class="ty"><span>Altezza minima da toccare</span><small>44 px (pulsanti tondi, indietro)</small></div>
-<div class="ty"><span>Angoli</span><small>16 schede e cartelle · 12 pulsanti · 14 chip · 13 segmenti · 15 campo · 26 fogli e finestre · 7 casella · 999 pillole</small></div>
+<div class="ty"><span>Angoli</span><small>16 schede e cartelle · 12 pulsanti · 14 chip · 13 segmenti · 15 campo · 26 fogli e finestre · 999 pillole</small></div>
 <div class="bs-muted" style="margin-top:8px">Dentro un gruppo si sta stretti (2–8 px), tra gruppi larghi (14–18): la distanza dice cosa è legato a cosa.</div></div></div>
 
+<div class="ph"><span class="bs-label">Riga di nota (altezza fissa 56 px)</span>
+<div class="bs-card" style="padding:4px 14px"><div class="bs-ra "><span class="bs-tag p3"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>1</b></span><div class="grow"><div class="bs-t1">Pagare la bolletta della luce</div><div class="bs-bd"><span class="bs-dt late"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4M6 5h11l-2 4 2 4H6"/></svg>scaduta ieri</span></div></div><div class="bs-r2"><span class="bs-su">15 min</span></div><span class="bs-vb nasc"></span></div><div class="bs-ra "><span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>2</b></span><div class="grow"><div class="bs-t1">Preparare la presentazione per la riunione del consiglio</div><div class="bs-bd"><span class="bs-nt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h9"/></svg></span><span class="bs-dt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4M6 5h11l-2 4 2 4H6"/></svg>oggi</span></div></div><div class="bs-r2"><span class="bs-tc" data-live data-min="65" data-stima="120">1 h 05 min</span><span class="bs-su">su 2 h</span></div><span class="bs-vb "><i style="height:55%"></i></span></div><div class="bs-ra "><span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>3</b></span><div class="grow"><div class="bs-t1">Scrivere il report mensile</div></div><div class="bs-r2"><span class="bs-tc">24 min</span><span class="bs-su">su 1 h</span></div><span class="bs-vb pausa"><i style="height:40%"></i></span></div><div class="bs-ra "><span class="bs-tag p3"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>4</b></span><div class="grow"><div class="bs-t1">Revisionare il contratto</div><div class="bs-bd"><span class="bs-nt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h9"/></svg></span><span class="bs-dt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4M6 5h11l-2 4 2 4H6"/></svg>domani</span></div></div><div class="bs-r2"><span class="bs-tc">2 h 40 min</span><span class="bs-su">su 2 h</span></div><span class="bs-vb "><i style="height:100%"></i></span></div><div class="bs-ra "><span class="bs-tag p1"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>5</b></span><div class="grow"><div class="bs-t1">Sistemare la libreria</div><div class="bs-bd"><span class="bs-nt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h9"/></svg></span></div></div><div class="bs-r2"><span class="bs-tc">7 min</span></div><span class="bs-vb piena"></span></div><div class="bs-ra "><span class="bs-tag p1"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>6</b></span><div class="grow"><div class="bs-t1">Chiamare il dentista</div></div><div class="bs-r2"></div><span class="bs-vb nasc"></span></div><div class="bs-ra done"><span class="bs-tag p1"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>7</b></span><div class="grow"><div class="bs-t1">Leggere il capitolo 4</div></div><div class="bs-r2"></div><span class="bs-vb nasc"></span></div></div>
+<div class="bs-muted" style="margin-top:8px">Senza casella di stato né icona di tipologia. Sotto il titolo: pallino delle note e scadenza (testo, rossa se scaduta). A destra: tempo corrente in risalto (13 px, extra-grassetto), stima più piccola, sottile e più vicina allo sfondo, e la barra verticale 8 × 40 px con contorno e riempimento dello stesso colore (nero nel tema chiaro, bianco nello scuro). In pausa e avviata senza stima la barra è più tenue; senza stima e non avviata la colonna resta vuota. Un solo rosso: scadenza e priorità alta.</div></div>
 <div class="ph"><span class="bs-label">Stati, livelli e targhette</span>
 <div class="bs-card">
-<div class="row3" id="cbs"><span class="row3" style="gap:8px"><i class="bs-cb"></i><span class="bs-muted">da fare</span></span><span class="row3" style="gap:8px"><i class="bs-cb viva"></i><span class="bs-muted">in corso</span></span><span class="row3" style="gap:8px"><i class="bs-cb pausa"></i><span class="bs-muted">in pausa</span></span><span class="row3" style="gap:8px"><i class="bs-cb done"></i><span class="bs-muted">fatta</span></span><span class="row3" style="gap:8px"><i class="bs-cb arch"></i><span class="bs-muted">archiviata</span></span></div>
-<div class="bs-muted" style="margin:10px 0">Un tocco sulla casella fa avanzare lo stato: da fare → in corso → fatta. «In corso» e «in pausa» hanno lo stesso aspetto; solo il primo ha l'onda.</div>
+<div class="bs-muted" style="margin:2px 0 10px"><b>Gli stati non hanno icona.</b> Da avviare: a destra niente, oppure solo la stima. In corso: il tempo corrente <b>scorre</b> (13 px, extra-grassetto, si aggiorna ogni minuto) e la barra verticale si riempie. In pausa: tempo fermo e barra tenue. Fatta: titolo barrato e sbiadito. Per cambiare stato si apre la nota e si sceglie lo stato lì.</div>
 <div class="row3" style="margin-top:6px">
 <span class="bs-tag p3"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>1</b></span>
 <span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>12</b></span>
 <span class="bs-tag p1"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>34</b></span>
 <span class="bs-int g4">1</span><span class="bs-int g3">2</span><span class="bs-int g1">3</span></div>
 <div class="bs-muted" style="margin-top:10px">Attività: freccetta con livello alto (rosso), medio (giallo) e basso (grigio). Curiosità: pallino verde scuro (interesse 4-5), verde medio (3) o grigio (1-2). Fondo al 16%, numero nel colore.</div></div>
-<div class="bs-proj"><div class="bs-proj-h"><b>Trasloco</b><span>completato 1 / 3</span></div><div class="bs-tacche"><i class="on"></i><i></i><i></i></div>
-<div class="bs-row"><button class="bs-cb done" type="button"></button><div class="grow"><div class="bs-t1 struck">Scatoloni</div></div></div>
-<div class="bs-row"><button class="bs-cb" type="button"></button><div class="grow"><div class="bs-t1">Contratto della luce</div><div class="bs-t2">prossimo passo</div></div><span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>5</b></span></div></div>
-<div class="bs-muted">Progetto: cartella grigia con bordo sottile, testata più scura e barra a tacche (una per passo).</div></div>
+<div class="bs-label" style="margin:12px 0 4px">Pagina Priorità: solo il titolo</div>
+<div class="bs-proj"><div class="bs-proj-h"><b>Trasloco</b></div><div class="bs-tacche"><i class="on"></i><i></i><i></i></div>
+<div class="bs-row"><span class="bs-tag p2"><svg viewBox="0 0 40 32" preserveAspectRatio="none"><path d="M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q1.6 30.4 1.6 26 V6 Q1.6 1.6 6 1.6 Z"/></svg><b>5</b></span><div class="grow"><div class="bs-t1 struck">Scatoloni</div></div></div>
+<div class="bs-row"><div class="grow"><div class="bs-t1">Contratto della luce</div><div class="bs-t2">prossimo passo</div></div></div></div>
+<div class="bs-label" style="margin:12px 0 4px">Vista progetto: stima totale e conto delle note</div>
+<div class="bs-proj"><div class="bs-proj-h"><b>Trasloco</b><span>2 h 30 min · 1 / 3</span></div><div class="bs-tacche"><i class="on"></i><i></i><i></i></div>
+<div class="bs-row"><div class="grow"><div class="bs-t1 struck">Scatoloni</div></div></div>
+<div class="bs-row"><div class="grow"><div class="bs-t1">Contratto della luce</div><div class="bs-t2">prossimo passo</div></div></div></div>
+<div class="bs-muted">Progetto: cartella con bordo sottile, testata grigia (il grigio che prima avevano i passi), passi con lo sfondo delle altre note, barra a tacche (una per passo). Nella pagina Priorità la testata ha solo il titolo; nella vista progetto restano stima totale e conto delle note. Nessuna icona.</div></div>
 
 </div><div class="col">
 <div class="ph"><span class="bs-label">Navigazione e pulsanti tondi</span>
@@ -319,6 +336,14 @@ $$('[data-t]').forEach(t => t.onclick = () => t.classList.toggle('off'));
 $$('[data-chips]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('.bs-chip'); if (b) { $$('.bs-chip', g).forEach(x => x.classList.remove('on')); b.classList.add('on'); } }));
 $$('[data-seg]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { $$('button', g).forEach(x => x.classList.remove('on')); b.classList.add('on'); } }));
 $$('[data-tabs]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { $$('button', g).forEach(x => x.classList.remove('on')); b.classList.add('on'); } }));
-$$('.bs-row > button.bs-cb').forEach(c => c.onclick = () => { const s = c.classList.contains('done') ? 'dafare' : c.classList.contains('viva') ? 'done' : 'viva'; c.classList.remove('done', 'viva'); if (s !== 'dafare') c.classList.add(s); });
 paint();
+
+/* il tempo di una nota in corso scorre: qui un minuto ogni 3 secondi per mostrarlo (nell'app avanza ogni minuto) */
+function tbreve(m) { const h = Math.floor(m / 60), r = m % 60; return h > 0 ? h + ' h' + (r ? ' ' + String(r).padStart(2, '0') + ' min' : '') : m + ' min'; }
+setInterval(() => {
+  document.querySelectorAll('.bs-tc[data-live]').forEach(t => {
+    const m = +t.dataset.min + 1, st = +t.dataset.stima; t.dataset.min = m; t.textContent = tbreve(m);
+    const i = t.closest('.bs-ra').querySelector('.bs-vb i'); if (i) i.style.height = Math.min(100, m / st * 100) + '%';
+  });
+}, 3000);
 </script></body></html>

@@ -51,6 +51,8 @@ export function Oggi() {
     if (i.ricorrenza) pezzi.push(descriviRicorrenza(i.ricorrenza));
     return unisciMeta(pezzi);
   };
+  // Stile Flat: sotto il titolo resta solo la ricorrenza (niente «prossimo passo») (la stima sta nella colonna a destra).
+  const dettagli = (e: Entry) => unisciMeta([e.item.ricorrenza ? descriviRicorrenza(e.item.ricorrenza) : undefined]);
   // Parte destra della riga: la scadenza (o «ieri» / «N gg fa» se scaduta, in arancio) e, accanto alla casella, il tempo già lavorato.
   const destra = (e: Entry) => {
     const ms = tempoDi(e.item, Date.now());
@@ -81,6 +83,7 @@ export function Oggi() {
       key={e.item.id}
       titolo={e.item.titolo} tipo={e.item.tipo}
       meta={meta(e)}
+      dettagli={dettagli(e)}
       right={destra(e)}
       level={livelloPriorita(e.item, oggi)}
       voce={e.item}
@@ -102,7 +105,7 @@ export function Oggi() {
     <Sezione titolo="Attività">
       {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Intrattenimento».</div>}
       {raggruppaPerProgetto(v.fare, items).map((g) => g.progetto
-        ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
+        ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale} semplice>{g.voci.map(riga)}</GruppoProgetto>
         : g.voci.map(riga))}
       {v.avviate.length > 0 && (
         <>
@@ -111,7 +114,7 @@ export function Oggi() {
             <span aria-hidden="true">{mostraAvviate ? '⌃' : '⌄'}</span>
           </button>
           {mostraAvviate && raggruppaPerProgetto(v.avviate, items).map((g) => g.progetto
-            ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
+            ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale} semplice>{g.voci.map(riga)}</GruppoProgetto>
             : g.voci.map(riga))}
         </>
       )}
@@ -127,6 +130,7 @@ export function Oggi() {
           segnaposto
           titolo={e.item.titolo} tipo={e.item.tipo}
           meta={meta(e)}
+          dettagli={dettagli(e)}
           right={<DataRiga item={e.item} oggi={oggi} />}
           voce={e.item}
           selected={nav.openId === e.item.id}
@@ -144,6 +148,7 @@ export function Oggi() {
           key={c.id}
           titolo={c.titolo} tipo="curiosita"
           meta={c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
+          dettagli={null}
           rank={posCuriosita.get(c.id)}
           interesse={c.interesse ?? 3}
           check="square"

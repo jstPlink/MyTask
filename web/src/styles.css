@@ -355,11 +355,11 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 @media (max-width: 420px) { .tabs button .tab-in { gap: 3px; padding: 6px 5px; } .tabs button .ic, .tabs button .ic svg { width: 19px; height: 19px; } }
 
 /* ---------- Attività raggruppate sotto il progetto ---------- */
-/* Il progetto è tutto in grigio (niente bianco, che è dei titoli di sezione): testata su un grigio più scuro, passi su uno più chiaro, stesse linee sottili delle altre note */
-.gp { --gl: color-mix(in srgb, var(--ink) 11%, var(--surface2)); background: color-mix(in srgb, var(--surface2) 50%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); border-radius: 14px; overflow: hidden; margin: 12px -5px; animation: entra .26s ease-out backwards; }
+/* Il progetto: la testata ha il grigio che prima avevano i passi (--gp-head), i passi hanno lo stesso sfondo delle altre note, stesse linee sottili */
+.gp { --gl: color-mix(in srgb, var(--ink) 11%, var(--surface2)); --gp-head: color-mix(in srgb, var(--surface2) 50%, var(--bg)); background: transparent; border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface2)); border-radius: 14px; overflow: hidden; margin: 12px -5px; animation: entra .26s ease-out backwards; }
 .altre-avviate { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; margin: 6px 0; border-radius: 12px; border: 1px dashed var(--line); font-size: 13px; font-weight: 650; color: var(--mid); }
 .altre-avviate:hover, .altre-avviate:active { background: var(--surface2); }
-.gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 8px 11px 10px; background: var(--surface2); border-bottom: 1px solid var(--gl); text-align: left; }
+.gp-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 8px 11px 10px; background: var(--gp-head); border-bottom: 1px solid var(--gl); text-align: left; }
 .gp-h b { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
 /* barra a tacchette del progetto: una tacca per attività */
 .tacche { display: flex; gap: 3px; margin: 8px 0; }
@@ -367,8 +367,8 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .tacche i.on { background: var(--accent); }
 .tacche.fitte { gap: 1px; }
 .gp-h:has(+ .tacche) { border-bottom: 0; }
-.gp .tacche { margin: 0; padding: 0 10px 9px; background: var(--surface2); }
-.gp .tacche i { background: color-mix(in srgb, var(--ink) 14%, var(--surface2)); }
+.gp .tacche { margin: 0; padding: 0 10px 9px; background: var(--gp-head); }
+.gp .tacche i { background: color-mix(in srgb, var(--ink) 14%, var(--gp-head)); }
 .gp .tacche i.on { background: var(--mid); }
 .sb-sep { height: 1px; background: var(--line); margin: 8px 14px 10px; }
 .gp-h span { font-size: 12px; font-weight: 700; color: var(--mid); white-space: nowrap; }
@@ -956,3 +956,42 @@ html[data-stile=base] .tabs button .ic svg { width: 22px; height: 22px; }
 @media (max-width: 420px) { html[data-stile=base] .tabs button .ic, html[data-stile=base] .tabs button.on .ic { width: 36px; } }
 html[data-stile=base] .fab { bottom: calc(env(safe-area-inset-bottom) + 76px); }
 html[data-stile=base] .toast { bottom: calc(env(safe-area-inset-bottom) + 76px); }
+
+/* Stile Base: le schede in alto (Tutte le attività / Progetti / Esperienze, Sistema / Chiaro / Scuro, ecc.) come quelle in basso: tutte piatte, solo quella scelta ha il fondo verdino con il contorno */
+html[data-stile=base] body .seg, html[data-stile=base] body .fisso .seg { background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; gap: 4px; }
+html[data-stile=base] body .seg button { border: 1px solid transparent !important; border-radius: 16px !important; background: none !important; box-shadow: none !important; color: var(--mid); min-height: 36px; font-weight: 600; transition: background .15s, border-color .15s, color .15s; }
+html[data-stile=base] body .seg button.on { background: var(--accent-soft) !important; border-color: color-mix(in srgb, var(--accent) 55%, transparent) !important; color: var(--accent); font-weight: 700; box-shadow: none !important; }
+
+/* ================= Stile Flat: riga a altezza fissa (mockup «barra C rifinita», variante A) =================
+   Niente casella di stato né icona di tipologia. Sotto il titolo: l'icona delle note in un pallino e, dopo, la scadenza (solo testo, rossa se scaduta).
+   A destra: tempo e stima in testo e una barra verticale continua. Senza stima e non avviata: vuoto; avviata senza stima: solo il tempo con una
+   barra grigia piena; non avviata con stima: solo il numero della stima. Un solo rosso: la scadenza usa quello della priorità. */
+html[data-stile=base][data-theme] { --warn: var(--p3); --warn-soft: color-mix(in srgb, var(--p3) 12%, transparent); }
+html[data-stile=base] .row.riga-a { height: 56px; padding: 0; box-sizing: border-box; overflow: hidden; align-items: center; gap: 10px; }
+html[data-stile=base] .gp .row.riga-a { padding: 0 8px 0 10px; }
+html[data-stile=base] .riga-a .grow { display: flex; flex-direction: column; justify-content: center; min-width: 0; height: 100%; }
+html[data-stile=base] .riga-a .line, html[data-stile=base] .riga-a .t1 { min-width: 0; }
+html[data-stile=base] .riga-a .t1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+html[data-stile=base] .riga-a .bd { display: flex; align-items: center; gap: 6px; height: 20px; margin-top: 3px; font-size: 12px; color: var(--mid); white-space: nowrap; overflow: hidden; }
+html[data-stile=base] .riga-a .data-riga { display: inline-flex; align-items: center; gap: 3px; height: auto; padding: 0; border: 0; border-radius: 0; background: none; color: var(--ink); font-size: 12px; font-weight: 700; white-space: nowrap; }
+html[data-stile=base] .riga-a .data-riga svg { width: 11px; height: 11px; }
+html[data-stile=base] .riga-a .data-riga.hard { color: var(--warn); }
+html[data-stile=base] .riga-a .nt { display: inline-grid; place-items: center; width: 20px; height: 20px; flex: none; border: 1px solid var(--ink); border-radius: 50%; color: var(--ink); background: var(--surface); }
+html[data-stile=base] .riga-a .nt svg { width: 11px; height: 11px; }
+html[data-stile=base] .riga-a .bd-t { overflow: hidden; text-overflow: ellipsis; }
+html[data-stile=base] .riga-a .r2 { flex: none; min-width: 58px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; text-align: right; }
+html[data-stile=base] .riga-a .r2 .tc, html[data-stile=base] .riga-a .r2 .su, html[data-stile=base] .riga-a .r2 .sti2 { line-height: 1.15; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* il tempo corrente in risalto (grande e pesante, colore pieno); la stima più piccola, sottile e con un colore più vicino allo sfondo */
+html[data-stile=base] .riga-a .r2 .tc { font-size: 13px; font-weight: 800; color: var(--ink); }
+html[data-stile=base] .riga-a .r2 .su, html[data-stile=base] .riga-a .r2 .sti2 { font-size: 11px; font-weight: 300; color: color-mix(in srgb, var(--ink) 52%, var(--bg)); }
+html[data-stile=base] .riga-a .r2.pausa .tc { color: var(--mid); }
+html[data-stile=base] .riga-a .vb { flex: none; width: 8px; height: 40px; box-sizing: border-box; border: 1.5px solid var(--ink); border-radius: 4px; background: transparent; position: relative; overflow: hidden; }
+html[data-stile=base] .riga-a .vb i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ink); transition: height .45s cubic-bezier(.2, .8, .2, 1); }
+/* contorno e riempimento hanno sempre lo stesso colore (nero nel tema chiaro, bianco nello scuro: --ink); in pausa e senza stima la barra intera è più tenue */
+html[data-stile=base] .riga-a .vb.pausa { opacity: .55; }
+html[data-stile=base] .riga-a .vb.piena { background: var(--ink); opacity: .45; }
+html[data-stile=base] .riga-a .vb.nasc { visibility: hidden; }
+/* progetto: titolo più chiaro, linea tra testata e note, tacche fatte più chiare */
+html[data-stile=base] .gp-h b { color: color-mix(in srgb, var(--ink) 58%, var(--bg)); font-weight: 650; }
+html[data-stile=base] .gp .tacche { border-bottom: 1px solid var(--gl); }
+html[data-stile=base] .gp .tacche i.on { background: color-mix(in srgb, var(--mid) 62%, var(--gp-head)); }

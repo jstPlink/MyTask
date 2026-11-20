@@ -32,6 +32,7 @@ public class WidgetService extends RemoteViewsService {
         private final Context c;
         private final boolean s;
         private StileVetro vt; // stile Vetro scelto nell'app (null = classico)
+        private boolean flat; // stile Flat scelto nell'app: righe a altezza fissa come nell'app (RigaFlat)
         private JSONArray righe = new JSONArray();
         /** Le voci della lista: intestazioni di sezione (con «h») e righe, nell'ordine in cui compaiono. */
         private final List<JSONObject> voci = new ArrayList<>();
@@ -45,6 +46,7 @@ public class WidgetService extends RemoteViewsService {
         @Override public void onDataSetChanged() {
             righe = WidgetDati.righe(c);
             vt = StileVetro.leggi(c, s);
+            flat = "flat".equals(WidgetDati.stile(c));
             voci.clear();
             aggiungi("Attività", false);
             aggiungi("Curiosità", true);
@@ -71,7 +73,7 @@ public class WidgetService extends RemoteViewsService {
         @Override public void onDestroy() { }
         @Override public int getCount() { return voci.size(); }
         @Override public RemoteViews getLoadingView() { return null; }
-        @Override public int getViewTypeCount() { return 2; }
+        @Override public int getViewTypeCount() { return 3; }
         @Override public long getItemId(int i) { return i; }
         @Override public boolean hasStableIds() { return false; }
 
@@ -95,10 +97,97 @@ public class WidgetService extends RemoteViewsService {
         private int cSec() { return vt != null ? vt.secondario : colore("#65656E", "#A5A5B0"); }
         private int cInk() { return vt != null ? vt.testo : colore("#404040", "#F3F3F6"); }
 
+        /** Riga con lo stile Flat: targhetta, titolo, pallino delle note e scadenza, tempo/stima in testo e barra verticale; niente casella. */
+        private RemoteViews rigaFlat(JSONObject o) {
+            RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.riga_flat);
+            boolean fatto = o.optInt("f", 0) == 1;
+            String id = o.optString("id");
+            JSONObject lavoro = WidgetDati.lavoro(c);
+            boolean inLavoro = lavoro != null && id.equals(lavoro.optString("id"));
+            boolean inCorso = !fatto && (o.optInt("c", 0) == 1 || inLavoro);
+            boolean inPausa = !fatto && !inCorso && o.optInt("z", 0) == 1;
+            int ink = cInk();
+            int sec = cSec();
+            int primario = Color.parseColor(s ? "#6FCF9B" : "#2F7D5B");
+            int rosso = Color.parseColor(s ? "#FF6B6B" : "#D32F2F");
+
+            // targhetta di posizione
+            int rank = o.optInt("r", 0);
+            boolean curiosita = "c".equals(o.optString("k"));
+            if (rank > 0 || curiosita) {
+                int col;
+                String numero;
+                if (curiosita) {
+                    int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
+                    String[] tc = {"#8A93A0", "#8A93A0", "#4E9A78", "#1F7A52", "#1F7A52"};
+                    String[] ts = {"#7B8493", "#7B8493", "#5FAE8D", "#6FCF9B", "#6FCF9B"};
+                    col = Color.parseColor((s ? ts : tc)[interesse - 1]);
+                    numero = String.valueOf(rank > 0 ? rank : interesse);
+                } else {
+                    String[] tc = {"#8A93A0", "#D9A400", "#D32F2F"};
+                    String[] ts = {"#7B8493", "#F4C542", "#FF6B6B"};
+                    col = Color.parseColor((s ? ts : tc)[Math.max(1, Math.min(3, o.optInt("l", 1))) - 1]);
+                    numero = String.valueOf(rank);
+                }
+                v.setViewVisibility(R.id.rank_img, View.VISIBLE);
+                v.setImageViewBitmap(R.id.rank_img, RigaFlat.targhetta(c, curiosita, col, numero));
+            } else {
+                v.setViewVisibility(R.id.rank_img, View.INVISIBLE);
+            }
+
+            SpannableString titolo = new SpannableString(o.optString("t", ""));
+            if (fatto) titolo.setSpan(new StrikethroughSpan(), 0, titolo.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            v.setTextViewText(R.id.titolo, titolo);
+            v.setTextColor(R.id.titolo, fatto ? sec : ink);
+
+            // sotto il titolo: pallino delle note, poi la scadenza (solo testo, rossa se in ritardo)
+            boolean haNote = o.optInt("n", 0) == 1 && !fatto;
+            String data = fatto ? "" : o.optString("d", "");
+            boolean haData = !data.isEmpty();
+            v.setViewVisibility(R.id.bd, haNote || haData ? View.VISIBLE : View.GONE);
+            v.setViewVisibility(R.id.nota_img, haNote ? View.VISIBLE : View.GONE);
+            if (haNote) v.setImageViewBitmap(R.id.nota_img, RigaFlat.pallinoNote(c, ink, Color.parseColor(s ? "#1D1F23" : "#FFFFFF")));
+            v.setViewVisibility(R.id.data, haData ? View.VISIBLE : View.GONE);
+            v.setTextViewText(R.id.data, data);
+            v.setTextColor(R.id.data, o.optInt("dl", 0) == 1 ? rosso : ink);
+
+            // a destra: tempo e stima in testo e la barra verticale
+            long previsto = o.optLong("p", 0);
+            boolean conTempo = inCorso || inPausa;
+            if (conTempo) {
+                long ms = o.optLong("w", 0);
+                if (inLavoro && lavoro != null && "lavoro".equals(lavoro.optString("stato"))) ms = lavoro.optLong("base", ms) + Math.max(0, System.currentTimeMillis() - lavoro.optLong("ref", 0));
+                v.setViewVisibility(R.id.tc, View.VISIBLE);
+                v.setTextViewText(R.id.tc, RigaFlat.tempoBreve(ms / 60000));
+                v.setTextColor(R.id.tc, ink);
+                v.setViewVisibility(R.id.su, previsto > 0 ? View.VISIBLE : View.GONE);
+                v.setTextViewText(R.id.su, "su " + RigaFlat.stimaBreve(previsto));
+                v.setTextColor(R.id.su, sec);
+                float quota = previsto > 0 ? ms / (previsto * 60000f) : 0f;
+                v.setViewVisibility(R.id.barra_img, View.VISIBLE);
+                v.setImageViewBitmap(R.id.barra_img, RigaFlat.barra(c, ink, quota, previsto <= 0, inPausa));
+            } else if (previsto > 0 && !fatto) {
+                v.setViewVisibility(R.id.tc, View.GONE);
+                v.setViewVisibility(R.id.su, View.VISIBLE);
+                v.setTextViewText(R.id.su, RigaFlat.stimaBreve(previsto));
+                v.setTextColor(R.id.su, sec);
+                v.setViewVisibility(R.id.barra_img, View.INVISIBLE);
+            } else {
+                v.setViewVisibility(R.id.tc, View.GONE);
+                v.setViewVisibility(R.id.su, View.GONE);
+                v.setViewVisibility(R.id.barra_img, View.INVISIBLE);
+            }
+
+            // il tocco apre l'app (lo stato si cambia nell'app)
+            v.setOnClickFillInIntent(R.id.riga, new Intent().putExtra("azione", "apri"));
+            return v;
+        }
+
         @Override
         public RemoteViews getViewAt(int pos) {
             JSONObject o = pos < voci.size() ? voci.get(pos) : null;
             if (o != null && o.has("h")) return sezione(o);
+            if (o != null && flat) return rigaFlat(o);
             RemoteViews v = new RemoteViews(c.getPackageName(), s ? R.layout.riga_scuro : R.layout.riga_chiaro);
             if (o == null) return v;
             boolean fatto = o.optInt("f", 0) == 1;

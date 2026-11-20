@@ -5,7 +5,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 
 export type Tema = 'sistema' | 'chiaro' | 'scuro';
 export type Colore = 'verde' | 'petrolio' | 'indaco';
-/** Stile grafico: «morbido» (schede morbide con ombra, il predefinito), «vetro» (pannelli di vetro) o «base» (lo stile di base di prima: note in righe con filetti, sezioni a fascia). */
+/** Stile grafico: «morbido» (schede morbide con ombra, il predefinito), «vetro» (pannelli di vetro) o «base» (nome «Flat» nell'interfaccia, lo stile di prima: note in righe con filetti, sezioni a fascia). */
 export type Stile = 'morbido' | 'vetro' | 'base';
 /** Palette dello stile vetro (solo con `stile: 'vetro'`). */
 export type Palette = 'grafite' | 'ambra' | 'salvia' | 'ghiaccio' | 'lime' | 'turchese' | 'arancio' | 'smeraldo';

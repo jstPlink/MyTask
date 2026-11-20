@@ -84,6 +84,7 @@ function Azioni({ filtro }: { filtro: Filtro }) {
         key={item.id}
         titolo={item.titolo} tipo={item.tipo}
         meta={item.stato === 'parcheggiato' ? 'Parcheggiato' : unisciMeta([item.stato === 'in_corso' ? 'In corso' : item.stato === 'in_pausa' ? 'In pausa' : undefined, item.sforzoMin ? nomeTempo(item.sforzoMin) : undefined])}
+        dettagli={item.stato === 'parcheggiato' ? 'Parcheggiato' : unisciMeta([item.stato === 'in_corso' ? 'In corso' : item.stato === 'in_pausa' ? 'In pausa' : undefined])}
         right={d ? <DataRiga item={item} oggi={oggi} /> : null}
         level={item.stato === 'parcheggiato' ? 1 : livelloPriorita(item, oggi)}
         rank={classifica.get(item.id)}

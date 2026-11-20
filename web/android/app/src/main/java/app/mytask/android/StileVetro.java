@@ -64,7 +64,7 @@ final class StileVetro {
     /** Lo stile Vetro scelto nell'app, o null se è attivo quello classico. */
     static StileVetro leggi(Context c, boolean scuro) {
         String nome = WidgetDati.stile(c);
-        return nome == null ? null : new StileVetro(nome, scuro);
+        return nome == null || "flat".equals(nome) ? null : new StileVetro(nome, scuro); // «flat» = stile Flat (RigaFlat), non è una palette
     }
 
     /** Risorsa dello sfondo del widget per questa palette (widget_bg_v_<palette>_<c|s>), 0 se manca. */

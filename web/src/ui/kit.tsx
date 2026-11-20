@@ -3,14 +3,13 @@
 // non si vede: la navigazione è nella Sidebar.
 
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { clsx, durataLavoro, nomeTempo } from '../lib/util.ts';
-import { useAdesso, useItems, useSessione } from '../lib/hooks.ts';
+import { clsx, durataLavoro, nomeTempo, stimaBreve, tempoBreve } from '../lib/util.ts';
+import { useAdesso, useAspetto, useItems, useOggi, useSessione } from '../lib/hooks.ts';
 import { tempoDi } from '../lib/sessione.ts';
 import { formatoCronometro } from '../../../shared/sessione.ts';
 import { stimaProgetto } from '../../../shared/views.ts';
 import { livelloMargine, percentuale } from '../../../shared/stima.ts';
 import { useLayer, useNav, type Tab } from './nav.tsx';
-import { GlifoTipo } from './Icone.tsx';
 import { avanzaStato, statoVisto } from '../lib/actions.ts';
 import { apriStatoMenu } from '../lib/statoMenu.ts';
 import type { Item, Stato, Tipo } from '../../../shared/types.ts';
@@ -48,7 +47,7 @@ interface RowProps {
   conNote?: boolean;
   meta?: ReactNode;
   right?: ReactNode;
-  /** Tipo della nota: la sua icona compare, piccola, a sinistra del titolo. */
+  /** Tipo della nota (l'icona accanto al titolo è stata tolta; il valore non si usa più nella riga). */
   tipo?: Tipo;
   /** Cerchio tratteggiato vuoto al posto del numero di classifica (note «in arrivo»: non hanno una posizione, ma restano allineate alle altre righe). */
   segnaposto?: boolean;
@@ -72,6 +71,8 @@ interface RowProps {
   check?: 'circle' | 'square' | 'none';
   /** Casella piena, per le righe senza `voce`. */
   done?: boolean;
+  /** Stile Flat (riga a altezza fissa): altre informazioni da mostrare sotto il titolo, dopo scadenza e icona delle note (senza la stima, che sta a destra). Se manca si usa `meta`. */
+  dettagli?: ReactNode;
   /** Titolo attenuato (voci chiuse o poco interessanti). */
   light?: boolean;
   /** Titolo barrato. */
@@ -139,7 +140,7 @@ export const ETICHETTA = 'M6 1.6 H28.4 L36.8 13 Q38.4 16 36.8 19 L28.4 30.4 H6 Q
  * Riga di lista: priorità a sinistra (barra), titolo con riga grigia sotto, parte destra libera e casella.
  * Con `voce` la casella gestisce da sola gli stati della nota; senza, è una casella semplice comandata da `done`/`onCheck`.
  */
-export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnaposto, interesse, voce, maniglia, classe, extra, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
+export function Row({ titolo, meta, dettagli, right, conNote, tipo, level, rank, segnaposto, interesse, voce, maniglia, classe, extra, check = 'circle', done, light, struck, centrato, selected, onCheck, onOpen }: RowProps) {
   // Una nota «in corso» o «in pausa» mostra al posto della riga grigia la barra del tempo (fissa; gialla in pausa, rossa oltre la stima) con «tempo lavorato / stima».
   const sessione = useSessione();
   const vs = voce ? statoVisto(voce.stato) : undefined;
@@ -149,7 +150,52 @@ export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnapost
   const quota = conTempo && voce.sforzoMin ? ms / (voce.sforzoMin * 60_000) : undefined;
   // la nota non si legge nella riga: se ha del testo si vede solo un'icona (pallino grigio) sopra la data, a destra
   const haNote = conNote ?? !!voce?.note?.trim();
-  const body = (
+  // Stile Flat: riga a altezza fissa, senza casella di stato; sotto il titolo scadenza e note, a destra stima, tempo (senza secondi) e barra in una colonna di larghezza fissa
+  const piatto = useAspetto().stile === 'base' && !!voce;
+  const detGrezzo = dettagli !== undefined ? dettagli : meta;
+  const det = Array.isArray(detGrezzo) ? (detGrezzo.length > 0 ? detGrezzo : null) : detGrezzo; // un elenco vuoto non crea la riga dei dettagli (il titolo resta centrato)
+  const oggi = useOggi();
+  const body = piatto && voce ? (
+    <>
+      {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
+      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
+      {rank !== undefined && interesse === undefined && (
+        <span className="rank et" aria-label={`Posizione ${rank}`}>
+          <svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg>
+          <b>{rank}</b>
+        </span>
+      )}
+      {segnaposto && rank === undefined && <span className="rank rank-vuoto" aria-hidden="true" />}
+      {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
+      <div className="grow">
+        <div className="line">
+          <div className={clsx('t1', (light || (statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso' && statoVisto(voce.stato) !== 'in_pausa')) && 'light', (struck || statoVisto(voce.stato) === 'fatto') && 'struck')}>{titolo}</div>
+        </div>
+        {(etichettaData(voce, oggi, (iso) => formatShortYear(iso, oggi)) || haNote || det) && (
+          <div className="bd">
+            {haNote && (
+              <span className="nt" role="img" aria-label="Ha delle note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /></svg>
+              </span>
+            )}
+            <DataRiga item={voce} oggi={oggi} />
+            {det && <span className="bd-t">{det}</span>}
+          </div>
+        )}
+      </div>
+      {/* a destra: tempo e stima in testo, poi la barra verticale (continua; piena e grigia se avviata senza stima; niente se non c'è stima) */}
+      <div className={clsx('r2', vs === 'in_pausa' && 'pausa')}>
+        {conTempo && <span className="tc">{tempoBreve(ms / 60_000)}</span>}
+        {conTempo && !!voce.sforzoMin && <span className="su">su {stimaBreve(voce.sforzoMin)}</span>}
+        {!conTempo && !!voce.sforzoMin && <span className="sti2">{stimaBreve(voce.sforzoMin)}</span>}
+      </div>
+      {conTempo
+        ? (voce.sforzoMin
+          ? <span className={clsx('vb', vs === 'in_pausa' && 'pausa', quota !== undefined && quota > 1 && 'oltre')}><i style={{ height: `${Math.min(1, quota ?? 0) * 100}%` }} /></span>
+          : <span className="vb piena" />)
+        : <span className="vb nasc" />}
+    </>
+  ) : (
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
       {/* con rank e interesse (le curiosità) il pallino è verde e fermo: il numero è la posizione, il riempimento è l'interesse */}
@@ -165,7 +211,7 @@ export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnapost
       {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
       <div className="grow">
         <div className="line">
-          <div className={clsx('t1', (light || (voce && statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso' && statoVisto(voce.stato) !== 'in_pausa')) && 'light', (struck || (voce && statoVisto(voce.stato) === 'fatto')) && 'struck')}>{tipo && <GlifoTipo tipo={tipo} />}{titolo}</div>
+          <div className={clsx('t1', (light || (voce && statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso' && statoVisto(voce.stato) !== 'in_pausa')) && 'light', (struck || (voce && statoVisto(voce.stato) === 'fatto')) && 'struck')}>{titolo}</div>
         </div>
         {conTempo ? (
           <div className="sr-riga">
@@ -197,7 +243,7 @@ export function Row({ titolo, meta, right, conNote, tipo, level, rank, segnapost
       )}
     </>
   );
-  const cls = clsx('row', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch', conTempo && 'lav', vs === 'in_pausa' && 'pausa-lav', quota !== undefined && quota > 1 && 'oltre-lav', classe);
+  const cls = clsx('row', piatto && 'riga-a', level && `p${level}`, centrato && 'ctr', selected && 'sel', voce && statoVisto(voce.stato) === 'parcheggiato' && 'st-arch', conTempo && 'lav', vs === 'in_pausa' && 'pausa-lav', quota !== undefined && quota > 1 && 'oltre-lav', classe);
   return onOpen ? <button className={cls} onClick={onOpen} {...extra}>{body}</button> : <div className={cls} {...extra}>{body}</div>;
 }
 
@@ -453,19 +499,17 @@ export function Tacche({ fatti, totale, anima }: { fatti: number; totale: number
 
 /**
  * Testata di progetto con le sue attività sotto (`children`): il tocco sulla testata apre il progetto; mostra
- * «stima del tempo · fatti / totale» e la barra a tacchette (una per attività) solo se il progetto ha passi.
+ * «stima del tempo · fatti / totale» e la barra a tacchette (una per attività) solo se il progetto ha passi. Senza icona; con `semplice` (pagina Priorità)
+ * la testata ha solo il titolo (niente stima del tempo né conto delle note).
  */
-export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto: Item; fatti: number; totale: number; children: ReactNode }) {
+export function GruppoProgetto({ progetto, fatti, totale, semplice, children }: { progetto: Item; fatti: number; totale: number; semplice?: boolean; children: ReactNode }) {
   const nav = useNav();
   const stima = stimaProgetto(progetto, useItems()); // la stima del progetto è la somma di quelle dei suoi passi ancora da fare
   return (
     <section className="gp">
       <button className="gp-h" onClick={() => nav.push({ k: 'item', id: progetto.id })} aria-label={`Apri il progetto ${progetto.titolo}`}>
-        <span className="gp-ic" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
-        </span>
         <b>{progetto.titolo}</b>
-        {(totale > 0 || stima > 0) && <span>{[totale > 0 && fatti === totale ? 'completato' : undefined, stima > 0 ? nomeTempo(stima) : undefined, totale > 0 ? `${fatti} / ${totale}` : undefined].filter(Boolean).join(' · ')}</span>}
+        {!semplice && (totale > 0 || stima > 0) && <span>{[totale > 0 && fatti === totale ? 'completato' : undefined, stima > 0 ? nomeTempo(stima) : undefined, totale > 0 ? `${fatti} / ${totale}` : undefined].filter(Boolean).join(' · ')}</span>}
       </button>
       {totale > 0 && <Tacche fatti={fatti} totale={totale} />}
       {children}

@@ -61,6 +61,21 @@ export function nomeGiorniOre(minuti: number): string {
 }
 
 /** Durata in minuti a parole: 15 min, 2 ore, 1 giorno. */
+/** Tempo lavorato in minuti pieni, senza secondi: «24 min», «1 h 05 min», «2 h 40 min» (usato dalla colonna destra delle righe). */
+export function tempoBreve(minuti: number): string {
+  const m = Math.max(0, Math.floor(minuti));
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return h > 0 ? `${h} h${r ? ` ${String(r).padStart(2, '0')} min` : ''}` : `${m} min`;
+}
+
+/** Stima di tempo in minuti: «30 min», «2 h», «1 h 30 min». */
+export function stimaBreve(minuti: number): string {
+  const h = Math.floor(minuti / 60);
+  const r = Math.round(minuti % 60);
+  return h > 0 ? `${h} h${r ? ` ${r} min` : ''}` : `${Math.round(minuti)} min`;
+}
+
 export function nomeTempo(m: number): string {
   return m >= 1440 && m % 1440 === 0 ? `${m / 1440} ${m === 1440 ? 'giorno' : 'giorni'}` : m >= 60 ? `${+(m / 60).toFixed(1)} ${m === 60 ? 'ora' : 'ore'}` : `${m} min`;
 }

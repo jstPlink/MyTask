@@ -6,6 +6,8 @@ import type { Sessione } from './sessione.ts';
 import { classificaCuriosita, classificaPriorita, live, vistaOggi } from './views.ts';
 import { chiaveTitolo } from './testo.ts';
 import { NOMI_TIPO } from './types.ts';
+import { etichettaData } from './dataNota.ts';
+import { formatShortYear } from './dates.ts';
 
 /** Una riga del widget "Oggi" della schermata Home. */
 export interface RigaWidget {
@@ -30,6 +32,16 @@ export interface RigaWidget {
   k?: 'c';
   /** Interesse 1-5 di una curiosità, per il pallino verde che si riempie con l'interesse. */
   i?: number;
+  /** 1 se la nota ha del testo (stile Flat del widget: pallino delle note sotto il titolo). */
+  n?: 1;
+  /** Scadenza o data fissa già scritta («oggi», «scaduta ieri», «entro sab 22») e `dl` = 1 se è in ritardo (rossa); stile Flat del widget. */
+  d?: string;
+  dl?: 1;
+}
+
+function notaEData(i: Item, oggi: string): Pick<RigaWidget, 'n' | 'd' | 'dl'> {
+  const e = etichettaData(i, oggi, (iso) => formatShortYear(iso, oggi));
+  return { n: i.note?.trim() ? 1 : undefined, d: e?.testo, dl: e?.ritardo ? 1 : undefined };
 }
 
 /**
@@ -40,14 +52,14 @@ export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[]
   const classifica = classificaPriorita(items, oggi); // la stessa posizione che si legge nell'app
   const v = vistaOggi(items, oggi);
   const attivita: RigaWidget[] = v.fare.slice(0, max).map((e) => ({
-    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi), b: battitoBpm(intensitaBattito(e.item, oggi), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, z: e.item.stato === 'in_pausa' ? 1 : undefined, p: e.item.sforzoMin || undefined,
+    id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi), b: battitoBpm(intensitaBattito(e.item, oggi), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, z: e.item.stato === 'in_pausa' ? 1 : undefined, p: e.item.sforzoMin || undefined, ...notaEData(e.item, oggi),
   }));
   const posCur = classificaCuriosita(items); // la posizione nella classifica delle curiosità, come nell'app
   const curiosita: RigaWidget[] = v.curiosita.map((i) => {
     const r = posCur.get(i.id); // pallino verde e fermo: il numero è la posizione, il riempimento l'interesse
     return {
       id: i.id, t: i.titolo, r, l: 1, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, z: i.stato === 'in_pausa' ? 1 : undefined, p: i.sforzoMin || undefined, k: 'c',
-      i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))),
+      i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))), ...notaEData(i, oggi),
     };
   });
   return [...attivita, ...curiosita];

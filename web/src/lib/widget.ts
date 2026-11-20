@@ -61,8 +61,8 @@ async function applicaAzioni() {
   }
 }
 
-/** Stile del widget: il nome della palette con lo stile Vetro, testo vuoto con quello classico. */
-function stileWidget(): string { const a = getAspetto(); return a.stile === 'vetro' ? a.palette : ''; }
+/** Stile del widget: il nome della palette con lo stile Vetro, «flat» con lo stile Flat, testo vuoto con il Morbido. */
+function stileWidget(): string { const a = getAspetto(); return a.stile === 'vetro' ? a.palette : a.stile === 'base' ? 'flat' : ''; }
 
 /** Manda al widget le righe di oggi, la sessione di lavoro e l'archivio (per la ricerca nel widget). */
 async function spingiLista() {
