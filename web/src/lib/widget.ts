@@ -10,7 +10,7 @@ import { archivioWidget, lavoroWidget, righeWidget } from '../../../shared/widge
 import { completaVoce, nuovaVoce } from './actions.ts';
 import { finisciSessione, getSessione, iniziaLavoro, mettiInPausa, passaA, riprendi, subscribeSessione } from './sessione.ts';
 import { getItem, getItems, saveItem, subscribe } from './store.ts';
-import { getAspetto, subscribeAspetto } from './theme.ts';
+import { subscribeAspetto } from './theme.ts';
 import { debounce } from './util.ts';
 
 /** Azione accodata dal widget mentre l'app era chiusa. `ts` è il momento in cui è stata fatta. */
@@ -62,7 +62,7 @@ async function applicaAzioni() {
 }
 
 /** Stile del widget: il nome della palette con lo stile Vetro, «flat» con lo stile Flat, testo vuoto con il Morbido. */
-function stileWidget(): string { const a = getAspetto(); return a.stile === 'vetro' ? a.palette : a.stile === 'base' ? 'flat' : ''; }
+function stileWidget(): string { return 'flat'; } // il widget ha sempre lo stile Flat grafite, qualunque stile e palette sia scelto nell'app
 
 /** Manda al widget le righe di oggi, la sessione di lavoro e l'archivio (per la ricerca nel widget). */
 async function spingiLista() {

@@ -11,10 +11,15 @@ export type Stile = 'morbido' | 'vetro' | 'base';
 export type Palette = 'grafite' | 'ambra' | 'salvia' | 'ghiaccio' | 'lime' | 'turchese' | 'arancio' | 'smeraldo';
 export const PALETTE: Palette[] = ['grafite', 'ghiaccio', 'turchese', 'smeraldo', 'salvia', 'lime', 'ambra', 'arancio']; // nell'ordine scelto dall'utente
 
-export interface Aspetto { tema: Tema; colore: Colore; stile: Stile; palette: Palette }
+/** Palette dello stile Flat (tema chiaro): grafite (scala di grigi, la base), menta, panna, ghiaccio. */
+export type Tinta = 'grafite' | 'menta' | 'panna' | 'ghiaccio';
+export const TINTE: Tinta[] = ['grafite', 'menta', 'panna', 'ghiaccio'];
+const SUPERFICI: Record<Tinta, string> = { grafite: '#FAFAFA', menta: '#F7FBF8', panna: '#FBF8F1', ghiaccio: '#F7FAFD' };
+
+export interface Aspetto { tema: Tema; colore: Colore; stile: Stile; palette: Palette; tinta: Tinta }
 
 const KEY = 'mytask.aspetto';
-let corrente: Aspetto = { tema: 'chiaro', colore: 'verde', stile: 'morbido', palette: 'salvia' };
+let corrente: Aspetto = { tema: 'chiaro', colore: 'verde', stile: 'morbido', palette: 'salvia', tinta: 'grafite' };
 const listeners = new Set<() => void>();
 
 /** Legge l'aspetto salvato (valori sconosciuti tornano ai predefiniti). */
@@ -28,10 +33,11 @@ function leggiAspetto(): Aspetto {
         colore: p.colore === 'petrolio' || p.colore === 'indaco' ? p.colore : 'verde',
         stile: p.stile === 'vetro' ? 'vetro' : p.stile === 'base' ? 'base' : 'morbido', // «classico» (valore delle versioni precedenti) è diventato «morbido»
         palette: PALETTE.includes(p.palette as Palette) ? (p.palette as Palette) : 'salvia',
+        tinta: TINTE.includes(p.tinta as Tinta) ? (p.tinta as Tinta) : 'grafite',
       };
     }
   } catch { /* spazio di archiviazione non disponibile */ }
-  return { tema: 'chiaro', colore: 'verde', stile: 'morbido', palette: 'salvia' };
+  return { tema: 'chiaro', colore: 'verde', stile: 'morbido', palette: 'salvia', tinta: 'grafite' };
 }
 
 /** Colore della barra del browser (meta theme-color) per ogni colore d'accento. */
@@ -42,7 +48,7 @@ function aggiornaBarraStato(scuro: boolean) {
   if (!Capacitor.isNativePlatform()) return;
   // Style.Dark = icone chiare (per sfondi scuri), Style.Light = icone scure (per sfondi chiari)
   void StatusBar.setStyle({ style: scuro ? Style.Dark : Style.Light }).catch(() => undefined);
-  void StatusBar.setBackgroundColor({ color: scuro ? '#1D1F23' : '#FFFFFF' }).catch(() => undefined);
+  void StatusBar.setBackgroundColor({ color: scuro ? '#1D1F23' : corrente.stile === 'base' ? SUPERFICI[corrente.tinta] : '#FFFFFF' }).catch(() => undefined);
 }
 
 /** Applica tema e colore al documento (e alla barra di stato nell'app). */
@@ -53,6 +59,7 @@ function applica() {
   el.dataset.accent = corrente.colore;
   el.dataset.stile = corrente.stile;
   el.dataset.pal = corrente.palette;
+  el.dataset.tinta = corrente.tinta;
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', COLORI_BARRA[corrente.colore]);
   aggiornaBarraStato(scuro);
 }

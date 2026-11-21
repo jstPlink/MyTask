@@ -972,26 +972,96 @@ html[data-stile=base] .gp .row.riga-a { padding: 0 8px 0 10px; }
 html[data-stile=base] .riga-a .grow { display: flex; flex-direction: column; justify-content: center; min-width: 0; height: 100%; }
 html[data-stile=base] .riga-a .line, html[data-stile=base] .riga-a .t1 { min-width: 0; }
 html[data-stile=base] .riga-a .t1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
-html[data-stile=base] .riga-a .bd { display: flex; align-items: center; gap: 6px; height: 20px; margin-top: 3px; font-size: 12px; color: var(--mid); white-space: nowrap; overflow: hidden; }
-html[data-stile=base] .riga-a .data-riga { display: inline-flex; align-items: center; gap: 3px; height: auto; padding: 0; border: 0; border-radius: 0; background: none; color: var(--ink); font-size: 12px; font-weight: 700; white-space: nowrap; }
-html[data-stile=base] .riga-a .data-riga svg { width: 11px; height: 11px; }
-html[data-stile=base] .riga-a .data-riga.hard { color: var(--warn); }
-html[data-stile=base] .riga-a .nt { display: inline-grid; place-items: center; width: 20px; height: 20px; flex: none; border: 1px solid var(--ink); border-radius: 50%; color: var(--ink); background: var(--surface); }
-html[data-stile=base] .riga-a .nt svg { width: 11px; height: 11px; }
+html[data-stile=base] .riga-a .bd { display: flex; align-items: center; gap: 5px; height: 20px; margin-top: 3px; font-size: 11px; color: var(--mid); white-space: nowrap; overflow: hidden; }
+/* note e scadenza sono targhette basse (18 px) con contorno di 1 px; la scadenza in ritardo è rossa */
+html[data-stile=base] .riga-a .tg, html[data-stile=base] .riga-a .data-riga { display: inline-flex; align-items: center; justify-content: center; height: 18px; box-sizing: border-box; border: 1px solid var(--ink); border-radius: 6px; background: var(--surface); color: var(--ink); flex: none; }
+html[data-stile=base] .riga-a .tg-nt { width: 22px; }
+html[data-stile=base] .riga-a .tg-nt svg { width: 11px; height: 11px; }
+html[data-stile=base] .riga-a .data-riga { gap: 3px; padding: 0 6px 0 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+html[data-stile=base] .riga-a .data-riga svg { width: 10px; height: 10px; }
+html[data-stile=base] .riga-a .data-riga.hard { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
 html[data-stile=base] .riga-a .bd-t { overflow: hidden; text-overflow: ellipsis; }
-html[data-stile=base] .riga-a .r2 { flex: none; min-width: 58px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; text-align: right; }
-html[data-stile=base] .riga-a .r2 .tc, html[data-stile=base] .riga-a .r2 .su, html[data-stile=base] .riga-a .r2 .sti2 { line-height: 1.15; white-space: nowrap; font-variant-numeric: tabular-nums; }
-/* il tempo corrente in risalto (grande e pesante, colore pieno); la stima più piccola, sottile e con un colore più vicino allo sfondo */
-html[data-stile=base] .riga-a .r2 .tc { font-size: 13px; font-weight: 800; color: var(--ink); }
-html[data-stile=base] .riga-a .r2 .su, html[data-stile=base] .riga-a .r2 .sti2 { font-size: 11px; font-weight: 300; color: color-mix(in srgb, var(--ink) 52%, var(--bg)); }
-html[data-stile=base] .riga-a .r2.pausa .tc { color: var(--mid); }
-html[data-stile=base] .riga-a .vb { flex: none; width: 8px; height: 40px; box-sizing: border-box; border: 1.5px solid var(--ink); border-radius: 4px; background: transparent; position: relative; overflow: hidden; }
-html[data-stile=base] .riga-a .vb i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ink); transition: height .45s cubic-bezier(.2, .8, .2, 1); }
-/* contorno e riempimento hanno sempre lo stesso colore (nero nel tema chiaro, bianco nello scuro: --ink); in pausa e senza stima la barra intera è più tenue */
-html[data-stile=base] .riga-a .vb.pausa { opacity: .55; }
-html[data-stile=base] .riga-a .vb.piena { background: var(--ink); opacity: .45; }
-html[data-stile=base] .riga-a .vb.nasc { visibility: hidden; }
+/* colonna destra di larghezza fissa (come «9 h 59 min»): tempo corrente in risalto con la barra orizzontale sotto; non avviata: solo la stima, leggibile */
+html[data-stile=base] .riga-a .r2 { flex: none; display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 5px; text-align: right; }
+html[data-stile=base] .riga-a .r2::before { content: "9 h 59 min"; display: block; width: 72px; height: 0; overflow: hidden; visibility: hidden; padding: 0; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* tempo corrente: targhetta con solo il contorno (colore del testo), in risalto (extra-grassetto) rispetto alla stima */
+/* tempo corrente: targhetta con il contorno nel colore del testo; il riempimento (32% del colore del testo) da sinistra è la quota della stima già usata; senza stima è tutta a riempimento tenue (20%); in pausa più spenta */
+html[data-stile=base] .riga-a .r2 .tc { position: relative; overflow: hidden; display: grid; place-items: center; align-self: flex-end; width: 72px; height: 24px; box-sizing: border-box; padding: 0; border: 1px solid var(--ink); border-radius: var(--r-p); background: transparent; font-size: 15px; font-weight: 800; line-height: 1; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+html[data-stile=base] .riga-a .r2 .tc > span { position: relative; z-index: 1; }
+html[data-stile=base] .riga-a .r2 .tc::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: color-mix(in srgb, var(--ink) 32%, transparent); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+html[data-stile=base] .riga-a .r2 .tc.piena::before { width: 100%; background: color-mix(in srgb, var(--ink) 20%, transparent); }
+html[data-stile=base] .riga-a .r2 .tc.pausa { opacity: .6; }
+/* barra del tempo: contorno e riempimento dello stesso colore del testo (nero nel tema chiaro, bianco nello scuro), senza trasparenze; senza stima è intera */
 /* progetto: titolo più chiaro, linea tra testata e note, tacche fatte più chiare */
 html[data-stile=base] .gp-h b { color: color-mix(in srgb, var(--ink) 58%, var(--bg)); font-weight: 650; }
+html[data-stile=base] .gp { --gl: color-mix(in srgb, var(--ink) 31%, var(--surface2)); background: var(--gp-head); border-color: color-mix(in srgb, var(--ink) 52%, var(--surface2)); }
+/* linee divisorie tra le note più marcate (+20 punti) */
+html[data-stile=base] .row.riga-a { border-bottom-color: color-mix(in srgb, var(--ink) 28%, var(--bg)); }
+/* se sotto la nota c'è la cartella di un progetto non serve il divisorio (la cartella ha il suo contorno); il colore diventa trasparente per non spostare nulla */
+html[data-stile=base] .row.riga-a:has(+ .gp) { border-bottom-color: transparent; }
 html[data-stile=base] .gp .tacche { border-bottom: 1px solid var(--gl); }
 html[data-stile=base] .gp .tacche i.on { background: color-mix(in srgb, var(--mid) 62%, var(--gp-head)); }
+
+/* ---- Stile Flat: testata di progetto uguale in tutte le schermate (Priorità, Attività, Progetti, pagina del progetto): titolo a sinistra; a destra il tempo totale per
+   completare e la percentuale di note completate; niente tacche ---- */
+html[data-stile=base] { --tit-prog: color-mix(in srgb, var(--ink) 58%, var(--bg)); }
+html[data-stile=base] .gp-h b { font-size: 15px; font-weight: 650; color: var(--tit-prog); }
+html[data-stile=base] .gp-dx { display: flex; align-items: center; gap: 6px; flex: none; }
+/* percentuale e tempo residuo: due targhette senza sfondo pieno, prima del nome; stessa dimensione, spessore e colore del nome del progetto */
+html[data-stile=base] .gp-dx .gp-tg, html[data-stile=base] .riga-a .r2 .sti2 { display: inline-flex; align-items: center; height: 24px; box-sizing: border-box; padding: 0 8px; border: 1px solid var(--tit-prog); border-radius: 6px; background: transparent; color: var(--tit-prog); font-size: 15px; font-weight: 650; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* le stime di tempo (delle note e dei progetti) hanno la stessa dimensione fissa della targhetta del tempo corrente: 72 px, «59 min» o «9 h 59» al massimo */
+html[data-stile=base] .riga-a .r2 .sti2 { align-self: flex-end; justify-content: center; width: 72px; padding: 0; }
+html[data-stile=base] .gp-dx .gp-tt { justify-content: center; width: 72px; padding: 0; }
+html[data-stile=base] .gp-h.gp-h-passi { background: var(--gp-head); border: 1px solid color-mix(in srgb, var(--ink) 52%, var(--surface2)); border-radius: 14px 14px 0 0; margin: 8px 0 0; cursor: default; }
+html[data-stile=base] .avz-pct { font-size: 28px; font-weight: 800; margin: 6px 0 10px; font-variant-numeric: tabular-nums; }
+
+/* ---- Stile Flat, tema chiaro: quattro palette (Altro › Aspetto › Palette Flat, attributo data-tinta): grafite (scala di grigi, la base), menta (verde leggero e freddo),
+   panna (più calda e delicata), ghiaccio (celesti e azzurri). Cambiano sfondo, superfici, incavi, filetti, testi e bordo dei campi ---- */
+html[data-stile=base][data-theme=light][data-tinta=grafite] { --bg: #E8E8E9; --surface: #FAFAFA; --surface2: #D9D9DB; --line: #C9C9CC; --ink: #3C3C3F; --mid: #66666B; --soft: #909095; --bordo-campo: #9A9AA0; }
+html[data-stile=base][data-theme=light][data-tinta=menta] { --bg: #E6EEE9; --surface: #F7FBF8; --surface2: #D5E4DA; --line: #BFD3C6; --ink: #36403B; --mid: #5F6E66; --soft: #8A9890; --bordo-campo: #95A59B; }
+html[data-stile=base][data-theme=light][data-tinta=panna] { --bg: #F0EBE0; --surface: #FBF8F1; --surface2: #E4DDCE; --line: #D5CCBB; --ink: #453F37; --mid: #70685D; --soft: #9A9184; --bordo-campo: #A89F90; }
+html[data-stile=base][data-theme=light][data-tinta=ghiaccio] { --bg: #E6EEF4; --surface: #F7FAFD; --surface2: #D5E2EE; --line: #BFD0E0; --ink: #36404B; --mid: #5F6E7E; --soft: #8A97A6; --bordo-campo: #96A4B3; }
+/* solo la testata della cartella di un progetto è più scura; le note sotto (e la testata «Passi» della pagina del progetto) restano come prima */
+html[data-stile=base] .gp-h:not(.gp-h-passi) { background: color-mix(in srgb, var(--ink) 9%, var(--surface2)); }
+
+/* ---- Stile Flat: anche i colori d'accento seguono la palette (grafite: grigio ardesia; menta: verde; panna: terracotta; ghiaccio: azzurro), in chiaro e in scuro ---- */
+html[data-stile=base][data-tinta=grafite] { --accent-l: #4B5058; --accent-soft-l: #DCDDE0; --accent-d: #C3C7CF; --accent-soft-d: #2B2E34; }
+html[data-stile=base][data-tinta=menta] { --accent-l: #2E7D63; --accent-soft-l: #D3EBDD; --accent-d: #6FCF9B; --accent-soft-d: #17332A; }
+html[data-stile=base][data-tinta=panna] { --accent-l: #B0693A; --accent-soft-l: #F1DFCB; --accent-d: #E6B084; --accent-soft-d: #3A2C20; }
+html[data-stile=base][data-tinta=ghiaccio] { --accent-l: #2F6DB0; --accent-soft-l: #D2E4F5; --accent-d: #8DBDF0; --accent-soft-d: #1B2D42; }
+
+/* ---- Stile Flat: due sole misure per gli angoli. Piccoli (8 px): targhette del tempo, della stima, delle note e della scadenza, pulsanti di stima del tempo, schede (tab) e chip, segmenti, badge.
+   Grandi (14 px): tutto il resto (pulsanti, schede in basso, pulsante nuova nota, campi, schede e riquadri, cartelle dei progetti, fogli, avvisi, menu) ---- */
+html[data-stile=base] { --r-p: 8px; --r-g: 14px; }
+html[data-stile=base] :is(.btn, .back, .tabs button, .tabs button .tab-in, .fab, .scelta-btn, .sb-link, .ic-btn, .lv-vuoto-b, .input, .textarea, .cerca, .login input, .login-server select,
+  .sb-cerca input, .sb-nota input, .stato-voce, .altre-avviate, .pill, .scelta-menu button, .rot-banda,
+  .card, .gruppo, .gp, .day, .toast, .scelta-menu, .modal-voce, .avz-modale, .shell .sheet, .sheet.cmp-sheet, .acc, .lavoro, .avvia, .prio, .cmp-stima,
+  .sm-card, .rot-avviso, .sper-box, .nota-verde, .sper-voce, .stati-seg, .allegato, .sb-nota-simili, .riordinabile .row.sollevata) { border-radius: var(--r-g); }
+html[data-stile=base] :is(.sheet, .avz-foglio) { border-radius: var(--r-g) var(--r-g) 0 0; }
+html[data-stile=base] :is(.shell .sheet, .sheet.cmp-sheet) { border-radius: var(--r-g); }
+html[data-stile=base] .gp-h.gp-h-passi { border-radius: var(--r-g) var(--r-g) 0 0; }
+html[data-stile=base] :is(.chip, .sb-n, .tempo-passo, .rec-voto, .imp-gradi button, .stati-seg button, .badge, .week i, .sb-nota kbd, .sb-cerca kbd,
+  .riga-a .tg, .riga-a .data-riga, .riga-a .r2 .tc, .riga-a .r2 .sti2, .gp-dx .gp-tg) { border-radius: var(--r-p); }
+html[data-stile=base] body .seg button { border-radius: var(--r-p) !important; }
+/* pulsante della nuova nota: l'inverso delle schede del menu (che hanno fondo tenue e contorno d'accento): pieno d'accento, contorno chiaro e icona chiara */
+html[data-stile=base] .fab { background: var(--accent); color: #FFFFFF; border: 2px solid rgba(255, 255, 255, .72); box-sizing: border-box; }
+html[data-stile=base][data-theme=dark] .fab { color: #FFFFFF; border-color: rgba(255, 255, 255, .55); }
+
+/* ---- Stile Flat: pagina della singola nota (e tutte le sue varianti: attività, progetto, esperienza, routine) ---- */
+/* lista dei passi di un progetto: la maniglia sta nel margine sinistro, la riga ha l'altezza fissa delle altre note; l'intestazione «Passi» è un riquadro a sé */
+html[data-stile=base] .riordinabile .row.riga-a { padding: 0 4px 0 38px; }
+html[data-stile=base] .riordinabile .row.riga-a .maniglia { left: 6px; }
+html[data-stile=base] .gp-h.gp-h-passi { border-radius: var(--r-g); margin: 8px 0 4px; border-bottom: 1px solid color-mix(in srgb, var(--ink) 52%, var(--surface2)); }
+html[data-stile=base] .passi-progetto > .riordinabile { margin: 0; }
+html[data-stile=base] .riordinabile > .row:last-child { border-bottom: 1px solid color-mix(in srgb, var(--ink) 28%, var(--bg)); }
+/* targhetta «Priorità …»: stesso colore della freccetta (contorno e fondo pieno), testo nel colore della priorità */
+html[data-stile=base] .prio-lvl { background: color-mix(in srgb, var(--c) 22%, var(--surface)); border: 1px solid var(--c); border-radius: var(--r-p); padding: 2px 10px; }
+html[data-stile=base] .prio.p1 .prio-lvl { background: var(--surface2); }
+/* barre della pagina (parti della priorità, tempo in corso): come la barra del tempo nelle righe, contorno e riempimento nel colore del testo */
+html[data-stile=base] .prio-bar, html[data-stile=base] .lv-barra { height: 8px; box-sizing: border-box; border: 1.5px solid var(--ink); border-radius: 4px; background: transparent; }
+html[data-stile=base] .prio-bar i, html[data-stile=base] .lv-barra i { background: var(--ink); opacity: 1; border-radius: 0; }
+/* stato della nota: schede piatte come le altre, solo la scelta ha il fondo tenue con il contorno; nessuna icona di stato */
+html[data-stile=base] .stati-seg { background: transparent; border: 0; box-shadow: none; padding: 0; gap: 4px; }
+html[data-stile=base] .stati-seg button { border: 1px solid transparent; background: none; box-shadow: none; color: var(--mid); min-height: 36px; font-weight: 600; }
+html[data-stile=base] .stati-seg button.on { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 55%, transparent); color: var(--accent); font-weight: 700; }
+html[data-stile=base] .stati-seg button .cb { display: none; }

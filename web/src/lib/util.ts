@@ -69,6 +69,16 @@ export function tempoBreve(minuti: number): string {
   return h > 0 ? `${h} h${r ? ` ${String(r).padStart(2, '0')} min` : ''}` : `${m} min`;
 }
 
+/** Tempo nella targhetta di dimensione fissa, sempre con l'unità più grande e senza tetto: «59 min», «9 h 59», «24 h» (un giorno), «47 h 30»; da due giorni giorni e ore: «2 g 4», «10 g». */
+export function tempoCompatto(minuti: number): string {
+  const m = Math.max(0, Math.floor(minuti));
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return m % 60 ? `${h} h ${String(m % 60).padStart(2, '0')}` : `${h} h`;
+  const g = Math.floor(h / 24);
+  return h % 24 ? `${g} g ${h % 24}` : `${g} g`;
+}
+
 /** Stima di tempo in minuti: «30 min», «2 h», «1 h 30 min». */
 export function stimaBreve(minuti: number): string {
   const h = Math.floor(minuti / 60);

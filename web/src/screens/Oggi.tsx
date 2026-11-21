@@ -94,10 +94,7 @@ export function Oggi() {
   // Targhetta del margine di stima (parte da 0%): il colore dice quanto è giusta la stima, vicino a zero è bene (verde fino a ±15%, ambra fino a ±30%, rosso oltre).
   const accuratezza = (
     <button className="acc" aria-label={`Correzione alle tue stime ${percentuale(margine)}: apri lo storico`} onClick={() => nav.push({ k: 'storicomargine' })}>
-      <div>
-        <div className="acc-t">Correzione alle tue stime</div>
-        <div className="acc-s">{Math.round(margine * 100) > 0 ? 'Stimi meno del necessario' : Math.round(margine * 100) < 0 ? 'Stimi più del necessario' : nMisurate > 0 ? 'Stime centrate' : 'Ancora nessun dato'}</div>
-      </div>
+      <div className="acc-t">{Math.round(margine * 100) > 0 ? 'Stima più tempo' : Math.round(margine * 100) < 0 ? 'Stima meno tempo' : nMisurate > 0 ? 'Le stime sono corrette' : 'Ancora nessun dato'}</div>
       <span className="acc-dx"><Margine valore={margine} /><span className="acc-freccia" aria-hidden="true">›</span></span>
     </button>
   );
@@ -105,7 +102,7 @@ export function Oggi() {
     <Sezione titolo="Attività">
       {v.fare.length === 0 && <div className="t2" style={{ padding: '14px 0' }}>Niente di urgente. Puoi pescare qualcosa da «Attività» o «Intrattenimento».</div>}
       {raggruppaPerProgetto(v.fare, items).map((g) => g.progetto
-        ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale} semplice>{g.voci.map(riga)}</GruppoProgetto>
+        ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
         : g.voci.map(riga))}
       {v.avviate.length > 0 && (
         <>
@@ -114,7 +111,7 @@ export function Oggi() {
             <span aria-hidden="true">{mostraAvviate ? '⌃' : '⌄'}</span>
           </button>
           {mostraAvviate && raggruppaPerProgetto(v.avviate, items).map((g) => g.progetto
-            ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale} semplice>{g.voci.map(riga)}</GruppoProgetto>
+            ? <GruppoProgetto key={g.progetto.id} progetto={g.progetto} fatti={g.fatti} totale={g.totale}>{g.voci.map(riga)}</GruppoProgetto>
             : g.voci.map(riga))}
         </>
       )}

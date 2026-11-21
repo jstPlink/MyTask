@@ -12,8 +12,8 @@ import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, t
 import { diffDays, formatLong, formatShortYear, relativeDays, today } from '../../../shared/dates.ts';
 import { inizioPromemoria, tipoDataDi } from '../../../shared/dataNota.ts';
 import { livelloPriorita, dueDate, componentiPunteggio, score } from '../../../shared/priority.ts';
-import { avanzamento, classificaPriorita, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo } from '../../../shared/views.ts';
-import { useAdesso, useItems, useSessione } from '../lib/hooks.ts';
+import { avanzamento, classificaPriorita, figli, luoghiUsati, nomiUsati, posizionePriorita, punteggioEffettivo, stimaProgetto } from '../../../shared/views.ts';
+import { useAdesso, useAspetto, useItems, useSessione } from '../lib/hooks.ts';
 import { tempoDi } from '../lib/sessione.ts';
 import { STATI_NOTA, cambiaStato, nuovaVoce, ordinaPassi, statoVisto } from '../lib/actions.ts';
 import { getItem, removeItem, saveItem } from '../lib/store.ts';
@@ -21,7 +21,7 @@ import { mostraToast } from '../lib/toast.ts';
 import { cercaPagine } from '../lib/libri.ts';
 import { ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE } from '../../../shared/stasera.ts';
 import { useRiordino } from '../ui/riordina.tsx';
-import { Back, ClasseCasella, ETICHETTA, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, Seg, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
+import { Back, ClasseCasella, DatiProgetto, ETICHETTA, Field, Gruppo, ImportanzaDoppia, Margine, Row, Scelta, Seg, SliderImportanza, Tacche, Toggle, Top } from '../ui/kit.tsx';
 import { BadgeTipo } from '../ui/Icone.tsx';
 import { CampoTempo } from '../ui/CampoTempo.tsx';
 import { AllegatiNote } from '../ui/AllegatiNote.tsx';
@@ -57,6 +57,7 @@ const TIPI_PIATTO = ['Antipasto', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Piat
 export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }) {
   const nav = useNav();
   const tutte = useItems();
+  const flatStile = useAspetto().stile === 'base';
   const iniziale = useMemo<Item>(() => (id && getItem(id)) || nuovaVoce({ tipo: nuovo?.tipo ?? 'azione', titolo: '', ...nuovo }), []); // eslint-disable-line react-hooks/exhaustive-deps
   const [d, setD] = useState<Item>(iniziale);
   const ultimoSalvato = useRef<string>(id && getItem(id) ? JSON.stringify(iniziale) : '');
@@ -223,7 +224,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
       />
       <div className="scroll">
         {/* Stato: solo per voci già salvate, escluse routine (si spuntano per giorno) e bozze non assegnate */}
-        {getItem(d.id) && t !== 'routine' && t !== 'nota' && (
+        {getItem(d.id) && t !== 'routine' && t !== 'nota' && t !== 'progetto' && ( // lo stato di un progetto dipende dalle note sotto: niente barra dello stato
           <div className="stati-seg" role="tablist" aria-label="Stato della nota">
             {STATI_NOTA.map((s) => (
               <button key={s.id} role="tab" aria-selected={statoVisto(d.stato) === s.id}
@@ -292,8 +293,10 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {/* Progetto: i passi (voci figlie) riordinabili; l'ordine è la priorità, il primo passo aperto è il prossimo da fare */}
             {t === 'progetto' && (
               <div className="passi-progetto">
-                {avanz && avanz.totale > 0 && <div className="t2 passi-t">Passi · {avanz.fatti} su {avanz.totale}</div>}
-            {avanz && avanz.totale > 0 && <Tacche fatti={avanz.fatti} totale={avanz.totale} />}
+                {avanz && avanz.totale > 0 && (flatStile
+                  ? <div className="gp-h gp-h-passi"><DatiProgetto solo="pc" stima={0} fatti={avanz.fatti} totale={avanz.totale} /><b>Passi</b><DatiProgetto solo="tt" stima={stimaProgetto(d, tutte)} fatti={avanz.fatti} totale={avanz.totale} /></div>
+                  : <div className="t2 passi-t">Passi · {avanz.fatti} su {avanz.totale}</div>)}
+            {!flatStile && avanz && avanz.totale > 0 && <Tacche fatti={avanz.fatti} totale={avanz.totale} />}
             <div ref={ordChecklist.cont} className="riordinabile">
               {ordChecklist.ordinati(checklist).map((c) => (
                 <div key={c.id} className={clsx('row', ordChecklist.preso === c.id && 'sollevata')} {...ordChecklist.presa(c.id)}>

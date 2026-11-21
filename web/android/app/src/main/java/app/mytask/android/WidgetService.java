@@ -108,7 +108,6 @@ public class WidgetService extends RemoteViewsService {
             boolean inPausa = !fatto && !inCorso && o.optInt("z", 0) == 1;
             int ink = cInk();
             int sec = cSec();
-            int primario = Color.parseColor(s ? "#6FCF9B" : "#2F7D5B");
             int rosso = Color.parseColor(s ? "#FF6B6B" : "#D32F2F");
 
             // targhetta di posizione
@@ -140,43 +139,42 @@ public class WidgetService extends RemoteViewsService {
             v.setTextViewText(R.id.titolo, titolo);
             v.setTextColor(R.id.titolo, fatto ? sec : ink);
 
-            // sotto il titolo: pallino delle note, poi la scadenza (solo testo, rossa se in ritardo)
+            // sotto il titolo: targhetta delle note, poi la targhetta della scadenza (rossa se in ritardo)
             boolean haNote = o.optInt("n", 0) == 1 && !fatto;
             String data = fatto ? "" : o.optString("d", "");
             boolean haData = !data.isEmpty();
             v.setViewVisibility(R.id.bd, haNote || haData ? View.VISIBLE : View.GONE);
             v.setViewVisibility(R.id.nota_img, haNote ? View.VISIBLE : View.GONE);
-            if (haNote) v.setImageViewBitmap(R.id.nota_img, RigaFlat.pallinoNote(c, ink, Color.parseColor(s ? "#1D1F23" : "#FFFFFF")));
+            if (haNote) v.setImageViewBitmap(R.id.nota_img, RigaFlat.targhettaNote(c, ink, Color.parseColor(s ? "#1D1F23" : "#FAFAFA")));
             v.setViewVisibility(R.id.data, haData ? View.VISIBLE : View.GONE);
             v.setTextViewText(R.id.data, data);
-            v.setTextColor(R.id.data, o.optInt("dl", 0) == 1 ? rosso : ink);
+            boolean inRitardo = o.optInt("dl", 0) == 1;
+            v.setTextColor(R.id.data, inRitardo ? rosso : ink);
+            v.setInt(R.id.data, "setBackgroundResource", inRitardo ? (s ? R.drawable.chip_flat_late_s : R.drawable.chip_flat_late_c) : (s ? R.drawable.chip_flat_s : R.drawable.chip_flat_c));
 
-            // a destra: tempo e stima in testo e la barra verticale
+            // a destra: il tempo con la barra orizzontale sotto se la nota è cominciata, altrimenti solo la stima; sotto la riga un divisorio sottile
             long previsto = o.optLong("p", 0);
             boolean conTempo = inCorso || inPausa;
             if (conTempo) {
                 long ms = o.optLong("w", 0);
                 if (inLavoro && lavoro != null && "lavoro".equals(lavoro.optString("stato"))) ms = lavoro.optLong("base", ms) + Math.max(0, System.currentTimeMillis() - lavoro.optLong("ref", 0));
-                v.setViewVisibility(R.id.tc, View.VISIBLE);
-                v.setTextViewText(R.id.tc, RigaFlat.tempoBreve(ms / 60000));
+                v.setViewVisibility(R.id.tempo_box, View.VISIBLE);
+                v.setTextViewText(R.id.tc, RigaFlat.tempoCompatto(ms / 60000));
                 v.setTextColor(R.id.tc, ink);
-                v.setViewVisibility(R.id.su, previsto > 0 ? View.VISIBLE : View.GONE);
-                v.setTextViewText(R.id.su, "su " + RigaFlat.stimaBreve(previsto));
-                v.setTextColor(R.id.su, sec);
                 float quota = previsto > 0 ? ms / (previsto * 60000f) : 0f;
-                v.setViewVisibility(R.id.barra_img, View.VISIBLE);
-                v.setImageViewBitmap(R.id.barra_img, RigaFlat.barra(c, ink, quota, previsto <= 0, inPausa));
-            } else if (previsto > 0 && !fatto) {
-                v.setViewVisibility(R.id.tc, View.GONE);
-                v.setViewVisibility(R.id.su, View.VISIBLE);
-                v.setTextViewText(R.id.su, RigaFlat.stimaBreve(previsto));
-                v.setTextColor(R.id.su, sec);
-                v.setViewVisibility(R.id.barra_img, View.INVISIBLE);
-            } else {
-                v.setViewVisibility(R.id.tc, View.GONE);
+                v.setImageViewBitmap(R.id.barra_img, RigaFlat.targhettaTempo(c, ink, quota, previsto <= 0, inPausa));
                 v.setViewVisibility(R.id.su, View.GONE);
-                v.setViewVisibility(R.id.barra_img, View.INVISIBLE);
+            } else if (previsto > 0 && !fatto) {
+                v.setViewVisibility(R.id.tempo_box, View.GONE);
+                v.setViewVisibility(R.id.su, View.VISIBLE);
+                v.setTextViewText(R.id.su, RigaFlat.tempoCompatto(previsto));
+                v.setTextColor(R.id.su, Color.parseColor(s ? "#939396" : "#8A8A88")); // stesso colore e stile del titolo dei progetti: targhetta con solo il contorno
+                v.setInt(R.id.su, "setBackgroundResource", s ? R.drawable.chip_stima_s : R.drawable.chip_stima_c);
+            } else {
+                v.setViewVisibility(R.id.tempo_box, View.GONE);
+                v.setViewVisibility(R.id.su, View.GONE);
             }
+            v.setInt(R.id.divisore, "setBackgroundColor", Color.argb(0x80, Color.red(ink), Color.green(ink), Color.blue(ink))); // divisorio più marcato (circa 50% del colore del testo)
 
             // il tocco apre l'app (lo stato si cambia nell'app)
             v.setOnClickFillInIntent(R.id.riga, new Intent().putExtra("azione", "apri"));

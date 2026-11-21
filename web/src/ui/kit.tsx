@@ -3,7 +3,7 @@
 // non si vede: la navigazione è nella Sidebar.
 
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { clsx, durataLavoro, nomeTempo, stimaBreve, tempoBreve } from '../lib/util.ts';
+import { clsx, durataLavoro, nomeTempo, stimaBreve, tempoCompatto } from '../lib/util.ts';
 import { useAdesso, useAspetto, useItems, useOggi, useSessione } from '../lib/hooks.ts';
 import { tempoDi } from '../lib/sessione.ts';
 import { formatoCronometro } from '../../../shared/sessione.ts';
@@ -174,8 +174,8 @@ export function Row({ titolo, meta, dettagli, right, conNote, tipo, level, rank,
         {(etichettaData(voce, oggi, (iso) => formatShortYear(iso, oggi)) || haNote || det) && (
           <div className="bd">
             {haNote && (
-              <span className="nt" role="img" aria-label="Ha delle note">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /></svg>
+              <span className="tg tg-nt" role="img" aria-label="Ha delle note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /></svg>
               </span>
             )}
             <DataRiga item={voce} oggi={oggi} />
@@ -183,17 +183,11 @@ export function Row({ titolo, meta, dettagli, right, conNote, tipo, level, rank,
           </div>
         )}
       </div>
-      {/* a destra: tempo e stima in testo, poi la barra verticale (continua; piena e grigia se avviata senza stima; niente se non c'è stima) */}
+      {/* a destra, in una colonna di larghezza fissa: se la nota è cominciata il tempo corrente con la barra orizzontale sotto (intera e tenue se non c'è stima); altrimenti solo la stima */}
       <div className={clsx('r2', vs === 'in_pausa' && 'pausa')}>
-        {conTempo && <span className="tc">{tempoBreve(ms / 60_000)}</span>}
-        {conTempo && !!voce.sforzoMin && <span className="su">su {stimaBreve(voce.sforzoMin)}</span>}
-        {!conTempo && !!voce.sforzoMin && <span className="sti2">{stimaBreve(voce.sforzoMin)}</span>}
+        {conTempo && <span className={clsx('tc', !voce.sforzoMin && 'piena', vs === 'in_pausa' && 'pausa')} style={{ ['--p' as string]: `${Math.min(1, quota ?? 0) * 100}%` }}><span>{tempoCompatto(ms / 60_000)}</span></span>}
+        {!conTempo && !!voce.sforzoMin && <span className="sti2">{tempoCompatto(voce.sforzoMin)}</span>}
       </div>
-      {conTempo
-        ? (voce.sforzoMin
-          ? <span className={clsx('vb', vs === 'in_pausa' && 'pausa', quota !== undefined && quota > 1 && 'oltre')}><i style={{ height: `${Math.min(1, quota ?? 0) * 100}%` }} /></span>
-          : <span className="vb piena" />)
-        : <span className="vb nasc" />}
     </>
   ) : (
     <>
@@ -502,19 +496,29 @@ export function Tacche({ fatti, totale, anima }: { fatti: number; totale: number
  * «stima del tempo · fatti / totale» e la barra a tacchette (una per attività) solo se il progetto ha passi. Senza icona; con `semplice` (pagina Priorità)
  * la testata ha solo il titolo (niente stima del tempo né conto delle note).
  */
-export function GruppoProgetto({ progetto, fatti, totale, semplice, children }: { progetto: Item; fatti: number; totale: number; semplice?: boolean; children: ReactNode }) {
+export function GruppoProgetto({ progetto, fatti, totale, children }: { progetto: Item; fatti: number; totale: number; semplice?: boolean; children: ReactNode }) {
   const nav = useNav();
+  const flat = useAspetto().stile === 'base';
   const stima = stimaProgetto(progetto, useItems()); // la stima del progetto è la somma di quelle dei suoi passi ancora da fare
   return (
     <section className="gp">
       <button className="gp-h" onClick={() => nav.push({ k: 'item', id: progetto.id })} aria-label={`Apri il progetto ${progetto.titolo}`}>
+        {flat && <DatiProgetto solo="pc" stima={stima} fatti={fatti} totale={totale} />}
         <b>{progetto.titolo}</b>
-        {!semplice && (totale > 0 || stima > 0) && <span>{[totale > 0 && fatti === totale ? 'completato' : undefined, stima > 0 ? nomeTempo(stima) : undefined, totale > 0 ? `${fatti} / ${totale}` : undefined].filter(Boolean).join(' · ')}</span>}
+        {flat && <DatiProgetto solo="tt" stima={stima} fatti={fatti} totale={totale} />}
+        {!flat && (totale > 0 || stima > 0) && <span>{[totale > 0 && fatti === totale ? 'completato' : undefined, stima > 0 ? nomeTempo(stima) : undefined, totale > 0 ? `${fatti} / ${totale}` : undefined].filter(Boolean).join(' · ')}</span>}
       </button>
-      {totale > 0 && <Tacche fatti={fatti} totale={totale} />}
+      {!flat && totale > 0 && <Tacche fatti={fatti} totale={totale} />}
       {children}
     </section>
   );
+}
+
+/** Stile Flat, in due targhette senza sfondo pieno: la percentuale di note completate (`solo="pc"`, prima del nome del progetto) e il tempo residuo per completarlo, somma delle stime dei passi aperti (`solo="tt"`, in fondo, come le stime delle altre note). */
+export function DatiProgetto({ solo, stima, fatti, totale }: { solo: 'pc' | 'tt'; stima: number; fatti: number; totale: number }) {
+  const pct = totale > 0 ? Math.round((fatti / totale) * 100) : undefined;
+  if (solo === 'pc') return pct === undefined ? null : <span className="gp-dx"><span className="gp-tg gp-pc" aria-label={`${fatti} note su ${totale} completate`}>{pct}%</span></span>;
+  return stima > 0 ? <span className="gp-dx"><span className="gp-tg gp-tt">{tempoCompatto(stima)}</span></span> : null;
 }
 
 /** Sezione di una schermata: fascia con titolo grande tra due linee e, a destra, un dettaglio (di solito il conteggio); righe libere sotto, senza riquadro. */

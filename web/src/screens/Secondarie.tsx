@@ -17,7 +17,7 @@ import { VERSIONE } from '../version.ts';
 import { aggiornaApp } from '../lib/aggiornamento.ts';
 import { sync } from '../lib/sync.ts';
 import { isNative } from '../lib/native.ts';
-import { impostaAspetto, PALETTE, type Colore, type Palette, type Stile, type Tema } from '../lib/theme.ts';
+import { impostaAspetto, PALETTE, TINTE, type Colore, type Palette, type Stile, type Tema, type Tinta } from '../lib/theme.ts';
 import { impostaPromemoriaTimer } from '../lib/promemoriaTimer.ts';
 import { chiediPermessoSito, permessoSito, type PermessoSito } from '../lib/notificaTimerSito.ts';
 import { INTERVALLI_PROMEMORIA_MIN } from '../../../shared/sessione.ts';
@@ -182,6 +182,11 @@ function RuoliPalette({ chiave }: { chiave: string }) {
   );
 }
 
+const NOMI_TINTE: Record<Tinta, { nome: string; colore: string; desc: string }> = {
+  grafite: { nome: 'Grafite', colore: '#D9D9DB', desc: 'scala di grigi' }, menta: { nome: 'Menta', colore: '#D5E4DA', desc: 'verde leggero e freddo' },
+  panna: { nome: 'Panna', colore: '#E4DDCE', desc: 'calda e delicata' }, ghiaccio: { nome: 'Ghiaccio', colore: '#D5E2EE', desc: 'celesti e azzurri' },
+};
+
 const COLORI: { id: Colore; nome: string }[] = [{ id: 'verde', nome: 'Verde' }, { id: 'petrolio', nome: 'Petrolio' }, { id: 'indaco', nome: 'Indaco' }];
 
 /** Tema (sistema, chiaro, scuro) e colore d'accento: si applicano subito e restano salvati sul dispositivo. */
@@ -212,8 +217,22 @@ export function Aspetto() {
             <RuoliPalette chiave={`${a.palette}-${a.tema}-${a.stile}`} />
           </>
         )}
-        {a.stile !== 'vetro' && <Sec a="Colore" />}
-        {a.stile !== 'vetro' && COLORI.map((c) => (
+        {a.stile === 'base' && (
+          <>
+            <Sec a={`Palette Flat · ${NOMI_TINTE[a.tinta].nome}`} />
+            {TINTE.map((t) => (
+              <button key={t} className={clsx('opt', a.tinta === t && 'sel')} onClick={() => impostaAspetto({ tinta: t })} aria-pressed={a.tinta === t}>
+                <span className="sw2" style={{ background: NOMI_TINTE[t].colore, border: '1px solid rgba(128,128,128,.4)' }} />
+                <span className="grow t1">{NOMI_TINTE[t].nome}</span>
+                <span className="t2">{NOMI_TINTE[t].desc}</span>
+                {a.tinta === t && <span className="ok">✓</span>}
+              </button>
+            ))}
+            <div className="t2">Cambia sfondi, filetti e colore d’accento (pulsanti, scheda scelta, pulsante nuova nota). Con il tema scuro cambia solo l’accento.</div>
+          </>
+        )}
+        {a.stile === 'morbido' && <Sec a="Colore" />}
+        {a.stile === 'morbido' && COLORI.map((c) => (
           <button key={c.id} className={clsx('opt', a.colore === c.id && 'sel')} onClick={() => impostaAspetto({ colore: c.id })} aria-pressed={a.colore === c.id}>
             <span className="sw2" style={{ background: `var(--o-${c.id})` }} />
             <span className="grow t1">{c.nome}</span>

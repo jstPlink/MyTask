@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { chiudiAvanzamento, DURATA_ANIMAZIONE_MS, getAvanzamento, subscribeAvanzamento } from '../lib/avanzamento.ts';
 import { Tacche } from './kit.tsx';
+import { useAspetto } from '../lib/hooks.ts';
 import { useLayer, useNav } from './nav.tsx';
 
 /**
@@ -10,6 +11,7 @@ import { useLayer, useNav } from './nav.tsx';
 export function AvanzamentoProgetto() {
   const nav = useNav();
   const a = useSyncExternalStore(subscribeAvanzamento, getAvanzamento);
+  const flat = useAspetto().stile === 'base';
   useLayer('avanzamento', !!a, chiudiAvanzamento);
 
   useEffect(() => {
@@ -39,7 +41,9 @@ export function AvanzamentoProgetto() {
         {!nav.wide && <div className="grip" />}
         <div className="t2">Progetto</div>
         <div className="t1" style={{ fontSize: 18 }}>{a.padre.titolo}</div>
-        <Tacche fatti={mostrate} totale={a.dopo.totale} anima />
+        {flat
+          ? <div className="avz-pct">{a.dopo.totale ? Math.round((mostrate / a.dopo.totale) * 100) : 0}%</div>
+          : <Tacche fatti={mostrate} totale={a.dopo.totale} anima />}
         <div className="t2" style={{ marginBottom: 8 }}>
           <span className="avz-num"><span className="avz-n1">{testo(a.prima)}</span><span className="avz-n2">{testo(a.dopo)}</span></span> passi completati
         </div>
