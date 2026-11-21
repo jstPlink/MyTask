@@ -254,6 +254,18 @@ body.bs:not(.t-menta):not(.t-panna):not(.t-ghiaccio) { --acc-l: #4B5058; --acc-s
 .bs-tc::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: color-mix(in srgb, var(--ink) 32%, transparent); }
 .bs-tc.piena::before { width: 100%; background: color-mix(in srgb, var(--ink) 20%, transparent); }
 .bs-tc.pausa { opacity: .6; }
+/* le stime di tempo (note non avviate e testata dei progetti) sono solo testo chiaro, centrato, senza contorno */
+.bs-sti, .bs-dx .tt { border: 0; font-weight: 600; color: color-mix(in srgb, var(--ink) 52%, var(--bg)); }
+/* tempo trascorso (versione K3): sfondo grigio «Tenue» (--soft), progresso nel colore più scuro (--ink), numero nel più chiaro (--surface); senza stima tutta grigia */
+.bs-tc { background: var(--soft); color: var(--surface); }
+.bs-tc::before { background: var(--ink); }
+.bs-tc.piena::before { width: 0; }
+/* tema scuro: neutri scuri per palette */
+body.bs.dark.t-grafite { --bg: #0F0F10; --surface: #1E1E20; --surface2: #29292C; --line: #333336; --ink: #F2F2F3; --mid: #A6A6AB; --soft: #75757A; --campo: #5B5B60; }
+body.bs.dark.t-menta { --bg: #0D1210; --surface: #1A211E; --surface2: #232C28; --line: #2D3833; --ink: #EDF3EF; --mid: #9FB0A7; --soft: #6C7D74; --campo: #56655D; }
+body.bs.dark.t-panna { --bg: #14110D; --surface: #221E18; --surface2: #2D2820; --line: #38322A; --ink: #F5EFE6; --mid: #B3A999; --soft: #80776A; --campo: #675F53; }
+body.bs.dark.t-ghiaccio { --bg: #0D1117; --surface: #19212A; --surface2: #222C37; --line: #2C3846; --ink: #EBF1F8; --mid: #9DAEC0; --soft: #6B7C8F; --campo: #546374; }
+body.bs.dark:not(.t-menta):not(.t-panna):not(.t-ghiaccio) { --bg: #0F0F10; --surface: #1E1E20; --surface2: #29292C; --line: #333336; --ink: #F2F2F3; --mid: #A6A6AB; --soft: #75757A; --campo: #5B5B60; }
 </style>
 <body class="bs" data-pal="verde">
 <div class="wrap"><div class="col">

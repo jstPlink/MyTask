@@ -104,10 +104,10 @@ final class RigaFlat {
     }
 
     /**
-     * Targhetta del tempo trascorso 72 x 24 dp: contorno nel colore del testo e riempimento da sinistra (32% del colore del testo) pari alla quota della stima già usata;
-     * senza stima (`piena`) è tutta a riempimento tenue (20%); in pausa più spenta. Il numero lo scrive un TextView sopra l'immagine.
+     * Targhetta del tempo trascorso 72 x 24 dp: sfondo grigio «Tenue», progresso nel colore del testo (il più scuro della palette) da sinistra, pari alla quota
+     * della stima già usata, contorno dello stesso colore; senza stima (`piena`) tutta grigia; in pausa più spenta. Il numero (colore delle superfici) lo scrive un TextView sopra.
      */
-    static Bitmap targhettaTempo(Context c, int colore, float quota, boolean piena, boolean pausa) {
+    static Bitmap targhettaTempo(Context c, int colore, int sfondo, float quota, boolean piena, boolean pausa) {
         float d = dp(c, 1);
         int w = Math.round(72 * d);
         int h = Math.round(24 * d);
@@ -118,13 +118,14 @@ final class RigaFlat {
         float raggio = 8 * d;
         Path forma = new Path();
         forma.addRoundRect(r, raggio, raggio, Path.Direction.CW);
+        int alfa = Math.round(255 * vivo);
         cv.save();
         cv.clipPath(forma);
-        float q = piena ? 1f : Math.max(0f, Math.min(1f, quota));
-        int alfa = Math.round(255 * (piena ? 0.20f : 0.32f) * vivo);
+        cv.drawRect(r, p(Color.argb(alfa, Color.red(sfondo), Color.green(sfondo), Color.blue(sfondo)), Paint.Style.FILL, 0));
+        float q = piena ? 0f : Math.max(0f, Math.min(1f, quota));
         cv.drawRect(r.left, r.top, r.left + r.width() * q, r.bottom, p(Color.argb(alfa, Color.red(colore), Color.green(colore), Color.blue(colore)), Paint.Style.FILL, 0));
         cv.restore();
-        cv.drawRoundRect(r, raggio, raggio, p(Color.argb(Math.round(255 * vivo), Color.red(colore), Color.green(colore), Color.blue(colore)), Paint.Style.STROKE, d));
+        cv.drawRoundRect(r, raggio, raggio, p(Color.argb(alfa, Color.red(colore), Color.green(colore), Color.blue(colore)), Paint.Style.STROKE, d));
         return b;
     }
 }

@@ -228,7 +228,7 @@ export function Aspetto() {
                 {a.tinta === t && <span className="ok">✓</span>}
               </button>
             ))}
-            <div className="t2">Cambia sfondi, filetti e colore d’accento (pulsanti, scheda scelta, pulsante nuova nota). Con il tema scuro cambia solo l’accento.</div>
+            <div className="t2">Cambia sfondi, filetti, testi e colore d’accento (pulsanti, scheda scelta, pulsante nuova nota), sia nel tema chiaro sia nello scuro.</div>
           </>
         )}
         {a.stile === 'morbido' && <Sec a="Colore" />}

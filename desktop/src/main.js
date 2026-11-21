@@ -1,6 +1,6 @@
 // MyTask per computer: una finestra che mostra il sito MyTask del tuo server (stesso indirizzo che si usa nel browser).
 // Il sito è una PWA con archivio locale, quindi continua a funzionare anche senza rete come nel browser.
-const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, shell, ipcMain, nativeTheme } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -11,7 +11,9 @@ function leggiServer() {
 }
 function salvaServer(server) {
   fs.mkdirSync(path.dirname(configFile()), { recursive: true });
-  fs.writeFileSync(configFile(), JSON.stringify({ server }));
+  let cfg = {};
+  try { cfg = JSON.parse(fs.readFileSync(configFile(), 'utf8')); } catch { /* nuovo */ }
+  fs.writeFileSync(configFile(), JSON.stringify({ ...cfg, server }));
 }
 /** Normalizza l'indirizzo scritto dall'utente (aggiunge https:// se manca, toglie le barre finali). */
 function normalizza(url) {
@@ -39,10 +41,29 @@ async function apriServer(url) {
   finestra.loadURL(url);
 }
 
+// Una tantum (0.119.0): il profilo del computer passa allo stile Flat (le altre scelte di Aspetto restano)
+const MIGRAZIONE_FLAT = 'flat-0119';
+function migraStile() {
+  let cfg = {};
+  try { cfg = JSON.parse(fs.readFileSync(configFile(), 'utf8')); } catch { /* prima configurazione */ }
+  if (cfg[MIGRAZIONE_FLAT]) return;
+  const su = () => {
+    if (finestra.webContents.getURL().startsWith('file:')) return; // la schermata dell'indirizzo non è il sito
+    finestra.webContents.removeListener('did-finish-load', su);
+    finestra.webContents.executeJavaScript("(()=>{try{const k='mytask.aspetto',a=JSON.parse(localStorage.getItem(k)||'{}');if(a.stile==='base')return false;a.stile='base';localStorage.setItem(k,JSON.stringify(a));return true}catch{return false}})()")
+      .then((cambiato) => {
+        cfg[MIGRAZIONE_FLAT] = true;
+        fs.writeFileSync(configFile(), JSON.stringify(cfg));
+        if (cambiato) finestra.reload();
+      }).catch(() => undefined);
+  };
+  finestra.webContents.on('did-finish-load', su);
+}
+
 function creaFinestra() {
   finestra = new BrowserWindow({
     width: 420, height: 860, minWidth: 420, minHeight: 600,
-    title: 'MyTask', backgroundColor: '#F1F0EC', autoHideMenuBar: true,
+    title: 'MyTask', backgroundColor: nativeTheme.shouldUseDarkColors ? '#0F0F10' : '#E8E8E9', autoHideMenuBar: true,
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true },
   });
@@ -58,6 +79,7 @@ function creaFinestra() {
   finestra.webContents.on('did-fail-load', (_e, codice, _d, url, principale) => {
     if (principale && codice !== -3 && !url.startsWith('file:')) mostraImpostazione("Impossibile raggiungere il server. Controlla la rete o l'indirizzo.");
   });
+  migraStile();
   const server = leggiServer();
   if (server) void apriServer(server); else mostraImpostazione();
 }

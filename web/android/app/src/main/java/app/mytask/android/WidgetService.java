@@ -160,16 +160,15 @@ public class WidgetService extends RemoteViewsService {
                 if (inLavoro && lavoro != null && "lavoro".equals(lavoro.optString("stato"))) ms = lavoro.optLong("base", ms) + Math.max(0, System.currentTimeMillis() - lavoro.optLong("ref", 0));
                 v.setViewVisibility(R.id.tempo_box, View.VISIBLE);
                 v.setTextViewText(R.id.tc, RigaFlat.tempoCompatto(ms / 60000));
-                v.setTextColor(R.id.tc, ink);
+                v.setTextColor(R.id.tc, Color.parseColor(s ? "#1D1F23" : "#FAFAFA"));
                 float quota = previsto > 0 ? ms / (previsto * 60000f) : 0f;
-                v.setImageViewBitmap(R.id.barra_img, RigaFlat.targhettaTempo(c, ink, quota, previsto <= 0, inPausa));
+                v.setImageViewBitmap(R.id.barra_img, RigaFlat.targhettaTempo(c, ink, Color.parseColor(s ? "#72737D" : "#909095"), quota, previsto <= 0, inPausa));
                 v.setViewVisibility(R.id.su, View.GONE);
             } else if (previsto > 0 && !fatto) {
                 v.setViewVisibility(R.id.tempo_box, View.GONE);
                 v.setViewVisibility(R.id.su, View.VISIBLE);
                 v.setTextViewText(R.id.su, RigaFlat.tempoCompatto(previsto));
-                v.setTextColor(R.id.su, Color.parseColor(s ? "#939396" : "#8A8A88")); // stesso colore e stile del titolo dei progetti: targhetta con solo il contorno
-                v.setInt(R.id.su, "setBackgroundResource", s ? R.drawable.chip_stima_s : R.drawable.chip_stima_c);
+                v.setTextColor(R.id.su, Color.parseColor(s ? "#939396" : "#8A8A88")); // stima: solo testo chiaro, senza contorno
             } else {
                 v.setViewVisibility(R.id.tempo_box, View.GONE);
                 v.setViewVisibility(R.id.su, View.GONE);

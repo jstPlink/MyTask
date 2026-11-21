@@ -985,11 +985,11 @@ html[data-stile=base] .riga-a .bd-t { overflow: hidden; text-overflow: ellipsis;
 html[data-stile=base] .riga-a .r2 { flex: none; display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 5px; text-align: right; }
 html[data-stile=base] .riga-a .r2::before { content: "9 h 59 min"; display: block; width: 72px; height: 0; overflow: hidden; visibility: hidden; padding: 0; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* tempo corrente: targhetta con solo il contorno (colore del testo), in risalto (extra-grassetto) rispetto alla stima */
-/* tempo corrente: targhetta con il contorno nel colore del testo; il riempimento (32% del colore del testo) da sinistra è la quota della stima già usata; senza stima è tutta a riempimento tenue (20%); in pausa più spenta */
-html[data-stile=base] .riga-a .r2 .tc { position: relative; overflow: hidden; display: grid; place-items: center; align-self: flex-end; width: 72px; height: 24px; box-sizing: border-box; padding: 0; border: 1px solid var(--ink); border-radius: var(--r-p); background: transparent; font-size: 15px; font-weight: 800; line-height: 1; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* tempo corrente: targhetta con sfondo grigio «Tenue» (--soft), progresso nel colore più scuro della palette (--ink, da sinistra, quota della stima già usata) e numero nel colore più chiaro (--surface); senza stima è tutta grigia; in pausa più spenta */
+html[data-stile=base] .riga-a .r2 .tc { position: relative; overflow: hidden; display: grid; place-items: center; align-self: flex-end; width: 72px; height: 24px; box-sizing: border-box; padding: 0; border: 1px solid var(--ink); border-radius: var(--r-p); background: var(--soft); font-size: 15px; font-weight: 800; line-height: 1; color: var(--surface); white-space: nowrap; font-variant-numeric: tabular-nums; }
 html[data-stile=base] .riga-a .r2 .tc > span { position: relative; z-index: 1; }
-html[data-stile=base] .riga-a .r2 .tc::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: color-mix(in srgb, var(--ink) 32%, transparent); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
-html[data-stile=base] .riga-a .r2 .tc.piena::before { width: 100%; background: color-mix(in srgb, var(--ink) 20%, transparent); }
+html[data-stile=base] .riga-a .r2 .tc::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: var(--ink); transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+html[data-stile=base] .riga-a .r2 .tc.piena::before { width: 0; }
 html[data-stile=base] .riga-a .r2 .tc.pausa { opacity: .6; }
 /* barra del tempo: contorno e riempimento dello stesso colore del testo (nero nel tema chiaro, bianco nello scuro), senza trasparenze; senza stima è intera */
 /* progetto: titolo più chiaro, linea tra testata e note, tacche fatte più chiare */
@@ -1065,3 +1065,12 @@ html[data-stile=base] .stati-seg { background: transparent; border: 0; box-shado
 html[data-stile=base] .stati-seg button { border: 1px solid transparent; background: none; box-shadow: none; color: var(--mid); min-height: 36px; font-weight: 600; }
 html[data-stile=base] .stati-seg button.on { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 55%, transparent); color: var(--accent); font-weight: 700; }
 html[data-stile=base] .stati-seg button .cb { display: none; }
+
+/* ---- Stile Flat: le stime di tempo (note non avviate e testata dei progetti) sono solo testo chiaro, centrato, senza contorno; il tempo trascorso resta in targhetta con il riempimento ---- */
+html[data-stile=base] .riga-a .r2 .sti2, html[data-stile=base] .gp-dx .gp-tt { border: 0; font-weight: 600; color: color-mix(in srgb, var(--ink) 52%, var(--bg)); }
+
+/* ---- Stile Flat, tema scuro: anche i neutri scuri seguono la palette (grafite grigi neutri, menta verdi freddi, panna marroni caldi, ghiaccio blu) ---- */
+html[data-stile=base][data-theme=dark][data-tinta=grafite] { --bg: #0F0F10; --surface: #1E1E20; --surface2: #29292C; --line: #333336; --ink: #F2F2F3; --mid: #A6A6AB; --soft: #75757A; --bordo-campo: #5B5B60; }
+html[data-stile=base][data-theme=dark][data-tinta=menta] { --bg: #0D1210; --surface: #1A211E; --surface2: #232C28; --line: #2D3833; --ink: #EDF3EF; --mid: #9FB0A7; --soft: #6C7D74; --bordo-campo: #56655D; }
+html[data-stile=base][data-theme=dark][data-tinta=panna] { --bg: #14110D; --surface: #221E18; --surface2: #2D2820; --line: #38322A; --ink: #F5EFE6; --mid: #B3A999; --soft: #80776A; --bordo-campo: #675F53; }
+html[data-stile=base][data-theme=dark][data-tinta=ghiaccio] { --bg: #0D1117; --surface: #19212A; --surface2: #222C37; --line: #2C3846; --ink: #EBF1F8; --mid: #9DAEC0; --soft: #6B7C8F; --bordo-campo: #546374; }

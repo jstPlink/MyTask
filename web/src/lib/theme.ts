@@ -5,7 +5,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 
 export type Tema = 'sistema' | 'chiaro' | 'scuro';
 export type Colore = 'verde' | 'petrolio' | 'indaco';
-/** Stile grafico: «morbido» (schede morbide con ombra, il predefinito), «vetro» (pannelli di vetro) o «base» (nome «Flat» nell'interfaccia, lo stile di prima: note in righe con filetti, sezioni a fascia). */
+/** Stile grafico: «morbido» (schede morbide con ombra), «vetro» (pannelli di vetro) o «base» (nome «Flat», il predefinito nell'interfaccia, lo stile di prima: note in righe con filetti, sezioni a fascia). */
 export type Stile = 'morbido' | 'vetro' | 'base';
 /** Palette dello stile vetro (solo con `stile: 'vetro'`). */
 export type Palette = 'grafite' | 'ambra' | 'salvia' | 'ghiaccio' | 'lime' | 'turchese' | 'arancio' | 'smeraldo';
@@ -15,11 +15,12 @@ export const PALETTE: Palette[] = ['grafite', 'ghiaccio', 'turchese', 'smeraldo'
 export type Tinta = 'grafite' | 'menta' | 'panna' | 'ghiaccio';
 export const TINTE: Tinta[] = ['grafite', 'menta', 'panna', 'ghiaccio'];
 const SUPERFICI: Record<Tinta, string> = { grafite: '#FAFAFA', menta: '#F7FBF8', panna: '#FBF8F1', ghiaccio: '#F7FAFD' };
+const SUPERFICI_SCURE: Record<Tinta, string> = { grafite: '#1E1E20', menta: '#1A211E', panna: '#221E18', ghiaccio: '#19212A' };
 
 export interface Aspetto { tema: Tema; colore: Colore; stile: Stile; palette: Palette; tinta: Tinta }
 
 const KEY = 'mytask.aspetto';
-let corrente: Aspetto = { tema: 'chiaro', colore: 'verde', stile: 'morbido', palette: 'salvia', tinta: 'grafite' };
+let corrente: Aspetto = { tema: 'chiaro', colore: 'verde', stile: 'base', palette: 'salvia', tinta: 'grafite' };
 const listeners = new Set<() => void>();
 
 /** Legge l'aspetto salvato (valori sconosciuti tornano ai predefiniti). */
@@ -31,13 +32,13 @@ function leggiAspetto(): Aspetto {
       return {
         tema: p.tema === 'sistema' || p.tema === 'chiaro' || p.tema === 'scuro' ? p.tema : 'chiaro',
         colore: p.colore === 'petrolio' || p.colore === 'indaco' ? p.colore : 'verde',
-        stile: p.stile === 'vetro' ? 'vetro' : p.stile === 'base' ? 'base' : 'morbido', // «classico» (valore delle versioni precedenti) è diventato «morbido»
+        stile: p.stile === 'vetro' ? 'vetro' : p.stile === 'morbido' || (p.stile as string) === 'classico' ? 'morbido' : 'base', // «classico» (valore delle versioni precedenti) è diventato «morbido»
         palette: PALETTE.includes(p.palette as Palette) ? (p.palette as Palette) : 'salvia',
         tinta: TINTE.includes(p.tinta as Tinta) ? (p.tinta as Tinta) : 'grafite',
       };
     }
   } catch { /* spazio di archiviazione non disponibile */ }
-  return { tema: 'chiaro', colore: 'verde', stile: 'morbido', palette: 'salvia', tinta: 'grafite' };
+  return { tema: 'chiaro', colore: 'verde', stile: 'base', palette: 'salvia', tinta: 'grafite' };
 }
 
 /** Colore della barra del browser (meta theme-color) per ogni colore d'accento. */
@@ -48,7 +49,7 @@ function aggiornaBarraStato(scuro: boolean) {
   if (!Capacitor.isNativePlatform()) return;
   // Style.Dark = icone chiare (per sfondi scuri), Style.Light = icone scure (per sfondi chiari)
   void StatusBar.setStyle({ style: scuro ? Style.Dark : Style.Light }).catch(() => undefined);
-  void StatusBar.setBackgroundColor({ color: scuro ? '#1D1F23' : corrente.stile === 'base' ? SUPERFICI[corrente.tinta] : '#FFFFFF' }).catch(() => undefined);
+  void StatusBar.setBackgroundColor({ color: corrente.stile === 'base' ? (scuro ? SUPERFICI_SCURE : SUPERFICI)[corrente.tinta] : scuro ? '#1D1F23' : '#FFFFFF' }).catch(() => undefined);
 }
 
 /** Applica tema e colore al documento (e alla barra di stato nell'app). */
