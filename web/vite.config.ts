@@ -23,7 +23,7 @@ export default defineConfig({
         start_url: '/',
         display: 'standalone',
         background_color: '#F1F0EC',
-        theme_color: '#2F7D5B',
+        theme_color: '#4B5058',
         icons: [
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
         ],
