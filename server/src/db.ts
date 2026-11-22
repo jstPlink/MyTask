@@ -27,6 +27,10 @@ export class Store {
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         expires INTEGER NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS watch_tokens (
+        token_hash TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
+      );
       CREATE TABLE IF NOT EXISTS items (
         id TEXT PRIMARY KEY,
         data TEXT NOT NULL,
@@ -75,7 +79,39 @@ export class Store {
     this.db.prepare('DELETE FROM sessions WHERE expires <= ?').run(now);
   }
 
+  // token dedicato all'orologio: serve solo alle rotte `/api/orologio/*` (stato e comandi del timer), non apre la sincronizzazione
+
+  /** Crea il token dell'orologio (ne esiste uno solo: il nuovo sostituisce il precedente). */
+  replaceWatchToken(userId: number, tokenHash: string) {
+    this.db.prepare('DELETE FROM watch_tokens WHERE user_id = ?').run(userId);
+    this.db.prepare('INSERT INTO watch_tokens(token_hash, user_id) VALUES (?, ?)').run(tokenHash, userId);
+  }
+
+  hasWatchToken(userId: number): boolean {
+    return !!this.db.prepare('SELECT 1 AS x FROM watch_tokens WHERE user_id = ?').get(userId);
+  }
+
+  deleteWatchToken(userId: number) {
+    this.db.prepare('DELETE FROM watch_tokens WHERE user_id = ?').run(userId);
+  }
+
+  findWatchToken(tokenHash: string): { userId: number } | undefined {
+    return this.db.prepare('SELECT user_id AS userId FROM watch_tokens WHERE token_hash = ?').get(tokenHash) as { userId: number } | undefined;
+  }
+
   // voci
+
+  /** Una voce per id (anche eliminata logicamente). */
+  getItem(id: string): Item | undefined {
+    const r = this.db.prepare('SELECT data FROM items WHERE id = ?').get(id) as { data: string } | undefined;
+    return r ? (JSON.parse(r.data) as Item) : undefined;
+  }
+
+  /** Un'impostazione salvata (valore e data di modifica). */
+  getSetting(k: string): { valore: unknown; aggiornato: number } | undefined {
+    const r = this.db.prepare('SELECT v, updated FROM settings WHERE k = ?').get(k) as { v: string; updated: number } | undefined;
+    return r ? { valore: JSON.parse(r.v) as unknown, aggiornato: r.updated } : undefined;
+  }
 
   /** Ultimo numero di sequenza assegnato: il client lo salva e lo rimanda come `since`. */
   maxSeq(): number {

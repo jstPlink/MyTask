@@ -47,3 +47,15 @@ export async function logout(): Promise<void> {
   try { await fetch(`${apiBase()}/api/auth/logout`, { method: 'POST', headers: { authorization: `Bearer ${token}` } }); } catch { /* offline: la sessione scade da sola */ }
 }
 
+/** Codice dell'orologio (token dedicato, vedi server/src/orologio.ts): se esiste, lo crea nuovo (sostituisce il precedente) o lo revoca. */
+async function chiamaOrologio<T>(percorso: string, metodo: 'GET' | 'POST'): Promise<T> {
+  const { token } = getAuth();
+  let res: Response;
+  try { res = await fetch(`${apiBase()}/api/orologio/${percorso}`, { method: metodo, headers: { authorization: `Bearer ${token ?? ''}` } }); } catch { throw new ErroreApi(0, 'Nessuna connessione al server'); }
+  if (!res.ok) throw new ErroreApi(res.status, res.status === 404 ? 'Il server non è ancora aggiornato' : `Errore del server (${res.status})`);
+  return res.json() as Promise<T>;
+}
+export const codiceOrologioAttivo = async () => (await chiamaOrologio<{ attivo: boolean }>('token', 'GET')).attivo;
+export const creaCodiceOrologio = async () => (await chiamaOrologio<{ token: string }>('token', 'POST')).token;
+export const revocaCodiceOrologio = async () => { await chiamaOrologio<{ ok: boolean }>('revoca', 'POST'); };
+

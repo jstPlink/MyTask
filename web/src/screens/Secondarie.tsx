@@ -12,7 +12,7 @@ import { COMPAGNIE, ENERGIE, MOOD, PIATTAFORME_BASE, TIPOLOGIE, suggerisciStaser
 import { useAspetto, useAuth, useItems, usePromemoriaTimer, useSyncStatus } from '../lib/hooks.ts';
 import { saveItem, setAuth } from '../lib/store.ts';
 import { chiaveTitolo } from '../../../shared/testo.ts';
-import { apiBase, logout } from '../lib/api.ts';
+import { apiBase, codiceOrologioAttivo, creaCodiceOrologio, logout, revocaCodiceOrologio } from '../lib/api.ts';
 import { VERSIONE } from '../version.ts';
 import { aggiornaApp } from '../lib/aggiornamento.ts';
 import { sync } from '../lib/sync.ts';
@@ -388,6 +388,7 @@ export function Account() {
             <a className="btn solid" href={INSTALLER_WINDOWS} download style={{ padding: '7px 14px', minHeight: 0 }}>Scarica</a>
           </div>
         )}
+        <CodiceOrologio />
         <div className="btns col" style={{ marginTop: 18 }}>
           {!isNative() && versioneServer && versioneServer !== VERSIONE && <button className="btn solid" onClick={() => { void aggiornaApp(); }}>Aggiorna all'ultima versione ({versioneServer})</button>}
           <button className="btn solid" onClick={() => { void sync(); mostraToast('Sincronizzazione avviata'); }}>Sincronizza ora</button>
@@ -396,6 +397,39 @@ export function Account() {
         <div className="t2" style={{ marginTop: 16 }}>Oggi è {today()}. Il database sul NAS fa una copia di sicurezza ogni giorno.</div>
       </div>
     </>
+  );
+}
+
+/** Orologio (Amazfit/Zepp OS): codice dedicato, mostrato una sola volta alla creazione, da incollare nelle impostazioni dell'app MyTask dentro l'app Zepp. Si può sostituire o revocare. */
+function CodiceOrologio() {
+  const [attivo, setAttivo] = useState<boolean | undefined>();
+  const [codice, setCodice] = useState<string | undefined>();
+  useEffect(() => { codiceOrologioAttivo().then(setAttivo).catch(() => undefined); }, []);
+  const crea = async () => {
+    try { setCodice(await creaCodiceOrologio()); setAttivo(true); } catch (e) { mostraToast(e instanceof Error ? e.message : 'Operazione non riuscita'); }
+  };
+  const revoca = async () => {
+    if (!window.confirm("Revocare il codice? L'orologio smette di collegarsi finché non ne crei uno nuovo.")) return;
+    try { await revocaCodiceOrologio(); setAttivo(false); setCodice(undefined); } catch (e) { mostraToast(e instanceof Error ? e.message : 'Operazione non riuscita'); }
+  };
+  if (attivo === undefined) return null;
+  const server = apiBase() || location.origin;
+  return (
+    <div style={{ marginTop: 14 }}>
+      <Field label="Orologio (Amazfit)"><span>{attivo ? 'Codice attivo' : 'Nessun codice'}</span></Field>
+      {codice && (
+        <div className="t2" style={{ padding: '4px 0 8px', wordBreak: 'break-all' }}>
+          Indirizzo: <b>{server}</b><br />Codice (si vede solo ora): <b>{codice}</b>
+          <div className="btns" style={{ marginTop: 8 }}>
+            <button className="btn" onClick={() => { void navigator.clipboard?.writeText(codice).then(() => mostraToast('Codice copiato')); }}>Copia il codice</button>
+          </div>
+        </div>
+      )}
+      <div className="btns" style={{ gap: 8 }}>
+        <button className="btn" onClick={() => { void crea(); }}>{attivo ? 'Nuovo codice' : 'Crea codice'}</button>
+        {attivo && <button className="btn danger" onClick={() => { void revoca(); }}>Revoca</button>}
+      </div>
+    </div>
   );
 }
 

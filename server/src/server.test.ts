@@ -123,3 +123,44 @@ test('impostazioni: passano da un dispositivo all\'altro e vince la modifica pi�
   assert.equal((await app.inject({ method: 'POST', url: '/api/sync', headers: h, payload: { since: 0, changes: [], impostazioni: { x: { valore: 'a'.repeat(30000), aggiornato: 1 } } } })).statusCode, 400);
   await app.close();
 });
+
+test('orologio: token dedicato, stato del timer e comandi pausa, riprendi, completa', async () => {
+  const { app, login, store } = await setup();
+  const token = (await login()).json().token as string;
+  const h = { authorization: `Bearer ${token}` };
+  // senza token dedicato le rotte dell'orologio sono chiuse, e il token dell'orologio non apre la sincronizzazione
+  assert.equal((await app.inject({ method: 'GET', url: '/api/orologio/stato', headers: h })).statusCode, 401);
+  assert.equal((await app.inject({ method: 'GET', url: '/api/orologio/token', headers: h })).json().attivo, false);
+  const wt = (await app.inject({ method: 'POST', url: '/api/orologio/token', headers: h })).json().token as string;
+  const w = { authorization: `Bearer ${wt}` };
+  assert.equal((await app.inject({ method: 'POST', url: '/api/sync', headers: w, payload: { since: 0, changes: [] } })).statusCode, 401);
+  assert.equal((await app.inject({ method: 'GET', url: '/api/orologio/stato', headers: w })).json().stato, 'ferma');
+  // il telefono avvia il timer su una nota con 10 minuti già lavorati
+  const ora = Date.now();
+  await app.inject({ method: 'POST', url: '/api/sync', headers: h, payload: { since: 0, changes: [item('a', ora - 1000, { stato: 'in_corso', lavoratoMs: 600_000, sforzoMin: 30 })], impostazioni: { sessione: { valore: { stato: 'lavoro', taskId: 'a', inizio: ora - 60_000, base: 600_000, aggiornato: ora - 1000 }, aggiornato: ora - 1000 } } } });
+  const st = (await app.inject({ method: 'GET', url: '/api/orologio/stato', headers: w })).json();
+  assert.equal(st.stato, 'lavoro');
+  assert.equal(st.titolo, 'Voce a');
+  assert.ok(Math.abs(st.tempoMs - 660_000) < 3000);
+  // pausa: il tempo passa nella nota e nella sessione, che il telefono riceve con la sincronizzazione
+  const p = (await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'pausa', id: 'a' } })).json();
+  assert.equal(p.ok, true);
+  assert.equal(p.stato, 'pausa');
+  const dopo = (await app.inject({ method: 'POST', url: '/api/sync', headers: h, payload: { since: 0, changes: [] } })).json();
+  assert.equal(dopo.impostazioni.sessione.valore.stato, 'pausa');
+  assert.ok(Math.abs(store.getItem('a')!.lavoratoMs! - 660_000) < 3000);
+  assert.equal((await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'pausa' } })).json().ok, false, 'già in pausa');
+  assert.equal((await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'riprendi' } })).json().stato, 'lavoro');
+  // completa: la nota è fatta, con il tempo reale, e la sessione si chiude
+  const c = (await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'completa' } })).json();
+  assert.equal(c.ok, true);
+  assert.equal(c.stato, 'ferma');
+  const fatta = store.getItem('a')!;
+  assert.equal(fatta.stato, 'fatto');
+  assert.equal(fatta.durataRealeMin, 11);
+  assert.equal((await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'boh' } })).statusCode, 400);
+  // revoca: il token smette di funzionare
+  await app.inject({ method: 'POST', url: '/api/orologio/revoca', headers: h });
+  assert.equal((await app.inject({ method: 'GET', url: '/api/orologio/stato', headers: w })).statusCode, 401);
+  await app.close();
+});

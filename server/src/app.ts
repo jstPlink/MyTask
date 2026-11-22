@@ -8,6 +8,7 @@ import type { ImpostazioniSync, Item, SyncRequest, SyncResponse } from '../../sh
 import { today } from '../../shared/dates.ts';
 import type { Config } from './config.ts';
 import { Store } from './db.ts';
+import { comandoOrologio, statoOrologio, type ComandoOrologio } from './orologio.ts';
 import { RateLimiter, hashPassword, hashToken, newToken, verifyPassword } from './auth.ts';
 
 let versioneLetta: string | undefined;
@@ -117,6 +118,44 @@ export async function buildApp({ config, store, now = Date.now }: AppDeps): Prom
     const h = req.headers.authorization;
     if (h?.startsWith('Bearer ')) store.deleteSession(hashToken(h.slice(7)));
     return { ok: true };
+  });
+
+  // orologio: un token dedicato (uno solo, sostituibile e revocabile) per leggere il timer e dare pausa, riprendi e completa
+  app.get('/api/orologio/token', async (req, reply) => {
+    const s = autentica(req);
+    if (!s) return reply.code(401).send({ error: 'non_autenticato' });
+    return { attivo: store.hasWatchToken(s.userId) };
+  });
+  app.post('/api/orologio/token', async (req, reply) => {
+    const s = autentica(req);
+    if (!s) return reply.code(401).send({ error: 'non_autenticato' });
+    const token = newToken();
+    store.replaceWatchToken(s.userId, hashToken(token));
+    return { token };
+  });
+  app.post('/api/orologio/revoca', async (req, reply) => {
+    const s = autentica(req);
+    if (!s) return reply.code(401).send({ error: 'non_autenticato' });
+    store.deleteWatchToken(s.userId);
+    return { ok: true };
+  });
+  const autenticaOrologio = (req: FastifyRequest) => {
+    const h = req.headers.authorization;
+    return h?.startsWith('Bearer ') ? store.findWatchToken(hashToken(h.slice(7))) : undefined;
+  };
+  app.get('/api/orologio/stato', async (req, reply) => {
+    if (!autenticaOrologio(req)) return reply.code(401).send({ error: 'non_autenticato' });
+    reply.header('cache-control', 'no-store');
+    return statoOrologio(store, now());
+  });
+  app.post('/api/orologio/comando', async (req, reply) => {
+    if (!autenticaOrologio(req)) return reply.code(401).send({ error: 'non_autenticato' });
+    const body = req.body as { comando?: unknown; id?: unknown } | null;
+    const c = body?.comando;
+    if (c !== 'pausa' && c !== 'riprendi' && c !== 'completa') return reply.code(400).send({ error: 'comando_non_valido' });
+    const ok = comandoOrologio(store, c as ComandoOrologio, typeof body?.id === 'string' ? body.id : undefined, now());
+    reply.header('cache-control', 'no-store');
+    return { ok, ...statoOrologio(store, now()) };
   });
 
   app.get('/api/me', async (req, reply) => {
