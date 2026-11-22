@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.120.0
+- **Versione documento:** 0.121.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -662,6 +662,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-21 | 0.118.0 | **Flat: palette, angoli, tempo con riempimento:** quattro palette Flat (grafite predefinita, menta, panna, ghiaccio) con accento proprio; due soli angoli (8 e 14 px); pulsante nuova nota pieno con contorno chiaro; testata dei progetti più scura con percentuale, nome e stima in fondo; niente barra dello stato nei progetti; elenco dei passi sistemato; targhetta «Priorità» piena; tempi senza tetto («24 h», «2 g 4»); la barra del tempo è un riempimento dentro la targhetta del tempo trascorso (app e widget); margine delle stime con una sola scritta; widget sempre Flat grafite. |
 | 2026-11-21 | 0.119.0 | **Flat ovunque, anche sul computer:** Flat è lo stile predefinito (chi aveva scelto un altro stile lo mantiene; l'app per computer passa una tantum a Flat e poi lascia scegliere); neutri scuri propri per ogni palette Flat (grafite, menta, panna, ghiaccio); stime come testo chiaro senza contorno e targhetta del tempo con riempimento nero su grigio; schermata dell'indirizzo dell'app per computer e fondo della finestra nei colori e negli angoli Flat (chiaro/scuro del sistema). |
 | 2026-11-21 | 0.120.0 | **Icona grafite Flat:** fondo #4B5058 (invece del verde) per sito, linguetta, manifest, schermata iniziale e icona adattiva di Android, app per computer. |
+| 2026-11-22 | 0.121.0 | **Timer uguale su telefono e computer:** la sessione porta con sé il tempo già lavorato sulla nota (`base`); il tempo mostrato e quello salvato partono da lì, non dalla copia della nota che un dispositivo può avere ancora vecchia (widget compreso); sincronizzazione anche quando la finestra torna in primo piano. |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

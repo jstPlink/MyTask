@@ -83,7 +83,7 @@ export interface LavoroWidget {
 export function lavoroWidget(items: Item[], s: Sessione): LavoroWidget | null {
   if (s.stato === 'ferma' || !s.taskId) return null;
   const item = items.find((i) => i.id === s.taskId && !i.eliminato);
-  return item ? { stato: s.stato, id: item.id, t: item.titolo, base: item.lavoratoMs ?? 0, ref: s.inizio ?? 0, p: item.sforzoMin || undefined } : null;
+  return item ? { stato: s.stato, id: item.id, t: item.titolo, base: s.base ?? item.lavoratoMs ?? 0, ref: s.inizio ?? 0, p: item.sforzoMin || undefined } : null;
 }
 
 /** Una nota nell'archivio del widget: serve alla nota veloce per mostrare le note con parole simili. */

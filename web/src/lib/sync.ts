@@ -71,6 +71,7 @@ export function avviaSync() {
   subscribePesi(() => { if (!applicando) sincronizzaPoi(); });
   window.addEventListener('online', () => { set({ online: true }); void sync(); });
   window.addEventListener('offline', () => set({ online: false }));
+  window.addEventListener('focus', () => { void sync(); }); // finestra del computer riportata in primo piano (può restare visibile senza che cambi la visibilità)
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void sync(); });
   setInterval(() => { if (document.visibilityState === 'visible') void sync(); }, 60_000);
   void sync();

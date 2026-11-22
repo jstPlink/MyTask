@@ -13,6 +13,8 @@ export interface Sessione {
   taskId?: string;
   /** Millisecondi dell'inizio del tratto che sta correndo (solo in `lavoro`). */
   inizio?: number;
+  /** Millisecondi già lavorati sul task `taskId` quando è iniziato il tratto (o, in pausa, in totale): il tempo del task si calcola da qui, non dalla copia della nota che un dispositivo può avere ancora vecchia. */
+  base?: number;
   /** Ultima volta che l'utente ha confermato di star ancora lavorando (o inizio della sessione): serve al controllo periodico. */
   controllo?: number;
   /** Ultima modifica (millisecondi): nella sincronizzazione tra dispositivi vince la più recente. */
@@ -37,7 +39,8 @@ export function sessioneValida(x: unknown): Sessione | null {
   if (typeof s.taskId !== 'string' || !s.taskId) return null;
   const inizio = num(s.inizio);
   if (s.stato === 'lavoro' && inizio === undefined) return null;
-  return { stato: s.stato, taskId: s.taskId, inizio: s.stato === 'lavoro' ? inizio : undefined, controllo: num(s.controllo), aggiornato: num(s.aggiornato) ?? 0 };
+  const base = num(s.base);
+  return { stato: s.stato, taskId: s.taskId, inizio: s.stato === 'lavoro' ? inizio : undefined, ...(base !== undefined ? { base } : {}), controllo: num(s.controllo), aggiornato: num(s.aggiornato) ?? 0 };
 }
 
 /** Millisecondi del tratto che sta correndo adesso (0 se il cronometro non corre). */
@@ -45,9 +48,10 @@ export function msTrattoInCorso(s: Sessione, now: number): number {
   return s.stato === 'lavoro' && s.inizio !== undefined ? Math.max(0, now - s.inizio) : 0;
 }
 
-/** Il tempo lavorato su un task: quello già accumulato più, se il cronometro corre proprio su di lui, il tratto in corso. */
+/** Il tempo lavorato su un task: quello già accumulato più, se il cronometro corre proprio su di lui, il tratto in corso. Per il task della sessione l'accumulato è `base` (stesso numero su tutti i dispositivi). */
 export function tempoLavorato(item: Item, s: Sessione, now: number): number {
-  return (item.lavoratoMs ?? 0) + (s.taskId === item.id ? msTrattoInCorso(s, now) : 0);
+  if (s.taskId !== item.id) return item.lavoratoMs ?? 0;
+  return (s.base ?? item.lavoratoMs ?? 0) + msTrattoInCorso(s, now);
 }
 
 /** Tempo lavorato in minuti interi (almeno 1), o undefined se è troppo poco per essere una misura. */

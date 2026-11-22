@@ -81,3 +81,12 @@ test('sessione: le notifiche periodiche del timer cadono ogni N minuti dall\'ini
   assert.deepEqual(istantiPromemoriaTimer(SESSIONE_FERMA, 5, inizio), []);
   assert.deepEqual(istantiPromemoriaTimer(s, 0, inizio), []);
 });
+
+test('sessione: con la base nella sessione il tempo è lo stesso anche se la copia della nota è vecchia', () => {
+  const s: Sessione = { stato: 'lavoro', taskId: 'a', inizio: 1_000_000, base: 600_000, aggiornato: 1 };
+  const adesso = 1_000_000 + 90_000;
+  assert.equal(tempoLavorato(item('a', 60_000), s, adesso), 690_000, 'la nota ferma a 1 min non conta: vale la base della sessione');
+  assert.equal(tempoLavorato(item('a', 600_000), s, adesso), 690_000);
+  assert.equal(tempoLavorato(item('b', 60_000), s, adesso), 60_000);
+  assert.equal(sessioneValida({ stato: 'pausa', taskId: 'a', base: 5000, aggiornato: 2 })?.base, 5000);
+});

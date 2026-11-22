@@ -67,8 +67,8 @@ export function seguiNotaInCorso(id: string, now = Date.now()) {
   if (corrente.stato === 'ferma' || corrente.taskId === id) return;
   chiudiTratto(corrente, now);
   imposta(corrente.stato === 'lavoro'
-    ? { stato: 'lavoro', taskId: id, inizio: now, controllo: now }
-    : { stato: 'pausa', taskId: id, controllo: corrente.controllo }, now);
+    ? { stato: 'lavoro', taskId: id, inizio: now, base: baseDi(id), controllo: now }
+    : { stato: 'pausa', taskId: id, base: baseDi(id), controllo: corrente.controllo }, now);
 }
 
 /** La nota del cronometro smette di essere «in corso» (tolta a mano): la sessione si chiude. */
@@ -78,16 +78,20 @@ export function fermaSessioneSe(id: string, now = Date.now()) {
   imposta({ stato: 'ferma' }, now);
 }
 
-/** Somma `ms` al tempo lavorato di un task. */
-function accumula(id: string | undefined, ms: number, now: number) {
-  const item = id ? getItem(id) : undefined;
-  if (!item || ms <= 0) return;
-  saveItem({ ...item, lavoratoMs: (item.lavoratoMs ?? 0) + Math.round(ms), aggiornato: now });
+/** Il tempo già lavorato su un task, da mettere come `base` della sessione che parte su di lui. */
+const baseDi = (id: string | undefined) => (id ? getItem(id)?.lavoratoMs ?? 0 : 0);
+
+/** Somma `ms` al tempo lavorato del task della sessione `s` (partendo dalla `base` della sessione, uguale su tutti i dispositivi) e restituisce il nuovo totale. */
+function accumula(s: Sessione, ms: number, now: number): number {
+  const item = s.taskId ? getItem(s.taskId) : undefined;
+  const totale = (s.base ?? item?.lavoratoMs ?? 0) + Math.round(Math.max(0, ms));
+  if (item && ms > 0) saveItem({ ...item, lavoratoMs: totale, aggiornato: now });
+  return totale;
 }
 
-/** Chiude il tratto che sta correndo (se c'è) aggiungendolo al task. */
-function chiudiTratto(s: Sessione, now: number) {
-  accumula(s.taskId, msTrattoInCorso(s, now), now);
+/** Chiude il tratto che sta correndo (se c'è) aggiungendolo al task; restituisce il tempo totale del task. */
+function chiudiTratto(s: Sessione, now: number): number {
+  return accumula(s, msTrattoInCorso(s, now), now);
 }
 
 /**
@@ -98,21 +102,21 @@ export function iniziaLavoro(id?: string, now = Date.now()) {
   if (corrente.stato !== 'ferma') return;
   const scelto = id ?? notaInCorso(getItems())?.id ?? idElenco()[0];
   if (!scelto) { mostraToast('Nessuna attività da fare'); return; }
-  imposta({ stato: 'lavoro', taskId: scelto, inizio: now, controllo: now }, now);
+  imposta({ stato: 'lavoro', taskId: scelto, inizio: now, base: baseDi(scelto), controllo: now }, now);
   segnaInCorso(scelto, now);
 }
 
 /** Ferma il cronometro (telefonata, pranzo) tenendo aperta la sessione. */
 export function mettiInPausa(now = Date.now()) {
   if (corrente.stato !== 'lavoro') return;
-  chiudiTratto(corrente, now);
-  imposta({ stato: 'pausa', taskId: corrente.taskId, controllo: corrente.controllo }, now);
+  const base = chiudiTratto(corrente, now);
+  imposta({ stato: 'pausa', taskId: corrente.taskId, base, controllo: corrente.controllo }, now);
 }
 
 /** Riprende dal task in pausa. */
 export function riprendi(now = Date.now()) {
   if (corrente.stato !== 'pausa') return;
-  imposta({ stato: 'lavoro', taskId: corrente.taskId, inizio: now, controllo: now }, now);
+  imposta({ stato: 'lavoro', taskId: corrente.taskId, inizio: now, base: corrente.base ?? baseDi(corrente.taskId), controllo: now }, now);
 }
 
 /** Sposta il cronometro su un altro task senza finire il primo (che resta «in corso» con il tempo accumulato). */
@@ -120,7 +124,7 @@ export function passaA(id: string, now = Date.now()) {
   if (corrente.stato === 'ferma') { iniziaLavoro(id, now); return; }
   if (id === corrente.taskId) { if (corrente.stato === 'pausa') riprendi(now); return; }
   chiudiTratto(corrente, now);
-  imposta({ stato: 'lavoro', taskId: id, inizio: now, controllo: now }, now);
+  imposta({ stato: 'lavoro', taskId: id, inizio: now, base: baseDi(id), controllo: now }, now);
   segnaInCorso(id, now);
 }
 
@@ -143,14 +147,14 @@ export function finisciSessione(now = Date.now()) {
 export function smessoMinutiFa(minuti: number, now = Date.now()) {
   if (corrente.stato !== 'lavoro') return;
   const fine = Math.max(corrente.inizio ?? now, now - minuti * 60_000);
-  accumula(corrente.taskId, fine - (corrente.inizio ?? fine), now);
-  imposta({ stato: 'pausa', taskId: corrente.taskId, controllo: corrente.controllo }, now);
+  const base = accumula(corrente, fine - (corrente.inizio ?? fine), now);
+  imposta({ stato: 'pausa', taskId: corrente.taskId, base, controllo: corrente.controllo }, now);
 }
 
 /** Controllo periodico, risposta «Sì»: si sta ancora lavorando. */
 export function confermaControllo(now = Date.now()) {
   if (corrente.stato !== 'lavoro') return;
-  imposta({ stato: 'lavoro', taskId: corrente.taskId, inizio: corrente.inizio, controllo: now }, now);
+  imposta({ stato: 'lavoro', taskId: corrente.taskId, inizio: corrente.inizio, base: corrente.base, controllo: now }, now);
 }
 
 /** Quando l'app deve chiedere «Stai ancora lavorando?» (millisecondi), o undefined se non si sta lavorando. */
