@@ -14,6 +14,8 @@ I file di comunicazione orologio-telefono (`message.js`, `device-polyfill.js` e 
 3. Nell'app Zepp: impostazioni di MyTask → indirizzo del server, codice, ogni quanti minuti vibrare.
 
 ## Limiti
+- Lo schermo resta acceso 30 minuti (`setBrightScreen`), ma con l'orologio **al polso** il sistema lo mette comunque in always on quando abbassi il braccio: per evitarlo bisogna spegnere il gesto del polso (alza/abbassa) nelle impostazioni dell'orologio. Sul tavolo resta acceso.
+- Ogni QR di prova deve avere una versione nuova: usa `anteprima.ps1` (aumenta la versione, che compare in piccolo sull'orologio, e genera il QR).
 - La mini-app deve essere **aperta** sull'orologio (da elenco app o scelta come tasto rapido): da sola non si apre quando parte un timer.
 - Il telefono deve essere collegato all'orologio e l'app Zepp attiva in background.
 - `appId` in `app.json` e `app.js` è provvisorio: va bene per la prova, ne serve uno vero solo per pubblicare.

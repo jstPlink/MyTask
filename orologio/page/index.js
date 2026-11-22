@@ -10,6 +10,7 @@ const { messageBuilder } = getApp()._options.globalData
 const L = 480 // larghezza dello schermo (designWidth)
 const INTERVALLO_STATO_MS = 5000
 const SCHERMO_ACCESO_S = 30 * 60
+const VERSIONE = '1.0.5' // la aggiorna anteprima.ps1 a ogni nuovo QR
 const ANELLO = 22 // spessore dell'anello in px
 const GRIGIO_ANELLO = 0x424242 // anello spento (26% di bianco su nero)
 const BIANCO = 0xffffff
@@ -68,6 +69,10 @@ Page({
     this.tempo = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 40, y: 184, w: L - 80, h: 80, color: BIANCO, text_size: 72,
       align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text_style: hmUI.text_style.NONE, text: '',
+    })
+    this.versione = hmUI.createWidget(hmUI.widget.TEXT, {
+      x: 170, y: 410, w: 140, h: 24, color: 0x4a4a4f, text_size: 16,
+      align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V, text_style: hmUI.text_style.NONE, text: 'v' + VERSIONE,
     })
     this.pausa = hmUI.createWidget(hmUI.widget.BUTTON, {
       x: 110, y: 316, w: 70, h: 70, text: '', normal_src: 'pausa.png', press_src: 'pausa_p.png',

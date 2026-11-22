@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.123.0
+- **Versione documento:** 0.124.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -665,6 +665,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-22 | 0.121.0 | **Timer uguale su telefono e computer:** la sessione porta con sé il tempo già lavorato sulla nota (`base`); il tempo mostrato e quello salvato partono da lì, non dalla copia della nota che un dispositivo può avere ancora vecchia (widget compreso); sincronizzazione anche quando la finestra torna in primo piano. |
 | 2026-11-22 | 0.122.0 | **Orologio Amazfit GTR 3 Pro (Zepp OS 1.0):** mini-app in `orologio/` (pagina nera finché non c'è un timer; con una nota avviata titolo, tempo, Pausa/Riprendi e Fatto; schermo acceso 30 minuti dall'ultimo tocco; vibrazione ogni N minuti come la notifica del timer). Il server ha un codice dedicato all'orologio (tabella `watch_tokens`, rotte `/api/orologio/token`, `/revoca`, `/stato`, `/comando`, logica in `server/src/orologio.ts`); in Altro › Account › Orologio si crea, sostituisce o revoca. Il codice non apre la sincronizzazione. Orologio → app Zepp sul telefono → server, aggiornamento ogni 5 secondi; la mini-app va aperta sull'orologio (installazione con `zeus preview`, vedi `orologio/README.md`). |
 | 2026-11-22 | 0.123.0 | **Orologio, aspetto e schermo:** anello da 22 px attorno al quadrante (spento senza timer con «nessuna nota / in corso», bianco che avanza con la stima quando una nota è in corso), titolo 26 px, spazi larghi, pulsanti tondi con icone (pausa/riprendi, fatto); vibrazione più forte (scena 28); lo schermo si tiene acceso con `setBrightScreen` rinnovato ogni minuto e `setScreenKeep(true)`; impostazioni nell'app Zepp a riquadri con avviso di quello che manca. |
+| 2026-11-22 | 0.124.0 | **Orologio, rifiniture:** mini-app 1.0.5 con la versione in piccolo sull'orologio e `orologio/anteprima.ps1` (nuova versione a ogni QR di prova); verificato che `setBrightScreen` è accettato (esito 0) e tiene lo schermo acceso oltre i 3 minuti sul tavolo; al polso il gesto di abbassamento lo spegne comunque (va disattivato nelle impostazioni dell'orologio). |
 
 ## Selettore del tempo a rotelle (0.65.3)
 
