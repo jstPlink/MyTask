@@ -1,6 +1,6 @@
 # MyTask per Amazfit GTR 3 Pro (Zepp OS 1.0)
 
-Mini-app dell'orologio: pagina nera finché non c'è un timer; quando una nota viene avviata (dal telefono, dal sito o dal widget) mostra il titolo, il tempo che scorre, **Pausa/Riprendi** e **Fatto**. Lo schermo resta acceso 30 minuti dall'avvio o dall'ultimo tocco (dopo si riaccende e basta toccarlo per ripartire); vibra ogni N minuti di tratto in corso come la notifica del timer (N si sceglie nelle impostazioni, di base 5).
+Mini-app dell'orologio con un anello da 22 px attorno al quadrante. Senza timer: anello spento e «nessuna nota / in corso». Con una nota avviata (dal telefono, dal sito o dal widget): l'anello bianco avanza in proporzione alla stima (tutto pieno se non c'è), titolo, tempo e due pulsanti tondi con icona (pausa o riprendi, fatto). Lo schermo resta acceso 30 minuti dall'avvio o dall'ultimo tocco (dopo basta toccarlo per ripartire); vibra forte ogni N minuti di tratto in corso come la notifica del timer (N nelle impostazioni, di base 5). Le impostazioni nell'app Zepp hanno un riquadro per dato e dicono cosa manca.
 
 ## Come parla con MyTask
 orologio → app Zepp sul telefono (`app-side/index.js`) → server MyTask (`/api/orologio/stato` e `/api/orologio/comando`), con un **codice dedicato** (Altro › Account › Orologio › Crea codice; si può sostituire o revocare, e non apre la sincronizzazione). Lo stato si aggiorna ogni 5 secondi, quindi c'è un piccolo ritardo. I comandi dell'orologio arrivano al telefono alla prossima sincronizzazione (al massimo un minuto, subito se l'app è aperta).
