@@ -14,10 +14,10 @@ export type StatoOrologio =
 export type ComandoOrologio = 'pausa' | 'riprendi' | 'completa';
 
 /** La sessione salvata e la sua nota, se la sessione è valida e la nota è ancora aperta. */
-function sessioneAttiva(store: Store): { s: Sessione; item: Item } | undefined {
-  const s = sessioneValida(store.getSetting('sessione')?.valore) ?? SESSIONE_FERMA;
+function sessioneAttiva(store: Store, utente: number): { s: Sessione; item: Item } | undefined {
+  const s = sessioneValida(store.getSetting(utente, 'sessione')?.valore) ?? SESSIONE_FERMA;
   if (s.stato === 'ferma' || !s.taskId) return undefined;
-  const item = store.getItem(s.taskId);
+  const item = store.getItem(utente, s.taskId);
   if (!item || item.eliminato || item.stato === 'fatto' || item.stato === 'saltato' || item.stato === 'parcheggiato') return undefined;
   return { s, item };
 }
@@ -27,8 +27,8 @@ function tempoTotale(s: Sessione, item: Item, now: number): number {
   return (s.base ?? item.lavoratoMs ?? 0) + msTrattoInCorso(s, now);
 }
 
-export function statoOrologio(store: Store, now: number): StatoOrologio {
-  const a = sessioneAttiva(store);
+export function statoOrologio(store: Store, utente: number, now: number): StatoOrologio {
+  const a = sessioneAttiva(store, utente);
   if (!a) return { stato: 'ferma' };
   return {
     stato: a.s.stato === 'lavoro' ? 'lavoro' : 'pausa',
@@ -41,34 +41,34 @@ export function statoOrologio(store: Store, now: number): StatoOrologio {
   };
 }
 
-function salvaSessione(store: Store, nuova: Omit<Sessione, 'aggiornato'>, now: number) {
-  const prec = store.getSetting('sessione')?.aggiornato ?? 0;
+function salvaSessione(store: Store, utente: number, nuova: Omit<Sessione, 'aggiornato'>, now: number) {
+  const prec = store.getSetting(utente, 'sessione')?.aggiornato ?? 0;
   const aggiornato = Math.max(now, prec + 1);
-  store.applySettings({ sessione: { valore: { ...nuova, aggiornato }, aggiornato } });
+  store.applySettings(utente, { sessione: { valore: { ...nuova, aggiornato }, aggiornato } });
 }
 
 /** Esegue il comando; restituisce false se non si può (nessuna sessione, nota diversa o stato sbagliato). */
-export function comandoOrologio(store: Store, comando: ComandoOrologio, id: string | undefined, now: number): boolean {
-  const a = sessioneAttiva(store);
+export function comandoOrologio(store: Store, utente: number, comando: ComandoOrologio, id: string | undefined, now: number): boolean {
+  const a = sessioneAttiva(store, utente);
   if (!a || (id && id !== a.item.id)) return false;
   const { s, item } = a;
   const totale = tempoTotale(s, item, now);
   if (comando === 'pausa') {
     if (s.stato !== 'lavoro') return false;
-    if (totale > (item.lavoratoMs ?? 0)) store.applyChanges([{ ...item, lavoratoMs: Math.round(totale), aggiornato: Math.max(now, item.aggiornato + 1) }]);
-    salvaSessione(store, { stato: 'pausa', taskId: item.id, base: Math.round(totale), controllo: s.controllo }, now);
+    if (totale > (item.lavoratoMs ?? 0)) store.applyChanges(utente, [{ ...item, lavoratoMs: Math.round(totale), aggiornato: Math.max(now, item.aggiornato + 1) }]);
+    salvaSessione(store, utente, { stato: 'pausa', taskId: item.id, base: Math.round(totale), controllo: s.controllo }, now);
     return true;
   }
   if (comando === 'riprendi') {
     if (s.stato !== 'pausa') return false;
-    salvaSessione(store, { stato: 'lavoro', taskId: item.id, inizio: now, base: s.base ?? item.lavoratoMs ?? 0, controllo: now }, now);
+    salvaSessione(store, utente, { stato: 'lavoro', taskId: item.id, inizio: now, base: s.base ?? item.lavoratoMs ?? 0, controllo: now }, now);
     return true;
   }
   // completa: solo attività e curiosità (le altre note passano dall'app, che chiede voto e commento)
   if (item.tipo !== 'azione' && item.tipo !== 'curiosita') return false;
   const durata = item.ricorrenza ? undefined : minutiMisurati(totale);
   const fatta: Item = { ...completa(item, today(), now), ...(totale > 0 ? { lavoratoMs: Math.round(totale) } : {}), ...(durata ? { durataRealeMin: durata } : {}) };
-  store.applyChanges([{ ...fatta, aggiornato: Math.max(now, item.aggiornato + 1, fatta.aggiornato) }]);
-  salvaSessione(store, { stato: 'ferma' }, now);
+  store.applyChanges(utente, [{ ...fatta, aggiornato: Math.max(now, item.aggiornato + 1, fatta.aggiornato) }]);
+  salvaSessione(store, utente, { stato: 'ferma' }, now);
   return true;
 }

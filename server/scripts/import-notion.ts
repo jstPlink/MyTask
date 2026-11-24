@@ -57,11 +57,13 @@ if (dry) {
 
 const config = loadConfig();
 const store = new Store(path.join(config.dataDir, 'mytask.db'));
-if (store.countItems() > 0 && !force) {
-  console.error(`Il database ha già ${store.countItems()} voci. Per sostituirle serve --force (le modifiche fatte nell'app andrebbero perse).`);
+const utente = store.firstUserId();
+if (utente === undefined) { console.error('Nessun utente: avvia prima il server con MYTASK_EMAIL e MYTASK_PASSWORD.'); process.exit(1); }
+if (store.countItems(utente) > 0 && !force) {
+  console.error(`Il database ha già ${store.countItems(utente)} voci. Per sostituirle serve --force (le modifiche fatte nell'app andrebbero perse).`);
   process.exit(1);
 }
-if (force) store.db.exec('DELETE FROM items');
-store.applyChanges(items);
+if (force) store.db.prepare('DELETE FROM items WHERE user_id = ?').run(utente);
+store.applyChanges(utente, items);
 console.log(`Importate ${items.length} voci in ${path.join(config.dataDir, 'mytask.db')}.`);
 store.close();

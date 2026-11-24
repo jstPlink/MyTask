@@ -4,6 +4,9 @@ import type { Item } from '../../shared/types.ts';
 import { loadConfig } from './config.ts';
 import { Store } from './db.ts';
 import { buildApp } from './app.ts';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const item = (id: string, aggiornato: number, extra: Partial<Item> = {}): Item => ({
   id, tipo: 'azione', titolo: `Voce ${id}`, stato: 'da_fare', creato: 1, aggiornato, ...extra,
@@ -148,14 +151,14 @@ test('orologio: token dedicato, stato del timer e comandi pausa, riprendi, compl
   assert.equal(p.stato, 'pausa');
   const dopo = (await app.inject({ method: 'POST', url: '/api/sync', headers: h, payload: { since: 0, changes: [] } })).json();
   assert.equal(dopo.impostazioni.sessione.valore.stato, 'pausa');
-  assert.ok(Math.abs(store.getItem('a')!.lavoratoMs! - 660_000) < 3000);
+  assert.ok(Math.abs(store.getItem(store.getUser('tu@example.com')!.id, 'a')!.lavoratoMs! - 660_000) < 3000);
   assert.equal((await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'pausa' } })).json().ok, false, 'già in pausa');
   assert.equal((await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'riprendi' } })).json().stato, 'lavoro');
   // completa: la nota è fatta, con il tempo reale, e la sessione si chiude
   const c = (await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'completa' } })).json();
   assert.equal(c.ok, true);
   assert.equal(c.stato, 'ferma');
-  const fatta = store.getItem('a')!;
+  const fatta = store.getItem(store.getUser('tu@example.com')!.id, 'a')!;
   assert.equal(fatta.stato, 'fatto');
   assert.equal(fatta.durataRealeMin, 11);
   assert.equal((await app.inject({ method: 'POST', url: '/api/orologio/comando', headers: w, payload: { comando: 'boh' } })).statusCode, 400);
@@ -163,4 +166,110 @@ test('orologio: token dedicato, stato del timer e comandi pausa, riprendi, compl
   await app.inject({ method: 'POST', url: '/api/orologio/revoca', headers: h });
   assert.equal((await app.inject({ method: 'GET', url: '/api/orologio/stato', headers: w })).statusCode, 401);
   await app.close();
+});
+
+/** Server con la registrazione aperta (o chiusa), con l'utente del primo avvio già creato. */
+async function setupRegistrazione(registrazione: boolean) {
+  const store = new Store(':memory:');
+  const config = loadConfig({ email: 'tu@example.com', password: 'una-password-lunga', webDir: '/nonexistent', registrazione });
+  const app = await buildApp({ config, store });
+  const registra = (email: string, password: string) => app.inject({ method: 'POST', url: '/api/auth/registra', payload: { email, password } });
+  return { app, store, registra };
+}
+
+test('registrazione: chiusa di base (403) e dichiarata da /api/health', async () => {
+  const { app, registra } = await setupRegistrazione(false);
+  assert.equal((await registra('nuovo@example.com', 'una-password-lunga')).statusCode, 403);
+  assert.equal((await app.inject({ method: 'GET', url: '/api/health' })).json().registrazione, false);
+  await app.close();
+});
+
+test('registrazione: crea l\'account, restituisce un token e poi si può accedere', async () => {
+  const { app, registra } = await setupRegistrazione(true);
+  assert.equal((await app.inject({ method: 'GET', url: '/api/health' })).json().registrazione, true);
+  const r = await registra('Nuovo@Example.com', 'una-password-lunga');
+  assert.equal(r.statusCode, 201);
+  assert.equal(r.json().email, 'nuovo@example.com');
+  const me = await app.inject({ method: 'GET', url: '/api/me', headers: { authorization: `Bearer ${r.json().token}` } });
+  assert.equal(me.json().email, 'nuovo@example.com');
+  const l = await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'nuovo@example.com', password: 'una-password-lunga' } });
+  assert.equal(l.statusCode, 200);
+  await app.close();
+});
+
+test('registrazione: email o password non valide, email già usata', async () => {
+  const { app, registra } = await setupRegistrazione(true);
+  assert.equal((await registra('non-una-email', 'una-password-lunga')).statusCode, 400);
+  assert.equal((await registra('a@example.com', 'corta')).statusCode, 400);
+  assert.equal((await registra('tu@example.com', 'una-password-lunga')).statusCode, 409);
+  assert.equal((await registra('a@example.com', 'una-password-lunga')).statusCode, 201);
+  assert.equal((await registra('A@example.com', 'una-password-lunga')).statusCode, 409);
+  await app.close();
+});
+
+test('registrazione: dopo cinque tentativi dallo stesso indirizzo arriva 429', async () => {
+  const { app, registra } = await setupRegistrazione(true);
+  let ultimo = 0;
+  for (let i = 0; i < 7; i++) ultimo = (await registra(`u${i}@example.com`, 'una-password-lunga')).statusCode;
+  assert.equal(ultimo, 429);
+  await app.close();
+});
+
+test('ogni account vede solo le sue voci e impostazioni', async () => {
+  const { app, registra } = await setupRegistrazione(true);
+  const a = (await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'tu@example.com', password: 'una-password-lunga' } })).json().token as string;
+  const b = (await registra('altro@example.com', 'una-password-lunga')).json().token as string;
+  const sync = (token: string, payload: object) => app.inject({ method: 'POST', url: '/api/sync', headers: { authorization: `Bearer ${token}` }, payload });
+  await sync(a, { since: 0, changes: [item('x', 10)], impostazioni: { sessione: { valore: { stato: 'ferma' }, aggiornato: 5 } } });
+  const rb = (await sync(b, { since: 0, changes: [] })).json();
+  assert.equal(rb.items.length, 0);
+  assert.deepEqual(rb.impostazioni, {});
+  // stesso id per un altro utente: non sovrascrive quello del primo
+  await sync(b, { since: 0, changes: [item('x', 99, { titolo: 'Dell\'altro' })] });
+  const ra = (await sync(a, { since: 0, changes: [] })).json();
+  assert.equal(ra.items.length, 1);
+  assert.equal(ra.items[0].titolo, 'Voce x');
+  const rb2 = (await sync(b, { since: 0, changes: [] })).json();
+  assert.equal(rb2.items[0].titolo, 'Dell\'altro');
+  await app.close();
+});
+
+test('migrazione: un database con un solo utente passa al formato multiutente senza perdere dati', async () => {
+  const cartella = fs.mkdtempSync(path.join(os.tmpdir(), 'mytask-migra-'));
+  const file = path.join(cartella, 'mytask.db');
+  // database «vecchio»: voci e impostazioni senza proprietario
+  const { DatabaseSync } = await import('node:sqlite');
+  const vecchio = new DatabaseSync(file);
+  vecchio.exec(`
+    CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, hash TEXT NOT NULL);
+    CREATE TABLE sessions (token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires INTEGER NOT NULL);
+    CREATE TABLE watch_tokens (token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE);
+    CREATE TABLE items (id TEXT PRIMARY KEY, data TEXT NOT NULL, updated INTEGER NOT NULL, seq INTEGER NOT NULL);
+    CREATE INDEX items_seq ON items(seq);
+    CREATE TABLE meta (k TEXT PRIMARY KEY, v INTEGER NOT NULL);
+    CREATE TABLE settings (k TEXT PRIMARY KEY, v TEXT NOT NULL, updated INTEGER NOT NULL);
+    INSERT INTO meta(k, v) VALUES ('seq', 2);
+    INSERT INTO users(email, hash) VALUES ('tu@example.com', 'x');
+  `);
+  vecchio.prepare('INSERT INTO items(id, data, updated, seq) VALUES (?, ?, ?, ?)').run('a', JSON.stringify(item('a', 5)), 5, 1);
+  vecchio.prepare('INSERT INTO items(id, data, updated, seq) VALUES (?, ?, ?, ?)').run('b', JSON.stringify(item('b', 6)), 6, 2);
+  vecchio.prepare('INSERT INTO settings(k, v, updated) VALUES (?, ?, ?)').run('sessione', JSON.stringify({ stato: 'ferma' }), 7);
+  vecchio.close();
+
+  const store = new Store(file);
+  const id = store.getUser('tu@example.com')!.id;
+  assert.equal(store.changesSince(id, 0).length, 2);
+  assert.equal(store.getItem(id, 'b')!.titolo, 'Voce b');
+  assert.equal(store.getSetting(id, 'sessione')!.aggiornato, 7);
+  assert.equal(store.maxSeq(), 2);
+  assert.ok(fs.existsSync(`${file}.prima-multiutente`), 'copia di sicurezza prima della migrazione');
+  // un nuovo utente parte da zero
+  const altro = store.createUser('altro@example.com', 'y');
+  assert.equal(store.changesSince(altro, 0).length, 0);
+  store.close();
+  // riaprendolo non rifà la migrazione e i dati ci sono ancora
+  const di_nuovo = new Store(file);
+  assert.equal(di_nuovo.changesSince(id, 0).length, 2);
+  di_nuovo.close();
+  fs.rmSync(cartella, { recursive: true, force: true });
 });

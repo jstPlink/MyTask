@@ -69,6 +69,20 @@ export async function setAuth(a: Auth) {
   authListeners.forEach((l) => l());
 }
 
+/**
+ * Toglie da questo dispositivo le voci e la coda di invio (non la sessione): serve quando entra un altro account, perché i dati
+ * rimasti sul dispositivo sono dell'account precedente e non devono finire in quello nuovo. Sul server restano all'account di prima.
+ */
+export async function azzeraDatiLocali() {
+  map.clear();
+  dirty.clear();
+  since = 0;
+  await db?.clear('items');
+  await db?.clear('dirty');
+  await db?.put('meta', 0, 'since');
+  rebuild();
+}
+
 export const getSince = () => since;
 export async function setSince(n: number) { since = n; await db?.put('meta', n, 'since'); }
 

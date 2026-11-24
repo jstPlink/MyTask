@@ -40,6 +40,41 @@ export async function login(email: string, password: string): Promise<{ token: s
   return res.json();
 }
 
+/** Lunghezza minima della password di un nuovo account (la stessa del server). */
+export const PASSWORD_MIN = 10;
+
+/** Il server permette di creare nuovi account? Lo dice `/api/health`; senza risposta vale «no». */
+export async function registrazioneAttiva(): Promise<boolean> {
+  try {
+    const res = await fetch(`${apiBase()}/api/health`);
+    if (!res.ok) return false;
+    return !!((await res.json()) as { registrazione?: boolean }).registrazione;
+  } catch {
+    return false;
+  }
+}
+
+/** Crea un nuovo account e fa entrare subito; restituisce il token di sessione. Gli errori hanno messaggi già pronti da mostrare. */
+export async function registra(email: string, password: string): Promise<{ token: string; email: string }> {
+  let res: Response;
+  try {
+    res = await fetch(`${apiBase()}/api/auth/registra`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    throw new ErroreApi(0, 'Nessuna connessione al server');
+  }
+  if (res.status === 403) throw new ErroreApi(403, 'La creazione di nuovi account non è attiva su questo server');
+  if (res.status === 409) throw new ErroreApi(409, 'Esiste già un account con questa email');
+  if (res.status === 429) throw new ErroreApi(429, 'Troppi tentativi, riprova più tardi');
+  if (res.status === 400) {
+    const { error } = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new ErroreApi(400, error === 'password_non_valida' ? `La password deve avere almeno ${PASSWORD_MIN} caratteri` : 'Scrivi un indirizzo email valido');
+  }
+  if (!res.ok) throw new ErroreApi(res.status, `Errore del server (${res.status})`);
+  return res.json();
+}
+
 /** Chiude la sessione sul server (se offline non fa nulla: la sessione scade da sola). */
 export async function logout(): Promise<void> {
   const { token } = getAuth();

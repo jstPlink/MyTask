@@ -15,6 +15,8 @@ export interface Config {
   /** `MYTASK_EMAIL` e `MYTASK_PASSWORD`: servono solo al primo avvio per creare l'unico utente. */
   email: string | undefined;
   password: string | undefined;
+  /** `MYTASK_REGISTRAZIONE=true`: permette a chiunque raggiunga il server di creare un nuovo account dalla pagina di accesso (di base no). */
+  registrazione: boolean;
   /** `TRUST_PROXY=true`: dietro il tunnel Cloudflare, usa l'IP reale del client per il limite ai tentativi di accesso. */
   trustProxy: boolean;
   /** `WEB_DIR`: cartella della web app compilata (di base `web/dist`). */
@@ -33,6 +35,7 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     backupDir: path.resolve(env.BACKUP_DIR ?? path.join(dataDir, 'backups')),
     email: env.MYTASK_EMAIL?.trim().toLowerCase() || undefined,
     password: env.MYTASK_PASSWORD || undefined,
+    registrazione: env.MYTASK_REGISTRAZIONE === 'true',
     trustProxy: env.TRUST_PROXY === 'true',
     corsOrigins: (env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
     webDir: path.resolve(env.WEB_DIR ?? path.join(import.meta.dirname, '..', '..', 'web', 'dist')),

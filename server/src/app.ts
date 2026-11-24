@@ -54,15 +54,26 @@ function itemValido(x: unknown): x is Item {
     && JSON.stringify(x).length <= MAX_ITEM_BYTES;
 }
 
+/** Lunghezza minima e massima della password di un nuovo account. */
+export const PASSWORD_MIN = 10;
+const PASSWORD_MAX = 200;
+
+/** Controllo semplice dell'indirizzo email (qualcosa@dominio.estensione, al massimo 254 caratteri). */
+function emailValida(email: string): boolean {
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 /**
- * Crea il server. Rotte: `GET /api/health` (versione), `POST /api/auth/login` e `/logout`, `GET /api/me`,
+ * Crea il server. Rotte: `GET /api/health` (versione), `POST /api/auth/login`, `/registra` (se `MYTASK_REGISTRAZIONE=true`) e `/logout`, `GET /api/me`,
  * `POST /api/sync` (invia le modifiche, riceve quelle dopo `since`). Tutte tranne health e login richiedono
- * il token `Bearer`. Al primo avvio crea l'unico utente da `MYTASK_EMAIL` e `MYTASK_PASSWORD`.
+ * il token `Bearer`. Al primo avvio crea il primo utente da `MYTASK_EMAIL` e `MYTASK_PASSWORD`; ogni utente vede solo i suoi dati.
  */
 export async function buildApp({ config, store, now = Date.now }: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({ logger: false, trustProxy: config.trustProxy, bodyLimit: 20 * 1024 * 1024 });
   // limite ai tentativi di accesso sbagliati (per IP ed email)
   const limiter = new RateLimiter();
+  // limite alle registrazioni: poche per ora e per IP
+  const limiteRegistrazioni = new RateLimiter(5, 60 * 60 * 1000);
 
   // l'app Android carica la pagina da https://localhost: serve il CORS per parlare con il server
   const origini = new Set(['https://localhost', 'http://localhost', 'capacitor://localhost', ...config.corsOrigins]);
@@ -77,7 +88,7 @@ export async function buildApp({ config, store, now = Date.now }: AppDeps): Prom
     if (req.method === 'OPTIONS') return reply.code(204).send();
   });
 
-  // primo avvio: crea l'unico utente dalle variabili d'ambiente
+  // primo avvio: crea il primo utente dalle variabili d'ambiente
   if (store.countUsers() === 0 && config.email && config.password) {
     store.createUser(config.email, hashPassword(config.password));
   }
@@ -95,7 +106,7 @@ export async function buildApp({ config, store, now = Date.now }: AppDeps): Prom
     return store.findSession(hashToken(h.slice(7)), now());
   }
 
-  app.get('/api/health', async () => ({ ok: true, versione: versioneServer() }));
+  app.get('/api/health', async () => ({ ok: true, versione: versioneServer(), registrazione: config.registrazione }));
 
   app.post('/api/auth/login', async (req, reply) => {
     const body = req.body as { email?: unknown; password?: unknown } | null;
@@ -112,6 +123,23 @@ export async function buildApp({ config, store, now = Date.now }: AppDeps): Prom
     store.createSession(user.id, hashToken(token), now() + SESSIONE_MS);
     store.purgeSessions(now());
     return { token, email: user.email };
+  });
+
+  // nuovo account (solo se abilitato dal gestore del server): crea l'utente e lo fa entrare subito
+  app.post('/api/auth/registra', async (req, reply) => {
+    if (!config.registrazione) return reply.code(403).send({ error: 'registrazione_chiusa' });
+    if (!limiteRegistrazioni.attempt(req.ip, now())) return reply.code(429).send({ error: 'troppi_tentativi' });
+    const body = req.body as { email?: unknown; password?: unknown } | null;
+    const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const password = typeof body?.password === 'string' ? body.password : '';
+    if (!emailValida(email)) return reply.code(400).send({ error: 'email_non_valida' });
+    if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) return reply.code(400).send({ error: 'password_non_valida' });
+    if (store.getUser(email)) return reply.code(409).send({ error: 'email_esistente' });
+    const id = store.createUser(email, hashPassword(password));
+    const token = newToken();
+    store.createSession(id, hashToken(token), now() + SESSIONE_MS);
+    store.purgeSessions(now());
+    return reply.code(201).send({ token, email });
   });
 
   app.post('/api/auth/logout', async (req) => {
@@ -144,18 +172,20 @@ export async function buildApp({ config, store, now = Date.now }: AppDeps): Prom
     return h?.startsWith('Bearer ') ? store.findWatchToken(hashToken(h.slice(7))) : undefined;
   };
   app.get('/api/orologio/stato', async (req, reply) => {
-    if (!autenticaOrologio(req)) return reply.code(401).send({ error: 'non_autenticato' });
+    const o = autenticaOrologio(req);
+    if (!o) return reply.code(401).send({ error: 'non_autenticato' });
     reply.header('cache-control', 'no-store');
-    return statoOrologio(store, now());
+    return statoOrologio(store, o.userId, now());
   });
   app.post('/api/orologio/comando', async (req, reply) => {
-    if (!autenticaOrologio(req)) return reply.code(401).send({ error: 'non_autenticato' });
+    const o = autenticaOrologio(req);
+    if (!o) return reply.code(401).send({ error: 'non_autenticato' });
     const body = req.body as { comando?: unknown; id?: unknown } | null;
     const c = body?.comando;
     if (c !== 'pausa' && c !== 'riprendi' && c !== 'completa') return reply.code(400).send({ error: 'comando_non_valido' });
-    const ok = comandoOrologio(store, c as ComandoOrologio, typeof body?.id === 'string' ? body.id : undefined, now());
+    const ok = comandoOrologio(store, o.userId, c as ComandoOrologio, typeof body?.id === 'string' ? body.id : undefined, now());
     reply.header('cache-control', 'no-store');
-    return { ok, ...statoOrologio(store, now()) };
+    return { ok, ...statoOrologio(store, o.userId, now()) };
   });
 
   app.get('/api/me', async (req, reply) => {
@@ -165,15 +195,16 @@ export async function buildApp({ config, store, now = Date.now }: AppDeps): Prom
   });
 
   app.post('/api/sync', async (req, reply): Promise<SyncResponse | undefined> => {
-    if (!autentica(req)) { reply.code(401).send({ error: 'non_autenticato' }); return undefined; }
+    const utente = autentica(req);
+    if (!utente) { reply.code(401).send({ error: 'non_autenticato' }); return undefined; }
     const body = req.body as Partial<SyncRequest> | null;
     const since = typeof body?.since === 'number' && body.since >= 0 ? body.since : 0;
     const changes = Array.isArray(body?.changes) ? body.changes : [];
     if (!changes.every(itemValido)) { reply.code(400).send({ error: 'voce_non_valida' }); return undefined; }
     if (body?.impostazioni !== undefined && !impostazioniValide(body.impostazioni)) { reply.code(400).send({ error: 'impostazioni_non_valide' }); return undefined; }
-    store.applyChanges(changes);
-    if (body?.impostazioni) store.applySettings(body.impostazioni);
-    return { items: store.changesSince(since), seq: store.maxSeq(), impostazioni: store.allSettings() };
+    store.applyChanges(utente.userId, changes);
+    if (body?.impostazioni) store.applySettings(utente.userId, body.impostazioni);
+    return { items: store.changesSince(utente.userId, since), seq: store.maxSeq(), impostazioni: store.allSettings(utente.userId) };
   });
 
   // interfaccia web (se compilata): file statici e, per ogni altro indirizzo, index.html (l'app gestisce i percorsi)
