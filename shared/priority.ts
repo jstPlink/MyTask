@@ -162,11 +162,28 @@ export const getPesi = (): PesiPunteggio => pesiAttivi;
 /** Cambia i pesi usati da tutto il calcolo delle priorità; senza argomento tornano quelli di base. */
 export function impostaPesi(p: Partial<PesiPunteggio> | undefined) { pesiAttivi = p ? normalizzaPesi(p) : { ...PESI_PREDEFINITI }; }
 
-/** Punteggio 0-100 di un'azione o di un progetto: la somma delle quattro componenti, ognuna per il suo peso (sezione 6.1 della documentazione). */
+/** Da che valore (0-100) una componente comincia a spingere da sola il punteggio, e a quanto arriva quando vale 100. */
+export const SOGLIA_RILIEVO = 50;
+export const PUNTEGGIO_RILIEVO = 80;
+
+/**
+ * Spinta di una componente forte: sotto 50 non fa nulla, da 50 a 100 sale in linea retta fino a 80 punti (cioè rosso). Così basta UN parametro molto alto
+ * (scadenza vicina, importanza massima, nota vecchia, lavoro brevissimo) per rendere la nota rossa, anche se la somma pesata, con i pesi divisi tra
+ * quattro parametri, resterebbe bassa.
+ */
+export const spintaComponente = (c: number): number => Math.max(0, (c - SOGLIA_RILIEVO) / (100 - SOGLIA_RILIEVO)) * PUNTEGGIO_RILIEVO;
+
+/**
+ * Punteggio 0-100 di un'azione o di un progetto: il più alto tra
+ * - la somma delle quattro componenti, ognuna per il suo peso (sezione 6.1 della documentazione), e
+ * - la spinta della componente più forte tra quelle con un peso (`spintaComponente`): un parametro con peso 0 si considera spento e non spinge.
+ */
 export function score(i: Item, today: string): number {
   const c = componentiPunteggio(i, today);
   const w = pesiAttivi;
-  return Math.round(Math.min(100, Math.max(0, w.scadenza * c.scadenza + w.importanza * c.importanza + w.tempo * c.tempo + w.eta * c.eta)));
+  const somma = w.scadenza * c.scadenza + w.importanza * c.importanza + w.tempo * c.tempo + w.eta * c.eta;
+  const spinta = Math.max(...(['scadenza', 'importanza', 'tempo', 'eta'] as const).filter((k) => w[k] > 0.005).map((k) => spintaComponente(c[k])), 0);
+  return Math.round(Math.min(100, Math.max(0, somma, spinta)));
 }
 
 /** Livello 1-3 del pallino dal punteggio: da 60 in su alta (rosso), da 35 media (ambra), altrimenti bassa (grigio). */

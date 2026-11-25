@@ -23,10 +23,10 @@ test('date: differenze, mesi e settimane', () => {
 });
 
 test('punteggio: somma pesata di scadenza, importanza, tempo stimato ed età (45 / 35 / 10 / 10)', () => {
-  assert.equal(score(mk({ importanza: 3, fine: OGGI, sforzoMin: 15 }), OGGI), 73); // 45 + 17,5 + 10 (arrotondato)
+  assert.equal(score(mk({ importanza: 3, fine: OGGI, sforzoMin: 15 }), OGGI), 80); // la somma pesata fa 73, ma la scadenza al massimo spinge a 80
   assert.equal(score(mk({ importanza: 1 }), OGGI), 3); // senza data, importanza minima, tempo non indicato (30 → 3)
-  assert.equal(score(mk({ importanza: 5, sforzoMin: 120 }), OGGI), 35);
-  assert.equal(score(mk({ importanza: 3, fine: OGGI }), OGGI), 66);
+  assert.equal(score(mk({ importanza: 4, sforzoMin: 120 }), OGGI), 40); // somma 26, importanza 4 → spinta 40
+  assert.equal(score(mk({ importanza: 3, fine: OGGI }), OGGI), 80); // somma 66, spinta della scadenza 80
 });
 
 test('punteggio: i pesi si portano a somma 1 e cambiano il risultato', () => {
@@ -45,8 +45,9 @@ test('priorità: importanza alta senza data batte importanza bassa', () => {
 });
 
 test('livello del pallino: dal punteggio, da 60 rosso, da 35 ambra', () => {
-  assert.equal(livelloPriorita(mk({ importanza: 3, fine: OGGI }), OGGI), 3); // 66
-  assert.equal(livelloPriorita(mk({ importanza: 5 }), OGGI), 2); // 38
+  assert.equal(livelloPriorita(mk({ importanza: 3, fine: OGGI }), OGGI), 3); // 80
+  assert.equal(livelloPriorita(mk({ importanza: 5 }), OGGI), 3); // importanza massima: 80
+  assert.equal(livelloPriorita(mk({ importanza: 4 }), OGGI), 2); // 40
   assert.equal(livelloPriorita(mk({ importanza: 3, fine: addDays(OGGI, 5) }), OGGI), 2); // 43
   assert.equal(livelloPriorita(mk({ importanza: 3 }), OGGI), 1); // 21
   assert.equal(livelloPriorita(mk({ importanza: 1 }), OGGI), 1); // 3
@@ -271,8 +272,8 @@ test('game design: la lista è in ordine di priorità e salta archiviate e bozze
 
 test('ordine: segue il punteggio della formula e cambia con i pesi', () => {
   impostaPesi(undefined);
-  const scadeOggi = mk({ importanza: 3, fine: OGGI }); // 66
-  const importante = mk({ importanza: 5 }); // 38
+  const scadeOggi = mk({ importanza: 3, fine: OGGI }); // 80
+  const importante = mk({ importanza: 5 }); // 80, a parità vince la scadenza più vicina
   const k = (i: Item) => chiavePriorita(i, OGGI, NOW);
   assert.ok(k(scadeOggi) > k(importante));
   impostaPesi({ scadenza: 0, importanza: 1, tempo: 0, eta: 0 });
@@ -284,9 +285,9 @@ test('battito legato alla formula: il grigio è fermo, ambra e rosso battono con
   impostaPesi(undefined);
   const b = (x: Item) => intensitaBattito(x, OGGI);
   assert.equal(b(mk({ importanza: 3 })), 0); // 21: grigia, ferma
-  assert.equal(b(mk({ importanza: 5 })), 38); // ambra
-  assert.equal(b(mk({ importanza: 3, fine: OGGI })), 66); // rossa
-  assert.ok(battitoBpm(b(mk({ importanza: 3, fine: OGGI }))) > battitoBpm(b(mk({ importanza: 5 }))));
+  assert.equal(b(mk({ importanza: 4 })), 40); // ambra
+  assert.equal(b(mk({ importanza: 3, fine: OGGI })), 80); // rossa
+  assert.ok(battitoBpm(b(mk({ importanza: 3, fine: OGGI }))) > battitoBpm(b(mk({ importanza: 4 }))));
 });
 
 test('curiosità: il punteggio è 55% tempo stimato e 45% interesse', () => {
@@ -405,4 +406,21 @@ test('curve esponenziali: la scadenza sale piano e poi di colpo, l’età pesa d
   assert.equal(Math.round(curvaEsponenziale(0.5, CURVE_PREDEFINITE.scadenza) * 100), 12);
   // una nota vecchia sale in classifica a parità del resto
   assert.ok(score(nata(60), OGGI) > score(nata(0), OGGI));
+});
+
+test('priorità: un solo parametro molto alto basta per il rosso, anche con i pesi divisi', async () => {
+  const { spintaComponente } = await import('./priority.ts');
+  impostaPesi({ scadenza: 35, importanza: 35, tempo: 10, eta: 10 });
+  const rossa = (i: Item) => livelloPriorita(i, OGGI) === 3;
+  assert.ok(rossa(mk({ importanza: 5 })), 'importanza massima');
+  assert.ok(rossa(mk({ importanza: 1, fine: OGGI })), 'scade oggi');
+  assert.ok(rossa(mk({ importanza: 1, creato: NOW - 70 * 86400000 })), 'nota vecchia di oltre 60 giorni');
+  assert.ok(rossa(mk({ importanza: 1, sforzoMin: 10 })), 'lavoro brevissimo');
+  assert.ok(!rossa(mk({ importanza: 3 })), 'tutto nella media: non è rossa');
+  assert.ok(!rossa(mk({ importanza: 3, sforzoMin: 30 })), 'mezz’ora non basta');
+  assert.equal(spintaComponente(50), 0);
+  assert.equal(spintaComponente(100), 80);
+  impostaPesi({ scadenza: 0, importanza: 1, tempo: 0, eta: 0 });
+  assert.ok(!rossa(mk({ importanza: 1, fine: OGGI })), 'un parametro con peso 0 è spento e non spinge');
+  impostaPesi(undefined);
 });
