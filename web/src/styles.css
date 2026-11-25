@@ -384,7 +384,10 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 
 /* ---------- Blocco di priorità nella scheda di una voce ---------- */
 .prio { --c: var(--soft); --cs: var(--surface2); background: var(--surface); border: 1px solid var(--c); border-radius: 16px; padding: 14px 16px 12px; margin: 6px 0 14px; }
+.prio.p1 { --c: var(--p1); }
+.prio, html[data-stile=base] .prio { background: color-mix(in srgb, var(--c) 12%, var(--surface)); } /* sfondo della targhetta nel colore del livello */
 .prio.p3 { --c: var(--p3); --cs: var(--warn-soft); }
+.title-input::placeholder { color: var(--mid); font-weight: 650; }
 .prio.p2 { --c: var(--p2); --cs: var(--amber-soft); }
 .prio-testa { display: flex; align-items: center; gap: 14px; }
 .prio-n { position: relative; width: 52px; height: 48px; flex: none; padding-right: 5px; color: var(--c); display: grid; place-items: center; }
@@ -399,7 +402,7 @@ select option, select optgroup { background: var(--surface); color: var(--ink); 
 .prio-parti { display: grid; gap: 8px; margin: 14px 0 12px; }
 .prio-riga { display: grid; grid-template-columns: 84px 1fr; gap: 10px; align-items: center; font-size: 12px; color: var(--mid); }
 .prio-bar { height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; }
-.prio-bar i { display: block; height: 100%; background: var(--c); opacity: .85; border-radius: 3px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.prio-bar i { display: block; height: 100%; background: var(--c); opacity: 1; border-radius: 3px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
 .prio-dati { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--mid); }
 
 
@@ -1060,7 +1063,8 @@ html[data-stile=base] .prio-lvl { background: color-mix(in srgb, var(--c) 22%, v
 html[data-stile=base] .prio.p1 .prio-lvl { background: var(--surface2); }
 /* barre della pagina (parti della priorità, tempo in corso): come la barra del tempo nelle righe, contorno e riempimento nel colore del testo */
 html[data-stile=base] .prio-bar, html[data-stile=base] .lv-barra { height: 8px; box-sizing: border-box; border: 1.5px solid var(--ink); border-radius: 4px; background: transparent; }
-html[data-stile=base] .prio-bar i, html[data-stile=base] .lv-barra i { background: var(--ink); opacity: 1; border-radius: 0; }
+html[data-stile=base] .lv-barra i { background: var(--ink); opacity: 1; border-radius: 0; }
+html[data-stile=base] .prio-bar i { background: var(--c); opacity: 1; border-radius: 0; }
 /* stato della nota: schede piatte come le altre, solo la scelta ha il fondo tenue con il contorno; nessuna icona di stato */
 html[data-stile=base] .stati-seg { background: transparent; border: 0; box-shadow: none; padding: 0; gap: 4px; }
 html[data-stile=base] .stati-seg button { border: 1px solid transparent; background: none; box-shadow: none; color: var(--mid); min-height: 36px; font-weight: 600; }
@@ -1075,3 +1079,42 @@ html[data-stile=base][data-theme=dark][data-tinta=grafite] { --bg: #0F0F10; --su
 html[data-stile=base][data-theme=dark][data-tinta=menta] { --bg: #0D1210; --surface: #1A211E; --surface2: #232C28; --line: #2D3833; --ink: #EDF3EF; --mid: #9FB0A7; --soft: #6C7D74; --bordo-campo: #56655D; }
 html[data-stile=base][data-theme=dark][data-tinta=panna] { --bg: #14110D; --surface: #221E18; --surface2: #2D2820; --line: #38322A; --ink: #F5EFE6; --mid: #B3A999; --soft: #80776A; --bordo-campo: #675F53; }
 html[data-stile=base][data-theme=dark][data-tinta=ghiaccio] { --bg: #0D1117; --surface: #19212A; --surface2: #222C37; --line: #2C3846; --ink: #EBF1F8; --mid: #9DAEC0; --soft: #6B7C8F; --bordo-campo: #546374; }
+
+/* Pillole sotto il titolo (scheda della nota, stile A1 dei mockup): tipo e stato con menu a tendina, riempite e senza contorno */
+.sub-pillole { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.scelta-pillola .scelta { margin-left: 0; }
+.scelta-pillola .scelta-menu { right: auto; left: 0; transform-origin: top left; }
+.scelta-btn.pillola-btn { gap: 6px; padding: 5px 11px 5px 10px; border-radius: 999px !important; background: color-mix(in srgb, var(--ink) 11%, var(--surface)) !important; box-shadow: none; font-size: 13px; color: var(--ink); }
+.scelta-btn.pillola-btn b { font-weight: 650; font-size: 13px; }
+.scelta-btn.pillola-btn .scelta-freccia { font-size: 11px; color: inherit; opacity: .7; }
+.scelta-btn.pillola-btn .badge-icona { display: none; } /* la pillola del tipo ha solo il nome; le icone restano nel menu */
+.scelta-btn.pillola-btn .cb { width: 15px; height: 15px; border-radius: 5px; animation: none; }
+.scelta-btn.pillola-btn.st-prog { background: color-mix(in srgb, var(--accent) 20%, var(--surface)) !important; color: var(--accent); }
+.scelta-btn.pillola-btn.st-prog b { color: var(--accent); }
+.scelta-btn.pillola-btn.st-pausa { background: color-mix(in srgb, var(--giallo) 24%, var(--surface)) !important; }
+.scelta-btn.pillola-btn.st-pausa b { color: var(--giallo); }
+.scelta-btn.pillola-btn.st-fatto { background: color-mix(in srgb, var(--accent) 20%, var(--surface)) !important; }
+.scelta-btn.pillola-btn.st-fatto b { color: var(--accent); }
+.scelta-pillola .scelta-menu .cb { width: 18px; height: 18px; border-radius: 6px; animation: none; flex: none; }
+
+/* ora del promemoria (e data) allineate a destra come gli altri campi */
+.field input[type=time], .field input[type=date] { text-align: right; }
+.field input[type=time]::-webkit-datetime-edit, .field input[type=date]::-webkit-datetime-edit { margin-left: auto; }
+.field input[type=time]::-webkit-date-and-time-value { text-align: right; }
+
+/* targhetta della priorità: in cima alla scheda, sopra il titolo */
+.prio-alto { padding: 4px 18px 0; background: var(--bg); }
+.prio-alto .prio { margin: 4px 0 6px; }
+.shell .prio-alto { padding: 4px max(22px, calc((100% - var(--colonna)) / 2)) 0; }
+
+/* blocco di titolo, tipo e stato in cima alla scheda: stesso riquadro dei gruppi sotto */
+.blocco-titolo { padding: 14px 16px 16px; margin-top: 8px; }
+.title-input { display: block; width: 100%; background: none; border: 0; outline: 0; padding: 20px 0 22px; /* il testo sta al centro dello spazio vuoto sopra e sotto */ margin: 0; color: var(--ink); font: inherit; font-size: 26px; font-weight: 750; letter-spacing: -.015em; line-height: 1.15; text-overflow: ellipsis; }
+.blocco-titolo .sub-pillole { margin-top: 0; }
+
+/* grafico delle curve esponenziali (Bilanciatore della priorità) */
+.curva-grafico { display: block; width: 100%; max-width: 320px; height: auto; margin: 6px 0 2px; }
+.curva-box { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+.curva-retta { stroke: var(--soft); stroke-width: 1; stroke-dasharray: 3 3; }
+.curva-linea { fill: none; stroke: var(--giallo); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.curva-assi { display: flex; justify-content: space-between; max-width: 320px; font-size: 11px; color: var(--mid); margin-bottom: 4px; }

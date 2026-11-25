@@ -25,7 +25,7 @@ export function Login() {
   const [ripeti, setRipeti] = useState('');
   const [consentita, setConsentita] = useState(false);
   useEffect(() => { if (!nativa) void registrazioneAttiva().then(setConsentita); }, [nativa]);
-  const puoCreare = nativa || consentita;
+  const puoCreare = nativa || consentita || import.meta.env.DEV; // in sviluppo locale il pulsante c'è sempre (se il server è chiuso, risponde con un messaggio)
 
   async function entra(e: FormEvent) {
     e.preventDefault();
@@ -60,7 +60,6 @@ export function Login() {
   return (
     <form className="login" onSubmit={entra}>
       <div className="login-brand"><i aria-hidden="true" />MyTask</div>
-      <div className="login-sub">{nuovo ? 'Crea un account per sincronizzare le tue cose da fare.' : 'Accedi per sincronizzare le tue cose da fare.'}</div>
       {nativa && (
         <div className="login-server">
           <select value={schema} onChange={(e) => setSchema(e.target.value as Schema)} aria-label="Protocollo">

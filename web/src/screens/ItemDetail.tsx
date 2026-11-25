@@ -4,8 +4,9 @@
  * schermata corrente (il contenuto è lo stesso).
  *
  * Il salvataggio è automatico (mezzo secondo dopo l'ultima modifica e all'uscita). Dall'alto in basso:
- * selettore dello stato, blocco della priorità, titolo e tipo, poi i gruppi di campi del tipo scelto
- * (vedi sotto), note e allegati, cronologia, riepilogo di ciò che è stato completato, Elimina.
+ * blocco della priorità (barre nel colore del livello), poi i gruppi di campi del tipo
+ * scelto (vedi sotto), note e allegati, cronologia, riepilogo di ciò che è stato completato, Elimina.
+ * Titolo, tipo e stato stanno nella barra in alto (titolo da scrivere, tipo e stato come pillole con menu); una nota dell'Inbox aperta diventa di base un'attività.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NOMI_FASCIA, NOMI_TIPO, TIPI_INTRATTENIMENTO, type Fascia, type Item, type TipoData, type Tipo, type VoceChecklist } from '../../../shared/types.ts';
@@ -59,7 +60,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const tutte = useItems();
   const flatStile = useAspetto().stile === 'base';
   const iniziale = useMemo<Item>(() => (id && getItem(id)) || nuovaVoce({ tipo: nuovo?.tipo ?? 'azione', titolo: '', ...nuovo }), []); // eslint-disable-line react-hooks/exhaustive-deps
-  const [d, setD] = useState<Item>(iniziale);
+  // Una nota non assegnata (Inbox) che si apre diventa di base un'attività da fare; sarà l'utente a convertirla in altro.
+  const [d, setD] = useState<Item>(() => (iniziale.tipo === 'nota' ? { ...iniziale, tipo: 'azione', inbox: undefined, importanza: iniziale.importanza ?? 3 } : iniziale));
   const ultimoSalvato = useRef<string>(id && getItem(id) ? JSON.stringify(iniziale) : '');
   const ref = useRef(d);
   ref.current = d;
@@ -83,6 +85,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   useEffect(() => () => salva(ref.current), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const up = (p: Partial<Item>) => setD((x) => ({ ...x, ...p }));
+  // «Ripeti finché non spunto» è sempre acceso: anche le note con un promemoria impostato in passato lo prendono quando si aprono.
+  useEffect(() => { if (d.promemoriaGiornaliero && !d.insisti) up({ insisti: { ogniMinuti: 1440 } }); }, [d.promemoriaGiornaliero, d.insisti]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // La voce può cambiare stato fuori da questa scheda (casella della riga, finestra del voto): la scheda ne segue
   // stato e dati di completamento senza perdere ciò che si sta scrivendo.
@@ -174,7 +178,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
     return posizionePriorita(tutte, withTemp(d), oggi);
   }, [tutte, oggi, d, puntegg]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const comp = componentiPunteggio(withTemp(d), oggi); // le tre componenti del punteggio (scadenza, importanza, tempo stimato), 0-100
+  const comp = componentiPunteggio(withTemp(d), oggi); // le quattro componenti del punteggio (scadenza, importanza, tempo stimato, età), 0-100
   const livello = puntegg !== undefined ? livelloPriorita(withTemp(d), oggi) : 1;
 
   /** La voce con importanza e scadenza prese dal progetto, se non le ha proprie. */
@@ -197,7 +201,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const cambiaData = (v: string) => {
     if (!v) { up({ inizio: undefined, fine: undefined, rigida: undefined, oraInizio: undefined, oraFine: undefined, tipoData: undefined, promemoriaGiornaliero: undefined, insisti: undefined }); return; }
     const prima = !d.inizio && t !== 'esperienza';
-    up({ inizio: v, rigida: undefined, ...(prima ? { promemoriaGiornaliero: { giorniPrima: 7, ora: '09:00' }, insisti: d.insisti ?? { ogniMinuti: 1440 } } : {}) });
+    up({ inizio: v, rigida: undefined, ...(prima ? { promemoriaGiornaliero: { giorniPrima: 7, ora: '07:00' }, insisti: { ogniMinuti: 1440 } } : {}) });
   };
   const cambiaTipoData = (td: TipoData) => up({ tipoData: td, ...(d.promemoriaGiornaliero ? { promemoriaGiornaliero: { ...d.promemoriaGiornaliero, giorniPrima: td === 'fissa' ? 0 : 7 } } : {}) });
 
@@ -217,24 +221,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   return (
     <>
       <Back label={nuovo && !id ? 'Annulla' : 'Indietro'} />
-      <Top
-        title={d.titolo || 'Nuova voce'}
-        sub={NOMI_TIPO[t]}
-        right={d.inbox ? <span className="badge">Da smistare</span> : undefined}
-      />
-      <div className="scroll">
-        {/* Stato: solo per voci già salvate, escluse routine (si spuntano per giorno) e bozze non assegnate */}
-        {getItem(d.id) && t !== 'routine' && t !== 'nota' && t !== 'progetto' && ( // lo stato di un progetto dipende dalle note sotto: niente barra dello stato
-          <div className="stati-seg" role="tablist" aria-label="Stato della nota">
-            {STATI_NOTA.map((s) => (
-              <button key={s.id} role="tab" aria-selected={statoVisto(d.stato) === s.id}
-                className={clsx(statoVisto(d.stato) === s.id && 'on', s.id === 'in_corso' && 'prog', s.id === 'in_pausa' && 'pausa-t', s.id === 'fatto' && 'fatto')}
-                onClick={() => { salva(d); cambiaStato(getItem(d.id) ?? d, s.id); }}>
-                <span className={clsx('cb', ClasseCasella(s.id))} aria-hidden="true" />{s.nome}
-              </button>
-            ))}
-          </div>
-        )}
+      <div className="prio-alto">
         {/* Blocco della priorità: posizione in classifica, livello e, se aperto, il peso di ciascun parametro */}
         {puntegg !== undefined && d.stato !== 'fatto' && (
           <div className={clsx('prio', `p${livello}`, prioAperta && 'aperta')} aria-label={`Priorità ${['', 'bassa', 'media', 'alta'][livello]}, ${posizione.pos}ª da fare su ${posizione.tot}`}>
@@ -250,7 +237,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <div className="prio-corpo" id="prio-dettagli" aria-hidden={!prioAperta} inert={!prioAperta}>
               <div className="prio-corpo-in">
             <div className="prio-parti">
-              {([['Data di scadenza', comp.scadenza], ['Importanza', comp.importanza], ['Tempo stimato', comp.tempo]] as const).map(([nome, v]) => (
+              {([['Data di scadenza', comp.scadenza], ['Importanza', comp.importanza], ['Tempo stimato', comp.tempo], ['Età', comp.eta]] as const).map(([nome, v]) => (
                 <div key={nome} className="prio-riga"><span>{nome}</span><div className="prio-bar" aria-hidden="true"><i style={{ width: `${v}%` }} /></div></div>
               ))}
             </div>
@@ -264,18 +251,28 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             </div>
           </div>
         )}
-
-        <Gruppo>
-          <Field label="Titolo"><input value={d.titolo} placeholder="Cosa?" autoFocus={!id} onChange={(e) => up({ titolo: e.target.value })} /></Field>
-          <Scelta label="Tipo" valore={gruppoDi(t)}
+      </div>
+      <div className="scroll">
+        {/* Titolo, tipo e stato: un blocco come quelli sotto */}
+        <section className="gruppo blocco-titolo">
+          <input className="title-input" value={d.titolo} placeholder="Cosa?" aria-label="Titolo" autoFocus={!id} onChange={(e) => up({ titolo: e.target.value })} />
+          <div className="sub-pillole">
+          <Scelta pillola label="Tipo" valore={gruppoDi(t)}
             onChange={(g) => cambiaTipo(g === 'intrattenimento' ? (IS_INTRATT(t) ? t : 'film') : (g as Tipo))}
             voci={(GRUPPI_TIPO.includes(gruppoDi(t)) ? GRUPPI_TIPO : [...GRUPPI_TIPO, gruppoDi(t)]).map((g) => ({ id: g, nome: NOMI_GRUPPO[g], icona: <BadgeTipo tipo={g === 'intrattenimento' ? 'film' : (g as Tipo)} /> }))} />
           {IS_INTRATT(t) && (
-            <Scelta label="Sezione" valore={t} onChange={cambiaTipo}
+            <Scelta pillola label="Sezione" valore={t} onChange={cambiaTipo}
               voci={TIPI_INTRATTENIMENTO.map((x) => ({ id: x, nome: NOMI_TIPO[x], icona: <BadgeTipo tipo={x} /> }))} />
           )}
-        </Gruppo>
-
+          {/* Stato: solo per voci già salvate, escluse routine (si spuntano per giorno), bozze non assegnate e progetti (lo stato dipende dalle note sotto) */}
+          {getItem(d.id) && t !== 'routine' && t !== 'nota' && t !== 'progetto' && (
+            <Scelta pillola label="Stato" valore={statoVisto(d.stato)}
+              classe={clsx(statoVisto(d.stato) === 'in_corso' && 'st-prog', statoVisto(d.stato) === 'in_pausa' && 'st-pausa', statoVisto(d.stato) === 'fatto' && 'st-fatto')}
+              onChange={(id) => { salva(d); cambiaStato(getItem(d.id) ?? d, id); }}
+              voci={STATI_NOTA.map((x) => ({ id: x.id, nome: x.nome, icona: <span className={clsx('cb', ClasseCasella(x.id))} aria-hidden="true" /> }))} />
+          )}
+          </div>
+        </section>
         {/* Attività, progetto, esperienza: progetto di appartenenza, data e scadenza fissa, importanza o interesse, tempo stimato, luogo, promemoria */}
         {IS_DATATO(t) && (
           <Gruppo titolo={NOMI_TIPO[t]}>
@@ -328,7 +325,8 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             {t === 'azione' && (d.sforzoMin || suggerita) && (
               <div className="t2" style={{ padding: '6px 0 10px' }}>
                 {d.sforzoMin ? (
-                  <>Margine <Margine valore={margine} />: {margine > 0 ? 'conviene aggiungere tempo, in conto circa' : margine < 0 ? 'di solito stimi più del necessario, in conto circa' : 'in conto circa'} <b>{nomeTempo(tempoAtteso(d.sforzoMin, margine))}</b>.</>
+                  <>{Math.round(margine * 100) > 0 ? 'Aumenta' : Math.round(margine * 100) < 0 ? 'Riduci' : 'Stima giusta'}{Math.round(margine * 100) !== 0 && <> la stima del <Margine valore={margine} solo /></>}
+                    {' '}(Circa <b>{nomeTempo(tempoAtteso(d.sforzoMin, margine))}</b>)</>
                 ) : suggerita && (
                   <>
                     Stima suggerita da {suggerita.campioni} {suggerita.campioni === 1 ? 'attività simile' : 'attività simili'}: <b>{nomeTempo(suggerita.minuti)}</b> <Margine valore={suggerita.margine} />{' '}
@@ -354,7 +352,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
           <Gruppo titolo="Promemoria">
             <Field label={tipoDataDi(d) === 'fissa' ? 'Ricordamelo dal giorno' : 'Ricordamelo ogni giorno'}>
               <Toggle on={!!d.promemoriaGiornaliero} label="Notifica quotidiana"
-                onChange={(v) => up({ promemoriaGiornaliero: v ? { giorniPrima: tipoDataDi(d) === 'fissa' ? 0 : 7, ora: '09:00' } : undefined })} />
+                onChange={(v) => up(v ? { promemoriaGiornaliero: { giorniPrima: tipoDataDi(d) === 'fissa' ? 0 : 7, ora: '07:00' }, insisti: { ogniMinuti: 1440 } } : { promemoriaGiornaliero: undefined, insisti: undefined })} />
             </Field>
             {d.promemoriaGiornaliero && (
               <>
@@ -365,13 +363,14 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
                     </select>
                   </Field>
                 )}
-                <Field label="Alle"><input type="time" value={d.promemoriaGiornaliero.ora} onChange={(e) => up({ promemoriaGiornaliero: { ...d.promemoriaGiornaliero!, ora: e.target.value || '09:00' } })} /></Field>
-                <div className="nota-verde">
-                  Da {formatLong(inizioPromemoria(d)!).toLowerCase()} una notifica al giorno {d.insisti ? 'fino a quando non la spunti' : tipoDataDi(d) === 'fissa' ? 'solo quel giorno' : 'fino alla scadenza'}.
-                </div>
+                <Field label="Alle"><input type="time" value={d.promemoriaGiornaliero.ora} onChange={(e) => up({ promemoriaGiornaliero: { ...d.promemoriaGiornaliero!, ora: e.target.value || '07:00' } })} /></Field>
               </>
             )}
-            <Field label="Ripeti finché non spunto"><Toggle on={!!d.insisti} label="Ripeti il promemoria" onChange={(v) => up({ insisti: v ? { ogniMinuti: 1440 } : undefined })} /></Field>
+            {d.promemoriaGiornaliero && (
+              <div className="nota-verde">
+                Da {formatLong(inizioPromemoria(d)!).toLowerCase()} una notifica al giorno fino a quando non la spunti.
+              </div>
+            )}
           </Gruppo>
         )}
 

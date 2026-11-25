@@ -22,20 +22,20 @@ test('date: differenze, mesi e settimane', () => {
   assert.equal(formatShort('2026-10-21'), '21 ott');
 });
 
-test('punteggio: somma pesata di scadenza, importanza e tempo stimato (50 / 40 / 10)', () => {
-  assert.equal(score(mk({ importanza: 3, fine: OGGI, sforzoMin: 15 }), OGGI), 80); // 50 + 20 + 10
+test('punteggio: somma pesata di scadenza, importanza, tempo stimato ed età (45 / 35 / 10 / 10)', () => {
+  assert.equal(score(mk({ importanza: 3, fine: OGGI, sforzoMin: 15 }), OGGI), 73); // 45 + 17,5 + 10 (arrotondato)
   assert.equal(score(mk({ importanza: 1 }), OGGI), 3); // senza data, importanza minima, tempo non indicato (30 → 3)
-  assert.equal(score(mk({ importanza: 5, sforzoMin: 120 }), OGGI), 40);
-  assert.equal(score(mk({ importanza: 3, fine: OGGI }), OGGI), 73);
+  assert.equal(score(mk({ importanza: 5, sforzoMin: 120 }), OGGI), 35);
+  assert.equal(score(mk({ importanza: 3, fine: OGGI }), OGGI), 66);
 });
 
 test('punteggio: i pesi si portano a somma 1 e cambiano il risultato', () => {
-  assert.deepEqual(normalizzaPesi({ scadenza: 2, importanza: 1, tempo: 1 }), { scadenza: 0.5, importanza: 0.25, tempo: 0.25 });
-  assert.deepEqual(normalizzaPesi({ scadenza: 0, importanza: 0, tempo: 0 }), PESI_PREDEFINITI, 'tutti a zero: tornano quelli di base');
+  assert.deepEqual(normalizzaPesi({ scadenza: 2, importanza: 1, tempo: 1, eta: 0 }), { scadenza: 0.5, importanza: 0.25, tempo: 0.25, eta: 0 });
+  assert.deepEqual(normalizzaPesi({ scadenza: 0, importanza: 0, tempo: 0, eta: 0 }), PESI_PREDEFINITI, 'tutti a zero: tornano quelli di base');
   const x = mk({ importanza: 5, fine: addDays(OGGI, 10), sforzoMin: 120 });
-  impostaPesi({ scadenza: 1, importanza: 0, tempo: 0 });
-  assert.equal(score(x, OGGI), 35); // solo la scadenza (entro 30 giorni)
-  impostaPesi({ scadenza: 0, importanza: 1, tempo: 0 });
+  impostaPesi({ scadenza: 1, importanza: 0, tempo: 0, eta: 0 });
+  assert.equal(score(x, OGGI), 25); // solo la scadenza: a 10 giorni la curva esponenziale vale 25
+  impostaPesi({ scadenza: 0, importanza: 1, tempo: 0, eta: 0 });
   assert.equal(score(x, OGGI), 100); // solo l'importanza
   impostaPesi(undefined);
 });
@@ -45,10 +45,10 @@ test('priorità: importanza alta senza data batte importanza bassa', () => {
 });
 
 test('livello del pallino: dal punteggio, da 60 rosso, da 35 ambra', () => {
-  assert.equal(livelloPriorita(mk({ importanza: 3, fine: OGGI }), OGGI), 3); // 73
-  assert.equal(livelloPriorita(mk({ importanza: 5 }), OGGI), 2); // 43
-  assert.equal(livelloPriorita(mk({ importanza: 2, fine: addDays(OGGI, 5) }), OGGI), 2); // 43
-  assert.equal(livelloPriorita(mk({ importanza: 3 }), OGGI), 1); // 23
+  assert.equal(livelloPriorita(mk({ importanza: 3, fine: OGGI }), OGGI), 3); // 66
+  assert.equal(livelloPriorita(mk({ importanza: 5 }), OGGI), 2); // 38
+  assert.equal(livelloPriorita(mk({ importanza: 3, fine: addDays(OGGI, 5) }), OGGI), 2); // 43
+  assert.equal(livelloPriorita(mk({ importanza: 3 }), OGGI), 1); // 21
   assert.equal(livelloPriorita(mk({ importanza: 1 }), OGGI), 1); // 3
 });
 
@@ -271,11 +271,11 @@ test('game design: la lista è in ordine di priorità e salta archiviate e bozze
 
 test('ordine: segue il punteggio della formula e cambia con i pesi', () => {
   impostaPesi(undefined);
-  const scadeOggi = mk({ importanza: 3, fine: OGGI }); // 73
-  const importante = mk({ importanza: 5 }); // 43
+  const scadeOggi = mk({ importanza: 3, fine: OGGI }); // 66
+  const importante = mk({ importanza: 5 }); // 38
   const k = (i: Item) => chiavePriorita(i, OGGI, NOW);
   assert.ok(k(scadeOggi) > k(importante));
-  impostaPesi({ scadenza: 0, importanza: 1, tempo: 0 });
+  impostaPesi({ scadenza: 0, importanza: 1, tempo: 0, eta: 0 });
   assert.ok(k(importante) > k(scadeOggi));
   impostaPesi(undefined);
 });
@@ -283,9 +283,9 @@ test('ordine: segue il punteggio della formula e cambia con i pesi', () => {
 test('battito legato alla formula: il grigio è fermo, ambra e rosso battono con il punteggio', () => {
   impostaPesi(undefined);
   const b = (x: Item) => intensitaBattito(x, OGGI);
-  assert.equal(b(mk({ importanza: 3 })), 0); // 23: grigia, ferma
-  assert.equal(b(mk({ importanza: 5 })), 43); // ambra
-  assert.equal(b(mk({ importanza: 3, fine: OGGI })), 73); // rossa
+  assert.equal(b(mk({ importanza: 3 })), 0); // 21: grigia, ferma
+  assert.equal(b(mk({ importanza: 5 })), 38); // ambra
+  assert.equal(b(mk({ importanza: 3, fine: OGGI })), 66); // rossa
   assert.ok(battitoBpm(b(mk({ importanza: 3, fine: OGGI }))) > battitoBpm(b(mk({ importanza: 5 }))));
 });
 
@@ -339,7 +339,7 @@ test('date fisse: la priorità non sale con la distanza, il giorno stesso è al 
   assert.equal(urgency(f('2026-10-16'), OGGI), 60);
   assert.equal(urgency(f(OGGI), OGGI), 100);
   assert.equal(urgency(f('2026-10-10'), OGGI), 100);
-  assert.equal(urgency(mk({ inizio: '2026-10-20' }), OGGI), 60); // a scadenza resta com'è
+  assert.equal(urgency(mk({ inizio: '2026-10-20' }), OGGI), 50); // a scadenza: curva esponenziale (5 giorni → 50)
 });
 
 test('notifiche: una al giorno, a scadenza da N giorni prima e con la data fissa dal giorno stesso, finché non è spuntata', async () => {
@@ -385,4 +385,24 @@ test('in arrivo: una data fissa futura sta fuori dalla classifica e compare solo
   assert.ok(stesso.fare.some((e) => e.item.titolo === 'Dentista'));
   assert.equal(stesso.inArrivo.length, 0);
   assert.ok(classificaPriorita([mk({ titolo: 'Scade', inizio: '2026-10-20' })], OGGI, NOW).size === 1);
+});
+
+test('curve esponenziali: la scadenza sale piano e poi di colpo, l’età pesa di più con le note vecchie', async () => {
+  const { urgency, puntiEta, curvaEsponenziale, impostaCurve, CURVE_PREDEFINITE } = await import('./priority.ts');
+  impostaCurve(undefined);
+  const s = (g: number) => urgency(mk({ fine: addDays(OGGI, g) }), OGGI);
+  assert.equal(s(0), 100);
+  assert.equal(s(31), 0, 'oltre 30 giorni non fa fretta');
+  assert.ok(s(1) > s(3) && s(3) > s(7) && s(7) > s(15) && s(15) > s(29));
+  assert.ok(s(1) - s(3) < s(15) - s(29) + 40 && s(15) < 15, 'a metà strada vale poco: la curva è esponenziale, non una retta');
+  impostaCurve({ scadenza: 0, eta: 0 });
+  assert.equal(s(15), 50, 'curvatura 0: retta');
+  impostaCurve(undefined);
+  const nata = (giorni: number) => mk({ creato: NOW - giorni * 86400000 });
+  assert.equal(puntiEta(nata(0), OGGI), 0);
+  assert.equal(puntiEta(nata(60), OGGI), 100);
+  assert.ok(puntiEta(nata(30), OGGI) < 30 && puntiEta(nata(45), OGGI) > puntiEta(nata(30), OGGI), 'esponenziale: a 30 giorni vale poco');
+  assert.equal(Math.round(curvaEsponenziale(0.5, CURVE_PREDEFINITE.scadenza) * 100), 12);
+  // una nota vecchia sale in classifica a parità del resto
+  assert.ok(score(nata(60), OGGI) > score(nata(0), OGGI));
 });

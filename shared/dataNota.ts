@@ -16,7 +16,7 @@ export function inizioPromemoria(i: Item): string | undefined {
 }
 
 /** Ora (HH:MM) delle notifiche quotidiane: quella scelta nel promemoria, altrimenti le 9:00. */
-export const oraNotifica = (i: Item): string => i.promemoriaGiornaliero?.ora ?? '09:00';
+export const oraNotifica = (i: Item): string => i.promemoriaGiornaliero?.ora ?? '07:00';
 
 /**
  * Se `giorno` ha una notifica quotidiana: dal giorno di inizio alla data (il promemoria «Ricordamelo ogni giorno»), poi ogni giorno dopo la data

@@ -17,12 +17,14 @@ import { etichettaData } from '../../../shared/dataNota.ts';
 import { formatShortYear } from '../../../shared/dates.ts';
 
 /** Intestazione di una schermata: titolo, sottotitolo grigio e, a destra, un elemento libero (di solito i pulsanti tondi). */
-export function Top({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
+export function Top({ title, sub, subNode, right, onTitle, placeholder, autoFocus }: { title: string; sub?: string; subNode?: ReactNode; right?: ReactNode; onTitle?: (t: string) => void; placeholder?: string; autoFocus?: boolean }) {
   return (
     <div className="top">
-      <div style={{ minWidth: 0 }}>
-        <div className="title">{title}</div>
-        {sub && <div className="sub">{sub}</div>}
+      <div style={{ minWidth: 0, flex: 1 }}>
+        {onTitle
+          ? <input className="title title-input" value={title} placeholder={placeholder} aria-label="Titolo" autoFocus={autoFocus} onChange={(e) => onTitle(e.target.value)} />
+          : <div className="title">{title}</div>}
+        {subNode ? <div className="sub sub-pillole">{subNode}</div> : sub && <div className="sub">{sub}</div>}
       </div>
       {right}
     </div>
@@ -364,8 +366,9 @@ export function ImportanzaDoppia({ valore, onChange, label }: { valore?: number;
 }
 
 /** Margine delle stime con segno: il colore dice quanto è giusta la stima, vicino a zero è bene (verde fino a ±15%, ambra fino a ±30%, rosso oltre). */
-export function Margine({ valore }: { valore: number }) {
-  return <span className={clsx('mg', `mg-${livelloMargine(valore)}`)}>{percentuale(valore)}</span>;
+export function Margine({ valore, solo }: { valore: number; solo?: boolean }) {
+  // `solo`: la sola cifra («20%»), senza segno, per le frasi «Aumenta/Riduci la stima del 20%»
+  return <span className={clsx('mg', `mg-${livelloMargine(valore)}`)}>{solo ? percentuale(valore).replace(/^[+−]/, '') : percentuale(valore)}</span>;
 }
 
 /** Unisce i pezzi della riga grigia con « · » (accetta anche elementi, non solo testo). */
@@ -432,7 +435,8 @@ interface VoceScelta<T extends string> { id: T; nome: string; icona: ReactNode |
  * Tendina con icona per ogni voce, al posto del select del browser. Il menu aperto è un livello della pila:
  * "indietro" lo chiude senza lasciare la schermata; chiude anche un tocco fuori o Esc.
  */
-export function Scelta<T extends string>({ label, valore, voci, onChange }: { label: string; valore: T; voci: VoceScelta<T>[]; onChange: (v: T) => void }) {
+/** `pillola`: la tendina senza riga di campo, come pillola (sotto il titolo); `classe` ne tinge lo sfondo (es. lo stato). */
+export function Scelta<T extends string>({ label, valore, voci, onChange, pillola, classe }: { label: string; valore: T; voci: VoceScelta<T>[]; onChange: (v: T) => void; pillola?: boolean; classe?: string }) {
   const [aperto, setAperto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   // un livello per ogni tendina: due tendine nella stessa scheda (Tipo e Sezione) non devono chiudersi a vicenda
@@ -448,10 +452,10 @@ export function Scelta<T extends string>({ label, valore, voci, onChange }: { la
   }, [aperto]);
   const corrente = voci.find((v) => v.id === valore) ?? voci[0];
   return (
-    <div className="field scelta-field" ref={ref}>
-      <span>{label}</span>
+    <div className={pillola ? 'scelta-pillola' : 'field scelta-field'} ref={ref}>
+      {!pillola && <span>{label}</span>}
       <div className="scelta">
-        <button type="button" className="scelta-btn" aria-haspopup="listbox" aria-expanded={aperto} aria-label={`${label}: ${corrente?.nome}`} onClick={() => setAperto(!aperto)}>
+        <button type="button" className={clsx('scelta-btn', pillola && 'pillola-btn', classe)} aria-haspopup="listbox" aria-expanded={aperto} aria-label={`${label}: ${corrente?.nome}`} onClick={() => setAperto(!aperto)}>
           {corrente?.icona}<b>{corrente?.nome}</b><span className="scelta-freccia" aria-hidden="true">▾</span>
         </button>
         {aperto && (
