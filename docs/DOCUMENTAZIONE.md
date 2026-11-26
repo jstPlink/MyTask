@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.129.0
+- **Versione documento:** 0.130.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -39,7 +39,7 @@ Un'app personale, mirata e veloce, per raccogliere idee, cose da fare, cose da v
 | **Curiosità** | Cose da approfondire |
 | **Routine** | Abitudini quotidiane o settimanali |
 | **Inbox** | Note catturate al volo, ancora da smistare |
-| **Altro** | Archiviate, Completato, Bilanciatore della priorità, Aspetto, Account |
+| **Impostazioni** (pallino con i tre puntini sul telefono, voce in fondo alla barra laterale su sito e computer) | Note archiviate, Note completate, Aspetto, Notifica del timer, Account (senza «Sincronizza ora»), Bilanciatore della priorità, Bilanciatore del margine, Versione (si tocca per aggiornare se il server ne ha una più nuova) |
 
 ### 2.1 Telefono (colonna singola)
 
@@ -197,6 +197,7 @@ Le abitudini non sono task: non scadono e non finiscono (sezione 6.7). Una sezio
 
 ### 3.7 Altro e impostazioni
 
+- **Bilanciatore del margine** (`PesiMargine`, calcolo in `shared/stima.ts`, `ParametriMargine`): per l’**età**, la **lunghezza** e l’**errore rispetto al previsto** un peso (0-200%, di base 100%) e una curva con grafico (la tratteggiata è quella di base): giorni dopo cui il margine vecchio si dimezza (3-120, di base 21), curvatura della lunghezza (0-1,5, di base 0,5) e tolleranza dell’errore (5-100%, di base 25%). Con i valori di base il calcolo è quello di sempre; con peso 0 il fattore non conta. Si salva e si sincronizza con la chiave `bilanciatoreMargine` (`web/src/lib/pesiMargine.ts`). Sotto, il margine risultante, il peso delle ultime 15 note e il collegamento allo «Storico del margine» (che si apre anche dalla targhetta in Priorità).
 - **Bilanciatore della priorità** (`PesiPriorita`, etichetta «Sperimentale»): quattro cursori, **data di scadenza**, **importanza**, **tempo stimato** ed **età** (pesi riportati a somma 100%, di base 45/35/10/10), due **curve** (scadenza ed età) con il grafico e il cursore della curvatura, il pulsante «Ripristina pesi e curve di base» e l'anteprima delle prime 15 attività con il loro punteggio; si sincronizzano (chiave `bilanciatore`) e cambiano subito ordine, colori, battito e widget (6.1).
 - **Aspetto:** sezione 2.3.
 - **Account:** email, ultima sincronizzazione (lo stato compare solo se si è offline, si sta sincronizzando o ci sono modifiche da inviare: non c'è più «Tutto sincronizzato»), riepilogo delle voci locali (totale con aperte / completate / archiviate, conteggio per tipo e possibili doppioni, cioè voci dello stesso tipo e titolo a parità di progetto; il totale comprende tutto, anche completate, archiviate e passi dei progetti), versione dell'app e del server (con avviso se diverse), «Sincronizza ora», esci. Non ci sono esportazione e importazione JSON.
@@ -676,6 +677,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-25 | 0.127.0 | **Un parametro forte basta per il rosso:** il punteggio è il più alto tra la somma pesata e la «spinta» della componente più forte (sotto 50 nulla, da 50 a 100 fino a 80 punti), così importanza 5, scade oggi, nota vecchia di 60 giorni o attività brevissima diventano rosse anche con pesi bilanciati |
 | 2026-11-26 | 0.128.0 | **Curiosità senza parametri:** tolti dalla scheda interesse e tempo stimato (i valori vecchi restano nei dati, nascosti anche nelle righe, nella schermata «in corso», nel widget e sull'orologio; niente più confronto col tempo reale al completamento); tutte le righe hanno la stessa targhetta verde con «?»; in Priorità cinque curiosità **a caso**, che cambiano ogni 6 ore (0, 6, 12, 18); nella scheda Curiosità le più recenti prima |
 | 2026-11-26 | 0.129.0 | **Desktop e orologio:** nella barra laterale del sito e dell'app per computer le voci «Bilanciatore priorità» e «Storico del margine»; mini-app dell'orologio 1.0.6 con l'anello a cerchio completo per le note senza stima o fuori tempo. |
+| 2026-11-26 | 0.130.0 | **Impostazioni e bilanciatore del margine:** la pagina «Altro» diventa «Impostazioni» (pallino con i tre puntini sul telefono, unica voce in fondo alla barra laterale su sito e computer) con note archiviate e completate, Aspetto, Notifica del timer, Account (senza «Sincronizza ora»), Bilanciatore della priorità, Bilanciatore del margine e versione (si tocca per aggiornare); tolta la riga Inbox. Nuovo **Bilanciatore del margine**: peso e curva per età, lunghezza ed errore rispetto al previsto, sincronizzati (`bilanciatoreMargine`); con i valori di base il margine è quello di prima. |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

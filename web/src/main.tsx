@@ -15,12 +15,14 @@ import { avviaSessione } from './lib/sessione.ts';
 import { avviaAggiornamento } from './lib/aggiornamento.ts';
 import { avviaHaptic } from './lib/haptic.ts';
 import { avviaPesi } from './lib/pesi.ts';
+import { avviaPesiMargine } from './lib/pesiMargine.ts';
 import { sistemaPersoneEChecklist } from './lib/migrazioni.ts';
 import { avviaArricchimento } from './lib/arricchimento.ts';
 
 // Punto d'ingresso. Tema, pesi della priorità e aptica non dipendono dai dati: partono subito, prima del disegno.
 avviaTema();
 avviaPesi();
+avviaPesiMargine();
 avviaHaptic();
 
 /** Carica l'archivio locale, mostra l'app e avvia i servizi in background (diversi per app Android e sito). */

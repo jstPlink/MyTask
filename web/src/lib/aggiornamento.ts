@@ -17,6 +17,13 @@ export async function versioneServer(): Promise<string | undefined> {
   } catch { return undefined; }
 }
 
+/** Vero se la versione `a` (x.y.z) è successiva a `b`. */
+export function piuNuova(a: string, b: string): boolean {
+  const x = a.split('.').map(Number), y = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
+  return false;
+}
+
 /** Toglie il service worker e la cache e ricarica: la pagina riparte con i file nuovi (i dati locali restano). */
 export async function aggiornaApp() {
   try {

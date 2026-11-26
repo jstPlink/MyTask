@@ -1,6 +1,6 @@
 /**
- * Schermate secondarie, raggiunte da «Altro» (telefono: pulsante tondo in cima alle schede; sito largo: barra laterale).
- * Altro, Inbox, Archiviate, Completato, Aspetto, Stasera (dal gruppo Intrattenimento) e Account.
+ * Schermate secondarie, raggiunte da «Impostazioni» (telefono: pulsante tondo con i tre puntini in cima alle schede; sito largo: barra laterale).
+ * Impostazioni, Inbox, Archiviate, Completato, Aspetto, Stasera (dal gruppo Intrattenimento) e Account.
  * Sono tutte colonne semplici con «Indietro» in cima, uguali su telefono e sito largo.
  */
 import { useEffect, useMemo, useState } from 'react';
@@ -14,8 +14,7 @@ import { saveItem, setAuth } from '../lib/store.ts';
 import { chiaveTitolo } from '../../../shared/testo.ts';
 import { apiBase, codiceOrologioAttivo, creaCodiceOrologio, logout, revocaCodiceOrologio } from '../lib/api.ts';
 import { VERSIONE } from '../version.ts';
-import { aggiornaApp } from '../lib/aggiornamento.ts';
-import { sync } from '../lib/sync.ts';
+import { aggiornaApp, piuNuova, versioneServer } from '../lib/aggiornamento.ts';
 import { isNative } from '../lib/native.ts';
 import { impostaAspetto, PALETTE, TINTE, type Colore, type Palette, type Stile, type Tema, type Tinta } from '../lib/theme.ts';
 import { impostaPromemoriaTimer } from '../lib/promemoriaTimer.ts';
@@ -28,13 +27,16 @@ import { clsx } from '../lib/util.ts';
 
 // ------------------------------------------------------------------ Altro
 
-/** Menu «Altro»: Inbox, Archiviate e Completato con i conteggi, poi le impostazioni dell'app. */
+/**
+ * «Impostazioni» (telefono: pallino con i tre puntini in cima alle schede; sito e computer: voce nella barra laterale):
+ * archiviate, completate, aspetto, notifica del timer, account, bilanciatori della priorità e del margine e, in fondo,
+ * la versione dell'app, che si tocca per aggiornare quando il server ne ha una più nuova.
+ */
 export function Altro() {
   const nav = useNav();
   const items = useItems();
   const a = useAspetto();
   const pt = usePromemoriaTimer();
-  const nInbox = useMemo(() => inbox(items).length, [items]);
   const nArch = useMemo(() => archivio(items).length, [items]);
   const nParte = useMemo(() => daParte(items).length, [items]);
   const voce = (nome: string, valore: string | number | undefined, k: Parameters<typeof nav.push>[0]) => (
@@ -43,19 +45,47 @@ export function Altro() {
   return (
     <>
       <Back />
-      <Top title="Altro" />
+      <Top title="Impostazioni" />
       <div className="scroll">
-        {voce('Inbox', nInbox ? `${nInbox} da smistare` : 'vuota', { k: 'inbox' })}
-        {voce('Archiviate', nParte || undefined, { k: 'daparte' })}
-        {voce('Completato', nArch, { k: 'archivio' })}
+        <Sec a="Note" />
+        {voce('Note archiviate', nParte || undefined, { k: 'daparte' })}
+        {voce('Note completate', nArch, { k: 'archivio' })}
         <Sec a="App" />
-        <button className="field link sper-voce" onClick={() => nav.push({ k: 'pesi' })}><b style={{ fontWeight: 620 }}>Bilanciatore della priorità <span className="badge-sper">provvisorio</span></b><span className="muted">›</span></button>
-        {voce('Aspetto', `${a.colore[0].toUpperCase()}${a.colore.slice(1)} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
+        {voce('Aspetto', `${{ morbido: 'Morbido', vetro: 'Vetro', base: 'Flat' }[a.stile]} · ${a.tema === 'sistema' ? 'Sistema' : a.tema === 'chiaro' ? 'Chiaro' : 'Scuro'}`, { k: 'aspetto' })}
         {voce('Notifica del timer', pt.attivo ? `ogni ${pt.ogniMinuti} min` : 'disattivata', { k: 'timer' })}
-        {voce('Account e sincronizzazione', undefined, { k: 'account' })}
-        <div className="t2" style={{ textAlign: 'center', marginTop: 24 }}>MyTask · versione {VERSIONE}</div>
+        {voce('Account', undefined, { k: 'account' })}
+        <Sec a="Bilanciatori" />
+        {voce('Bilanciatore della priorità', undefined, { k: 'pesi' })}
+        {voce('Bilanciatore del margine', undefined, { k: 'pesimargine' })}
+        <Sec a="Versione" />
+        <VersioneApp />
       </div>
     </>
+  );
+}
+
+/** La versione dell'app: toccandola si ricontrolla il server e, se ne ha una più nuova, si aggiorna (sito e computer; sul telefono serve il nuovo APK). */
+function VersioneApp() {
+  const [server, setServer] = useState<string | undefined>();
+  useEffect(() => {
+    let attivo = true;
+    void versioneServer().then((v) => { if (attivo) setServer(v); });
+    return () => { attivo = false; };
+  }, []);
+  const nuova = server !== undefined && piuNuova(server, VERSIONE);
+  const tocca = async () => {
+    const v = await versioneServer();
+    setServer(v);
+    if (!v) mostraToast('Server non raggiungibile: non posso controllare');
+    else if (!piuNuova(v, VERSIONE)) mostraToast('Hai già l\'ultima versione');
+    else if (isNative()) mostraToast(`C\'è la versione ${v}: sul telefono va installato il nuovo APK`);
+    else await aggiornaApp();
+  };
+  return (
+    <button className="field link" onClick={() => { void tocca(); }}>
+      <b style={{ fontWeight: 620 }}>Versione {VERSIONE}</b>
+      <span className={nuova ? 'warn' : 'muted'}>{nuova ? `${isNative() ? 'disponibile' : 'aggiorna a'} ${server} ›` : server ? 'aggiornata ›' : 'controlla ›'}</span>
+    </button>
   );
 }
 
@@ -90,7 +120,7 @@ export function DaParte() {
   const lista = useMemo(() => daParte(items), [items]);
   return (
     <>
-      <Back label="Altro" />
+      <Back label="Impostazioni" />
       <Top title="Archiviate" sub={`${lista.length} ${lista.length === 1 ? 'voce archiviata' : 'voci archiviate'}`} />
       <div className="scroll">
         {lista.length === 0 && <Empty>Qui finiscono le voci che archivi. Aprine una per ripristinarla.</Empty>}
@@ -194,7 +224,7 @@ export function Aspetto() {
   const a = useAspetto();
   return (
     <>
-      <Back label="Altro" />
+      <Back label="Impostazioni" />
       <Top title="Aspetto" sub="Impostazioni" />
       <div className="scroll">
         <Sec a="Tema" />
@@ -262,7 +292,7 @@ export function NotificaTimer() {
   const [permesso, setPermesso] = useState<PermessoSito>(permessoSito());
   return (
     <>
-      <Back label="Altro" />
+      <Back label="Impostazioni" />
       <Top title="Notifica del timer" sub="Impostazioni" />
       <div className="scroll">
         <Sec a="Notifica periodica" />
@@ -365,11 +395,10 @@ export function Account() {
   const auth = useAuth();
   const st = useSyncStatus();
   const riepilogo = useRiepilogoVoci();
-  const versioneServer = useVersioneServer();
 
   return (
     <>
-      <Back label="Altro" />
+      <Back label="Impostazioni" />
       <Top title="Account" sub="Sincronizzazione e dati" />
       <div className="scroll">
         <Field label="Email"><span>{auth.email ?? '—'}</span></Field>
@@ -380,8 +409,6 @@ export function Account() {
         <div className="t2" style={{ padding: '0 0 6px' }}>{riepilogo.perStato}</div>
         <div className="t2" style={{ padding: '0 0 6px' }}>{riepilogo.perTipo}</div>
         {riepilogo.doppioni > 0 && <div className="t2 warn" style={{ padding: '0 0 6px' }}>Possibili doppioni: {riepilogo.doppioni} (stesso tipo e stesso titolo). Il conteggio comprende anche le completate e le archiviate.</div>}
-        <Field label="Versione dell'app"><span>{VERSIONE}</span></Field>
-        <Field label="Versione del server"><span>{versioneServer ?? '—'}{versioneServer && versioneServer !== VERSIONE ? ' (diversa)' : ''}</span></Field>
         {!isNative() && !/Electron/i.test(navigator.userAgent) && (
           <div className="field">
             <span>App per Windows<span className="t2" style={{ display: 'block' }}>MyTask-v{VERSIONE}.exe</span></span>
@@ -390,8 +417,6 @@ export function Account() {
         )}
         <CodiceOrologio />
         <div className="btns col" style={{ marginTop: 18 }}>
-          {!isNative() && versioneServer && versioneServer !== VERSIONE && <button className="btn solid" onClick={() => { void aggiornaApp(); }}>Aggiorna all'ultima versione ({versioneServer})</button>}
-          <button className="btn solid" onClick={() => { void sync(); mostraToast('Sincronizzazione avviata'); }}>Sincronizza ora</button>
           <button className="btn danger" onClick={async () => { if (window.confirm('Uscire? I dati restano su questo dispositivo.')) { await logout(); await setAuth({ email: auth.email }); } }}>Esci</button>
         </div>
         <div className="t2" style={{ marginTop: 16 }}>Oggi è {today()}. Il database sul NAS fa una copia di sicurezza ogni giorno.</div>
@@ -435,20 +460,6 @@ function CodiceOrologio() {
 
 /** Ultimo installer per computer (Windows), pubblicato da GitHub Actions insieme all'APK. */
 const INSTALLER_WINDOWS = `https://github.com/jstPlink/MyTask/releases/download/v${VERSIONE}/MyTask-v${VERSIONE}.exe`;
-
-/** Versione del server, letta da /api/health (undefined se offline o se il server è vecchio). */
-function useVersioneServer(): string | undefined {
-  const [v, setV] = useState<string | undefined>();
-  useEffect(() => {
-    let attivo = true;
-    fetch(`${apiBase()}/api/health`, { signal: AbortSignal.timeout(5000) })
-      .then((r) => (r.ok ? (r.json() as Promise<{ versione?: string }>) : undefined))
-      .then((j) => { if (attivo) setV(j?.versione); })
-      .catch(() => undefined);
-    return () => { attivo = false; };
-  }, []);
-  return v;
-}
 
 /**
  * Riepilogo delle voci non eliminate salvate su questo dispositivo: il totale comprende tutto (aperte, completate e archiviate,

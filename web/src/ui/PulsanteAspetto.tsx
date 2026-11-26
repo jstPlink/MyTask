@@ -37,7 +37,7 @@ export function PulsanteAspetto() {
             <Icona nome="inbox" size={22} />
             {nInbox > 0 && <span className="circ-badge">{nInbox > 99 ? '99+' : nInbox}</span>}
           </button>
-          <button className="circ" onClick={() => nav.push({ k: 'altro' })} aria-label="Altro: completato, impostazioni">
+          <button className="circ" onClick={() => nav.push({ k: 'altro' })} aria-label="Impostazioni">
             <Icona nome="altro" size={22} />
           </button>
         </>

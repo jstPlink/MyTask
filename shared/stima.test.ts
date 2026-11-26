@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, livelloNota, margineAtteso, passoNota, precisione, PASSO_MAX, PASSO_MIN, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
+import { MARGINE_PREDEFINITO, fattoreLunghezza, impostaParametriMargine, normalizzaMargine, quotaErrore, quotaScaduta, EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, livelloNota, margineAtteso, passoNota, precisione, PASSO_MAX, PASSO_MIN, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
 
 let n = 0;
 const fatta = (titolo: string, sforzoMin: number | undefined, durataRealeMin: number | undefined): Item =>
@@ -143,3 +143,35 @@ test('stima: anche le curiosità completate con stima e tempo reale contano nel 
   assert.ok(Math.abs(margineAtteso([curiosita]) - 0.5) < 1e-9);
   assert.equal(storicoNote([curiosita]).length, 1);
 });
+
+test('bilanciatore del margine: di base il calcolo è quello di sempre', () => {
+  const d = MARGINE_PREDEFINITO;
+  assert.ok(Math.abs(quotaScaduta(21, d) - 0.5) < 1e-9);
+  assert.ok(Math.abs(fattoreLunghezza(60, d) - 1) < 1e-9);
+  assert.ok(Math.abs(fattoreLunghezza(120, d) - 1.4) < 0.02, 'radice di 2, entro 1,4');
+  assert.ok(Math.abs(quotaErrore(0, d) - PASSO_MAX) < 1e-9);
+});
+
+test('bilanciatore del margine: con peso 0 un fattore non conta più', () => {
+  const p = normalizzaMargine({ eta: { peso: 0, emivita: 21 }, lunghezza: { peso: 0, esponente: 0.5 }, errore: { peso: 0, scala: 0.25 } });
+  assert.equal(quotaScaduta(365, p), 0);
+  assert.equal(fattoreLunghezza(5, p), fattoreLunghezza(600, p));
+  assert.equal(quotaErrore(0, p), quotaErrore(2, p));
+});
+
+test('bilanciatore del margine: le curve cambiano il margine e si ripristinano', () => {
+  const GG = 86_400_000;
+  const note = [{ ...fatta('Uno', 60, 108), completatoTs: 0 }, { ...fatta('Due', 60, 66), completatoTs: 30 * GG }];
+  const base = margineAtteso(note);
+  impostaParametriMargine({ ...MARGINE_PREDEFINITO, eta: { peso: 1, emivita: 120 } });
+  assert.ok(margineAtteso(note) > base, 'con una memoria più lunga la vecchia nota sbagliata pesa di più');
+  impostaParametriMargine(undefined);
+  assert.equal(margineAtteso(note), base);
+});
+
+test('bilanciatore del margine: i valori fuori dai limiti o mancanti tornano validi', () => {
+  const p = normalizzaMargine({ eta: { peso: 9, emivita: 1 } });
+  assert.deepEqual(p.eta, { peso: 2, emivita: 3 });
+  assert.deepEqual(p.errore, MARGINE_PREDEFINITO.errore);
+});
+

@@ -64,7 +64,7 @@ export function StoricoMargine() {
 
   return (
     <>
-      <Back label="Priorità" />
+      <Back />
       <Top title="Storico del margine" sub="Le ultime note completate con stima e tempo reale" />
       <div className="scroll">
         <div className="sm-card">

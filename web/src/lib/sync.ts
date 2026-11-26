@@ -6,6 +6,7 @@ import { applyRemote, getAuth, getSince, markSent, pendingCount, setAuth, setOnL
 import { apiBase } from './api.ts';
 import { applicaSessioneDaServer, impostazioniSessioneDaInviare, subscribeSessione } from './sessione.ts';
 import { applicaPesiDaServer, impostazioniPesiDaInviare, subscribePesi } from './pesi.ts';
+import { applicaMargineDaServer, impostazioniMargineDaInviare, subscribeMargine } from './pesiMargine.ts';
 import { debounce } from './util.ts';
 
 /** Stato mostrato nell'interfaccia (rete, sincronizzazione in corso, ultimo errore, voci in attesa). */
@@ -37,7 +38,7 @@ export async function sync(): Promise<void> {
     const res = await fetch(`${apiBase()}/api/sync`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-      body: JSON.stringify({ since: getSince(), changes, impostazioni: { ...impostazioniSessioneDaInviare(), ...impostazioniPesiDaInviare() } }),
+      body: JSON.stringify({ since: getSince(), changes, impostazioni: { ...impostazioniSessioneDaInviare(), ...impostazioniPesiDaInviare(), ...impostazioniMargineDaInviare() } }),
     });
     if (res.status === 401) {
       await setAuth({ email: getAuth().email }); // la sessione è scaduta: serve rifare l'accesso, i dati restano
@@ -50,7 +51,7 @@ export async function sync(): Promise<void> {
     await applyRemote(data.items);
     await setSince(data.seq);
     applicando = true;
-    try { applicaSessioneDaServer(data.impostazioni); applicaPesiDaServer(data.impostazioni); } finally { applicando = false; }
+    try { applicaSessioneDaServer(data.impostazioni); applicaPesiDaServer(data.impostazioni); applicaMargineDaServer(data.impostazioni); } finally { applicando = false; }
     set({ ultima: Date.now(), online: true });
   } catch (e) {
     set({ errore: e instanceof Error ? e.message : 'Sincronizzazione non riuscita' });
@@ -69,6 +70,7 @@ export function avviaSync() {
   setOnLocalChange(() => { set({ inAttesa: pendingCount() }); sincronizzaPoi(); });
   subscribeSessione(() => { if (!applicando) sincronizzaPoi(); });
   subscribePesi(() => { if (!applicando) sincronizzaPoi(); });
+  subscribeMargine(() => { if (!applicando) sincronizzaPoi(); });
   window.addEventListener('online', () => { set({ online: true }); void sync(); });
   window.addEventListener('offline', () => set({ online: false }));
   window.addEventListener('focus', () => { void sync(); }); // finestra del computer riportata in primo piano (può restare visibile senza che cambi la visibilità)

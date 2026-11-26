@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Tipo } from '../../../shared/types.ts';
-import { collezione, curiosita, inbox, listaAzioni, listaEsperienze, listaProgetti, vistaOggi, daParte } from '../../../shared/views.ts';
+import { collezione, curiosita, inbox, listaAzioni, listaEsperienze, listaProgetti, vistaOggi } from '../../../shared/views.ts';
 import { useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
 import { clsx } from '../lib/util.ts';
 import { VERSIONE } from '../version.ts';
@@ -23,10 +23,13 @@ const SUB_SCOPRIRE: { id: SubScoprire; nome: string }[] = [
   { id: 'libro', nome: 'Libri' }, { id: 'ricetta', nome: 'Ricette' },
 ];
 
+/** Le schermate che stanno sotto «Impostazioni»: con una di queste aperta la voce resta accesa. */
+const IN_IMPOSTAZIONI: Screen['k'][] = ['altro', 'daparte', 'archivio', 'aspetto', 'timer', 'account', 'pesi', 'pesimargine', 'storicomargine'];
+
 /**
  * Barra laterale per schermi larghi (≥900px): sostituisce le schede in basso e il menu «Altro». Contiene il campo «Nuova nota» (tasto N),
  * la ricerca (tasto /), le cinque sezioni con i conteggi (le sotto-sezioni di Attività e Intrattenimento si aprono sotto la sezione attiva),
- * Inbox (voce principale come le altre, sopra le cinque sezioni e subito sotto il campo nota), Archiviate, Completato, Bilanciatore priorità, Storico del margine, Aspetto, Account e in fondo la versione e lo stato offline.
+ * Inbox (voce principale come le altre, sopra le cinque sezioni e subito sotto il campo nota), in fondo «Impostazioni» (la stessa pagina del pallino con i tre puntini sul telefono), la versione e lo stato offline.
  */
 export function Sidebar() {
   const nav = useNav();
@@ -46,7 +49,6 @@ export function Sidebar() {
       intrattenimento: collezione(items, ['film', 'serie', 'anime', 'gioco', 'libro', 'ricetta']).length,
       curiosita: curiosita(items).length,
       inbox: inbox(items).length,
-      daparte: daParte(items).length,
     } as Record<string, number>;
   }, [items, oggi]);
 
@@ -96,18 +98,9 @@ export function Sidebar() {
 
       <Link main nome="Routine" on={inTab('routine')} onClick={() => apriTab('routine')} />
 
-      <div className="sb-group">
-        <div className="sb-sec">Altro</div>
-        <Link nome="Archiviate" n={n.daparte} on={scr('daparte')} onClick={() => vai({ k: 'daparte' })} />
-        <Link nome="Completato" on={scr('archivio')} onClick={() => vai({ k: 'archivio' })} />
-      </div>
-
       <div className="sb-spacer" />
       <div className="sb-group">
-        <Link nome="Bilanciatore priorità" on={scr('pesi')} onClick={() => vai({ k: 'pesi' })} />
-        <Link nome="Storico del margine" on={scr('storicomargine')} onClick={() => vai({ k: 'storicomargine' })} />
-        <Link nome="Aspetto" on={scr('aspetto')} onClick={() => vai({ k: 'aspetto' })} />
-        <Link nome="Account" on={scr('account')} onClick={() => vai({ k: 'account' })} />
+        <Link main nome="Impostazioni" on={!nav.query && !!schermata && IN_IMPOSTAZIONI.includes(schermata)} onClick={() => vai({ k: 'altro' })} />
       </div>
       <div className="sb-foot">
         {!sync.online && <span className="pill-sync off">Offline</span>}

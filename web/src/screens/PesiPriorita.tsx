@@ -34,7 +34,7 @@ function GraficoCurva({ k, nome }: { k: number; nome: string }) {
 }
 
 /**
- * Altro › Bilanciatore della priorità (etichettato «Sperimentale»): cursori per il peso di data di scadenza, importanza, tempo stimato ed età nel punteggio
+ * Impostazioni › Bilanciatore della priorità (etichettato «Sperimentale»): cursori per il peso di data di scadenza, importanza, tempo stimato ed età nel punteggio
  * (da 0 a 100) delle attività, e la curvatura delle due curve esponenziali (scadenza ed età). I pesi sono riportati a somma 100%, si sincronizzano con gli
  * altri dispositivi e cambiano subito liste, colori del pallino (da 60 rosso, da 35 ambra), battito, ordine e widget; sotto, l'anteprima delle prime 15 attività.
  */
@@ -51,7 +51,7 @@ export function PesiPriorita() {
 
   return (
     <>
-      <Back label="Altro" />
+      <Back label="Impostazioni" />
       <Top title="Bilanciatore della priorità" sub="Opzione provvisoria" right={<span className="badge-sper">Sperimentale</span>} />
       <div className="scroll">
         <div className="sper-box">

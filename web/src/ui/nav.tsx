@@ -13,7 +13,7 @@ export type SubScoprire = 'film' | 'serie' | 'anime' | 'gioco' | 'libro' | 'rice
 /** Schermate che si aprono sopra una scheda. `item` senza `id` è una voce nuova (precompilata da `nuovo`). */
 export type Screen =
   | { k: 'item'; id?: string; nuovo?: Partial<Item> }
-  | { k: 'altro' } | { k: 'inbox' } | { k: 'archivio' } | { k: 'daparte' }
+  | { k: 'pesimargine' } | { k: 'altro' } | { k: 'inbox' } | { k: 'archivio' } | { k: 'daparte' }
   | { k: 'aspetto' } | { k: 'stasera' } | { k: 'account' } | { k: 'timer' }
   | { k: 'pesi' } | { k: 'storicomargine' };
 

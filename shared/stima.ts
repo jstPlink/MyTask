@@ -5,7 +5,8 @@
 // quanto è precisa la stima: più lo scostamento è vicino a zero, più la nota ha forza (`passoNota`) per riportare il margine a zero; una
 // stima molto sbagliata lo sposta poco. Così un grosso eccesso seguito da un grosso difetto lascia il margine quasi com'era, mentre un
 // eccesso seguito da una stima giusta lo corregge di molto. Una nota più lunga conta un po' di più (radice della stima) e dopo un lungo
-// intervallo il margine precedente vale meno (si dimezza ogni EMIVITA_GIORNI).
+// intervallo il margine precedente vale meno (di base si dimezza ogni EMIVITA_GIORNI). Età, lunghezza ed errore si regolano con le curve
+// del «bilanciatore del margine» (`ParametriMargine`).
 //
 // Il giudizio su una singola nota (`livelloNota`) tiene conto anche dei minuti: un errore piccolo in assoluto non è «sbagliato».
 import type { Item } from './types.ts';
@@ -55,16 +56,77 @@ export const scostamento = (stimaMin: number, realeMin: number) => (realeMin - s
 /** Quota con cui una nota sposta il margine: da PASSO_MIN (stima molto sbagliata) a PASSO_MAX (stima giusta). */
 export const PASSO_MIN = 0.15;
 export const PASSO_MAX = 0.7;
-/** Scala della precisione: a questo scostamento (25%) la forza di una nota è già scesa a circa un terzo. */
+/** Scala della precisione di base: a questo scostamento (25%) la forza di una nota è già scesa a circa un terzo. */
 export const SCALA_PRECISIONE = 0.25;
+/** Esponente di base della curva della lunghezza: 0,5 è la radice della durata. */
+export const ESPONENTE_LUNGHEZZA = 0.5;
+
+/**
+ * Il «bilanciatore del margine»: per ognuno dei tre fattori un **peso** (quanto conta, 1 = di base, 0 = non conta, fino a 2)
+ * e il parametro che dà la forma alla sua **curva**. I valori di base ridanno il calcolo di sempre.
+ */
+export interface ParametriMargine {
+  /** Età: dopo `emivita` giorni tra una nota e la successiva il margine vecchio vale la metà. */
+  eta: { peso: number; emivita: number };
+  /** Lunghezza: la forza cresce con (stima / 60 min) elevata a `esponente`. */
+  lunghezza: { peso: number; esponente: number };
+  /** Errore rispetto al previsto: `scala` è lo scostamento (0,25 = 25%) a cui la precisione scende a circa un terzo. */
+  errore: { peso: number; scala: number };
+}
+export const MARGINE_PREDEFINITO: ParametriMargine = {
+  eta: { peso: 1, emivita: EMIVITA_GIORNI },
+  lunghezza: { peso: 1, esponente: ESPONENTE_LUNGHEZZA },
+  errore: { peso: 1, scala: SCALA_PRECISIONE },
+};
+/** Limiti dei cursori. */
+export const LIMITI_MARGINE = {
+  peso: [0, 2] as const,
+  emivita: [3, 120] as const,
+  esponente: [0, 1.5] as const,
+  scala: [0.05, 1] as const,
+};
+
+const entro = (v: unknown, [min, max]: readonly [number, number], d: number) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : d);
+
+/** Porta un valore letto (anche incompleto) nella forma completa, entro i limiti. */
+export function normalizzaMargine(p: Partial<ParametriMargine> | undefined): ParametriMargine {
+  const d = MARGINE_PREDEFINITO;
+  return {
+    eta: { peso: entro(p?.eta?.peso, LIMITI_MARGINE.peso, d.eta.peso), emivita: entro(p?.eta?.emivita, LIMITI_MARGINE.emivita, d.eta.emivita) },
+    lunghezza: { peso: entro(p?.lunghezza?.peso, LIMITI_MARGINE.peso, d.lunghezza.peso), esponente: entro(p?.lunghezza?.esponente, LIMITI_MARGINE.esponente, d.lunghezza.esponente) },
+    errore: { peso: entro(p?.errore?.peso, LIMITI_MARGINE.peso, d.errore.peso), scala: entro(p?.errore?.scala, LIMITI_MARGINE.scala, d.errore.scala) },
+  };
+}
+
+let parametri: ParametriMargine = normalizzaMargine(undefined);
+export const getParametriMargine = (): ParametriMargine => parametri;
+/** Cambia i parametri usati dal calcolo; senza argomento tornano quelli di base. */
+export function impostaParametriMargine(p: Partial<ParametriMargine> | undefined) { parametri = normalizzaMargine(p); }
+
+/** Quota del margine vecchio che «scade» dopo `giorni` senza note: curva dell'età (0 = resta tutto, 1 = non conta più). */
+export function quotaScaduta(giorni: number, p: ParametriMargine = parametri): number {
+  return Math.min(1, p.eta.peso * (1 - 0.5 ** (Math.max(0, giorni) / p.eta.emivita)));
+}
+
+/** Moltiplicatore della forza di una nota secondo la sua lunghezza: curva della lunghezza (1 = una nota di un'ora). */
+export function fattoreLunghezza(stimaMin: number, p: ParametriMargine = parametri): number {
+  const base = Math.min(1.4, Math.max(0.6, (Math.max(0, stimaMin) / 60) ** p.lunghezza.esponente));
+  return Math.max(0.1, 1 + p.lunghezza.peso * (base - 1));
+}
 
 /** Precisione di una stima da 0 a 1: 1 se lo scostamento è zero, scende verso 0 man mano che la stima è sbagliata (in più o in meno). */
-export const precisione = (scostamentoNota: number) => Math.exp(-((scostamentoNota / SCALA_PRECISIONE) ** 2));
+export const precisione = (scostamentoNota: number, p: ParametriMargine = parametri) => Math.exp(-((scostamentoNota / p.errore.scala) ** 2));
 
-/** Quota (0-1) con cui una nota sposta il margine: cresce con la precisione, e un po' con la lunghezza (radice della stima, tra 0,6 e 1,4 volte). */
-export function passoNota(stimaMin: number, scostamentoNota: number): number {
-  const durata = Math.min(1.4, Math.max(0.6, Math.sqrt(stimaMin / 60)));
-  return Math.min(0.85, (PASSO_MIN + (PASSO_MAX - PASSO_MIN) * precisione(scostamentoNota)) * durata);
+/** Quota di spostamento secondo il solo errore (curva dell'errore), prima della lunghezza. Con peso 0 tutte le note valgono uguale. */
+export function quotaErrore(scostamentoNota: number, p: ParametriMargine = parametri): number {
+  const media = (PASSO_MIN + PASSO_MAX) / 2;
+  const base = PASSO_MIN + (PASSO_MAX - PASSO_MIN) * precisione(scostamentoNota, p);
+  return Math.min(0.85, Math.max(0.02, media + p.errore.peso * (base - media)));
+}
+
+/** Quota (0-1) con cui una nota sposta il margine: curva dell'errore per curva della lunghezza. */
+export function passoNota(stimaMin: number, scostamentoNota: number, p: ParametriMargine = parametri): number {
+  return Math.min(0.85, quotaErrore(scostamentoNota, p) * fattoreLunghezza(stimaMin, p));
 }
 
 interface NotaMargine { stimaMin: number; scostamento: number; ts: number }
@@ -79,7 +141,7 @@ function calcolaMargine(note: NotaMargine[]): { margine: number; contributi: num
   const quote: number[] = [];
   note.forEach((n, k) => {
     const passo = k === 0 ? 1 : passoNota(n.stimaMin, n.scostamento);
-    const vecchio = k === 0 ? 0 : 1 - 0.5 ** (Math.max(0, n.ts - note[k - 1].ts) / 86_400_000 / EMIVITA_GIORNI); // quota di margine «scaduta»
+    const vecchio = k === 0 ? 0 : quotaScaduta((n.ts - note[k - 1].ts) / 86_400_000); // quota di margine «scaduta»
     const q = passo + (1 - passo) * vecchio;
     m = (1 - q) * m + q * n.scostamento;
     quote.push(q);
