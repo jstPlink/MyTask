@@ -104,23 +104,6 @@ export function puntiTempo(sforzoMin?: number): number {
   return sforzoMin === undefined ? 30 : sforzoMin <= 15 ? 100 : sforzoMin <= 30 ? 60 : sforzoMin <= 60 ? 30 : 0;
 }
 
-/** Pesi della priorità di una curiosità: il tempo stimato pesa poco più dell'interesse (55% e 45%). */
-export const PESI_CURIOSITA = { tempo: 0.55, interesse: 0.45 };
-
-/**
- * Punteggio di priorità di una curiosità, da 0 a 100: 55% il tempo stimato (stessa scala delle attività: meglio se breve) e 45% l'interesse
- * (da 1 a 5, riportato su 0-100; senza interesse vale 3). Dà l'ordine delle curiosità, il colore e il battito del loro pallino numerato.
- */
-export function punteggioCuriosita(i: Item): number {
-  const interesse = ((Math.min(5, Math.max(1, i.interesse ?? 3)) - 1) / 4) * 100;
-  return Math.round(Math.min(100, Math.max(0, PESI_CURIOSITA.tempo * puntiTempo(i.sforzoMin) + PESI_CURIOSITA.interesse * interesse)));
-}
-
-/** Intensità (0-100) del battito dal punteggio di una curiosità: come per le attività, il grigio (sotto 35) non batte. */
-export function intensitaBattitoCuriosita(punteggio: number): number {
-  return livelloDaPunteggio(punteggio) === 1 ? 0 : punteggio;
-}
-
 /** Le quattro componenti del punteggio, ognuna da 0 a 100 prima di applicare il suo peso. */
 export interface ComponentiPunteggio { scadenza: number; importanza: number; tempo: number; eta: number }
 

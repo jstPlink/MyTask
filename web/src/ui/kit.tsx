@@ -59,7 +59,7 @@ interface RowProps {
   centrato?: boolean;
   /** Posizione in classifica (1 = la prima da fare): numero colorato a destra, nel colore del livello. */
   rank?: number;
-  /** Interesse 1-5 (Intrattenimento, Curiosità, Esperienze): numero in un pallino verde che si riempie con l'interesse, fermo; con `rank` il numero è la posizione. */
+  /** Interesse 1-5 (Intrattenimento, Esperienze): numero in un pallino verde che si riempie con l'interesse, fermo; con `rank` il numero è la posizione. */
   interesse?: number;
   /** La nota della riga: la casella ha quattro stati (un tocco avanza, pressione lunga apre il menu). */
   voce?: Item;
@@ -147,9 +147,13 @@ export function Row({ titolo, meta, dettagli, right, conNote, tipo, level, rank,
   const sessione = useSessione();
   const vs = voce ? statoVisto(voce.stato) : undefined;
   const conTempo = !!voce && (vs === 'in_corso' || vs === 'in_pausa');
+  // le curiosità non hanno stima, interesse né posizione: la targhetta con «?» è la stessa per tutte
+  const domanda = (voce?.tipo ?? tipo) === 'curiosita';
+  const stimaMin = domanda ? undefined : voce?.sforzoMin;
+  const targaDomanda = <span className="rank rank-int g3" aria-hidden="true">?</span>;
   const adesso = useAdesso(conTempo && sessione.stato === 'lavoro' && sessione.taskId === voce?.id);
   const ms = conTempo ? tempoDi(voce, adesso) : 0;
-  const quota = conTempo && voce.sforzoMin ? ms / (voce.sforzoMin * 60_000) : undefined;
+  const quota = conTempo && stimaMin ? ms / (stimaMin * 60_000) : undefined;
   // la nota non si legge nella riga: se ha del testo si vede solo un'icona (pallino grigio) sopra la data, a destra
   const haNote = conNote ?? !!voce?.note?.trim();
   // Stile Flat: riga a altezza fissa, senza casella di stato; sotto il titolo scadenza e note, a destra stima, tempo (senza secondi) e barra in una colonna di larghezza fissa
@@ -160,15 +164,17 @@ export function Row({ titolo, meta, dettagli, right, conNote, tipo, level, rank,
   const body = piatto && voce ? (
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
-      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
-      {rank !== undefined && interesse === undefined && (
-        <span className="rank et" aria-label={`Posizione ${rank}`}>
-          <svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg>
-          <b>{rank}</b>
-        </span>
-      )}
-      {segnaposto && rank === undefined && <span className="rank rank-vuoto" aria-hidden="true" />}
-      {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
+      {domanda ? targaDomanda : <>
+        {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
+        {rank !== undefined && interesse === undefined && (
+          <span className="rank et" aria-label={`Posizione ${rank}`}>
+            <svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg>
+            <b>{rank}</b>
+          </span>
+        )}
+        {segnaposto && rank === undefined && <span className="rank rank-vuoto" aria-hidden="true" />}
+        {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
+      </>}
       <div className="grow">
         <div className="line">
           <div className={clsx('t1', (light || (statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso' && statoVisto(voce.stato) !== 'in_pausa')) && 'light', (struck || statoVisto(voce.stato) === 'fatto') && 'struck')}>{titolo}</div>
@@ -187,24 +193,26 @@ export function Row({ titolo, meta, dettagli, right, conNote, tipo, level, rank,
       </div>
       {/* a destra, in una colonna di larghezza fissa: se la nota è cominciata il tempo corrente con la barra orizzontale sotto (intera e tenue se non c'è stima); altrimenti solo la stima */}
       <div className={clsx('r2', vs === 'in_pausa' && 'pausa')}>
-        {conTempo && <span className={clsx('tc', !voce.sforzoMin && 'piena', vs === 'in_pausa' && 'pausa')} style={{ ['--p' as string]: `${Math.min(1, quota ?? 0) * 100}%` }}><span>{tempoCompatto(ms / 60_000)}</span></span>}
-        {!conTempo && !!voce.sforzoMin && <span className="sti2">{tempoCompatto(voce.sforzoMin)}</span>}
+        {conTempo && <span className={clsx('tc', !stimaMin && 'piena', vs === 'in_pausa' && 'pausa')} style={{ ['--p' as string]: `${Math.min(1, quota ?? 0) * 100}%` }}><span>{tempoCompatto(ms / 60_000)}</span></span>}
+        {!conTempo && !!stimaMin && <span className="sti2">{tempoCompatto(stimaMin)}</span>}
       </div>
     </>
   ) : (
     <>
       {maniglia && <span className="maniglia" data-grip aria-hidden="true"><i /></span>}
-      {/* con rank e interesse (le curiosità) il pallino è verde e fermo: il numero è la posizione, il riempimento è l'interesse */}
+      {/* curiosità: pallino verde e fermo con «?» */}
       {/* priorità e posizione: due pezzi separati da 2 px, a sinistra il simbolo («!» attività, «?» curiosità) con colore più carico, a destra il numero con fondo tenue; l'attività ha la punta a destra, la curiosità la pillola */}
-      {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
-      {rank !== undefined && interesse === undefined && (
-        <span className="rank et" aria-label={`Posizione ${rank}`}>
-          <svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg>
-          <b>{rank}</b>
-        </span>
-      )}
-      {segnaposto && rank === undefined && <span className="rank rank-vuoto" aria-hidden="true" />}
-      {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
+      {domanda ? targaDomanda : <>
+        {rank !== undefined && interesse !== undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} aria-label={`Posizione ${rank}, interesse ${Math.round(interesse)} su 5`}>{rank}</span>}
+        {rank !== undefined && interesse === undefined && (
+          <span className="rank et" aria-label={`Posizione ${rank}`}>
+            <svg viewBox="0 0 40 32" preserveAspectRatio="none" aria-hidden="true"><path d={ETICHETTA} /></svg>
+            <b>{rank}</b>
+          </span>
+        )}
+        {segnaposto && rank === undefined && <span className="rank rank-vuoto" aria-hidden="true" />}
+        {interesse !== undefined && rank === undefined && <span className={clsx('rank', 'rank-int', `g${Math.round(interesse)}`)} role="img" aria-label={`Interesse ${Math.round(interesse)} su 5`}>{Math.round(interesse)}</span>}
+      </>}
       <div className="grow">
         <div className="line">
           <div className={clsx('t1', (light || (voce && statoVisto(voce.stato) !== 'da_fare' && statoVisto(voce.stato) !== 'in_corso' && statoVisto(voce.stato) !== 'in_pausa')) && 'light', (struck || (voce && statoVisto(voce.stato) === 'fatto')) && 'struck')}>{titolo}</div>
@@ -212,7 +220,7 @@ export function Row({ titolo, meta, dettagli, right, conNote, tipo, level, rank,
         {conTempo ? (
           <div className="sr-riga">
             {quota !== undefined && <span className="sr-barra"><i style={{ width: `${Math.min(1, quota) * 100}%` }} /></span>}
-            <span className="sr-tt"><b>{formatoCronometro(ms)}</b>{voce.sforzoMin ? ` / ${durataLavoro(voce.sforzoMin * 60_000)}` : ''}</span>
+            <span className="sr-tt"><b>{formatoCronometro(ms)}</b>{stimaMin ? ` / ${durataLavoro(stimaMin * 60_000)}` : ''}</span>
           </div>
         ) : meta && <div className="t2">{meta}</div>}
       </div>

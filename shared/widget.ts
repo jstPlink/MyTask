@@ -3,7 +3,7 @@
 import type { Item } from './types.ts';
 import { livelloPriorita, battitoBpm, isClosed, intensitaBattito } from './priority.ts';
 import type { Sessione } from './sessione.ts';
-import { classificaCuriosita, classificaPriorita, live, vistaOggi } from './views.ts';
+import { classificaPriorita, live, vistaOggi } from './views.ts';
 import { chiaveTitolo } from './testo.ts';
 import { NOMI_TIPO } from './types.ts';
 import { etichettaData } from './dataNota.ts';
@@ -28,10 +28,8 @@ export interface RigaWidget {
   z?: 1;
   /** Tempo previsto in minuti (la stima della nota), se c'è. */
   p?: number;
-  /** «c» se è una curiosità (in una sezione sua, con la posizione nella classifica delle curiosità); assente per le attività. */
+  /** «c» se è una curiosità (in una sezione sua, con un «?» al posto della posizione e senza stima); assente per le attività. */
   k?: 'c';
-  /** Interesse 1-5 di una curiosità, per il pallino verde che si riempie con l'interesse. */
-  i?: number;
   /** 1 se la nota ha del testo (stile Flat del widget: pallino delle note sotto il titolo). */
   n?: 1;
   /** Scadenza o data fissa già scritta («oggi», «scaduta ieri», «entro sab 22») e `dl` = 1 se è in ritardo (rossa); stile Flat del widget. */
@@ -46,7 +44,7 @@ function notaEData(i: Item, oggi: string): Pick<RigaWidget, 'n' | 'd' | 'dl'> {
 
 /**
  * Le cose da fare oggi per il widget, come in Priorità: prima le attività (`vistaOggi().fare`, con posizione in classifica,
- * priorità e battito), poi le curiosità (`k: 'c'`, con la posizione nella loro classifica). Nessuna è tagliata: il widget scorre.
+ * priorità e battito), poi le curiosità del turno (`k: 'c'`, senza posizione né stima). Nessuna è tagliata: il widget scorre.
  */
 export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[] {
   const classifica = classificaPriorita(items, oggi); // la stessa posizione che si legge nell'app
@@ -54,14 +52,9 @@ export function righeWidget(items: Item[], oggi: string, max = 20): RigaWidget[]
   const attivita: RigaWidget[] = v.fare.slice(0, max).map((e) => ({
     id: e.item.id, t: e.item.titolo, r: classifica.get(e.item.id), l: livelloPriorita(e.item, oggi), b: battitoBpm(intensitaBattito(e.item, oggi), classifica.get(e.item.id)) || undefined, w: e.item.lavoratoMs || undefined, c: e.item.stato === 'in_corso' ? 1 : undefined, z: e.item.stato === 'in_pausa' ? 1 : undefined, p: e.item.sforzoMin || undefined, ...notaEData(e.item, oggi),
   }));
-  const posCur = classificaCuriosita(items); // la posizione nella classifica delle curiosità, come nell'app
-  const curiosita: RigaWidget[] = v.curiosita.map((i) => {
-    const r = posCur.get(i.id); // pallino verde e fermo: il numero è la posizione, il riempimento l'interesse
-    return {
-      id: i.id, t: i.titolo, r, l: 1, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, z: i.stato === 'in_pausa' ? 1 : undefined, p: i.sforzoMin || undefined, k: 'c',
-      i: Math.max(1, Math.min(5, Math.round(i.interesse ?? 3))), ...notaEData(i, oggi),
-    };
-  });
+  const curiosita: RigaWidget[] = v.curiosita.map((i) => ({
+    id: i.id, t: i.titolo, l: 1, w: i.lavoratoMs || undefined, c: i.stato === 'in_corso' ? 1 : undefined, z: i.stato === 'in_pausa' ? 1 : undefined, k: 'c', ...notaEData(i, oggi),
+  }));
   return [...attivita, ...curiosita];
 }
 
@@ -83,7 +76,7 @@ export interface LavoroWidget {
 export function lavoroWidget(items: Item[], s: Sessione): LavoroWidget | null {
   if (s.stato === 'ferma' || !s.taskId) return null;
   const item = items.find((i) => i.id === s.taskId && !i.eliminato);
-  return item ? { stato: s.stato, id: item.id, t: item.titolo, base: s.base ?? item.lavoratoMs ?? 0, ref: s.inizio ?? 0, p: item.sforzoMin || undefined } : null;
+  return item ? { stato: s.stato, id: item.id, t: item.titolo, base: s.base ?? item.lavoratoMs ?? 0, ref: s.inizio ?? 0, p: (item.tipo !== 'curiosita' && item.sforzoMin) || undefined } : null;
 }
 
 /** Una nota nell'archivio del widget: serve alla nota veloce per mostrare le note con parole simili. */

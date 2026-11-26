@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
 import { diffDays, addDays, addMonths, startOfWeek, formatShort } from './dates.ts';
-import { punteggioCuriosita, chiavePriorita, daysOverdue, livelloPriorita, battitoBpm, intensitaBattito, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
+import { chiavePriorita, daysOverdue, livelloPriorita, battitoBpm, intensitaBattito, impostaPesi, normalizzaPesi, PESI_PREDEFINITI, score } from './priority.ts';
 import { completa, nextOccurrence } from './recurrence.ts';
 import { dueToday, toggleOggi, weekCount } from './routine.ts';
-import { classificaCuriosita, curiositaPerPriorita, classificaPriorita, posizionePriorita, stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
+import { curiositaDaSmaltire, turnoCuriosita, classificaPriorita, posizionePriorita, stimaProgetto, vistaOggi, avanzamento, listaProgetti, listaAzioni, raggruppaPerProgetto, cercaSimili } from './views.ts';
 import { suggerisciStasera } from './stasera.ts';
 import { listaGameDesign, punteggioGameDesign } from './gamedesign.ts';
 
@@ -159,12 +159,10 @@ test('Oggi: prossimi 7 giorni e voci parcheggiate', () => {
   assert.ok(!v.fare.some((e) => e.item.id === park.id));
 });
 
-test('Priorità: il gruppo «Curiosità» propone le cinque più interessanti, a parità le più vecchie, separate dalle attività', () => {
-  const cur = (titolo: string, interesse: number, aggiornato: number, extra: Partial<Item> = {}) => mk({ tipo: 'curiosita', titolo, interesse, aggiornato, ...extra });
-  const buone = [cur('A', 5, NOW), cur('B', 5, NOW - 1000), cur('C', 4, NOW), cur('D', 3, NOW - 5000), cur('E', 3, NOW), cur('F', 2, NOW)];
-  const escluse = [cur('Parcheggiata', 5, NOW, { stato: 'parcheggiato' }), cur('Fatta', 5, NOW, { stato: 'fatto' }), cur('In inbox', 5, NOW, { inbox: true })];
-  const v = vistaOggi([...buone, ...escluse], OGGI, NOW);
-  assert.deepEqual(v.curiosita.map((c) => c.titolo), ['B', 'A', 'C', 'D', 'E']);
+test('Priorità: il gruppo «Curiosità» propone cinque curiosità, separate dalle attività', () => {
+  const tutte = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((titolo) => mk({ tipo: 'curiosita', titolo }));
+  const v = vistaOggi(tutte, OGGI, NOW);
+  assert.equal(v.curiosita.length, 5);
   // le curiosità non entrano nelle attività né nella loro classifica
   assert.ok(!v.fare.some((e) => e.item.tipo === 'curiosita'));
   assert.deepEqual(vistaOggi([], OGGI, NOW).curiosita, []);
@@ -290,28 +288,26 @@ test('battito legato alla formula: il grigio è fermo, ambra e rosso battono con
   assert.ok(battitoBpm(b(mk({ importanza: 3, fine: OGGI }))) > battitoBpm(b(mk({ importanza: 4 }))));
 });
 
-test('curiosità: il punteggio è 55% tempo stimato e 45% interesse', () => {
-  const c = (interesse: number, sforzoMin?: number) => mk({ tipo: 'curiosita', titolo: 'C', interesse, sforzoMin });
-  assert.equal(punteggioCuriosita(c(5, 10)), 100); // 15 min o meno e interesse massimo
-  assert.equal(punteggioCuriosita(c(1, 120)), 0); // lunga e senza interesse
-  assert.equal(punteggioCuriosita(c(3, 20)), 56); // 0,55 × 60 + 0,45 × 50 = 55,5
-  // il tempo pesa un po' più dell'interesse: breve e poco interessante batte lunga e molto interessante, a parità di distanza
-  assert.ok(punteggioCuriosita(c(3, 10)) > punteggioCuriosita(c(5, 90)));
-  assert.ok(punteggioCuriosita(c(5, 90)) > punteggioCuriosita(c(1, 90)), 'a parità di tempo vince l’interesse');
-  assert.equal(punteggioCuriosita(c(3)), Math.round(0.55 * 30 + 0.45 * 50), 'senza stima il tempo vale 30');
+test('curiosità: la scelta resta uguale per 6 ore e poi cambia', () => {
+  const tutte = Array.from({ length: 30 }, (_, k) => mk({ tipo: 'curiosita', titolo: `C ${k}` }));
+  const alle = (ore: number, minuti = 0) => new Date(2026, 5, 10, ore, minuti).getTime();
+  const scelta = (t: number) => curiositaDaSmaltire(tutte, t).map((c) => c.id);
+  assert.equal(turnoCuriosita(alle(6)), turnoCuriosita(alle(11, 59)));
+  assert.equal(turnoCuriosita(alle(12)), turnoCuriosita(alle(6)) + 1);
+  assert.deepEqual(scelta(alle(6)), scelta(alle(11, 59)));
+  assert.deepEqual(curiositaDaSmaltire([...tutte].reverse(), alle(6)).map((c) => c.id), scelta(alle(6)), 'non dipende dall’ordine dei dati');
+  assert.notDeepEqual(scelta(alle(12)), scelta(alle(6)));
 });
 
-test('curiosità: la classifica numera da 1 in ordine di priorità e Priorità ne mostra cinque', () => {
-  const lunga = mk({ tipo: 'curiosita', titolo: 'Lunga', interesse: 5, sforzoMin: 120, aggiornato: 1 });
-  const breve = mk({ tipo: 'curiosita', titolo: 'Breve', interesse: 3, sforzoMin: 10, aggiornato: 2 });
-  const media = mk({ tipo: 'curiosita', titolo: 'Media', interesse: 4, sforzoMin: 30, aggiornato: 3 });
-  const altre = [1, 2, 3, 4].map((k) => mk({ tipo: 'curiosita', titolo: `Altra ${k}`, interesse: 1, sforzoMin: 200 }));
-  const tutte = [lunga, breve, media, ...altre];
-  assert.deepEqual(curiositaPerPriorita(tutte).slice(0, 3).map((x) => x.titolo), ['Breve', 'Media', 'Lunga']);
-  const pos = classificaCuriosita(tutte);
-  assert.equal(pos.get(breve.id), 1);
-  assert.equal(pos.get(lunga.id), 3);
-  assert.equal(vistaOggi(tutte, OGGI, NOW).curiosita.length, 5);
+test('curiosità: quelle iniziate restano sempre, le archiviate mai', () => {
+  const tutte = Array.from({ length: 20 }, (_, k) => mk({ tipo: 'curiosita', titolo: `C ${k}` }));
+  const avviata = mk({ tipo: 'curiosita', titolo: 'Avviata', stato: 'in_pausa' });
+  const archiviata = mk({ tipo: 'curiosita', titolo: 'Archiviata', stato: 'parcheggiato' });
+  for (let turno = 0; turno < 8; turno++) {
+    const scelta = curiositaDaSmaltire([...tutte, avviata, archiviata], NOW + turno * 6 * 3_600_000);
+    assert.equal(scelta[0].id, avviata.id);
+    assert.ok(!scelta.some((c) => c.id === archiviata.id));
+  }
 });
 
 test('Priorità: al massimo cinque attività, anche se altre sono scadute', () => {

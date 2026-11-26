@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import type { Item } from '../../../shared/types.ts';
 import { today } from '../../../shared/dates.ts';
+import { turnoCuriosita } from '../../../shared/views.ts';
 import { getAuth, getItems, subscribe, subscribeAuth } from './store.ts';
 import { getStatoSync, subscribeSync } from './sync.ts';
 import { getToast, subscribeToast } from './toast.ts';
@@ -48,6 +49,13 @@ export function useOggi(): string {
   const [d, setD] = useState(() => today());
   usaAggiornamento(() => setD((x) => { const n = today(); return n === x ? x : n; }), 30_000);
   return d;
+}
+
+/** Il turno delle curiosità (cambia ogni 6 ore), aggiornato anche se l'app resta aperta. */
+export function useTurnoCuriosita(): number {
+  const [t, setT] = useState(() => turnoCuriosita(Date.now()));
+  usaAggiornamento(() => setT(turnoCuriosita(Date.now())), 30_000);
+  return t;
 }
 
 /** L'istante corrente (millisecondi), aggiornato ogni secondo finché `attivo`: per far scorrere il cronometro. */

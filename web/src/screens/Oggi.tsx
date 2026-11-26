@@ -16,11 +16,11 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Item } from '../../../shared/types.ts';
 import { formatShortYear } from '../../../shared/dates.ts';
 import { livelloPriorita, dueDate, daysOverdue } from '../../../shared/priority.ts';
-import { classificaCuriosita, classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
+import { classificaPriorita, raggruppaPerProgetto, vistaOggi, type Entry } from '../../../shared/views.ts';
 import { fattaOggi } from '../../../shared/routine.ts';
 import { descriviRicorrenza } from '../../../shared/recurrence.ts';
 import { formatoCronometro } from '../../../shared/sessione.ts';
-import { useItems, useOggi, useSyncStatus } from '../lib/hooks.ts';
+import { useItems, useOggi, useTurnoCuriosita, useSyncStatus } from '../lib/hooks.ts';
 import { segnaRoutine, statoVisto } from '../lib/actions.ts';
 import { tempoDi } from '../lib/sessione.ts';
 import { DataRiga, Fab, Sezione, GruppoProgetto, Icona, Margine, Row, Top, unisciMeta } from '../ui/kit.tsx';
@@ -36,10 +36,10 @@ export function Oggi() {
   const sync = useSyncStatus();
   const nav = useNav();
   const [mostraAvviate, setMostraAvviate] = useState(false);
-  const v = useMemo(() => vistaOggi(items, oggi), [items, oggi]);
+  const turno = useTurnoCuriosita(); // le curiosità proposte cambiano ogni 6 ore
+  const v = useMemo(() => vistaOggi(items, oggi), [items, oggi, turno]); // eslint-disable-line react-hooks/exhaustive-deps
   const margine = useMemo(() => margineAtteso(items), [items]);
   const nMisurate = useMemo(() => stimeMisurate(items), [items]);
-  const posCuriosita = useMemo(() => classificaCuriosita(items), [items]); // la posizione nella classifica delle curiosità
   const classifica = useMemo(() => classificaPriorita(items, oggi), [items, oggi]); // la posizione è quella unica, uguale in ogni schermata
 
   // Riga grigia sotto il titolo: prossimo passo di un progetto, tempo stimato, ricorrenza.
@@ -137,17 +137,14 @@ export function Oggi() {
     </Sezione>
   );
 
-  // Curiosità da smaltire: poche, sotto le attività, senza numero di priorità (hanno un interesse, non un'importanza).
+  // Curiosità: poche e a caso, sotto le attività, con «?» al posto della posizione.
   const curiosita = v.curiosita.length > 0 && (
     <Sezione titolo="Curiosità">
       {v.curiosita.map((c) => (
         <Row
           key={c.id}
           titolo={c.titolo} tipo="curiosita"
-          meta={c.sforzoMin ? nomeTempo(c.sforzoMin) : undefined}
           dettagli={null}
-          rank={posCuriosita.get(c.id)}
-          interesse={c.interesse ?? 3}
           check="square"
           centrato
           voce={c}

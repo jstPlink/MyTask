@@ -37,7 +37,7 @@ export function statoOrologio(store: Store, utente: number, now: number): StatoO
     tempoMs: Math.round(tempoTotale(a.s, a.item, now)),
     // da quanto corre il tratto in corso: le vibrazioni periodiche ripartono da zero a ogni pausa o ripresa, come le notifiche del telefono
     trattoMs: Math.round(msTrattoInCorso(a.s, now)),
-    ...(a.item.sforzoMin ? { stimaMin: a.item.sforzoMin } : {}),
+    ...(a.item.sforzoMin && a.item.tipo !== 'curiosita' ? { stimaMin: a.item.sforzoMin } : {}),
   };
 }
 

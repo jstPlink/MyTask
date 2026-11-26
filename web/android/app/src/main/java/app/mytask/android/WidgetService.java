@@ -117,11 +117,8 @@ public class WidgetService extends RemoteViewsService {
                 int col;
                 String numero;
                 if (curiosita) {
-                    int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
-                    String[] tc = {"#8A93A0", "#8A93A0", "#4E9A78", "#1F7A52", "#1F7A52"};
-                    String[] ts = {"#7B8493", "#7B8493", "#5FAE8D", "#6FCF9B", "#6FCF9B"};
-                    col = Color.parseColor((s ? ts : tc)[interesse - 1]);
-                    numero = String.valueOf(rank > 0 ? rank : interesse);
+                    col = Color.parseColor(s ? "#5FAE8D" : "#4E9A78");
+                    numero = "?";
                 } else {
                     String[] tc = {"#8A93A0", "#D9A400", "#D32F2F"};
                     String[] ts = {"#7B8493", "#F4C542", "#FF6B6B"};
@@ -218,9 +215,8 @@ public class WidgetService extends RemoteViewsService {
                 int col;
                 String numero;
                 if (curiosita) {
-                    int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
-                    col = vt.interesse(interesse);
-                    numero = String.valueOf(rank > 0 ? rank : interesse);
+                    col = vt.accento;
+                    numero = "?";
                 } else {
                     col = vt.livello(Math.max(1, Math.min(3, o.optInt("l", 1))));
                     numero = String.valueOf(rank);
@@ -242,17 +238,12 @@ public class WidgetService extends RemoteViewsService {
                 v.setInt(R.id.rank, "setBackgroundResource", (s ? tagS : tagC)[livello - 1]);
                 v.setTextColor(R.id.rank, Color.parseColor((s ? tintaS : tintaC)[livello - 1]));
             } else if (curiosita) {
-                // curiosità: pallino 30 x 30 con l'interesse (1-5): grigio (1-2), verde medio (3), verde scuro (4-5); fermo, senza battito
-                int interesse = Math.max(1, Math.min(5, o.optInt("i", 3)));
-                int[] pieniC = {R.drawable.rank_int_c_1, R.drawable.rank_int_c_2, R.drawable.rank_int_c_3, R.drawable.rank_int_c_4, R.drawable.rank_int_c_5};
-                int[] pieniS = {R.drawable.rank_int_s_1, R.drawable.rank_int_s_2, R.drawable.rank_int_s_3, R.drawable.rank_int_s_4, R.drawable.rank_int_s_5};
-                String[] tintaC = {"#8A93A0", "#8A93A0", "#4E9A78", "#1F7A52", "#1F7A52"};
-                String[] tintaS = {"#7B8493", "#7B8493", "#5FAE8D", "#6FCF9B", "#6FCF9B"};
+                // curiosità: pallino 30 x 30 verde con «?», uguale per tutte; fermo
                 v.setViewVisibility(R.id.rankbox, View.VISIBLE);
                 v.setViewPadding(R.id.rank, 0, 0, 0, 0);
-                v.setTextViewText(R.id.rank, String.valueOf(rank > 0 ? rank : interesse)); // la posizione nella classifica delle curiosità
-                v.setInt(R.id.rank, "setBackgroundResource", (s ? pieniS : pieniC)[interesse - 1]);
-                v.setTextColor(R.id.rank, Color.parseColor((s ? tintaS : tintaC)[interesse - 1]));
+                v.setTextViewText(R.id.rank, "?");
+                v.setInt(R.id.rank, "setBackgroundResource", s ? R.drawable.rank_int_s_3 : R.drawable.rank_int_c_3);
+                v.setTextColor(R.id.rank, Color.parseColor(s ? "#5FAE8D" : "#4E9A78"));
             } else {
                 v.setViewVisibility(R.id.rankbox, View.GONE);
             }

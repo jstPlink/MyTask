@@ -124,7 +124,7 @@ export function InCorso() {
 
   const progetto = nota.padreId ? items.find((i) => i.id === nota.padreId) : undefined;
   const ms = tempoDi(nota, adesso);
-  const stimaMs = nota.sforzoMin ? nota.sforzoMin * 60_000 : 0;
+  const stimaMs = nota.sforzoMin && nota.tipo !== 'curiosita' ? nota.sforzoMin * 60_000 : 0;
   const quota = stimaMs ? Math.min(1, ms / stimaMs) : 0;
   const oltre = stimaMs > 0 && ms > stimaMs;
   const d = dueDate(nota);

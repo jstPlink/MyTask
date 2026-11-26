@@ -5,7 +5,7 @@ import type { Item } from './types.ts';
 import { chiaveTitolo } from './testo.ts';
 import { addDays, diffDays } from './dates.ts';
 import {
-  dueDate, isClosed, isOpen, chiavePriorita, punteggioCuriosita, withInheritance,
+  dueDate, isClosed, isOpen, chiavePriorita, withInheritance,
 } from './priority.ts';
 import { routineDueToday } from './routine.ts';
 import { GIORNI_IN_ARRIVO, MAX_IN_ARRIVO, inArrivo } from './dataNota.ts';
@@ -157,7 +157,7 @@ export function posizionePriorita(items: Item[], nota: Item, today: string, now:
 export interface VistaOggi {
   routine: Item[];
   fare: Entry[];
-  /** Le prime curiosità della loro classifica (tempo stimato e interesse), in un gruppo separato dalle attività con la loro numerazione. */
+  /** Le curiosità del turno (scelta casuale che cambia ogni 6 ore), in un gruppo separato dalle attività. */
   curiosita: Item[];
   prossimi: Entry[];
   /** Attività già avviate (in pausa o in corso) che non rientrano nelle prime 5: la pagina Priorità le mostra a richiesta sotto la quinta. */
@@ -170,24 +170,35 @@ export interface VistaOggi {
 /** Quante curiosità mostra al massimo la pagina Priorità nel gruppo «Curiosità». */
 export const MAX_CURIOSITA_OGGI = 5;
 
+/** Ogni quante ore la pagina Priorità cambia le curiosità proposte (alle 0, 6, 12 e 18, ora locale). */
+export const ORE_ROTAZIONE_CURIOSITA = 6;
+
+/** Il numero del turno di rotazione a cui appartiene l'istante `now`: cambia ogni `ORE_ROTAZIONE_CURIOSITA` ore. */
+export function turnoCuriosita(now: number): number {
+  const locale = now - new Date(now).getTimezoneOffset() * 60_000;
+  return Math.floor(locale / (ORE_ROTAZIONE_CURIOSITA * 3_600_000));
+}
+
+/** Numero «casuale» ma ripetibile ricavato da un testo (FNV-1a con rimescolamento finale). */
+function sorte(testo: string): number {
+  let h = 0x811c9dc5;
+  for (let n = 0; n < testo.length; n++) h = Math.imul(h ^ testo.charCodeAt(n), 0x01000193);
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
 /**
- * Le curiosità aperte (non parcheggiate) in ordine di priorità: prima il punteggio della formula delle curiosità (tempo stimato 55% e
- * interesse 45%, `punteggioCuriosita`), a parità l'interesse più alto e la curiosità aggiornata da più tempo.
+ * Le curiosità da proporre in Priorità: una scelta casuale tra quelle aperte (non parcheggiate) che resta uguale per tutto il turno di
+ * 6 ore ed è la stessa su tutti i dispositivi (dipende solo da turno e nota). Quelle già iniziate (in corso o in pausa) restano sempre.
  */
-export function curiositaPerPriorita(items: Item[]): Item[] {
+export function curiositaDaSmaltire(items: Item[], now: number = Date.now(), max: number = MAX_CURIOSITA_OGGI): Item[] {
+  const turno = turnoCuriosita(now);
+  const avviata = (i: Item) => (i.stato === 'in_corso' || i.stato === 'in_pausa' ? 0 : 1);
   return curiosita(items)
-    .filter((c) => c.stato !== 'parcheggiato')
-    .sort((a, b) => punteggioCuriosita(b) - punteggioCuriosita(a) || (b.interesse ?? 3) - (a.interesse ?? 3) || a.aggiornato - b.aggiornato || a.id.localeCompare(b.id));
-}
-
-/** Posizione di ogni curiosità aperta nella loro classifica (1 = la prima da approfondire): è il numero accanto alla riga. */
-export function classificaCuriosita(items: Item[]): Map<string, number> {
-  return new Map(curiositaPerPriorita(items).map((c, n) => [c.id, n + 1]));
-}
-
-/** Le curiosità da proporre oggi: le prime della classifica delle curiosità. */
-export function curiositaDaSmaltire(items: Item[], max: number = MAX_CURIOSITA_OGGI): Item[] {
-  return curiositaPerPriorita(items).slice(0, max);
+    .filter((i) => i.stato !== 'parcheggiato')
+    .sort((a, b) => avviata(a) - avviata(b) || sorte(`${a.id}:${turno}`) - sorte(`${b.id}:${turno}`) || a.id.localeCompare(b.id))
+    .slice(0, max);
 }
 
 /** Quante attività mostra Priorità al massimo: le 5 con la posizione migliore, e basta (niente scadute o «in pausa» oltre la quinta). */
@@ -225,7 +236,7 @@ export function vistaOggi(items: Item[], today: string, now: number = Date.now()
     routine: routineDueToday(items, today),
     fare,
     avviate,
-    curiosita: curiositaDaSmaltire(items),
+    curiosita: curiositaDaSmaltire(items, now),
     prossimi,
     inArrivo: candidatiOggi(items, today, now, true)
       .filter((e) => diffDays(dueDate(e.item)!, today) <= GIORNI_IN_ARRIVO)

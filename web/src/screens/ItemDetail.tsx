@@ -47,7 +47,7 @@ const IS_AZIONE = (t: Tipo) => t === 'azione' || t === 'progetto'; // importanza
 const IS_DATATO = (t: Tipo) => t === 'azione' || t === 'progetto' || t === 'esperienza'; // data, scadenza fissa, promemoria
 const IS_VIDEO = (t: Tipo) => t === 'film' || t === 'serie' || t === 'anime'; // piattaforma, tipologia, mood, energia
 const IS_COLLEZIONE = (t: Tipo) => IS_VIDEO(t) || t === 'gioco' || t === 'libro' || t === 'ricetta'; // gruppo «Intrattenimento» o «Ricetta»
-const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'curiosita' || t === 'gamedesign'; // slider dell'interesse
+const HA_INTERESSE = (t: Tipo) => IS_COLLEZIONE(t) || t === 'esperienza' || t === 'gamedesign'; // slider dell'interesse
 
 /** Quanti giorni prima della scadenza parte la notifica quotidiana. */
 const GIORNI_PRIMA = [1, 2, 3, 5, 7, 14, 30];
@@ -122,7 +122,7 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
   const adesso = useAdesso(inLavoro);
   const salvataLavoro = tutte.find((i) => i.id === d.id);
   const lavoratoMs = salvataLavoro ? tempoDi(salvataLavoro, adesso) : 0;
-  const lavorato = lavoratoMs >= 1000 ? avanzamentoTempo(lavoratoMs, d.sforzoMin) : undefined;
+  const lavorato = lavoratoMs >= 1000 ? avanzamentoTempo(lavoratoMs, d.tipo === 'curiosita' ? undefined : d.sforzoMin) : undefined;
   const classifica = useMemo(() => classificaPriorita(tutte, oggi), [tutte, oggi]); // posizione unica, uguale in tutte le schermate
   const passi = useMemo(() => (t === 'progetto' ? figli(tutte, d.id).filter((c) => c.stato !== 'parcheggiato') : []), [tutte, t, d.id]);
   const checklist = d.checklist ?? [];
@@ -381,14 +381,6 @@ export function ItemDetail({ id, nuovo }: { id?: string; nuovo?: Partial<Item> }
             <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} />
             <Field label="Difficoltà"><SliderImportanza label="Difficoltà" valore={d.difficolta} onChange={(v) => up({ difficolta: v })} /></Field>
             <Field label="Priorità"><b>{prioritaIdea}</b></Field>
-          </Gruppo>
-        )}
-
-        {/* Curiosità: interesse e tempo stimato */}
-        {t === 'curiosita' && (
-          <Gruppo titolo="Interesse">
-            <Field label="Interesse"><SliderImportanza verde label="Interesse" valore={d.interesse} onChange={(v) => up({ interesse: v })} /></Field>
-            <CampoTempo label="Tempo stimato" valore={d.sforzoMin} onChange={(m) => up({ sforzoMin: m })} />
           </Gruppo>
         )}
 
