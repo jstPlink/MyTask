@@ -2,7 +2,7 @@
 
 Documento vivo: descrive **com'è l'app oggi**. Ogni modifica va riportata nelle sezioni giuste e annotata nel registro in fondo.
 
-- **Versione documento:** 0.128.0
+- **Versione documento:** 0.129.0
 - **Stato progetto:** in uso. Il server gira sul NAS (immagine Docker da GitHub), il sito ha il layout per schermi larghi, l'app Android è installata sul telefono con notifiche locali e widget «Oggi». Aperti: verifica delle notifiche e del service worker sul telefono, Google Calendar, altre funzioni IA (sezione 9).
 - **Codice:** [README.md](../README.md) (come avviarla, metterla sul NAS, installare l'app Android)
 - **Mockup:** `docs/mockups/` (minimalisti ed estetici, chiaro/scuro). Sono locali, non pubblicati perché usano i dati reali dell'utente.
@@ -675,6 +675,7 @@ Storico dei cambiamenti: alcune righe descrivono funzioni poi cambiate o tolte (
 | 2026-11-25 | 0.126.0 | **Scheda della nota:** una nota dell'Inbox che si apre diventa di base un'attività; il titolo si modifica dalla barra in alto (tolto il campo «Titolo»); tipo e stato sono pillole con menu sotto il titolo (la barra gigante dello stato non c'è più); le barre della priorità sono riempite del colore del livello; promemoria di base alle 7:00 (non più alle 9:00); il riquadro verde «Da … una notifica al giorno…» passa in fondo al gruppo Promemoria; sotto la stima il testo diventa «Aumenta/Riduci la stima del x%»; «Ripeti finché non spunto» è sempre acceso e l'opzione è tolta dalla nota (anche le note con un promemoria già impostato lo prendono quando si aprono); ora del promemoria allineata a destra; pillole di tipo e stato con contorno visibile in ogni stile; targhetta della priorità in cima alla scheda, sopra il titolo; **formula:** l'età di una nota rientra nel punteggio (pesi di base 45/35/10/10) e scadenza ed età sono **esponenziali** con una curva regolabile ciascuna nel Bilanciatore (grafico e curvatura da 0 a 8, sincronizzati); blocco di titolo, tipo e stato come gli altri riquadri; login senza la riga «Accedi per sincronizzare…» e, in sviluppo locale, con il pulsante «Creane uno» sempre visibile; **un parametro forte basta per il rosso:** il punteggio è il più alto tra la somma pesata e la spinta della componente più forte (sotto 50 nulla, da 50 a 100 fino a 80 punti) |
 | 2026-11-25 | 0.127.0 | **Un parametro forte basta per il rosso:** il punteggio è il più alto tra la somma pesata e la «spinta» della componente più forte (sotto 50 nulla, da 50 a 100 fino a 80 punti), così importanza 5, scade oggi, nota vecchia di 60 giorni o attività brevissima diventano rosse anche con pesi bilanciati |
 | 2026-11-26 | 0.128.0 | **Curiosità senza parametri:** tolti dalla scheda interesse e tempo stimato (i valori vecchi restano nei dati, nascosti anche nelle righe, nella schermata «in corso», nel widget e sull'orologio; niente più confronto col tempo reale al completamento); tutte le righe hanno la stessa targhetta verde con «?»; in Priorità cinque curiosità **a caso**, che cambiano ogni 6 ore (0, 6, 12, 18); nella scheda Curiosità le più recenti prima |
+| 2026-11-26 | 0.129.0 | **Desktop e orologio:** nella barra laterale del sito e dell'app per computer le voci «Bilanciatore priorità» e «Storico del margine»; mini-app dell'orologio 1.0.6 con l'anello a cerchio completo per le note senza stima o fuori tempo. |
 
 ## Selettore del tempo a rotelle (0.65.3)
 

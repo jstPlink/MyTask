@@ -4,7 +4,7 @@
     "appId": 1070421,
     "appName": "MyTask",
     "appType": "app",
-    "version": { "code": 5, "name": "1.0.5" },
+    "version": { "code": 6, "name": "1.0.6" },
     "icon": "icon.png",
     "vender": "MyTask",
     "description": "Il timer della nota in corso di MyTask"

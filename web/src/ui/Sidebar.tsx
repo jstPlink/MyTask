@@ -26,7 +26,7 @@ const SUB_SCOPRIRE: { id: SubScoprire; nome: string }[] = [
 /**
  * Barra laterale per schermi larghi (≥900px): sostituisce le schede in basso e il menu «Altro». Contiene il campo «Nuova nota» (tasto N),
  * la ricerca (tasto /), le cinque sezioni con i conteggi (le sotto-sezioni di Attività e Intrattenimento si aprono sotto la sezione attiva),
- * Inbox (voce principale come le altre, sopra le cinque sezioni e subito sotto il campo nota), Archiviate, Completato, Aspetto, Account e in fondo la versione e lo stato offline.
+ * Inbox (voce principale come le altre, sopra le cinque sezioni e subito sotto il campo nota), Archiviate, Completato, Bilanciatore priorità, Storico del margine, Aspetto, Account e in fondo la versione e lo stato offline.
  */
 export function Sidebar() {
   const nav = useNav();
@@ -104,6 +104,8 @@ export function Sidebar() {
 
       <div className="sb-spacer" />
       <div className="sb-group">
+        <Link nome="Bilanciatore priorità" on={scr('pesi')} onClick={() => vai({ k: 'pesi' })} />
+        <Link nome="Storico del margine" on={scr('storicomargine')} onClick={() => vai({ k: 'storicomargine' })} />
         <Link nome="Aspetto" on={scr('aspetto')} onClick={() => vai({ k: 'aspetto' })} />
         <Link nome="Account" on={scr('account')} onClick={() => vai({ k: 'account' })} />
       </div>

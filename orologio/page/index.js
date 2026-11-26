@@ -10,7 +10,7 @@ const { messageBuilder } = getApp()._options.globalData
 const L = 480 // larghezza dello schermo (designWidth)
 const INTERVALLO_STATO_MS = 5000
 const SCHERMO_ACCESO_S = 30 * 60
-const VERSIONE = '1.0.5' // la aggiorna anteprima.ps1 a ogni nuovo QR
+const VERSIONE = '1.0.6' // la aggiorna anteprima.ps1 a ogni nuovo QR
 const ANELLO = 22 // spessore dell'anello in px
 const GRIGIO_ANELLO = 0x424242 // anello spento (26% di bianco su nero)
 const BIANCO = 0xffffff
@@ -217,9 +217,11 @@ Page({
     this.state.chiaveAnello = chiave
     if (this.arco) { hmUI.deleteWidget(this.arco); this.arco = null }
     if (!this.attivo()) return
-    const gradi = Math.max(3, Math.min(359.5, Number(chiave.split(':')[1])))
+    const gradi = Math.max(3, Math.min(360, Number(chiave.split(':')[1])))
+    // senza stima, o con la stima superata («fuori tempo»), l'anello è tutto pieno: stesso disegno, un cerchio completo
+    const pieno = gradi >= 360
     this.arco = hmUI.createWidget(hmUI.widget.ARC, {
-      x: 0, y: 0, w: L, h: L, radius: L / 2 - ANELLO / 2, start_angle: -90, end_angle: -90 + gradi, line_width: ANELLO,
+      x: 0, y: 0, w: L, h: L, radius: L / 2 - ANELLO / 2, start_angle: pieno ? 0 : -90, end_angle: pieno ? 360 : -90 + gradi, line_width: ANELLO,
       color: n.stato === 'pausa' ? 0x7a7a7a : BIANCO,
     })
   },
