@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Item } from './types.ts';
-import { MARGINE_PREDEFINITO, fattoreLunghezza, impostaParametriMargine, normalizzaMargine, quotaErrore, quotaScaduta, EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, livelloNota, margineAtteso, passoNota, precisione, PASSO_MAX, PASSO_MIN, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
+import { MARGINE_PREDEFINITO, fattoreLunghezza, impostaParametriMargine, normalizzaMargine, quotaErrore, pesoEta, pesoNota, EMIVITA_GIORNI, MARGINE_INIZIALE, MARGINE_MAX, MARGINE_MIN, livelloMargine, livelloNota, margineAtteso, precisione, PESO_GIUSTA, PESO_SBAGLIATA, percentuale, storicoNote, ultimeNote, stimaPer, tempoAtteso } from './stima.ts';
 
 let n = 0;
 const fatta = (titolo: string, sforzoMin: number | undefined, durataRealeMin: number | undefined): Item =>
@@ -28,12 +28,12 @@ test('stima: stime troppo abbondanti portano il margine sotto zero, stime troppo
   assert.ok(margineAtteso(abbondanti) >= MARGINE_MIN && margineAtteso(corte) <= MARGINE_MAX);
 });
 
-test('stima: una stima precisa ha più forza per riportare il margine a zero', () => {
+test('stima: una stima precisa pesa di più, in più o in meno è uguale', () => {
   assert.equal(precisione(0), 1);
   assert.ok(precisione(0.1) > precisione(0.3) && precisione(0.3) > precisione(0.8));
-  assert.ok(Math.abs(precisione(0.2) - precisione(-0.2)) < 1e-12, 'in più o in meno è uguale');
-  assert.ok(passoNota(60, 0) > passoNota(60, 0.3) && passoNota(60, 0.3) > passoNota(60, 1));
-  assert.ok(passoNota(60, 0) <= PASSO_MAX && passoNota(60, 5) >= PASSO_MIN * 0.99);
+  assert.ok(Math.abs(precisione(0.2) - precisione(-0.2)) < 1e-12);
+  assert.ok(pesoNota(60, 0, 0) > pesoNota(60, 0.3, 0) && pesoNota(60, 0.3, 0) > pesoNota(60, 1, 0));
+  assert.ok(Math.abs(pesoNota(60, 0, 0) - PESO_GIUSTA) < 1e-9 && pesoNota(60, 5, 0) >= PESO_SBAGLIATA - 1e-9);
 });
 
 test('stima: prima un grosso eccesso e poi una stima giusta: il margine si corregge di molto', () => {
@@ -44,11 +44,8 @@ test('stima: prima un grosso eccesso e poi una stima giusta: il margine si corre
   assert.ok(m2 > 0, 'ma non va a zero con una sola nota');
 });
 
-test('stima: un grosso eccesso e poi un grosso difetto lasciano il margine quasi sbagliato come prima, non lo annullano', () => {
-  const dopoEccesso = margineAtteso([fatta('Uno', 60, 108)]); // +80%
-  const dopoDifetto = margineAtteso([fatta('Uno', 60, 108), fatta('Due', 60, 12)]); // poi −80%
-  assert.ok(dopoDifetto > 0.4, `resta molto sbagliato (${dopoDifetto}), non torna vicino a 0`);
-  assert.ok(dopoDifetto < dopoEccesso, 'ma la seconda nota lo sposta un poco verso il suo scostamento');
+test('stima: errori opposti con lo stesso peso si compensano', () => {
+  assert.ok(Math.abs(margineAtteso([fatta('Uno', 60, 108), fatta('Due', 60, 12)])) < 1e-9);
 });
 
 test('stima: errori sempre dello stesso segno portano il margine verso quell errore', () => {
@@ -56,13 +53,28 @@ test('stima: errori sempre dello stesso segno portano il margine verso quell err
   assert.ok(Math.abs(margineAtteso(corte) - 0.6) < 1e-9);
 });
 
-test('stima: dopo un lungo intervallo il margine precedente vale meno (emivita)', () => {
-  const GG = 86_400_000;
-  const vecchia = { ...fatta('Vecchia', 60, 108), completatoTs: 0 }; // +80%
-  const vicina = { ...fatta('Vicina', 60, 60), completatoTs: 1 * GG };
-  const lontana = { ...fatta('Lontana', 60, 60), completatoTs: EMIVITA_GIORNI * GG };
-  assert.ok(margineAtteso([vecchia, lontana]) < margineAtteso([vecchia, vicina]), 'tra due note lontane la seconda (giusta) corregge di più');
-  assert.ok(Math.abs(margineAtteso([vicina, vecchia]) - margineAtteso([{ ...vicina, completatoTs: 1 * GG }, { ...vecchia, completatoTs: 0 }])) < 1e-12, 'conta l ordine nel tempo, non nella lista');
+test('stima: una nota completata da più tempo pesa meno (emivita)', () => {
+  const GG = 86_400_000, adesso = 1000 * GG;
+  const sbagliata = (giorniFa: number) => ({ ...fatta('Sbagliata', 60, 108), completatoTs: adesso - giorniFa * GG }); // +80%
+  const giusta = { ...fatta('Giusta', 60, 60), completatoTs: adesso };
+  assert.ok(margineAtteso([sbagliata(EMIVITA_GIORNI), giusta], adesso) < margineAtteso([sbagliata(1), giusta], adesso));
+  assert.ok(Math.abs(pesoEta(EMIVITA_GIORNI) - 0.5) < 1e-9);
+});
+
+test('stima: l\'ordine delle note non conta, e con l\'età piatta due note uguali pesano uguale', () => {
+  const GG = 86_400_000, adesso = 1000 * GG;
+  const note = [{ ...fatta('Vecchia', 60, 90), completatoTs: adesso - 200 * GG }, { ...fatta('Nuova', 60, 90), completatoTs: adesso }, { ...fatta('Media', 60, 66), completatoTs: adesso - 50 * GG }];
+  assert.ok(Math.abs(margineAtteso(note, adesso) - margineAtteso([note[2], note[0], note[1]], adesso)) < 1e-12);
+  impostaParametriMargine({ ...MARGINE_PREDEFINITO, eta: { emivita: 21, minimo: 1 } });
+  const st = storicoNote(note, adesso);
+  const quota = (t: string) => st.find((n) => n.item.titolo === t)!.quota;
+  assert.ok(Math.abs(quota('Vecchia') - quota('Nuova')) < 1e-12);
+  assert.ok(Math.abs(st.reduce((s, n) => s + n.quota, 0) - 1) < 1e-9);
+  impostaParametriMargine(undefined);
+});
+
+test('stima: note tutte molto vecchie danno comunque un margine', () => {
+  assert.ok(Math.abs(margineAtteso([fatta('Antica', 60, 90)], 5000 * 86_400_000) - 0.5) < 1e-9);
 });
 
 test('stima: percentuale con segno e tempo atteso', () => {
@@ -98,10 +110,8 @@ test('stima: ultimeNote dà scostamento, minuti e livello delle ultime note, dal
   assert.deepEqual(ultimeNote([fatta('Senza stima', undefined, 30)]), [], 'senza stima non conta');
 });
 
-test('stima: una nota lunga sposta il margine un po' + "'" + ' di più di una breve con la stessa precisione', () => {
-  assert.ok(passoNota(120, 0.1) > passoNota(20, 0.1));
-  assert.ok(passoNota(120, 0.1) <= 0.85);
-  assert.ok(passoNota(20, 0.1) >= PASSO_MIN * 0.6);
+test('stima: una nota lunga pesa un po\' di più di una breve con la stessa precisione', () => {
+  assert.ok(pesoNota(120, 0.1, 0) > pesoNota(20, 0.1, 0));
 });
 
 test('stima: il giudizio sulla singola nota tiene conto anche dei minuti', () => {
@@ -144,34 +154,38 @@ test('stima: anche le curiosità completate con stima e tempo reale contano nel 
   assert.equal(storicoNote([curiosita]).length, 1);
 });
 
-test('bilanciatore del margine: di base il calcolo è quello di sempre', () => {
+test('bilanciatore del margine: valori di base delle tre curve', () => {
   const d = MARGINE_PREDEFINITO;
-  assert.ok(Math.abs(quotaScaduta(21, d) - 0.5) < 1e-9);
-  assert.ok(Math.abs(fattoreLunghezza(60, d) - 1) < 1e-9);
-  assert.ok(Math.abs(fattoreLunghezza(120, d) - 1.4) < 0.02, 'radice di 2, entro 1,4');
-  assert.ok(Math.abs(quotaErrore(0, d) - PASSO_MAX) < 1e-9);
+  assert.ok(Math.abs(pesoEta(0, d) - 1) < 1e-9 && Math.abs(pesoEta(21, d) - 0.5) < 1e-9);
+  for (const m of [5, 15, 40, 60, 90, 300]) assert.ok(Math.abs(fattoreLunghezza(m, d) - Math.min(1.4, Math.max(0.6, Math.sqrt(m / 60)))) < 1e-9, `${m} min`);
+  assert.ok(Math.abs(quotaErrore(0, d) - PESO_GIUSTA) < 1e-9);
+  assert.ok(Math.abs(quotaErrore(0.25, d) - (PESO_SBAGLIATA + (PESO_GIUSTA - PESO_SBAGLIATA) * Math.exp(-1))) < 1e-9);
 });
 
-test('bilanciatore del margine: con peso 0 un fattore non conta più', () => {
-  const p = normalizzaMargine({ eta: { peso: 0, emivita: 21 }, lunghezza: { peso: 0, esponente: 0.5 }, errore: { peso: 0, scala: 0.25 } });
-  assert.equal(quotaScaduta(365, p), 0);
-  assert.equal(fattoreLunghezza(5, p), fattoreLunghezza(600, p));
-  assert.equal(quotaErrore(0, p), quotaErrore(2, p));
+test('bilanciatore del margine: i punti trascinati sono i valori delle curve', () => {
+  const p = normalizzaMargine({ eta: { emivita: 30, minimo: 0.4 }, lunghezza: { breve: 0.8, breveMin: 30, lunga: 1.9, lungaMin: 90 }, errore: { giusta: 0.5, sbagliata: 0.5, scala: 0.25 } });
+  assert.ok(Math.abs(pesoEta(100000, p) - 0.4) < 1e-9, 'non scende sotto il minimo');
+  assert.ok(Math.abs(fattoreLunghezza(5, p) - 0.8) < 1e-9 && Math.abs(fattoreLunghezza(30, p) - 0.8) < 1e-9);
+  assert.ok(Math.abs(fattoreLunghezza(90, p) - 1.9) < 1e-9 && Math.abs(fattoreLunghezza(600, p) - 1.9) < 1e-9, 'oltre il punto lungo il peso resta quello');
+  assert.ok(fattoreLunghezza(60, p) > 0.8 && fattoreLunghezza(60, p) < 1.9);
+  const stretti = normalizzaMargine({ ...p, lunghezza: { breve: 0.8, breveMin: 100, lunga: 1.9, lungaMin: 20 } });
+  assert.ok(stretti.lunghezza.lungaMin > stretti.lunghezza.breveMin, 'il punto lungo resta dopo quello breve');
+  assert.equal(quotaErrore(0, p), quotaErrore(2, p), 'giusta e sbagliata uguali: l errore non conta');
 });
 
 test('bilanciatore del margine: le curve cambiano il margine e si ripristinano', () => {
   const GG = 86_400_000;
-  const note = [{ ...fatta('Uno', 60, 108), completatoTs: 0 }, { ...fatta('Due', 60, 66), completatoTs: 30 * GG }];
-  const base = margineAtteso(note);
-  impostaParametriMargine({ ...MARGINE_PREDEFINITO, eta: { peso: 1, emivita: 120 } });
-  assert.ok(margineAtteso(note) > base, 'con una memoria più lunga la vecchia nota sbagliata pesa di più');
+  const adesso = 30 * GG;
+  const note = [{ ...fatta('Uno', 60, 108), completatoTs: 0 }, { ...fatta('Due', 60, 66), completatoTs: adesso }];
+  const base = margineAtteso(note, adesso);
+  impostaParametriMargine({ ...MARGINE_PREDEFINITO, eta: { emivita: 100, minimo: 0 } });
+  assert.ok(margineAtteso(note, adesso) > base, 'con una memoria più lunga la vecchia nota sbagliata pesa di più');
   impostaParametriMargine(undefined);
-  assert.equal(margineAtteso(note), base);
+  assert.equal(margineAtteso(note, adesso), base);
 });
 
 test('bilanciatore del margine: i valori fuori dai limiti o mancanti tornano validi', () => {
-  const p = normalizzaMargine({ eta: { peso: 9, emivita: 1 } });
-  assert.deepEqual(p.eta, { peso: 2, emivita: 3 });
+  const p = normalizzaMargine({ eta: { emivita: 1, minimo: 7 } });
+  assert.deepEqual(p.eta, { emivita: 3, minimo: 1 });
   assert.deepEqual(p.errore, MARGINE_PREDEFINITO.errore);
 });
-

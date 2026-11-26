@@ -60,7 +60,7 @@ export function StoricoMargine() {
 
   const frase = tutte.length === 0
     ? 'Ancora nessuna nota con tempo misurato: il margine parte da 0%.'
-    : `${mp > 0 ? `Stimi meno del necessario: in media ci metti il ${mp}% in più.` : mp < 0 ? 'Stimi più del necessario.' : 'Le tue stime sono centrate.'} Le note recenti contano di più.`;
+    : `${mp > 0 ? `Stimi meno del necessario: in media ci metti il ${mp}% in più.` : mp < 0 ? 'Stimi più del necessario.' : 'Le tue stime sono centrate.'} Quanto conta ogni nota lo decidono le curve del Bilanciatore del margine.`;
 
   return (
     <>
@@ -122,7 +122,7 @@ export function StoricoMargine() {
                   </button>
                 );
               })}
-              <div className="sm-sp">La barretta sotto la percentuale è il peso della nota nel margine oggi: più è recente (si dimezza ogni 21 giorni) e più è lunga, più pesa. Una nota con meno di 10 minuti di differenza non è mai «sbagliata».</div>
+              <div className="sm-sp">La barretta sotto la percentuale è il peso della nota nel margine oggi, rispetto alla nota che pesa di più: dipende da età, lunghezza ed errore, con le curve del Bilanciatore del margine.</div>
             </div>
           </>
         )}

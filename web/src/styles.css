@@ -1113,8 +1113,30 @@ html[data-stile=base][data-theme=dark][data-tinta=ghiaccio] { --bg: #0D1117; --s
 .blocco-titolo .sub-pillole { margin-top: 0; }
 
 /* grafico delle curve esponenziali (Bilanciatore della priorità) */
-.curva-grafico { display: block; width: 100%; max-width: 320px; height: auto; margin: 6px 0 2px; }
 .curva-box { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
 .curva-retta { stroke: var(--soft); stroke-width: 1; stroke-dasharray: 3 3; }
 .curva-linea { fill: none; stroke: var(--giallo); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
-.curva-assi { display: flex; justify-content: space-between; max-width: 320px; font-size: 11px; color: var(--mid); margin-bottom: 4px; }
+/* grafico con i punti da trascinare (ui/CurvaModificabile.tsx) */
+.cm { margin: 8px 0 4px; max-width: 520px; }
+.cm-y, .cm-x { font-size: 12px; font-weight: 700; color: var(--ink); }
+.cm-y { margin-bottom: 4px; }
+.cm-x { text-align: right; margin-top: 2px; }
+.cm-box { position: relative; user-select: none; -webkit-user-select: none; }
+.cm-box svg { display: block; width: 100%; height: auto; overflow: visible; }
+.cm-griglia { stroke: var(--line); stroke-width: .7; }
+.cm-num { font-size: 10px; fill: var(--mid); font-variant-numeric: tabular-nums; }
+.cm-punto { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; padding: 0; border: 0; background: none; touch-action: none; cursor: grab; display: grid; place-items: center; }
+.cm-punto.asse-x { cursor: ew-resize; } .cm-punto.asse-y { cursor: ns-resize; } .cm-punto.asse-xy { cursor: move; }
+.cm-punto:active { cursor: grabbing; }
+.cm-punto i { width: 24px; height: 24px; border-radius: 50%; background: var(--giallo); border: 3px solid var(--surface); box-shadow: 0 1px 5px rgba(0,0,0,.4); display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 900; line-height: 1; color: #1b1500; }
+.cm-punto:active i { transform: scale(1.2); }
+.cm-punto:focus-visible i { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cm-etichetta { position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 8px; background: var(--ink); color: var(--surface); pointer-events: none; font-variant-numeric: tabular-nums; }
+.cm-etichetta.sotto { bottom: auto; top: 38px; }
+.cm-etichetta.sinistra { left: auto; right: 10px; transform: none; }
+.cm-etichetta.destra { left: 10px; transform: none; }
+.pm-peso { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pm-peso b { font-size: 14px; font-weight: 800; }
+.cm-domanda { font-size: 13.5px; font-weight: 650; padding: 2px 0 4px; }
+.cm-frase { font-size: 13px; line-height: 1.5; color: var(--mid); margin: 6px 0 4px; }
+.cm-frase b { color: var(--ink); }
